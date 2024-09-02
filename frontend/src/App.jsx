@@ -6,6 +6,7 @@ import IntroOne from "./pages/IntroOne";
 import IntroTwo from "./pages/IntroTwo";
 import ShutlLoggedOut from "./pages/ShutlLoggedOut";
 import Navbar from "./components/Navbar";
+import IntroThree from "./pages/IntroThree";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/" element={<SplashScreen />} />
         <Route path="/introOne" element={<IntroOne />} />
         <Route path="/introTwo" element={<IntroTwo />} />
+        <Route path="/introThree" element={<IntroThree />}/>
         <Route path="/ShutlLoggedOut" element={<ShutlLoggedOut />} />
       </Routes>
     </div>
