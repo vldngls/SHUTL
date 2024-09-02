@@ -34,17 +34,14 @@ const ShutlLoggedOut = () => {
         (position) => {
           const { latitude, longitude, accuracy } = position.coords;
           console.log('Position received:', latitude, longitude, accuracy); // Debugging output
-          if (accuracy <= 50) { // Example threshold of 50 meters
-            const userCoords = [latitude, longitude];
-            setUserLocation(userCoords);
-
-            // Scroll map to user's location
-            if (mapRef.current) {
-              mapRef.current.setView(userCoords, 15.5, { animate: true });
-            }
-          } else {
-            console.warn("Location accuracy is insufficient:", accuracy);
-            // Optionally notify the user about accuracy
+          
+          // Use the user's location regardless of accuracy
+          const userCoords = [latitude, longitude];
+          setUserLocation(userCoords);
+  
+          // Scroll map to user's location
+          if (mapRef.current) {
+            mapRef.current.setView(userCoords, 15.5, { animate: true });
           }
         },
         (error) => {
@@ -59,7 +56,7 @@ const ShutlLoggedOut = () => {
     } else {
       console.error("Geolocation is not supported by this browser.");
     }
-  };
+  };  
 
   useEffect(() => {
     // Prompt for initial location access
