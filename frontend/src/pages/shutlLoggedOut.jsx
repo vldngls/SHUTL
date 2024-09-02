@@ -5,7 +5,6 @@ import '../css/Loggedout.css';
 
 // Default icon for Leaflet
 import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 
 // Fix for default Leaflet icons issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -34,6 +33,7 @@ const ShutlLoggedOut = () => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude, accuracy } = position.coords;
+          console.log('Position received:', latitude, longitude, accuracy); // Debugging output
           if (accuracy <= 50) { // Example threshold of 50 meters
             const userCoords = [latitude, longitude];
             setUserLocation(userCoords);
