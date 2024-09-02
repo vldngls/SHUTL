@@ -77,9 +77,9 @@ Open a Pull Request.
 ## 📧 Contact
 For any questions or inquiries, please contact:
 
-**Vlyde Angeles** - avp1102@dlsud.edu.ph
-**Dolcielo Fuentes** - dbf2010@dlsud.edu.ph
-**Lebrone Sacman** - slg1144@dlsud.edu.ph
+- **Vlyde Angeles** - avp1102@dlsud.edu.ph
+- **Dolcielo Fuentes** - dbf2010@dlsud.edu.ph
+- **Lebrone Sacman** - slg1144@dlsud.edu.ph
 
 
-Thank you for checking out our project! We hope it brings a positive impact on commuter experience and transportation management.
+- Thank you for checking out our project! We hope it brings a positive impact on commuter experience and transportation management.
