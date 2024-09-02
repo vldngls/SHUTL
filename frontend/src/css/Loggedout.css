@@ -55,13 +55,12 @@
     margin-top: 8px;
 }
 
-
 /* Taskbar */
 .taskbar {
     position: fixed;
     bottom: 0;
-    left: 0px; /* Aligns with the right edge of the navbar */
-    width: 100%;
+    left: 0;
+    width: calc(100% + 80px); /* Expand width to cover entire screen width */
     background-color: #F5F5F5;
     color: #333;
     display: flex;
@@ -70,10 +69,12 @@
     padding: 10px 20px;
     border-top: 2px solid #e0e0e0;
     font-size: 1em; /* Adjusted to relative units */
-    z-index: 2;
+    z-index: 2; /* Ensure it is behind the navbar */
     box-sizing: border-box;
+    margin-left: -80px; /* Shift taskbar left to align with the navbar's edge */
 }
 
+/* Media Queries */
 @media (max-width: 768px) {
     .navbar {
         width: 48px;
@@ -97,6 +98,8 @@
     .icon-container {
         width: 30px;
         height: 30px;
+        margin-top: auto; /* Center icon vertically */
+        margin-bottom: 20px; /* Space from the bottom */
     }
 
     .line {
@@ -105,10 +108,8 @@
     }
 
     .taskbar {
-        left: 48px; /* Adjust to match the navbar width */
-        width: calc(100% - 48px);
-        font-size: 0.9em;
-        padding: 8px 16px;
+        width: calc(100% + 48px); /* Adjust to full viewport width on smaller screens */
+        margin-left: -48px; /* Adjust to align with navbar width */
     }
 }
 
@@ -145,6 +146,8 @@
     .icon-container {
         width: 25px;
         height: 25px;
+        margin-top: auto; /* Center icon vertically */
+        margin-bottom: 10px; /* Space from the bottom */
     }
 
     .line {
@@ -157,7 +160,14 @@
         padding: 8px 16px;
         white-space: nowrap;
         text-overflow: ellipsis;
+        width: calc(100% + 80px); /* Expand width to cover entire screen width */
+        margin-left: -80px; /* Shift taskbar left to align with the navbar's edge */
     }
+
+    .line {
+        display: none; /* Hide the line on smaller portrait devices */
+    }
+
     .map-container {
         position: absolute;
         top: 0;
