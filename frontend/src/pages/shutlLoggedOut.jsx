@@ -33,16 +33,17 @@ const ShutlLoggedOut = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          if (position.coords.accuracy <= 50) { // Example threshold of 50 meters
-            const userCoords = [position.coords.latitude, position.coords.longitude];
+          const { latitude, longitude, accuracy } = position.coords;
+          if (accuracy <= 50) { // Example threshold of 50 meters
+            const userCoords = [latitude, longitude];
             setUserLocation(userCoords);
 
             // Scroll map to user's location
             if (mapRef.current) {
-              mapRef.current.setView(userCoords, 13, { animate: true });
+              mapRef.current.setView(userCoords, 15.5, { animate: true });
             }
           } else {
-            console.warn("Location accuracy is insufficient:", position.coords.accuracy);
+            console.warn("Location accuracy is insufficient:", accuracy);
             // Optionally notify the user about accuracy
           }
         },
@@ -70,7 +71,7 @@ const ShutlLoggedOut = () => {
       {/* Map container */}
       <div className="map-container">
         <MapContainer
-          style={{ height: '100%', width: '100%' }} // Make sure map takes up full container size
+          style={{ height: '100%', width: '100%' }} // Ensure map takes up full container size
           center={[14.377, 120.983]} // Default center of the map [lat, lng]
           zoom={15.5} // Zoom level
           whenCreated={mapInstance => { mapRef.current = mapInstance }}
