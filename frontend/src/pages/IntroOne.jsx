@@ -11,6 +11,7 @@ const IntroOne = () => {
       alignItems: 'center',
       justifyContent: 'center',
       minHeight: '100vh',
+      position: 'relative'
     }}>
       <img src="your-image-url.jpg" alt="Intro" style={{ width: '300px', height: 'auto' }} />
       <p>This is intro 1.</p>
