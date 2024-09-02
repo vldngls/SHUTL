@@ -84,7 +84,7 @@ const ShutlLoggedOut = () => {
       {/* Navbar */}
       <div className="navbar">
         <div className="logo">SHU TL.</div>
-        <div className="status">Commuter - Logged out</div>
+        <div className="status"></div>
         <div className="icon-container">
           <div className="line"></div>
           <img src="../public/icon.png" alt="Navigation Icon" className="nav-icon" />
