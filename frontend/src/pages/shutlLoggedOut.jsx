@@ -33,18 +33,26 @@ const ShutlLoggedOut = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const userCoords = [position.coords.latitude, position.coords.longitude];
-          setUserLocation(userCoords);
+          if (position.coords.accuracy <= 50) { // Example threshold of 50 meters
+            const userCoords = [position.coords.latitude, position.coords.longitude];
+            setUserLocation(userCoords);
 
-          // Scroll map to user's location
-          if (mapRef.current) {
-            mapRef.current.setView(userCoords, 13, {
-              animate: true,
-            });
+            // Scroll map to user's location
+            if (mapRef.current) {
+              mapRef.current.setView(userCoords, 13, { animate: true });
+            }
+          } else {
+            console.warn("Location accuracy is insufficient:", position.coords.accuracy);
+            // Optionally notify the user about accuracy
           }
         },
         (error) => {
           console.error("Error accessing location", error);
+        },
+        {
+          enableHighAccuracy: true, // Request more accurate location
+          timeout: 5000, // Set a timeout for the request
+          maximumAge: 0 // Avoid using a cached location
         }
       );
     } else {
@@ -65,7 +73,7 @@ const ShutlLoggedOut = () => {
           style={{ height: '100vh', width: '100%', position: 'absolute', top: 0, left: 0, zIndex: 1 }} // Map behind other elements
           center={[51.505, -0.09]} // Default center of the map [lat, lng]
           zoom={13} // Zoom level
-          whenCreated={(mapInstance) => { mapRef.current = mapInstance; }}
+          whenCreated={mapInstance => { mapRef.current = mapInstance }}
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -84,7 +92,7 @@ const ShutlLoggedOut = () => {
       {/* Navbar */}
       <div className="navbar">
         <div className="logo">SHU TL.</div>
-        <div className="status"></div>
+        <div className="status">Commuter - Logged out</div>
         <div className="icon-container">
           <div className="line"></div>
           <img src="../public/icon.png" alt="Navigation Icon" className="nav-icon" />
