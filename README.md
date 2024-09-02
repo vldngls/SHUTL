@@ -58,18 +58,28 @@ Follow these steps to set up the project on your local machine:
 ## 🤝 Contributing
 Contributions are welcome! Please follow these steps:
 
-# Fork the repository.
-Create a new branch (git checkout -b feature-branch).
-Commit your changes (git commit -m 'Add a new feature').
-Push to the branch (git push origin feature-branch).
+**Fork the repository.**
+Create a new branch 
+   ```bash
+   git checkout -b feature-branch
+   ```
+Commit your changes 
+   ```bash
+   git commit -m 'Add a new feature'
+   ```
+
+Push to the branch 
+   ```bash
+   git push origin feature-branch.
+   ```
 Open a Pull Request.
-📧 Contact
+
+## 📧 Contact
 For any questions or inquiries, please contact:
 
-Vlyde Angeles - vlyde.angeles@example.com
-Dolcielo Fuentes - dolcielo.fuentes@example.com
-Lebrone Sacman - lebrone.sacman@example.com
-📄 License
-This project is licensed under the MIT License - see the LICENSE file for details.
+**Vlyde Angeles** - avp1102@dlsud.edu.ph
+**Dolcielo Fuentes** - dbf2010@dlsud.edu.ph
+**Lebrone Sacman** - slg1144@dlsud.edu.ph
+
 
 Thank you for checking out our project! We hope it brings a positive impact on commuter experience and transportation management.
