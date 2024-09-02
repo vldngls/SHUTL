@@ -70,9 +70,9 @@ const ShutlLoggedOut = () => {
       {/* Map container */}
       <div className="map-container">
         <MapContainer
-          style={{ height: '100vh', width: '100%', position: 'absolute', top: 0, left: 0, zIndex: 1 }} // Map behind other elements
-          center={[51.505, -0.09]} // Default center of the map [lat, lng]
-          zoom={13} // Zoom level
+          style={{ height: '100%', width: '100%' }} // Make sure map takes up full container size
+          center={[14.377, 120.983]} // Default center of the map [lat, lng]
+          zoom={15.5} // Zoom level
           whenCreated={mapInstance => { mapRef.current = mapInstance }}
         >
           <TileLayer
@@ -82,7 +82,7 @@ const ShutlLoggedOut = () => {
           {userLocation && (
             <Marker position={userLocation}>
               <Popup>
-                You are here. Hehehe
+                You are here.
               </Popup>
             </Marker>
           )}

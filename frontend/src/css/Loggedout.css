@@ -1,5 +1,22 @@
-/* Base styles for the navbar */
-.navbar {
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden; /* Prevent scroll bars */
+  }
+  
+  /* Map container */
+  .map-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw; /* Ensure it takes the full viewport width */
+    height: 100vh; /* Ensure it takes the full viewport height */
+    z-index: 1; /* Ensure it is behind other elements */
+  }
+  
+  /* Base styles for the navbar */
+  .navbar {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -15,21 +32,21 @@
     top: 0;
     z-index: 3;
     box-sizing: border-box;
-}
-
-.logo {
+  }
+  
+  .logo {
     font-size: 1.6em; /* Adjusted to relative units */
     font-weight: bold;
     margin-bottom: 20px;
     margin-top: 8px;
-}
-
-.status {
+  }
+  
+  .status {
     font-size: 1em; /* Adjusted to relative units */
     margin-top: auto;
-}
-
-.icon-container {
+  }
+  
+  .icon-container {
     position: relative;
     width: auto; /* Adjusted size */
     height: auto; /* Adjusted size */
@@ -37,9 +54,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.line {
+  }
+  
+  .line {
     position: absolute;
     top: -10px;
     left: 50%;
@@ -47,16 +64,16 @@
     width: 58px;
     height: 1px;
     background-color: white;
-}
-
-.nav-icon {
+  }
+  
+  .nav-icon {
     width: 48px; /* Adjusted size */
     height: 48px; /* Adjusted size */
     margin-top: 8px;
-}
-
-/* Taskbar */
-.taskbar {
+  }
+  
+  /* Taskbar */
+  .taskbar {
     position: fixed;
     bottom: 0;
     left: 0;
@@ -72,114 +89,105 @@
     z-index: 2; /* Ensure it is behind the navbar */
     box-sizing: border-box;
     margin-left: -80px; /* Shift taskbar left to align with the navbar's edge */
-}
-
-/* Media Queries */
-@media (max-width: 768px) {
+  }
+  
+  /* Media Queries */
+  @media (max-width: 768px) {
     .navbar {
-        width: 48px;
-        padding: 8px;
+      width: 48px;
+      padding: 8px;
     }
-
+  
     .logo {
-        font-size: 1.2em;
-        margin-bottom: 15px;
+      font-size: 1.2em;
+      margin-bottom: 15px;
     }
-
+  
     .status {
-        font-size: 0.9em;
+      font-size: 0.9em;
     }
-
+  
     .nav-icon {
-        width: 30px;
-        height: 30px;
+      width: 30px;
+      height: 30px;
     }
-
+  
     .icon-container {
-        width: 30px;
-        height: 30px;
-        margin-top: auto; /* Center icon vertically */
-        margin-bottom: 20px; /* Space from the bottom */
+      width: 30px;
+      height: 30px;
+      margin-top: auto; /* Center icon vertically */
+      margin-bottom: 20px; /* Space from the bottom */
     }
-
+  
     .line {
-        top: -8px;
-        width: 15px;
+      top: -8px;
+      width: 15px;
     }
-
+  
     .taskbar {
-        width: calc(100% + 48px); /* Adjust to full viewport width on smaller screens */
-        margin-left: -48px; /* Adjust to align with navbar width */
+      width: calc(100% + 48px); /* Adjust to full viewport width on smaller screens */
+      margin-left: -48px; /* Adjust to align with navbar width */
     }
-}
-
-@media (max-width: 480px) {
+  }
+  
+  @media (max-width: 480px) {
     .navbar {
-        flex-direction: row;
-        justify-content: space-between;
-        width: 100%;
-        height: 50px;
-        border-radius: 0;
-        padding: 0 10px;
-        bottom: 0;
-        position: fixed;
-        z-index: 2;
+      flex-direction: row;
+      justify-content: space-between;
+      width: 100%;
+      height: 50px;
+      border-radius: 0;
+      padding: 0 10px;
+      bottom: 0;
+      position: fixed;
+      z-index: 2;
     }
-
+  
     .logo {
-        font-size: 1em;
-        margin-bottom: 0;
-        align-self: center;
+      font-size: 1em;
+      margin-bottom: 0;
+      align-self: center;
     }
-
+  
     .status {
-        font-size: 0.9em;
-        margin-top: 0;
-        align-self: center;
+      font-size: 0.9em;
+      margin-top: 0;
+      align-self: center;
     }
-
+  
     .nav-icon {
-        width: 25px;
-        height: 25px;
+      width: 25px;
+      height: 25px;
     }
-
+  
     .icon-container {
-        width: 25px;
-        height: 25px;
-        margin-top: auto; /* Center icon vertically */
-        margin-bottom: 10px; /* Space from the bottom */
+      width: 25px;
+      height: 25px;
+      margin-top: auto; /* Center icon vertically */
+      margin-bottom: 10px; /* Space from the bottom */
     }
-
+  
     .line {
-        top: -4px;
-        width: 12px;
+      top: -4px;
+      width: 12px;
     }
-
+  
     .taskbar {
-        font-size: 0.9em;
-        padding: 8px 16px;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        width: calc(100% + 80px); /* Expand width to cover entire screen width */
-        margin-left: -80px; /* Shift taskbar left to align with the navbar's edge */
+      font-size: 0.9em;
+      padding: 8px 16px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      width: calc(100% + 80px); /* Expand width to cover entire screen width */
+      margin-left: -80px; /* Shift taskbar left to align with the navbar's edge */
     }
-
+  
     .line {
-        display: none; /* Hide the line on smaller portrait devices */
+      display: none; /* Hide the line on smaller portrait devices */
     }
-
-    .map-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 1; /* Ensure map is in the background */
-    }
-}
-
-/* Update Location Button */
-.update-location-btn {
+  }
+  
+  /* Update Location Button */
+  .update-location-btn {
     position: fixed;
     right: 20px;
     bottom: 60px; /* Adjust this value to position it above the taskbar */
@@ -188,37 +196,38 @@
     padding: 0; /* Remove default padding */
     cursor: pointer;
     z-index: 3; /* Ensure it stays above the map and taskbar */
-}
-
-.update-location-icon {
+  }
+  
+  .update-location-icon {
     width: 40px; /* Adjust the icon size */
     height: 40px; /* Adjust the icon size */
-}
-
-.update-location-btn:hover .update-location-icon {
+  }
+  
+  .update-location-btn:hover .update-location-icon {
     opacity: 0.8; /* Add hover effect */
-}
-
-@media (max-width: 768px) {
+  }
+  
+  @media (max-width: 768px) {
     .update-location-btn {
-        right: 10px;
-        bottom: 50px; /* Adjust for smaller screens */
+      right: 10px;
+      bottom: 50px; /* Adjust for smaller screens */
     }
-
+  
     .update-location-icon {
-        width: 30px;
-        height: 30px;
+      width: 30px;
+      height: 30px;
     }
-}
-
-@media (max-width: 480px) {
+  }
+  
+  @media (max-width: 480px) {
     .update-location-btn {
-        right: 10px;
-        bottom: 60px; /* Adjust for smaller screens */
+      right: 10px;
+      bottom: 60px; /* Adjust for smaller screens */
     }
-
+  
     .update-location-icon {
-        width: 25px;
-        height: 25px;
+      width: 25px;
+      height: 25px;
     }
-}
+  }
+  
