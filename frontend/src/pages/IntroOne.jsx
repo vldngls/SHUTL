@@ -1,28 +1,17 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import '../css/Intro.css'; // Ensure this path is correct
 
 const IntroOne = () => {
   const navigate = useNavigate();
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-      position: 'relative'
-    }}>
-      <img src="your-image-url.jpg" alt="Intro" style={{ width: '300px', height: 'auto' }} />
+    <div className="intro-container">
+      <img src="intro1.png" alt="Intro" className="intro-image" />
       <p>This is intro 1.</p>
       <button
         onClick={() => navigate('/introTwo')}
-        style={{
-          position: 'absolute',
-          bottom: '20px',
-          right: '20px',
-          padding: '10px 20px',
-        }}
+        className="intro-button"
       >
         Next
       </button>
