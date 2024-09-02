@@ -15,7 +15,7 @@ function App() {
         <Route path="/" element={<SplashScreen />} />
         <Route path="/introOne" element={<IntroOne />} />
         <Route path="/introTwo" element={<IntroTwo />} />
-        <Route path="/shutlLoggedOut" element={<ShutlLoggedOut />} />
+        <Route path="/ShutlLoggedOut" element={<ShutlLoggedOut />} />
       </Routes>
     </div>
   );

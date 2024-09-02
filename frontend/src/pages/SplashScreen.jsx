@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const SplashScreen = () => {
-  const [show, setShow] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setShow(false);
+      navigate('/introOne');
     }, 3000); // Adjust the time as needed
     return () => clearTimeout(timer);
-  }, []);
+  }, [navigate]);
 
   return (
     <div style={{
@@ -17,7 +18,6 @@ const SplashScreen = () => {
       alignItems: 'center',
       minHeight: '100vh',
       transition: 'opacity 1s',
-      opacity: show ? 1 : 0,
     }}>
       <h1>SHUTL.</h1>
     </div>
