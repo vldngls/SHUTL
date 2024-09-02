@@ -82,4 +82,4 @@ For any questions or inquiries, please contact:
 - **Lebrone Sacman** - slg1144@dlsud.edu.ph
 
 
-- Thank you for checking out our project! We hope it brings a positive impact on commuter experience and transportation management.
+**Thank you for checking out our project! We hope it brings a positive impact on commuter experience and transportation management.**
