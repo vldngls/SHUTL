@@ -15,10 +15,20 @@
   height: auto; /* Maintain aspect ratio */
 }
 
+/* Styling for content areas in intros */
+.intro-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  position: relative;
+}
+
 /* Fixed button styling */
 .intro-button {
   position: fixed; /* Fixed position */
-  bottom: 20px; /* 48px from the bottom edge of the screen */
+  bottom: 20px; /* 20px from the bottom edge of the screen */
   right: 48px; /* 48px from the right edge of the screen */
   padding: 0 48px; /* Increased left and right padding for wider button */
   height: 56px; /* Fixed height */

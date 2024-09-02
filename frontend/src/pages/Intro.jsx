@@ -27,30 +27,18 @@ const ShutlIntro = () => {
       )}
       {currentIntro === 2 && (
         // Content for IntroTwo
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-          position: 'relative'
-        }}>
-          <img src="intro2.png" alt="Intro 2" style={{ width: '300px', height: 'auto' }} />
-          <p>This is intro 2.</p>
+        <div className="intro-content">
+          <img src="intro2.png" alt="Intro 2" className="intro-image" />
+          <p><b>Prediction and consistency.</b></p>
+          <p><small>Shuttle tracking to help you manage your time and schedule</small></p>
         </div>
       )}
       {currentIntro === 3 && (
         // Content for IntroThree
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-          position: 'relative'
-        }}>
-          <img src="intro3.png" alt="Intro 3" style={{ width: '300px', height: 'auto' }} />
-          <p>This is intro 3.</p>
+        <div className="intro-content">
+          <img src="intro3.png" alt="Intro 3" className="intro-image" />
+          <p><b>Finance</b></p>
+          <p><small>Track every trip, every cent.</small></p>
         </div>
       )}
 
