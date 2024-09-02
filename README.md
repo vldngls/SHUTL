@@ -36,18 +36,21 @@ Follow these steps to set up the project on your local machine:
    ```bash
    git clone https://github.com/vldngls/SHUTL.git
    cd SHUTL
+   ```
 
 **Install backend dependencies**:
    ```bash
    cd backend
    npm install
+   ```
 
-Install frontend dependencies:
+**Install frontend dependencies**:
+   ```bash
+   cd frontend
+   npm install
+   ```
 
-Install frontend dependencies:
-cd frontend
-npm install
-Create a .env file in the server directory and add your MongoDB URI and other environment variables:
+**Create a .env file in the server directory and add your MongoDB URI and other environment variables:**
 MONGO_URI=********************************************
 
 🤝 Contributing
