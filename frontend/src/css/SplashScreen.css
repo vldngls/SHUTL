@@ -1,0 +1,19 @@
+/* Container styling */
+.splash-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #fff; /* Optional: Set background color */
+    transition: opacity 1s;
+  }
+  
+  /* Text styling */
+  .splash-text {
+    font-size: 10rem; /* Use rem for a large font size, equivalent to 128px */
+    font-weight: bold; /* Optional: Make text bold */
+    color: #000; /* Optional: Set text color */
+    margin: 0;
+    text-align: center;
+  }
+  

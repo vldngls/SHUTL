@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import '../css/SplashScreen.css'; // Update the import path
 
 const SplashScreen = () => {
   const navigate = useNavigate();
@@ -12,14 +13,8 @@ const SplashScreen = () => {
   }, [navigate]);
 
   return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '100vh',
-      transition: 'opacity 1s',
-    }}>
-      <h1>SHUTL.</h1>
+    <div className="splash-container">
+      <h1 className="splash-text">SHUTL</h1>
     </div>
   );
 }
