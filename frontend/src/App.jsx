@@ -2,11 +2,8 @@ import React from "react";
 import { Route, Routes } from "react-router-dom";
 
 import SplashScreen from "./pages/SplashScreen";
-import IntroOne from "./pages/IntroOne";
-import IntroTwo from "./pages/IntroTwo";
+import ShutlIntro from "./pages/Intro";
 import ShutlLoggedOut from "./pages/ShutlLoggedOut";
-import Navbar from "./components/Navbar";
-import IntroThree from "./pages/IntroThree";
 
 function App() {
   return (
@@ -14,9 +11,7 @@ function App() {
       {/* <Navbar />*/} 
       <Routes>
         <Route path="/" element={<SplashScreen />} />
-        <Route path="/introOne" element={<IntroOne />} />
-        <Route path="/introTwo" element={<IntroTwo />} />
-        <Route path="/introThree" element={<IntroThree />}/>
+        <Route path="/ShutlIntro" element={<ShutlIntro />} />
         <Route path="/ShutlLoggedOut" element={<ShutlLoggedOut />} />
       </Routes>
     </div>

@@ -1,76 +1,86 @@
 /* Intro.css */
 .intro-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    position: relative;
-    padding: 0 20px; /* Add padding to avoid content being too close to the edges */
-  }
-  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  position: relative;
+  padding: 0 20px; /* Add padding to avoid content being too close to the edges */
+}
+
+.intro-image {
+  width: 80%; /* Default width relative to container */
+  max-width: 600px; /* Max width to avoid being too large */
+  height: auto; /* Maintain aspect ratio */
+}
+
+.intro-button {
+  position: fixed; /* Fixed position */
+  bottom: 48px; /* 48px from the bottom edge of the screen */
+  right: 48px; /* 48px from the right edge of the screen */
+  padding: 0 32px; /* Increased left and right padding for wider button */
+  height: 56px; /* Fixed height */
+  border: none; /* Remove default border */
+  border-radius: 20px; /* Rounded corners */
+  background-color: #D9D9D9; /* Button background color */
+  color: #232323; /* Text color */
+  font-size: 16px; /* Font size */
+  font-weight: 600; /* Semibold font weight */
+  cursor: pointer; /* Pointer cursor on hover */
+  transition: background-color 0.3s; /* Smooth background color transition */
+  display: flex; /* Use flexbox to align text */
+  align-items: center; /* Center vertically */
+  justify-content: center; /* Center horizontally */
+}
+
+.intro-button:hover {
+  background-color: #8a8a8a; /* Darker color on hover */
+}
+
+/* Pagination Dots */
+.pagination-dots {
+  position: absolute;
+  bottom: 20px; /* Positioning dots above the button */
+  display: flex;
+  gap: 8px; /* Space between dots */
+}
+
+.dot {
+  width: 10px; /* Dot size */
+  height: 10px;
+  border-radius: 50%; /* Make it round */
+  background-color: #ccc; /* Default dot color */
+  transition: background-color 0.3s; /* Smooth color transition */
+}
+
+.dot.active {
+  background-color: #007bff; /* Active dot color */
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
   .intro-image {
-    width: 80%; /* Default width relative to container */
-    max-width: 600px; /* Max width to avoid being too large */
-    height: auto; /* Maintain aspect ratio */
+    width: 90%; /* Adjust width for smaller screens */
+    max-width: 400px; /* Smaller max-width for smaller screens */
   }
-  
+
   .intro-button {
-    position: absolute;
-    bottom: 60px; /* Adjusted to fit dots */
-    right: 20px;
-    padding: 10px 20px;
-    border: none; /* Remove default border */
-    border-radius: 20px; /* Rounded corners */
-    background-color: #D9D9D9; /* Button background color */
-    color: #232323; /* Text color */
-    font-size: 16px; /* Font size */
-    cursor: pointer; /* Pointer cursor on hover */
-    transition: background-color 0.3s; /* Smooth background color transition */
+    bottom: 32px; /* Reduce bottom margin for smaller screens */
+    right: 32px; /* Reduce right margin for smaller screens */
+    padding: 0 28px; /* Slightly reduce padding for smaller screens */
   }
-  
-  .intro-button:hover {
-    background-color: #8a8a8a; /* Darker color on hover */
+}
+
+@media (max-width: 480px) {
+  .intro-image {
+    width: 100%; /* Full width for very small screens */
+    max-width: none; /* Remove max-width restriction */
   }
-  
-  /* Pagination Dots */
-  .pagination-dots {
-    position: absolute;
-    bottom: 20px; /* Positioning dots above the button */
-    display: flex;
-    gap: 8px; /* Space between dots */
+
+  .intro-button {
+    bottom: 24px; /* Further reduce bottom margin for very small screens */
+    right: 16px; /* Further reduce right margin for very small screens */
+    padding: 0 24px; /* Adjust padding for very small screens */
   }
-  
-  .dot {
-    width: 10px; /* Dot size */
-    height: 10px;
-    border-radius: 50%; /* Make it round */
-    background-color: #ccc; /* Default dot color */
-    transition: background-color 0.3s; /* Smooth color transition */
-  }
-  
-  .dot.active {
-    background-color: #007bff; /* Active dot color */
-  }
-  
-  /* Media Queries */
-  @media (max-width: 768px) {
-    .intro-image {
-      width: 90%; /* Adjust width for smaller screens */
-      max-width: 400px; /* Smaller max-width for smaller screens */
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .intro-image {
-      width: 100%; /* Full width for very small screens */
-      max-width: none; /* Remove max-width restriction */
-    }
-  
-    .intro-button {
-      bottom: 60px; /* Adjust button position for small screens */
-      right: 10px; /* Adjust button position for small screens */
-      padding: 8px 16px; /* Adjust padding for small screens */
-    }
-  }
-  
+}

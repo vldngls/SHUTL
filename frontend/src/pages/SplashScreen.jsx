@@ -7,8 +7,8 @@ const SplashScreen = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigate('/introOne');
-    }, 3000); // Adjust the time as needed
+      navigate('/ShutlIntro');
+    }, 3250); // Adjust the time as needed
     return () => clearTimeout(timer);
   }, [navigate]);
 
