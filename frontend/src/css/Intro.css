@@ -15,18 +15,19 @@
   height: auto; /* Maintain aspect ratio */
 }
 
+/* Fixed button styling */
 .intro-button {
   position: fixed; /* Fixed position */
-  bottom: 48px; /* 48px from the bottom edge of the screen */
+  bottom: 20px; /* 48px from the bottom edge of the screen */
   right: 48px; /* 48px from the right edge of the screen */
-  padding: 0 32px; /* Increased left and right padding for wider button */
+  padding: 0 48px; /* Increased left and right padding for wider button */
   height: 56px; /* Fixed height */
   border: none; /* Remove default border */
-  border-radius: 20px; /* Rounded corners */
+  border-radius: 38.5px; /* Rounded corners */
   background-color: #D9D9D9; /* Button background color */
   color: #232323; /* Text color */
   font-size: 16px; /* Font size */
-  font-weight: 600; /* Semibold font weight */
+  font-weight: 200; /* Semibold font weight */
   cursor: pointer; /* Pointer cursor on hover */
   transition: background-color 0.3s; /* Smooth background color transition */
   display: flex; /* Use flexbox to align text */
@@ -40,18 +41,24 @@
 
 /* Pagination Dots */
 .pagination-dots {
-  position: absolute;
-  bottom: 20px; /* Positioning dots above the button */
-  display: flex;
+  position: fixed; /* Fixed positioning */
+  bottom: 28px; /* Positioning dots above the button */
+  left: 50%; /* Center horizontally */
+  transform: translateX(-50%); /* Adjust to truly center */
+  display: flex; /* Display as flexbox */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
   gap: 8px; /* Space between dots */
 }
 
+/* Dot styling */
 .dot {
   width: 10px; /* Dot size */
   height: 10px;
   border-radius: 50%; /* Make it round */
   background-color: #ccc; /* Default dot color */
   transition: background-color 0.3s; /* Smooth color transition */
+  cursor: pointer; /* Pointer cursor on hover */
 }
 
 .dot.active {
@@ -70,6 +77,10 @@
     right: 32px; /* Reduce right margin for smaller screens */
     padding: 0 28px; /* Slightly reduce padding for smaller screens */
   }
+
+  .pagination-dots {
+    bottom: 32px; /* Adjust positioning for smaller screens */
+  }
 }
 
 @media (max-width: 480px) {
@@ -82,5 +93,9 @@
     bottom: 24px; /* Further reduce bottom margin for very small screens */
     right: 16px; /* Further reduce right margin for very small screens */
     padding: 0 24px; /* Adjust padding for very small screens */
+  }
+
+  .pagination-dots {
+    bottom: 24px; /* Adjust positioning for very small screens */
   }
 }

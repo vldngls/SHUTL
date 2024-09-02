@@ -28,7 +28,10 @@
   75% {
     opacity: 1; /* Stay fully visible */
   }
-  100% {
+  80% {
     opacity: 0; /* Fade out to fully transparent */
+  }
+  100% {
+    opacity: 0;
   }
 }

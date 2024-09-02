@@ -11,7 +11,7 @@ const ShutlIntro = () => {
     if (currentIntro < 3) {
       setCurrentIntro(currentIntro + 1); // Move to the next intro
     } else {
-      navigate('/introThree'); // Navigate to the next page or wherever it needs to go after intro three
+      navigate('/ShutlLoggedOut'); // Navigate to the next page or wherever it needs to go after intro three
     }
   };
 
@@ -54,27 +54,26 @@ const ShutlIntro = () => {
         </div>
       )}
 
-      {/* Footer Section for navigation buttons */}
-      <div className="intro-footer">
-        <div className="pagination-dots">
-          <span
-            className={`dot ${currentIntro === 1 ? 'active' : ''}`}
-            onClick={() => setCurrentIntro(1)}
-          />
-          <span
-            className={`dot ${currentIntro === 2 ? 'active' : ''}`}
-            onClick={() => setCurrentIntro(2)}
-          />
-          <span
-            className={`dot ${currentIntro === 3 ? 'active' : ''}`}
-            onClick={() => setCurrentIntro(3)}
-          />
-        </div>
-        {/* Button will be consistently styled in CSS for all intros */}
-        <button onClick={handleNext} className="intro-button">
-          Next
-        </button>
+      {/* Footer Section for navigation dots */}
+      <div className="pagination-dots">
+        <span
+          className={`dot ${currentIntro === 1 ? 'active' : ''}`}
+          onClick={() => setCurrentIntro(1)}
+        />
+        <span
+          className={`dot ${currentIntro === 2 ? 'active' : ''}`}
+          onClick={() => setCurrentIntro(2)}
+        />
+        <span
+          className={`dot ${currentIntro === 3 ? 'active' : ''}`}
+          onClick={() => setCurrentIntro(3)}
+        />
       </div>
+
+      {/* Button for navigation */}
+      <button onClick={handleNext} className="intro-button">
+        Next
+      </button>
     </div>
   );
 };
