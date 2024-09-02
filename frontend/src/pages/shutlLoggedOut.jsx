@@ -1,6 +1,6 @@
 import React from 'react'
 
-const shutlLoggedOut = () => {
+const ShutlLoggedOut = () => {
   return (
     <div>
       This the logged out.
@@ -8,4 +8,4 @@ const shutlLoggedOut = () => {
   )
 }
 
-export default shutlLoggedOut
+export default ShutlLoggedOut
