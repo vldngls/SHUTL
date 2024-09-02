@@ -3,13 +3,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 64px;
+    width: 80px;
     height: 100vh;
-    background-color: #333;
+    background-color: #232323;
     color: white;
     border-top-right-radius: 38.5px;
     border-bottom-right-radius: 38.5px;
-    padding: 10px;
+    padding: 16px;
     position: fixed;
     left: 0;
     top: 0;
@@ -18,9 +18,10 @@
 }
 
 .logo {
-    font-size: 1.5em; /* Adjusted to relative units */
+    font-size: 1.6em; /* Adjusted to relative units */
     font-weight: bold;
     margin-bottom: 20px;
+    margin-top: 8px;
 }
 
 .status {
@@ -30,10 +31,9 @@
 
 .icon-container {
     position: relative;
-    width: 40px; /* Adjusted size */
-    height: 40px; /* Adjusted size */
-    margin-top: auto;
-    margin-bottom: 10px;
+    width: auto; /* Adjusted size */
+    height: auto; /* Adjusted size */
+    margin-top: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -44,15 +44,17 @@
     top: -10px;
     left: 50%;
     transform: translateX(-50%);
-    width: 20px;
+    width: 58px;
     height: 1px;
     background-color: white;
 }
 
 .nav-icon {
-    width: 40px; /* Adjusted size */
-    height: 40px; /* Adjusted size */
+    width: 48px; /* Adjusted size */
+    height: 48px; /* Adjusted size */
+    margin-top: 8px;
 }
+
 
 /* Taskbar */
 .taskbar {
@@ -166,28 +168,36 @@
     }
 }
 
+/* Update Location Button */
 .update-location-btn {
     position: fixed;
     right: 20px;
     bottom: 60px; /* Adjust this value to position it above the taskbar */
-    padding: 10px 20px;
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    border-radius: 5px;
+    background: none; /* Remove default button styles */
+    border: none; /* Remove default button border */
+    padding: 0; /* Remove default padding */
     cursor: pointer;
     z-index: 3; /* Ensure it stays above the map and taskbar */
 }
 
-.update-location-btn:hover {
-    background-color: #0056b3;
+.update-location-icon {
+    width: 40px; /* Adjust the icon size */
+    height: 40px; /* Adjust the icon size */
+}
+
+.update-location-btn:hover .update-location-icon {
+    opacity: 0.8; /* Add hover effect */
 }
 
 @media (max-width: 768px) {
     .update-location-btn {
         right: 10px;
         bottom: 50px; /* Adjust for smaller screens */
-        padding: 8px 16px;
+    }
+
+    .update-location-icon {
+        width: 30px;
+        height: 30px;
     }
 }
 
@@ -195,6 +205,10 @@
     .update-location-btn {
         right: 10px;
         bottom: 60px; /* Adjust for smaller screens */
-        padding: 6px 12px;
+    }
+
+    .update-location-icon {
+        width: 25px;
+        height: 25px;
     }
 }

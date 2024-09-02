@@ -95,7 +95,7 @@ const ShutlLoggedOut = () => {
         <div className="status"></div>
         <div className="icon-container">
           <div className="line"></div>
-          <img src="../public/icon.png" alt="Navigation Icon" className="nav-icon" />
+          <img src="/icon.png" alt="Navigation Icon" className="nav-icon" />
         </div>
       </div>
 
@@ -106,7 +106,7 @@ const ShutlLoggedOut = () => {
 
       {/* Update Location Button */}
       <button className="update-location-btn" onClick={updateUserLocation}>
-        Update Location
+        <img src="/locup.png" alt="Update Location" className="update-location-icon" />
       </button>
     </>
   );
