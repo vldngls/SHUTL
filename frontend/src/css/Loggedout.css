@@ -165,3 +165,36 @@
         z-index: 1; /* Ensure map is in the background */
     }
 }
+
+.update-location-btn {
+    position: fixed;
+    right: 20px;
+    bottom: 60px; /* Adjust this value to position it above the taskbar */
+    padding: 10px 20px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 3; /* Ensure it stays above the map and taskbar */
+}
+
+.update-location-btn:hover {
+    background-color: #0056b3;
+}
+
+@media (max-width: 768px) {
+    .update-location-btn {
+        right: 10px;
+        bottom: 50px; /* Adjust for smaller screens */
+        padding: 8px 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .update-location-btn {
+        right: 10px;
+        bottom: 60px; /* Adjust for smaller screens */
+        padding: 6px 12px;
+    }
+}

@@ -29,8 +29,7 @@ const ShutlLoggedOut = () => {
     return () => clearInterval(timer); // Cleanup timer on component unmount
   }, []);
 
-  useEffect(() => {
-    // Prompt for location access
+  const updateUserLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -49,6 +48,11 @@ const ShutlLoggedOut = () => {
     } else {
       console.error("Geolocation is not supported by this browser.");
     }
+  };
+
+  useEffect(() => {
+    // Prompt for initial location access
+    updateUserLocation();
   }, []);
 
   return (
@@ -89,6 +93,11 @@ const ShutlLoggedOut = () => {
       <div className="taskbar">
         {dateTime.toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} - {dateTime.toLocaleTimeString('en-PH')}
       </div>
+
+      {/* Update Location Button */}
+      <button className="update-location-btn" onClick={updateUserLocation}>
+        Update Location
+      </button>
     </>
   );
 }
