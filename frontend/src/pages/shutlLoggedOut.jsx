@@ -38,7 +38,9 @@ const ShutlLoggedOut = () => {
 
           // Scroll map to user's location
           if (mapRef.current) {
-            mapRef.current.setView(userCoords, 13);
+            mapRef.current.setView(userCoords, 13, {
+              animate: true,
+            });
           }
         },
         (error) => {
@@ -63,7 +65,7 @@ const ShutlLoggedOut = () => {
           style={{ height: '100vh', width: '100%', position: 'absolute', top: 0, left: 0, zIndex: 1 }} // Map behind other elements
           center={[51.505, -0.09]} // Default center of the map [lat, lng]
           zoom={13} // Zoom level
-          whenCreated={mapInstance => { mapRef.current = mapInstance }}
+          whenCreated={(mapInstance) => { mapRef.current = mapInstance; }}
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
