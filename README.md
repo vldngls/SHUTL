@@ -32,42 +32,23 @@ Follow these steps to set up the project on your local machine:
 
 ### Installation
 
-1. **Clone the repository**:
-
+**Clone the repository**:
    ```bash
    git clone https://github.com/vldngls/SHUTL.git
    cd SHUTL
-Install backend dependencies:
 
-bash
-Copy code
-cd server
-npm install
+**Install backend dependencies**:
+   ```bash
+   cd backend
+   npm install
+
 Install frontend dependencies:
 
-bash
-Copy code
-cd ../client
+Install frontend dependencies:
+cd frontend
 npm install
 Create a .env file in the server directory and add your MongoDB URI and other environment variables:
-
-bash
-Copy code
-MONGO_URI=mongodb://localhost:27017/your-database-name
-PORT=5000
-Start the backend server:
-
-bash
-Copy code
-cd ../server
-npm start
-Start the frontend server:
-
-bash
-Copy code
-cd ../client
-npm start
-Access the app in your browser at http://localhost:3000.
+MONGO_URI=********************************************
 
 🤝 Contributing
 Contributions are welcome! Please follow these steps:
