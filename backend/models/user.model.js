@@ -1,17 +1,19 @@
-import mongoose, { mongo } from "mongoose";
+import mongoose from 'mongoose';
 
-const productSchema = new mongoose.Schema({
-    name:{
+const userSchema = new mongoose.Schema({
+    name: {
         type: String,
         required: true
     },
     email: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     username: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     password: {
         type: String,
@@ -22,9 +24,9 @@ const productSchema = new mongoose.Schema({
         required: true
     },
 }, {
-    timestamps: true //createdAt, updatedAt
+    timestamps: true // createdAt, updatedAt
 });
 
-const User = mongoose.model('shutlUser', userSchema);
+const User = mongoose.model('User', userSchema);
 
 export default User;

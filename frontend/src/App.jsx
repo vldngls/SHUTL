@@ -4,6 +4,7 @@ import { Route, Routes } from "react-router-dom";
 import SplashScreen from "./pages/SplashScreen";
 import ShutlIntro from "./pages/Intro";
 import ShutlLoggedOut from "./pages/ShutlLoggedOut";
+import LoginForm from "./components/LoginForm";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route path="/" element={<SplashScreen />} />
         <Route path="/ShutlIntro" element={<ShutlIntro />} />
         <Route path="/ShutlLoggedOut" element={<ShutlLoggedOut />} />
+        <Route path="/LoginForm" element={<LoginForm/>} />
       </Routes>
     </div>
   );
