@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import '../css/Loggedout.css';
@@ -18,6 +18,8 @@ L.Icon.Default.mergeOptions({
 
 const ShutlLoggedOut = () => {
   const [dateTime, setDateTime] = useState(new Date());
+  const [userLocation, setUserLocation] = useState(null);
+  const mapRef = useRef();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -27,30 +29,55 @@ const ShutlLoggedOut = () => {
     return () => clearInterval(timer); // Cleanup timer on component unmount
   }, []);
 
+  useEffect(() => {
+    // Prompt for location access
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userCoords = [position.coords.latitude, position.coords.longitude];
+          setUserLocation(userCoords);
+
+          // Scroll map to user's location
+          if (mapRef.current) {
+            mapRef.current.setView(userCoords, 13);
+          }
+        },
+        (error) => {
+          console.error("Error accessing location", error);
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
+  }, []);
+
   return (
-    <div>
+    <>
       {/* Map container */}
       <div className="map-container">
         <MapContainer
-          style={{ height: '100vh', width: '100%' }} // Full viewport height
-          center={[51.505, -0.09]} // Center of the map [lat, lng]
-          zoom={13 // Zoom level
+          style={{ height: '100vh', width: '100%', position: 'absolute', top: 0, left: 0, zIndex: 1 }} // Map behind other elements
+          center={[51.505, -0.09]} // Default center of the map [lat, lng]
+          zoom={13} // Zoom level
+          whenCreated={mapInstance => { mapRef.current = mapInstance }}
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
-          <Marker position={[51.505, -0.09]}>
-            <Popup>
-              A pretty CSS3 popup.<br />Easily customizable.
-            </Popup>
-          </Marker>
+          {userLocation && (
+            <Marker position={userLocation}>
+              <Popup>
+                You are here.
+              </Popup>
+            </Marker>
+          )}
         </MapContainer>
       </div>
 
-      {/* Navbar and taskbar */}
+      {/* Navbar */}
       <div className="navbar">
-        <div className="logo">SHU TL</div>
+        <div className="logo">SHU TL.</div>
         <div className="status">Commuter - Logged out</div>
         <div className="icon-container">
           <div className="line"></div>
@@ -58,10 +85,11 @@ const ShutlLoggedOut = () => {
         </div>
       </div>
 
+      {/* Taskbar */}
       <div className="taskbar">
         {dateTime.toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} - {dateTime.toLocaleTimeString('en-PH')}
       </div>
-    </div>
+    </>
   );
 }
 
