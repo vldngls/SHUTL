@@ -1,21 +1,23 @@
-import { Box, Button } from "@chakra-ui/react";
+import React from "react";
 import { Route, Routes } from "react-router-dom";
+
 import SplashScreen from "./pages/SplashScreen";
 import IntroOne from "./pages/IntroOne";
-import shutlLoggedOut from "./pages/shutlLoggedOut";
-
+import IntroTwo from "./pages/IntroTwo";
+import ShutlLoggedOut from "./pages/ShutlLoggedOut";
+import Navbar from "./components/Navbar";
 
 function App() {
-
   return (
-    <Box minH={"100vh"}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <Navbar />
       <Routes>
         <Route path="/" element={<SplashScreen />} />
-        <Route path="/LoginPage" element={<IntroOne />} />
-        <Route path="/shutlLoggedOut" element={<shutlLoggedOut />}/>
+        <Route path="/introOne" element={<IntroOne />} />
+        <Route path="/introTwo" element={<IntroTwo />} />
+        <Route path="/shutlLoggedOut" element={<ShutlLoggedOut />} />
       </Routes>
-    </Box>
+    </div>
   );
 }
 

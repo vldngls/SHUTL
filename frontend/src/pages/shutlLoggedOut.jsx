@@ -3,7 +3,7 @@ import React from 'react'
 const shutlLoggedOut = () => {
   return (
     <div>
-      This is the logged out page.
+      This the logged out.
     </div>
   )
 }
