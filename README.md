@@ -51,12 +51,14 @@ Follow these steps to set up the project on your local machine:
    ```
 
 **Create a .env file in the server directory and add your MongoDB URI and other environment variables:**
-MONGO_URI=********************************************
+   ```bash
+   MONGO_URI=********************************************
+   ```
 
 ## 🤝 Contributing
 Contributions are welcome! Please follow these steps:
 
-**Fork the repository.**
+# Fork the repository.
 Create a new branch (git checkout -b feature-branch).
 Commit your changes (git commit -m 'Add a new feature').
 Push to the branch (git push origin feature-branch).
