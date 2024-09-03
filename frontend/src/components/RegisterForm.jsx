@@ -6,7 +6,7 @@ const RegisterForm = ({ onClose }) => {
     const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [userType, setUserType] = useState(''); // or set a default userType like 'User'
+    const [userType, setUserType] = useState('');
     const [error, setError] = useState('');
 
     const handleSubmit = async (e) => {

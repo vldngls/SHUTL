@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import '../css/LoginForm.css';
+import RegisterForm from './RegisterForm';
 
 const LoginForm = ({ onClose }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [isRegistering, setIsRegistering] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -19,7 +21,6 @@ const LoginForm = ({ onClose }) => {
 
             const data = await response.json();
             if (response.ok) {
-                // Handle successful login (e.g., save token, redirect)
                 console.log('Login successful', data);
                 onClose(); // Close the modal after successful login
             } else {
@@ -33,37 +34,50 @@ const LoginForm = ({ onClose }) => {
 
     return (
         <div className="overlay" onClick={onClose}>
-            <div className="login-container" onClick={(e) => e.stopPropagation()}>
-                <h2 className="login-title">Login</h2>
-                <form className="login-form" onSubmit={handleSubmit}>
-                    <div className="login-input-group">
-                        <label className="login-label" htmlFor="username">Username</label>
-                        <input
-                            className="login-input"
-                            type="text"
-                            id="username"
-                            name="username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            required
-                        />
+            {isRegistering ? (
+                <RegisterForm onClose={onClose} />
+            ) : (
+                <div className="login-container" onClick={(e) => e.stopPropagation()}>
+                    <h2 className="login-title">Login</h2>
+                    <form className="login-form" onSubmit={handleSubmit}>
+                        <div className="login-input-group">
+                            <label className="login-label" htmlFor="username">Username</label>
+                            <input
+                                className="login-input"
+                                type="text"
+                                id="username"
+                                name="username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="login-input-group">
+                            <label className="login-label" htmlFor="password">Password</label>
+                            <input
+                                className="login-input"
+                                type="password"
+                                id="password"
+                                name="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <button className="login-button" type="submit">Login</button>
+                        {error && <div className="login-error">{error}</div>}
+                    </form>
+                    <div className="login-footer">
+                        <span>Dont have an account?</span>
+                        <button
+                            className="create-account-button"
+                            onClick={() => setIsRegistering(true)}
+                        >
+                            Create New Account
+                        </button>
                     </div>
-                    <div className="login-input-group">
-                        <label className="login-label" htmlFor="password">Password</label>
-                        <input
-                            className="login-input"
-                            type="password"
-                            id="password"
-                            name="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <button className="login-button" type="submit">Login</button>
-                    {error && <div className="login-error">{error}</div>}
-                </form>
-            </div>
+                </div>
+            )}
         </div>
     );
 };
