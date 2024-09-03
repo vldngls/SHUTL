@@ -1,6 +1,11 @@
 {
     "cSpell.words": [
+        "anymatch",
+        "bson",
+        "encodeurl",
+        "gopd",
         "locup",
-        "Loggedout"
+        "Loggedout",
+        "webidl"
     ]
 }

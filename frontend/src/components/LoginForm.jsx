@@ -1,7 +1,9 @@
+// eslint-disable-next-line no-unused-vars
 import React, { useState } from 'react';
 import '../css/LoginForm.css';
 import RegisterForm from './RegisterForm';
 
+// eslint-disable-next-line react/prop-types
 const LoginForm = ({ onClose }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -69,7 +71,7 @@ const LoginForm = ({ onClose }) => {
                         {error && <div className="login-error">{error}</div>}
                     </form>
                     <div className="login-footer">
-                        <span>Don't have an account?</span>
+                        <span>Dont have an account?</span>
                         <button
                             className="create-account-button"
                             onClick={() => setIsRegistering(true)}
