@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 // eslint-disable-next-line no-unused-vars
 import React, { useState } from 'react';
 import '../css/LoginForm.css';
@@ -13,7 +14,7 @@ const LoginForm = ({ onClose }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://localhost:5000/api/users/login', { // Ensure correct URL
+            const response = await fetch('http://localhost:5000/api/users/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -41,27 +42,24 @@ const LoginForm = ({ onClose }) => {
                 <RegisterForm onClose={onClose} />
             ) : (
                 <div className="login-container" onClick={(e) => e.stopPropagation()}>
-                    <h2 className="login-title">Login</h2>
+                    <h1 className="login-title">SHUTL</h1>
+                    <p className="login-subtitle">Welcome to SHUTL</p>
                     <form className="login-form" onSubmit={handleSubmit}>
                         <div className="login-input-group">
-                            <label className="login-label" htmlFor="username">Username</label>
                             <input
                                 className="login-input"
-                                type="text"
-                                id="username"
-                                name="username"
+                                type="email"
+                                placeholder="user@domain.com"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 required
                             />
                         </div>
                         <div className="login-input-group">
-                            <label className="login-label" htmlFor="password">Password</label>
                             <input
                                 className="login-input"
                                 type="password"
-                                id="password"
-                                name="password"
+                                placeholder="Password123*"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
@@ -70,13 +68,15 @@ const LoginForm = ({ onClose }) => {
                         <button className="login-button" type="submit">Login</button>
                         {error && <div className="login-error">{error}</div>}
                     </form>
+                    <p className="continue-with">or continue with</p>
+                    <button className="google-button">Google</button>
                     <div className="login-footer">
-                        <span>Dont have an account?</span>
+                        <span>Don't have an account? </span>
                         <button
-                            className="create-account-button"
+                            className="signup-button"
                             onClick={() => setIsRegistering(true)}
                         >
-                            Create New Account
+                            Sign up here.
                         </button>
                     </div>
                 </div>

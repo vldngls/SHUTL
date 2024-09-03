@@ -6,6 +6,7 @@
         "gopd",
         "locup",
         "Loggedout",
+        "signup",
         "webidl"
     ]
 }
