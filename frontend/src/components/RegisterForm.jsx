@@ -12,7 +12,7 @@ const RegisterForm = ({ onClose }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('/api/users/register', {
+            const response = await fetch('http://localhost:5000/api/users/register', { // Ensure correct URL
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -20,12 +20,13 @@ const RegisterForm = ({ onClose }) => {
                 body: JSON.stringify({ name, email, username, password, userType }),
             });
 
-            const data = await response.json();
             if (response.ok) {
+                const data = await response.json();
                 console.log('Registration successful', data);
                 onClose(); // Close the modal after successful registration
             } else {
-                setError(data.message || 'Registration failed');
+                const errorData = await response.json();
+                setError(errorData.message || 'Registration failed');
             }
         } catch (error) {
             console.error('Error:', error);
@@ -88,15 +89,18 @@ const RegisterForm = ({ onClose }) => {
                     </div>
                     <div className="register-input-group">
                         <label className="register-label" htmlFor="userType">User Type</label>
-                        <input
+                        <select
                             className="register-input"
-                            type="text"
                             id="userType"
                             name="userType"
                             value={userType}
                             onChange={(e) => setUserType(e.target.value)}
                             required
-                        />
+                        >
+                            <option value="">Select user type</option>
+                            <option value="admin">Admin</option>
+                            <option value="user">User</option>
+                        </select>
                     </div>
                     <button className="register-button" type="submit">Register</button>
                     {error && <div className="register-error">{error}</div>}

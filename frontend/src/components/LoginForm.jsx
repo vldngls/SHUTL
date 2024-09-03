@@ -11,7 +11,7 @@ const LoginForm = ({ onClose }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('/api/users/login', {
+            const response = await fetch('http://localhost:5000/api/users/login', { // Ensure correct URL
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -19,12 +19,13 @@ const LoginForm = ({ onClose }) => {
                 body: JSON.stringify({ username, password }),
             });
 
-            const data = await response.json();
             if (response.ok) {
+                const data = await response.json();
                 console.log('Login successful', data);
                 onClose(); // Close the modal after successful login
             } else {
-                setError(data.message || 'Login failed');
+                const errorData = await response.json();
+                setError(errorData.message || 'Login failed');
             }
         } catch (error) {
             console.error('Error:', error);
@@ -68,7 +69,7 @@ const LoginForm = ({ onClose }) => {
                         {error && <div className="login-error">{error}</div>}
                     </form>
                     <div className="login-footer">
-                        <span>Dont have an account?</span>
+                        <span>Don't have an account?</span>
                         <button
                             className="create-account-button"
                             onClick={() => setIsRegistering(true)}
