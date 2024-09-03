@@ -5,7 +5,6 @@ import SplashScreen from "./pages/SplashScreen";
 import ShutlIntro from "./pages/Intro";
 import ShutlLoggedOut from "./pages/ShutlLoggedOut";
 import LoginForm from "./components/LoginForm";
-import Lebrone from "./pages/lebrone";
 
 function App() {
   return (
@@ -16,7 +15,6 @@ function App() {
         <Route path="/ShutlIntro" element={<ShutlIntro />} />
         <Route path="/ShutlLoggedOut" element={<ShutlLoggedOut />} />
         <Route path="/LoginForm" element={<LoginForm/>} />
-        <Route path="/lebrone" element={<Lebrone/>} />
       </Routes>
     </div>
   );
