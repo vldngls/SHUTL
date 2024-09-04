@@ -53,10 +53,16 @@ Follow these steps to set up the project on your local machine:
    npm install
    ```
 
-**Create a .env file in the server directory and add your MongoDB URI and other environment variables:**
+**Build the environment:**
 
    ```bash
-   MONGO_URI=********************************************
+   npm run build
+   ```
+
+**Start the frontend and backend server using this command:**
+
+   ```bash
+   npm run start
    ```
 
 ## 🤝 Contributing
