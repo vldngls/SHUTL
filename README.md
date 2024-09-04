@@ -33,53 +33,63 @@ Follow these steps to set up the project on your local machine:
 ### Installation
 
 **Clone the repository**:
+
    ```bash
    git clone https://github.com/vldngls/SHUTL.git
    cd SHUTL
    ```
 
 **Install backend dependencies**:
+
    ```bash
    cd backend
    npm install
    ```
 
 **Install frontend dependencies**:
+
    ```bash
    cd frontend
    npm install
    ```
 
 **Create a .env file in the server directory and add your MongoDB URI and other environment variables:**
+
    ```bash
    MONGO_URI=********************************************
    ```
 
 ## 🤝 Contributing
+
 Contributions are welcome! Please follow these steps:
 
 **Fork the repository.**
-Create a new branch 
+Create a new branch
+
    ```bash
    git checkout -b feature-branch
    ```
-Commit your changes 
+
+Commit your changes
+
    ```bash
    git commit -m 'Add a new feature'
    ```
 
-Push to the branch 
+Push to the branch
+
    ```bash
    git push origin feature-branch.
    ```
+
 Open a Pull Request.
 
 ## 📧 Contact
+
 For any questions or inquiries, please contact:
 
-- **Vlyde Angeles** - avp1102@dlsud.edu.ph
-- **Dolcielo Fuentes** - dbf2010@dlsud.edu.ph
-- **Lebrone Sacman** - slg1144@dlsud.edu.ph
-
+- **Vlyde Angeles** - <avp1102@dlsud.edu.ph>
+- **Dolcielo Fuentes** - <dbf2010@dlsud.edu.ph>
+- **Lebrone Sacman** - <slg1144@dlsud.edu.ph>
 
 **Thank you for checking out our project! We hope it brings a positive impact on commuter experience and transportation management.**
