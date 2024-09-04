@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-unused-vars
+/* eslint-disable no-unused-vars */
 import React from "react";
 import { Route, Routes } from "react-router-dom";
 
@@ -10,7 +10,7 @@ import LoginForm from "./components/LoginForm";
 function App() {
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      {/* <Navbar />*/} 
+      {/*Add routes here, make sure to import them above.*/} 
       <Routes>
         <Route path="/" element={<SplashScreen />} />
         <Route path="/ShutlIntro" element={<ShutlIntro />} />
