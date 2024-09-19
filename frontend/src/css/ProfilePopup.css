@@ -1,15 +1,33 @@
 /* ProfilePopup.css */
 
-.profile-popup {
-    position: absolute;
-    bottom: 0;
+/* Overlay with black opacity */
+.profile-popup-overlay {
+    position: fixed;
+    top: 0;
     left: 0;
-    width: 300px;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3); /* Black background with 30% opacity */
+    z-index: 999; /* Behind the popup */
+    display: none; /* Hidden by default */
+}
+
+.profile-popup-overlay.active {
+    display: block; /* Show when active */
+}
+
+.profile-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px; /* Larger width for desktop */
+    max-width: calc(100% - 40px); /* Allowance of 20px on each side */
     background-color: #fff;
     border: 1px solid #ddd;
-    border-radius: 8px;
+    border-radius: 38.5px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    padding: 16px;
+    padding: 0;
     z-index: 1000;
     display: none; /* Hide by default */
 }
@@ -18,31 +36,46 @@
     display: block; /* Show when active */
 }
 
+.profile-popup-cover-photo {
+    width: 100%;
+    height: 200px; /* Height for the cover photo */
+    background-image: url('https://via.placeholder.com/600x150'); /* Placeholder image, replace with actual */
+    background-size: cover;
+    background-position: center;
+    border-top-left-radius: 38.5px;
+    border-top-right-radius: 38.5px;
+}
+
 .profile-popup-header {
     display: flex;
     align-items: center;
-    margin-bottom: 12px;
+    padding: 16px; /* Padding for the header */
+    margin-bottom: 24px;
 }
 
 .profile-popup-avatar {
-    width: 50px;
-    height: 50px;
+    width: 100px; /* Larger avatar */
+    height: 100px;
     border-radius: 50%;
     background-color: #eee;
-    margin-right: 12px;
+    margin-right: 16px;
+    border: 3px solid #fff; /* Add a white border for better contrast */
+    position: relative;
+    top: -50px; /* Move the avatar to overlap the cover photo */
 }
 
 .profile-popup-title {
-    font-size: 18px;
+    font-size: 28px; /* Larger title */
     font-weight: bold;
 }
 
 .profile-popup-content {
-    font-size: 14px;
+    padding: 16px;
+    font-size: 18px; /* Larger content text */
 }
 
 .profile-popup-footer {
-    margin-top: 12px;
+    padding: 16px;
     text-align: right;
 }
 
@@ -51,11 +84,83 @@
     color: #fff;
     border: none;
     border-radius: 4px;
-    padding: 8px 12px;
+    padding: 10px 16px;
     cursor: pointer;
     font-size: 14px;
 }
 
 .profile-popup-button:hover {
     background-color: #0056b3;
+}
+
+/* Responsive Styles */
+@media screen and (max-width: 768px) {
+    .profile-popup {
+        width: 90%; /* Reduce width on tablet and smaller screens */
+        border-radius: 16px; /* Smaller border radius */
+    }
+
+    .profile-popup-cover-photo {
+        height: 150px; /* Adjust cover photo height */
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
+    }
+
+    .profile-popup-avatar {
+        width: 80px; /* Adjust avatar size */
+        height: 80px;
+        top: -40px; /* Adjust avatar position */
+    }
+
+    .profile-popup-title {
+        font-size: 24px; /* Adjust title size */
+    }
+
+    .profile-popup-content {
+        font-size: 16px; /* Adjust content text size */
+    }
+
+    .profile-popup-footer {
+        padding: 12px;
+    }
+
+    .profile-popup-button {
+        font-size: 14px; /* Adjust button font size */
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .profile-popup {
+        width: 100%; /* Full width on mobile */
+        border-radius: 8px; /* Smaller border radius for mobile */
+    }
+
+    .profile-popup-cover-photo {
+        height: 120px; /* Adjust cover photo height */
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+
+    .profile-popup-avatar {
+        width: 60px; /* Adjust avatar size for mobile */
+        height: 60px;
+        top: -30px; /* Adjust avatar position */
+    }
+
+    .profile-popup-title {
+        font-size: 20px; /* Adjust title size for mobile */
+    }
+
+    .profile-popup-content {
+        font-size: 14px; /* Adjust content text size */
+    }
+
+    .profile-popup-footer {
+        padding: 10px;
+    }
+
+    .profile-popup-button {
+        font-size: 12px; /* Adjust button font size */
+        padding: 8px 12px;
+    }
 }
