@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Import useEffect
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import '../css/Loggedout.css';
-import LoginForm from '../components/LoginForm'; // Ensure this path is correct
+import '../css/Loggedout.css'; // Assuming similar styles are used
+import ProfilePopup from '../components/ProfilePopup'; // Ensure this path is correct
 import L from 'leaflet';
 
 // Fix for default Leaflet icons issue
@@ -15,11 +15,12 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
 });
 
-const ShutlLoggedOut = () => {
+const ShutlLoggedIn = () => {
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
-  const [showLogin, setShowLogin] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const mapRef = useRef();
+  const user = JSON.parse(localStorage.getItem('user'));
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -55,12 +56,8 @@ const ShutlLoggedOut = () => {
     }
   };
 
-  const handleLoginClick = () => {
-    setShowLogin(true);
-  };
-
-  const handleCloseLogin = () => {
-    setShowLogin(false);
+  const toggleProfile = () => {
+    setIsProfileOpen(!isProfileOpen);
   };
 
   return (
@@ -89,7 +86,7 @@ const ShutlLoggedOut = () => {
       <div className="navbar">
         <div className="logo">SHU TL.</div>
         <div className="status"></div>
-        <div className="icon-container" onClick={handleLoginClick}>
+        <div className="icon-container" onClick={toggleProfile}>
           <div className="line"></div>
           <img src="/icon.png" alt="Navigation Icon" className="nav-icon" />
         </div>
@@ -103,9 +100,9 @@ const ShutlLoggedOut = () => {
         <img src="/locup.png" alt="Update Location" className="update-location-icon" />
       </button>
 
-      {showLogin && <LoginForm onClose={handleCloseLogin} />}
+      {isProfileOpen && <ProfilePopup user={user} onClose={toggleProfile} />}
     </>
   );
 }
 
-export default ShutlLoggedOut;
+export default ShutlLoggedIn;

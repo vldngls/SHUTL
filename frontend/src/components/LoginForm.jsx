@@ -1,15 +1,16 @@
-/* eslint-disable react/no-unescaped-entities */
-// eslint-disable-next-line no-unused-vars
+/* eslint-disable react/prop-types */
+/* eslint-disable no-unused-vars */
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Add this import
 import '../css/LoginForm.css';
 import RegisterForm from './RegisterForm';
 
-// eslint-disable-next-line react/prop-types
 const LoginForm = ({ onClose }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isRegistering, setIsRegistering] = useState(false);
+    const navigate = useNavigate(); // Initialize useNavigate
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -24,7 +25,9 @@ const LoginForm = ({ onClose }) => {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('Login successful', data);
+                localStorage.setItem('token', data.token); // Store token
+                localStorage.setItem('user', JSON.stringify(data.user)); // Store user info
+                navigate('/shutlLoggedIn'); // Redirect to ShutlLoggedIn
                 onClose(); // Close the modal after successful login
             } else {
                 const errorData = await response.json();
@@ -48,8 +51,8 @@ const LoginForm = ({ onClose }) => {
                         <div className="login-input-group">
                             <input
                                 className="login-input"
-                                type="email"
-                                placeholder="user@domain.com"
+                                type="text"
+                                placeholder="Username"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 required
@@ -59,7 +62,7 @@ const LoginForm = ({ onClose }) => {
                             <input
                                 className="login-input"
                                 type="password"
-                                placeholder="Password123*"
+                                placeholder="Password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
@@ -71,7 +74,7 @@ const LoginForm = ({ onClose }) => {
                     <p className="continue-with">or continue with</p>
                     <button className="google-button">Google</button>
                     <div className="login-footer">
-                        <span>Don't have an account? </span>
+                        <span>Dont have an account? </span>
                         <button
                             className="signup-button"
                             onClick={() => setIsRegistering(true)}
