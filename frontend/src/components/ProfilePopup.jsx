@@ -15,9 +15,17 @@ const ProfilePopup = ({ user, onClose }) => {
                     <button className="close-button" onClick={onClose}>X</button>
                 </div>
                 <div className="profile-popup-content">
-                    <p>Email: {user ? user.email : 'N/A'}</p>
-                    <p>Username: {user ? user.username : 'N/A'}</p>
-                    <p>User Type: {user ? user.userType : 'N/A'}</p>
+                    {/* New div with gray background */}
+                    <div className="profile-popup-info">
+                        <p>Email: {user ? user.email : 'N/A'}</p>
+                        <p>Username: {user ? user.username : 'N/A'}</p>
+                        <p>User Type: {user ? user.userType : 'N/A'}</p>
+                    </div>
+                    <div className="profile-popup-info">
+                        <p>Email: {user ? user.email : 'N/A'}</p>
+                        <p>Username: {user ? user.username : 'N/A'}</p>
+                        <p>User Type: {user ? user.userType : 'N/A'}</p>
+                    </div>
                 </div>
                 <div className="profile-popup-footer">
                     <button className="profile-popup-button" onClick={onClose}>Close</button>

@@ -1,6 +1,59 @@
 /* ProfilePopup.css */
 
 /* Overlay with black opacity */
+/* ProfilePopup.css */
+.profile-popup-header-below-cover {
+    display: flex;
+    justify-content: space-between; /* Name on the left, close button on the right */
+    align-items: center;
+    padding: 0 16px;
+    margin-top: -24px; /* Pull it slightly upwards below the cover photo */
+    position: relative;
+    z-index: 1;
+}
+
+.profile-popup-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #333;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #333;
+    cursor: pointer;
+}
+
+.close-button:hover {
+    color: #ff0000; /* Change color on hover */
+}
+
+/* Cover photo styles */
+.profile-popup-cover-photo {
+    width: 100%;
+    height: 200px;
+    background-image: url('https://via.placeholder.com/600x150');
+    background-size: cover;
+    background-position: center;
+    border-top-left-radius: 38.5px;
+    border-top-right-radius: 38.5px;
+}
+
+.profile-popup-info {
+    background-color: #f0f0f0; /* Light gray background */
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 16px;
+    margin-bottom: 16px;
+}
+
+.profile-popup-info p {
+    margin: 8px 0;
+    color: #333; /* Dark gray text color */
+}
+
 .profile-popup-overlay {
     position: fixed;
     top: 0;
