@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react'; // Import useEffect
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import '../css/Loggedout.css'; // Assuming similar styles are used
+import '../css/LoggedIn.css'; // Assuming similar styles are used
 import ProfilePopup from '../components/ProfilePopup'; // Ensure this path is correct
 import L from 'leaflet';
 
@@ -99,7 +99,14 @@ const ShutlLoggedIn = () => {
       <button className="update-location-btn" onClick={updateUserLocation}>
         <img src="/locup.png" alt="Update Location" className="update-location-icon" />
       </button>
-
+      <button className="setting-btn">
+      <img src="/settings.png" alt="Your Icon" className="setting-icon" />
+    </button>
+      {/* New Notification Button */}
+      <button className="notif-btn">
+        <img src="/notif.png" alt="Notification Icon" className="notif-icon" />
+      </button>
+      
       {isProfileOpen && <ProfilePopup user={user} onClose={toggleProfile} />}
     </>
   );
