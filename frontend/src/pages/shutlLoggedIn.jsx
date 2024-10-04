@@ -1,10 +1,12 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect, useRef } from 'react'; // Import useEffect
+import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import '../css/LoggedIn.css'; // Assuming similar styles are used
 import ProfilePopup from '../components/ProfilePopup'; // Ensure this path is correct
 import L from 'leaflet';
+
 
 // Fix for default Leaflet icons issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -16,9 +18,11 @@ L.Icon.Default.mergeOptions({
 });
 
 const ShutlLoggedIn = () => {
+  const navigate = useNavigate(); // Initialize navigate
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false); // New state for settings menu
   const mapRef = useRef();
   const user = JSON.parse(localStorage.getItem('user'));
 
@@ -60,6 +64,10 @@ const ShutlLoggedIn = () => {
     setIsProfileOpen(!isProfileOpen);
   };
 
+  const toggleSettings = () => {
+    setIsSettingsOpen(!isSettingsOpen); // Toggle settings menu
+  };
+
   return (
     <>
       <div className="map-container">
@@ -99,15 +107,31 @@ const ShutlLoggedIn = () => {
       <button className="update-location-btn" onClick={updateUserLocation}>
         <img src="/locup.png" alt="Update Location" className="update-location-icon" />
       </button>
-      <button className="setting-btn">
-      <img src="/settings.png" alt="Your Icon" className="setting-icon" />
-    </button>
+      
+      <button className="setting-btn" onClick={toggleSettings}>
+        <img src="/settings.png" alt="Your Icon" className="setting-icon" />
+      </button>
+      
       {/* New Notification Button */}
       <button className="notif-btn">
         <img src="/notif.png" alt="Notification Icon" className="notif-icon" />
       </button>
       
       {isProfileOpen && <ProfilePopup user={user} onClose={toggleProfile} />}
+      
+      {/* Settings Menu */}
+      {isSettingsOpen && (
+               <div className="settings-menu">
+                   <button onClick={() => alert('Profile Settings Clicked')}>Profile Settings</button>
+                   <button onClick={() => alert('Notification Settings Clicked')}>Notification Settings</button>
+                   <button onClick={() => {
+                       localStorage.removeItem('user'); // Clear user data
+                       navigate('/ShutlLoggedOut'); // Redirect to ShutlLoggedOut
+                   }}>
+                       Logout
+                   </button>
+               </div>
+      )}
     </>
   );
 }
