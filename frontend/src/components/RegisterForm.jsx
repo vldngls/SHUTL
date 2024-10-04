@@ -8,18 +8,17 @@ const RegisterForm = ({ onClose }) => {
     const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [userType, setUserType] = useState('');
     const [error, setError] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://localhost:5000/api/users/register', { // Ensure correct URL
+            const response = await fetch('http://localhost:5000/api/users/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ name, email, username, password, userType }),
+                body: JSON.stringify({ name, email, username, password }), // Removed userType
             });
 
             if (response.ok) {
@@ -88,21 +87,6 @@ const RegisterForm = ({ onClose }) => {
                             onChange={(e) => setPassword(e.target.value)}
                             required
                         />
-                    </div>
-                    <div className="register-input-group">
-                        <label className="register-label" htmlFor="userType">User Type</label>
-                        <select
-                            className="register-input"
-                            id="userType"
-                            name="userType"
-                            value={userType}
-                            onChange={(e) => setUserType(e.target.value)}
-                            required
-                        >
-                            <option value="">Select user type</option>
-                            <option value="admin">Admin</option>
-                            <option value="user">User</option>
-                        </select>
                     </div>
                     <button className="register-button" type="submit">Register</button>
                     {error && <div className="register-error">{error}</div>}
