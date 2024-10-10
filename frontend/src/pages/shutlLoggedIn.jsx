@@ -5,8 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import '../css/LoggedIn.css'; // Assuming similar styles are used
 import ProfilePopup from '../components/ProfilePopup'; // Ensure this path is correct
+import NotificationPop from '../components/NotificationPop'; // Import the new component
+import SettingsPop from '../components/SettingsPop'; // Import the new component
 import L from 'leaflet';
-
 
 // Fix for default Leaflet icons issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -22,7 +23,8 @@ const ShutlLoggedIn = () => {
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false); // New state for settings menu
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false); // State for notifications
   const mapRef = useRef();
   const user = JSON.parse(localStorage.getItem('user'));
 
@@ -66,6 +68,10 @@ const ShutlLoggedIn = () => {
 
   const toggleSettings = () => {
     setIsSettingsOpen(!isSettingsOpen); // Toggle settings menu
+  };
+
+  const toggleNotifications = () => {
+    setIsNotificationOpen(!isNotificationOpen); // Toggle notifications
   };
 
   return (
@@ -113,25 +119,19 @@ const ShutlLoggedIn = () => {
       </button>
       
       {/* New Notification Button */}
-      <button className="notif-btn">
+      <button className="notif-btn" onClick={toggleNotifications}>
         <img src="/notif.png" alt="Notification Icon" className="notif-icon" />
       </button>
       
       {isProfileOpen && <ProfilePopup user={user} onClose={toggleProfile} />}
       
       {/* Settings Menu */}
-      {isSettingsOpen && (
-               <div className="settings-menu">
-                   <button onClick={() => alert('Profile Settings Clicked')}>Profile Settings</button>
-                   <button onClick={() => alert('Notification Settings Clicked')}>Notification Settings</button>
-                   <button onClick={() => {
-                       localStorage.removeItem('user'); // Clear user data
-                       navigate('/ShutlLoggedOut'); // Redirect to ShutlLoggedOut
-                   }}>
-                       Logout
-                   </button>
-               </div>
-      )}
+      {isSettingsOpen && <SettingsPop onClose={toggleSettings} />}
+      
+      {/* Notification Popup */}
+      {isNotificationOpen && <NotificationPop onClose={toggleNotifications} />}
+      
+      
     </>
   );
 }

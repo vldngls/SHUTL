@@ -1,0 +1,27 @@
+/* src/css/SettingsPop.css */
+
+.settings-popup {
+    position: fixed;
+    left: 17px; /* Same left position as other buttons */
+    top: 700px; /* Adjust according to your layout */
+    background: white; /* Background color */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow effect */
+    z-index: 4; /* Ensure it is above other elements */
+    padding: 10px; /* Add some padding */
+  }
+  
+  .settings-popup button {
+    background: none; /* Remove default button styles */
+    border: none; /* Remove border */
+    cursor: pointer; /* Pointer cursor */
+    width: 100%; /* Full width */
+    text-align: left; /* Align text to the left */
+    padding: 10px; /* Add some padding */
+    color: #333; /* Text color */
+  }
+  
+  .settings-popup button:hover {
+    background-color: #f0f0f0; /* Hover effect */
+  }
+  
