@@ -1,14 +1,15 @@
+// src/App.jsx
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
-
 import SplashScreen from './pages/SplashScreen';
 import ShutlIntro from './pages/Intro';
 import ShutlLoggedOut from './pages/ShutlLoggedOut';
 import ShutlLoggedIn from './pages/ShutlLoggedIn';
 import LoginForm from './components/LoginForm';
 import DriverMain from './pages/DriverMain';
-import AdministratorMain from './pages/AdministratorMain'; // Create Admin page
-import TellerMain from './pages/TellerMain'; // Create Teller page
+import AdministratorMain from './pages/AdministratorMain';
+import TellerMain from './pages/TellerMain';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -17,11 +18,11 @@ function App() {
         <Route path="/" element={<SplashScreen />} />
         <Route path="/ShutlIntro" element={<ShutlIntro />} />
         <Route path="/ShutlLoggedOut" element={<ShutlLoggedOut />} />
-        <Route path="/ShutlLoggedIn" element={<ShutlLoggedIn />} />
         <Route path="/LoginForm" element={<LoginForm />} />
-        <Route path="/DriverMain" element={<DriverMain />} />
-        <Route path="/AdministratorMain" element={<AdministratorMain />} /> {/* Admin route */}
-        <Route path="/TellerMain" element={<TellerMain />} /> {/* Teller route */}
+        <Route path="/ShutlLoggedIn" element={<ProtectedRoute element={<ShutlLoggedIn />} allowedRoles={['Commuter']} />} />
+        <Route path="/DriverMain" element={<ProtectedRoute element={<DriverMain />} allowedRoles={['Driver']} />} />
+        <Route path="/AdministratorMain" element={<ProtectedRoute element={<AdministratorMain />} allowedRoles={['Admin']} />} />
+        <Route path="/TellerMain" element={<ProtectedRoute element={<TellerMain />} allowedRoles={['Teller']} />} />
       </Routes>
     </div>
   );
