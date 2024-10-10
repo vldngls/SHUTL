@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Add this import
+import { useNavigate } from 'react-router-dom';
 import '../css/LoginForm.css';
 import RegisterForm from './RegisterForm';
 
@@ -10,7 +10,7 @@ const LoginForm = ({ onClose }) => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isRegistering, setIsRegistering] = useState(false);
-    const navigate = useNavigate(); // Initialize useNavigate
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -25,9 +25,21 @@ const LoginForm = ({ onClose }) => {
 
             if (response.ok) {
                 const data = await response.json();
-                localStorage.setItem('token', data.token); // Store token
-                localStorage.setItem('user', JSON.stringify(data.user)); // Store user info
-                navigate('/shutlLoggedIn'); // Redirect to ShutlLoggedIn
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                // Determine the user's type and redirect accordingly
+                const userType = data.user.userType;
+                if (userType === 'Commuter') {
+                    navigate('/ShutlLoggedIn');  // Redirect for Commuter
+                } else if (userType === 'Admin') {
+                    navigate('/AdministratorMain'); // Redirect for Admin
+                } else if (userType === 'Teller') {
+                    navigate('/TellerMain'); // Redirect for Teller
+                } else if (userType === 'Driver') {
+                    navigate('/DriverMain');      // Redirect for Driver
+                }
+
                 onClose(); // Close the modal after successful login
             } else {
                 const errorData = await response.json();
