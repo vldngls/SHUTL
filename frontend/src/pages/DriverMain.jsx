@@ -3,12 +3,11 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import '../css/DriverMain.css';
-import ProfilePopup from '../components/ProfilePopup'; // Ensure this path is correct
-import NotificationPop from '../components/NotificationPop'; // Import the new component
-import SettingsPop from '../components/SettingsPop'; // Import the new component
+import ProfilePopup from '../components/ProfilePopup';
+import NotificationPop from '../components/NotificationPop';
+import SettingsPop from '../components/SettingsPop';
 import L from 'leaflet';
 
-// Fix for default Leaflet icons issue
 delete L.Icon.Default.prototype._getIconUrl;
 
 L.Icon.Default.mergeOptions({
@@ -18,12 +17,13 @@ L.Icon.Default.mergeOptions({
 });
 
 const DriverMain = () => {
-  const navigate = useNavigate(); // Initialize navigate
+  const navigate = useNavigate();
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false); // State for notifications
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isMessageOpen, setIsMessageOpen] = useState(false);
   const mapRef = useRef();
   const user = JSON.parse(localStorage.getItem('user'));
 
@@ -31,7 +31,6 @@ const DriverMain = () => {
     const timer = setInterval(() => {
       setDateTime(new Date());
     }, 1000);
-
     return () => clearInterval(timer);
   }, []);
 
@@ -50,28 +49,17 @@ const DriverMain = () => {
         (error) => {
           console.error("Error accessing location", error);
         },
-        {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0
-        }
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
       );
     } else {
       console.error("Geolocation is not supported by this browser.");
     }
   };
 
-  const toggleProfile = () => {
-    setIsProfileOpen(!isProfileOpen);
-  };
-
-  const toggleSettings = () => {
-    setIsSettingsOpen(!isSettingsOpen); // Toggle settings menu
-  };
-
-  const toggleNotifications = () => {
-    setIsNotificationOpen(!isNotificationOpen); // Toggle notifications
-  };
+  const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
+  const toggleSettings = () => setIsSettingsOpen(!isSettingsOpen);
+  const toggleNotifications = () => setIsNotificationOpen(!isNotificationOpen);
+  const toggleMessage = () => setIsMessageOpen(!isMessageOpen);
 
   return (
     <>
@@ -112,27 +100,37 @@ const DriverMain = () => {
       <button className="update-location-btn" onClick={updateUserLocation}>
         <img src="/locup.png" alt="Update Location" className="update-location-icon" />
       </button>
-      
+
       <button className="setting-btn" onClick={toggleSettings}>
-        <img src="/settings.png" alt="Your Icon" className="setting-icon" />
+        <img src="/settings.png" alt="Settings Icon" className="setting-icon" />
       </button>
-      
-      {/* New Notification Button */}
+
       <button className="notif-btn" onClick={toggleNotifications}>
         <img src="/notif.png" alt="Notification Icon" className="notif-icon" />
       </button>
-      
+
+      <button className="message-btn" onClick={toggleMessage}>
+        <img src="/message.png" alt="Message Icon" className="message-icon" />
+      </button>
+
       {isProfileOpen && <ProfilePopup user={user} onClose={toggleProfile} />}
-      
-      {/* Settings Menu */}
       {isSettingsOpen && <SettingsPop onClose={toggleSettings} />}
-      
-      {/* Notification Popup */}
       {isNotificationOpen && <NotificationPop onClose={toggleNotifications} />}
-      
-      
+      <div className={`message-panel ${isMessageOpen ? 'open' : ''}`}>
+        <div className="message-header">
+          Chat with Support
+          <button className="close-btn" onClick={toggleMessage}>✕</button>
+        </div>
+        <div className="message-body">
+          <div className="messages-view">
+            <div className="message">Hello! How can we assist you today?</div>
+          </div>
+          <input type="text" placeholder="Type your message..." className="message-input" />
+          <button className="send-btn">Send</button>
+        </div>
+      </div>
     </>
   );
 }
 
-export default DriverMain
+export default DriverMain;
