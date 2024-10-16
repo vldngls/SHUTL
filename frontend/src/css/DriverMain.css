@@ -6,7 +6,6 @@ html, body {
 }
 
 /* Message Button */
-/* Modify the Message Button */
 .message-btn {
   position: fixed;
   left: 2%;
@@ -17,10 +16,12 @@ html, body {
   cursor: pointer;
   z-index: 3;
 }
+
 .message-icon {
   width: 48px;
   height: 48px;
 }
+
 /* Message Panel */
 .message-panel {
   position: fixed;
@@ -36,12 +37,9 @@ html, body {
   z-index: 4;
 }
 
-/* New hover effect */
-.message-btn:hover + .message-panel {
-  transform: translateX(300px); /* Slide in when hovering */
+.message-panel.open {
+  transform: translateX(300px); /* Slide in when open */
 }
-
-
 
 .message-header {
   display: flex;
