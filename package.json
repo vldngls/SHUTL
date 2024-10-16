@@ -26,7 +26,8 @@
     "mapbox-gl": "^3.6.0",
     "mongoose": "^8.6.0",
     "react-leaflet": "^4.2.1",
-    "shutl": "file:"
+    "shutl": "file:",
+    "socket.io-client": "^4.8.0"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

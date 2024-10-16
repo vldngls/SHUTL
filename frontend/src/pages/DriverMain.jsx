@@ -11,8 +11,8 @@ import L from 'leaflet';
 delete L.Icon.Default.prototype._getIconUrl;
 
 L.Icon.Default.mergeOptions({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://img.icons8.com/ios/452/car.png', // Car icon URL
+  iconRetinaUrl: 'https://img.icons8.com/ios/452/car.png', // Car icon for retina displays
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
 });
 

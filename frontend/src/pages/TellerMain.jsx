@@ -23,6 +23,8 @@ const TellerMain = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false); // State for notifications
+  const [isMessageOpen, setIsMessageOpen] = useState(false); // State for message panel
+  const [messages, setMessages] = useState([]); // State for messages
   const mapRef = useRef();
   const user = JSON.parse(localStorage.getItem('user'));
 
@@ -72,6 +74,14 @@ const TellerMain = () => {
     setIsNotificationOpen(!isNotificationOpen); // Toggle notifications
   };
 
+  const toggleMessages = () => {
+    setIsMessageOpen(!isMessageOpen); // Toggle message panel
+  };
+
+  const sendMessage = (message) => {
+    setMessages(prevMessages => [...prevMessages, message]);
+  };
+
   return (
     <>
       <div className="map-container">
@@ -113,14 +123,19 @@ const TellerMain = () => {
       </button>
       
       <button className="setting-btn" onClick={toggleSettings}>
-        <img src="/settings.png" alt="Your Icon" className="setting-icon" />
+        <img src="/settings.png" alt="Settings Icon" className="setting-icon" />
       </button>
       
       {/* New Notification Button */}
       <button className="notif-btn" onClick={toggleNotifications}>
         <img src="/notif.png" alt="Notification Icon" className="notif-icon" />
       </button>
-      
+
+      {/* New Message Button */}
+      <button className="message-btn" onClick={toggleMessages}>
+        <img src="/message.png" alt="Message Icon" className="message-icon" />
+      </button>
+
       {isProfileOpen && <ProfilePopup user={user} onClose={toggleProfile} />}
       
       {/* Settings Menu */}
@@ -128,10 +143,45 @@ const TellerMain = () => {
       
       {/* Notification Popup */}
       {isNotificationOpen && <NotificationPop onClose={toggleNotifications} />}
-      
-      
+
+      {/* Message Panel */}
+      <div className={`message-panel ${isMessageOpen ? 'open' : ''}`}>
+        <div className="message-header">
+          <h3>Messages</h3>
+          <button className="close-btn" onClick={toggleMessages}>×</button>
+        </div>
+        <div className="message-body">
+          <div className="messages-view">
+            {messages.map((msg, index) => (
+              <div key={index} className="message">
+                {msg}
+              </div>
+            ))}
+          </div>
+          <input
+            type="text"
+            className="message-input"
+            placeholder="Type a message..."
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                sendMessage(e.target.value);
+                e.target.value = ''; // Clear input after sending
+              }
+            }}
+          />
+          <button className="send-btn" onClick={() => {
+            const input = document.querySelector('.message-input');
+            if (input.value) {
+              sendMessage(input.value);
+              input.value = ''; // Clear input after sending
+            }
+          }}>
+            Send
+          </button>
+        </div>
+      </div>
     </>
   );
 }
 
-export default TellerMain
+export default TellerMain;
