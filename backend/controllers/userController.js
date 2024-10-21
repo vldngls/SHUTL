@@ -64,3 +64,24 @@ export const loginUser = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// Get user count for admin dashboard
+export const getUserCount = async (req, res) => {
+    try {
+      const userCount = await User.countDocuments(); // Fetch the user count
+      res.status(200).json({ count: userCount });
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching user count', error });
+    }
+  };
+
+  // Get all users
+export const getAllUsers = async (req, res) => {
+    try {
+      const users = await User.find({}, 'name'); // Only select the 'name' field
+      res.status(200).json(users);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching users', error });
+    }
+  };
+  

@@ -1,8 +1,29 @@
-// src/components/adminComponents/AdministratorDashboardContent.jsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import '../css/AdministratorDashboardContent.css';
 
 const AdministratorDashboardContent = () => {
+  const [userCount, setUserCount] = useState(0); // State to hold the user count
+
+  useEffect(() => {
+    // Function to fetch the user count from the backend API
+    const fetchUserCount = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/users/admin/user-count'); // Explicitly define backend URL
+    
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+    
+        const data = await response.json();
+        setUserCount(data.count); // Update user count state
+      } catch (error) {
+        console.error('Error fetching user count:', error);
+      }
+    };
+    
+    fetchUserCount();
+  }, []); // Empty dependency array ensures this effect runs only once
+
   return (
     <div className="dashboard-content">
       {/* Real-Time Status */}
@@ -48,7 +69,7 @@ const AdministratorDashboardContent = () => {
       <div className="current-users">
         <h3>Current Users</h3>
         <div className="users-number">
-          <h2>157</h2>
+          <h2>{userCount}</h2> {/* Display the dynamic user count here */}
         </div>
       </div>
 
