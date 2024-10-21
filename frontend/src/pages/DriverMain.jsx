@@ -34,6 +34,16 @@ const DriverMain = () => {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    if (mapRef.current) {
+      const handleResize = () => {
+        mapRef.current.invalidateSize();
+      };
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, []);
+
   const updateUserLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -47,11 +57,13 @@ const DriverMain = () => {
           }
         },
         (error) => {
+          alert("Unable to retrieve your location. Please try again.");
           console.error("Error accessing location", error);
         },
         { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
       );
     } else {
+      alert("Geolocation is not supported by this browser.");
       console.error("Geolocation is not supported by this browser.");
     }
   };
@@ -101,15 +113,15 @@ const DriverMain = () => {
         <img src="/locup.png" alt="Update Location" className="update-location-icon" />
       </button>
 
-      <button className="setting-btn" onClick={toggleSettings}>
+      <button className="setting-btn icon-btn" onClick={toggleSettings}>
         <img src="/settings.png" alt="Settings Icon" className="setting-icon" />
       </button>
 
-      <button className="notif-btn" onClick={toggleNotifications}>
+      <button className="notif-btn icon-btn" onClick={toggleNotifications}>
         <img src="/notif.png" alt="Notification Icon" className="notif-icon" />
       </button>
 
-      <button className="message-btn" onClick={toggleMessage}>
+      <button className="message-btn icon-btn" onClick={toggleMessage}>
         <img src="/message.png" alt="Message Icon" className="message-icon" />
       </button>
 

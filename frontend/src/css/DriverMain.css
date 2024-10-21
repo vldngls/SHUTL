@@ -5,11 +5,9 @@ html, body {
   overflow: hidden; /* Prevent scroll bars */
 }
 
-/* Message Button */
-.message-btn {
+/* Reusable Icon Button Class */
+.icon-btn {
   position: fixed;
-  left: 2%;
-  top: 55%;
   background: none;
   border: none;
   padding: 0;
@@ -17,9 +15,19 @@ html, body {
   z-index: 3;
 }
 
-.message-icon {
+.icon-btn img {
   width: 48px;
   height: 48px;
+}
+
+.icon-btn:hover img {
+  transform: scale(1.1);
+}
+
+/* Message Button */
+.message-btn {
+  left: 2%;
+  top: 55%;
 }
 
 /* Message Panel */
@@ -96,6 +104,7 @@ html, body {
   background-color: #333;
 }
 
+/* Notifications and Settings */
 .settings-menu {
   position: fixed;
   left: 2%;
@@ -119,84 +128,6 @@ html, body {
 
 .settings-menu button:hover {
   background-color: #f0f0f0;
-}
-
-.notif-btn, .setting-btn {
-  position: fixed;
-  left: 2%;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  border-radius: 50%;
-  z-index: 3;
-}
-
-.notif-btn {
-  bottom: 15%;
-}
-
-.setting-btn {
-  bottom: 10%;
-}
-
-.notif-icon, .setting-icon {
-  width: 48px;
-  height: 48px;
-}
-
-@media (max-width: 768px) {
-  .message-btn {
-    left: 5%;
-    top: 5%;
-  }
-
-  .message-panel {
-    width: 80vw;
-    max-width: 250px;
-  }
-
-  .settings-menu {
-    top: 15%; /* Adjust for smaller screens */
-  }
-
-  .notif-btn, .setting-btn {
-    left: 5%;
-    width: 40px; /* Adjust size */
-    height: 40px;
-  }
-
-  .notif-icon, .setting-icon {
-    width: 40px;
-    height: 40px;
-  }
-}
-
-@media (max-width: 480px) {
-  .message-btn {
-    left: 10px;
-    top: 10px;
-  }
-
-  .message-panel {
-    width: 90vw;
-  }
-
-  .settings-menu {
-    width: 80vw;
-  }
-
-  .notif-btn, .setting-btn {
-    left: 10px;
-    bottom: 8%; /* Adjust based on layout */
-    width: 35px; /* Adjust size */
-    height: 35px;
-  }
-
-  .notif-icon, .setting-icon {
-    width: 35px;
-    height: 35px;
-  }
 }
 
 .map-container {
@@ -278,118 +209,4 @@ html, body {
   z-index: 2;
   box-sizing: border-box;
   margin-left: -80px;
-}
-
-@media (max-width: 768px) {
-  .navbar {
-    width: 48px;
-    padding: 8px;
-  }
-
-  .logo {
-    font-size: 1.2em;
-    margin-bottom: 15px;
-  }
-
-  .status {
-    font-size: 0.9em;
-  }
-
-  .nav-icon {
-    width: 30px;
-    height: 30px;
-  }
-
-  .icon-container {
-    width: 30px;
-    height: 30px;
-    margin-top: auto;
-    margin-bottom: 20px;
-  }
-
-  .line {
-    top: -8px;
-    width: 15px;
-  }
-
-  .taskbar {
-    width: calc(100% + 48px);
-    margin-left: -48px;
-  }
-}
-
-@media (max-width: 480px) {
-  .navbar {
-    flex-direction: row;
-    justify-content: space-between;
-    width: 100%;
-    height: 50px;
-    border-radius: 0;
-    padding: 0 10px;
-    bottom: 0;
-    position: fixed;
-    z-index: 2;
-  }
-
-  .logo {
-    font-size: 1em;
-    margin-bottom: 0;
-    align-self: center;
-  }
-
-  .status {
-    font-size: 0.9em;
-    margin-top: 0;
-    align-self: center;
-  }
-
-  .nav-icon {
-    width: 25px;
-    height: 25px;
-  }
-
-  .icon-container {
-    width: 25px;
-    height: 25px;
-    margin-top: auto;
-    margin-bottom: 10px;
-  }
-
-  .line {
-    top: -4px;
-    width: 12px;
-  }
-
-  .taskbar {
-    font-size: 0.9em;
-    padding: 8px 16px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    width: calc(100% + 80px);
-    margin-left: -80px;
-  }
-
-  .line {
-    display: none;
-  }
-}
-
-.update-location-btn {
-  position: fixed;
-  right: 2%;
-  bottom: 60px;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  z-index: 3;
-}
-
-.update-location-icon {
-  width: 40px;
-  height: 40px;
-}
-
-.update-location-btn:hover .update-location-icon {
-  transform: scale(1.1);
 }
