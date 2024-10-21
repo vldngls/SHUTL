@@ -8,12 +8,15 @@ import NotificationPop from '../components/NotificationPop';
 import SettingsPop from '../components/SettingsPop';
 import L from 'leaflet';
 
-delete L.Icon.Default.prototype._getIconUrl;
-
-L.Icon.Default.mergeOptions({
-  iconUrl: 'https://img.icons8.com/ios/452/car.png', // Car icon URL
-  iconRetinaUrl: 'https://img.icons8.com/ios/452/car.png', // Car icon for retina displays
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
+// Custom icon configuration
+const carIcon = new L.Icon({
+  iconUrl: '/car.png', 
+  iconRetinaUrl: '/car.png',
+  iconAnchor: [12, 41], 
+  popupAnchor: [1, -34], 
+  iconSize: [29, 59], 
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  shadowSize: [41, 41]
 });
 
 const DriverMain = () => {
@@ -87,7 +90,7 @@ const DriverMain = () => {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
           {userLocation && (
-            <Marker position={userLocation}>
+            <Marker position={userLocation} icon={carIcon}>
               <Popup>
                 You are here.
               </Popup>
