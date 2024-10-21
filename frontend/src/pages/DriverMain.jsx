@@ -26,11 +26,9 @@ const DriverMain = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [isMessageOpen, setIsMessageOpen] = useState(false);
   const mapRef = useRef(null); // Reference to the map instance
   const user = JSON.parse(localStorage.getItem('user'));
 
-  // Set up the time update
   useEffect(() => {
     const timer = setInterval(() => {
       setDateTime(new Date());
@@ -38,7 +36,6 @@ const DriverMain = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Adjust the map size if the window is resized
   useEffect(() => {
     if (mapRef.current) {
       const handleResize = () => {
@@ -81,37 +78,39 @@ const DriverMain = () => {
   const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
   const toggleSettings = () => setIsSettingsOpen(!isSettingsOpen);
   const toggleNotifications = () => setIsNotificationOpen(!isNotificationOpen);
-  const toggleMessage = () => setIsMessageOpen(!isMessageOpen);
 
   return (
     <>
       <div className="map-container">
-        <MapContainer
-          style={{ height: '100%', width: '100%' }}
-          center={[14.377, 120.983]} // Default center
-          zoom={15.5}
-          whenCreated={mapInstance => { mapRef.current = mapInstance }} // Capture the map instance reference
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          />
-          {userLocation && (
-            <Marker position={userLocation} icon={carIcon}>
-              <Popup>
-                You are here.
-              </Popup>
-              <Tooltip direction="right" offset={[12, 0]} permanent>
-                Shuttle 001
-              </Tooltip>
-            </Marker>
-          )}
-        </MapContainer>
+      <MapContainer
+  style={{ height: '100%', width: '100%' }}
+  center={[14.377, 120.983]} // Default center
+  zoom={15.5}
+  zoomControl={false} // Disables the default zoom controls
+  whenCreated={mapInstance => { mapRef.current = mapInstance }} // Capture the map instance reference
+>
+  <TileLayer
+    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  />
+  {userLocation && (
+    <Marker position={userLocation} icon={carIcon}>
+      <Popup>
+        You are here.
+      </Popup>
+      <Tooltip direction="right" offset={[12, 0]} permanent>
+        Shuttle 001
+      </Tooltip>
+    </Marker>
+  )}
+</MapContainer>
       </div>
 
       <div className="navbar">
         <div className="logo">SHU TL.</div>
         <div className="status"></div>
+
+        {/* Profile Icon */}
         <div className="icon-container" onClick={toggleProfile}>
           <div className="line"></div>
           <img src="/icon.png" alt="Navigation Icon" className="nav-icon" />
@@ -126,34 +125,9 @@ const DriverMain = () => {
         <img src="/locup.png" alt="Update Location" className="update-location-icon" />
       </button>
 
-      <button className="setting-btn icon-btn" onClick={toggleSettings}>
-        <img src="/settings.png" alt="Settings Icon" className="setting-icon" />
-      </button>
-
-      <button className="notif-btn icon-btn" onClick={toggleNotifications}>
-        <img src="/notif.png" alt="Notification Icon" className="notif-icon" />
-      </button>
-
-      <button className="message-btn icon-btn" onClick={toggleMessage}>
-        <img src="/message.png" alt="Message Icon" className="message-icon" />
-      </button>
-
       {isProfileOpen && <ProfilePopup user={user} onClose={toggleProfile} />}
       {isSettingsOpen && <SettingsPop onClose={toggleSettings} />}
       {isNotificationOpen && <NotificationPop onClose={toggleNotifications} />}
-      <div className={`message-panel ${isMessageOpen ? 'open' : ''}`}>
-        <div className="message-header">
-          Chat with Support
-          <button className="close-btn" onClick={toggleMessage}>✕</button>
-        </div>
-        <div className="message-body">
-          <div className="messages-view">
-            <div className="message">Hello! How can we assist you today?</div>
-          </div>
-          <input type="text" placeholder="Type your message..." className="message-input" />
-          <button className="send-btn">Send</button>
-        </div>
-      </div>
     </>
   );
 }
