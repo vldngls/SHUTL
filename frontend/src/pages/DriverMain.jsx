@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Tooltip } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import '../css/DriverMain.css';
@@ -22,14 +22,15 @@ const carIcon = new L.Icon({
 const DriverMain = () => {
   const navigate = useNavigate();
   const [dateTime, setDateTime] = useState(new Date());
-  const [userLocation, setUserLocation] = useState(null);
+  const [userLocation, setUserLocation] = useState(null); // User location state
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isMessageOpen, setIsMessageOpen] = useState(false);
-  const mapRef = useRef();
+  const mapRef = useRef(null); // Reference to the map instance
   const user = JSON.parse(localStorage.getItem('user'));
 
+  // Set up the time update
   useEffect(() => {
     const timer = setInterval(() => {
       setDateTime(new Date());
@@ -37,6 +38,7 @@ const DriverMain = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Adjust the map size if the window is resized
   useEffect(() => {
     if (mapRef.current) {
       const handleResize = () => {
@@ -47,17 +49,22 @@ const DriverMain = () => {
     }
   }, []);
 
+  // Focus the map when `userLocation` is updated
+  useEffect(() => {
+    if (userLocation && mapRef.current) {
+      console.log("Focusing on user location:", userLocation); // Debugging: Log user location
+      mapRef.current.setView(userLocation, 15.5, { animate: true });
+    }
+  }, [userLocation]); // Trigger this effect when userLocation changes
+
   const updateUserLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
           const userCoords = [latitude, longitude];
-          setUserLocation(userCoords);
-
-          if (mapRef.current) {
-            mapRef.current.setView(userCoords, 15.5, { animate: true });
-          }
+          console.log("User coordinates fetched:", userCoords); // Debugging: Log fetched coordinates
+          setUserLocation(userCoords); // Set userLocation, triggers useEffect
         },
         (error) => {
           alert("Unable to retrieve your location. Please try again.");
@@ -81,9 +88,9 @@ const DriverMain = () => {
       <div className="map-container">
         <MapContainer
           style={{ height: '100%', width: '100%' }}
-          center={[14.377, 120.983]}
+          center={[14.377, 120.983]} // Default center
           zoom={15.5}
-          whenCreated={mapInstance => { mapRef.current = mapInstance }}
+          whenCreated={mapInstance => { mapRef.current = mapInstance }} // Capture the map instance reference
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -94,6 +101,9 @@ const DriverMain = () => {
               <Popup>
                 You are here.
               </Popup>
+              <Tooltip direction="right" offset={[12, 0]} permanent>
+                Shuttle 001
+              </Tooltip>
             </Marker>
           )}
         </MapContainer>
