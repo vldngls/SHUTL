@@ -7,7 +7,7 @@ import ShutlLoggedOut from './pages/ShutlLoggedOut';
 import ShutlLoggedIn from './pages/ShutlLoggedIn';
 import LoginForm from './components/LoginForm';
 import DriverMain from './pages/DriverMain';
-import AdministratorMain from './pages/AdministratorMain';
+import AdministratorMain from './pages/AdministratorMain'; // Import the main administrator page
 import TellerMain from './pages/TellerMain';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -21,7 +21,10 @@ function App() {
         <Route path="/LoginForm" element={<LoginForm />} />
         <Route path="/ShutlLoggedIn" element={<ProtectedRoute element={<ShutlLoggedIn />} allowedRoles={['Commuter']} />} />
         <Route path="/DriverMain" element={<ProtectedRoute element={<DriverMain />} allowedRoles={['Driver']} />} />
+
+        {/* Admin Route - Single entry point */}
         <Route path="/AdministratorMain" element={<ProtectedRoute element={<AdministratorMain />} allowedRoles={['Admin']} />} />
+        
         <Route path="/TellerMain" element={<ProtectedRoute element={<TellerMain />} allowedRoles={['Teller']} />} />
       </Routes>
     </div>
