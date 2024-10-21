@@ -24,6 +24,12 @@ const DriverMain = () => {
   const [userLocation, setUserLocation] = useState(null); 
   const [isProfileIDOpen, setIsProfileIDOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isMessageOpen, setIsMessageOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    { driver: 'Driver. 001', text: '2 Passengers currently waiting.' },
+    { driver: 'Driver. 002', text: 'Thank you. Proceed with your current task.' },
+    { driver: 'Driver. 003', text: 'Okay, I’ll take note and inform others.' }
+  ]);
   const mapRef = useRef(null); 
   const user = JSON.parse(localStorage.getItem('user')) || {
     identifier: 'SHUTL001-1A',
@@ -72,6 +78,7 @@ const DriverMain = () => {
 
   const toggleProfileID = () => setIsProfileIDOpen(!isProfileIDOpen);
   const toggleSettings = () => setIsSettingsOpen(!isSettingsOpen);
+  const toggleMessageBox = () => setIsMessageOpen(!isMessageOpen);
   const handleNotificationClick = () => alert('Notifications clicked!');
 
   return (
@@ -102,45 +109,38 @@ const DriverMain = () => {
       </div>
 
       <div className="navbar">
-  <div className="logo">SHU TL.</div>
+        <div className="logo">SHU TL.</div>
 
-  {/* Middle Navbar Buttons */}
-  <div className="navbar-buttons">
-    {/* Profile Icon */}
-    <button className="icon-btn">
-      <img src="/message.png" alt="Profile Icon" className="icon-image" />
-    </button>
+        <div className="navbar-buttons">
+          <button className="icon-btn" onClick={toggleMessageBox}>
+            <img src="/message.png" alt="Message Icon" className="icon-image" />
+          </button>
 
-    {/* Schedule Icon */}
-    <button className="icon-btn">
-      <img src="/calendar.png" alt="Schedule Icon" className="icon-image" />
-    </button>
-    
-    {/* Notification Icon */}
-    <button className="icon-btn" onClick={handleNotificationClick}>
-      <img src="/notif.png" alt="Notification Icon" className="icon-image" />
-    </button>
+          <button className="icon-btn">
+            <img src="/calendar.png" alt="Schedule Icon" className="icon-image" />
+          </button>
+          
+          <button className="icon-btn" onClick={handleNotificationClick}>
+            <img src="/notif.png" alt="Notification Icon" className="icon-image" />
+          </button>
 
-    {/* Settings Button and Dropdown */}
-    <div className="settings-container">
-      <button className="icon-btn settings-btn" onClick={toggleSettings}>
-        <img src="/settings.png" alt="Settings Icon" className="icon-image" />
-      </button>
-      {isSettingsOpen && (
-        <div className="settings-dropdown">
-          <SettingsDropdown onClose={toggleSettings} />
+          <div className="settings-container">
+            <button className="icon-btn settings-btn" onClick={toggleSettings}>
+              <img src="/settings.png" alt="Settings Icon" className="icon-image" />
+            </button>
+            {isSettingsOpen && (
+              <div className="settings-dropdown" style={{ top: '50%', left: '110%', transform: 'translateY(-50%)' }}>
+                <SettingsDropdown onClose={toggleSettings} />
+              </div>
+            )}
+          </div>
         </div>
-      )}
-    </div>
-  </div>
 
-  {/* Profile Icon at the Bottom */}
-  <div className="icon-container" onClick={toggleProfileID}>
-    <div className="line"></div>
-    <img src="/profile.png" alt="Navigation Icon" className="nav-icon" />
-  </div>
-</div>
-
+        <div className="icon-container" onClick={toggleProfileID}>
+          <div className="line"></div>
+          <img src="/profile.png" alt="Navigation Icon" className="nav-icon" />
+        </div>
+      </div>
 
       <div className="taskbar">
         {dateTime.toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} - {dateTime.toLocaleTimeString('en-PH')}
@@ -151,6 +151,30 @@ const DriverMain = () => {
       </button>
 
       {isProfileIDOpen && <ProfileIDCard user={user} onClose={toggleProfileID} />}
+
+      {isMessageOpen && (
+        <div className="message-box">
+          <div className="message-header">
+            <h3>SHUTL</h3>
+            <div className="message-tabs">
+              <button className="message-tab">Driver</button>
+              <button className="message-tab">Teller</button>
+            </div>
+          </div>
+          <div className="message-list">
+            {messages.map((message, index) => (
+              <div key={index} className="message-item">
+                <strong>{message.driver}</strong>: {message.text}
+              </div>
+            ))}
+          </div>
+          <div className="message-footer">
+            <button className="message-button">Full passenger</button>
+            <button className="message-button">Send location</button>
+            <button className="message-button">Emergency</button>
+          </div>
+        </div>
+      )}
     </>
   );
 };
