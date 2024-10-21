@@ -1,8 +1,27 @@
-// src/components/adminComponents/AdministratorMaintenanceContent.jsx
-import React from 'react';
-import '../css/AdministratorMaintenanceContent.css'; // Ensure to style properly
+import React, { useEffect, useState } from 'react';
+import '../css/AdministratorMaintenanceContent.css';
 
 const AdministratorMaintenanceContent = () => {
+  const [users, setUsers] = useState([]); // State to hold the list of users
+
+  // Fetch users from backend API
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/users/admin/users');
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        setUsers(data); // Set the fetched users
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+
+    fetchUsers();
+  }, []); // Empty dependency array to run this once on component mount
+
   const apiData = {
     requests: 1065,
     success: 1007,
@@ -19,14 +38,6 @@ const AdministratorMaintenanceContent = () => {
     drivers: 21,
     tellers: 12,
   };
-
-  const users = [
-    { name: 'Angeles, Vlyde Alec P.' },
-    { name: 'Fuentes, Dolcielo B.' },
-    { name: 'Sacman, Lebrone James' },
-    { name: 'Dominguez, Erica Therese B.' },
-    { name: 'Cortez, James A.' },
-  ];
 
   const groups = ['Commuters', 'Tellers', 'Administrators', 'Drivers'];
 
