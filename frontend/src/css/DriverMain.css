@@ -1,10 +1,52 @@
-/* General Reset */
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  overflow: hidden; /* Prevent scroll bars */
-  font-family: Arial, sans-serif;
+/* Settings Button Container */
+.settings-container {
+  position: relative; /* Set relative position for precise dropdown positioning */
+}
+
+/* Settings Dropdown */
+.settings-dropdown {
+  position: absolute;
+  top: 50%; /* Align vertically in the middle of the settings button */
+  left: 80px; /* Adjust this value to control the horizontal position of the dropdown */
+  transform: translateY(-50%); /* Adjust for exact vertical centering */
+  background-color: #2d2d2d;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Settings Dropdown Item Styling */
+.settings-dropdown div {
+  cursor: pointer;
+  padding: 8px 0;
+  border-bottom: 1px solid #444;
+}
+
+.settings-dropdown div:last-child {
+  border-bottom: none;
+}
+
+/* General Styles for Icon Buttons */
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.icon-image,
+.icon-btn img {
+  width: 48px;
+  height: 48px;
+}
+
+.icon-btn:hover img {
+  transform: scale(1.1);
 }
 
 /* Sidebar Navbar */
@@ -24,22 +66,32 @@ html, body {
   top: 0;
   z-index: 3;
   box-sizing: border-box;
+  justify-content: space-between;
 }
 
 .logo {
   font-size: 1.4em;
   font-weight: bold;
-  margin-bottom: 15px;
-  margin-top: 8px;
+  margin-bottom: 10px;
   text-align: center;
 }
 
+/* Middle Buttons (Profile, Schedule, Notification, Settings) */
+.navbar-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px; /* Space between the buttons */
+}
+
+/* Profile Icon Styling - At the Bottom of Sidebar */
 .icon-container {
-  position: relative;
-  margin-bottom: 20px; 
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  margin-top: 24px;
+  margin-bottom: 16px; /* Add margin to stay at the bottom */
 }
 
 .line {
@@ -55,41 +107,9 @@ html, body {
 .nav-icon {
   width: 48px;
   height: 48px;
-  margin-top: 8px;
 }
 
-/* Removed all related to navbar-buttons, settings, notification, and message */
-
-/* Map Container Styling */
-.map-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 1;
-}
-
-/* Taskbar */
-.taskbar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: calc(100% + 80px);
-  background-color: #F5F5F5;
-  color: #333;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 10px 20px;
-  border-top: 2px solid #e0e0e0;
-  font-size: 1em;
-  z-index: 2;
-  box-sizing: border-box;
-  margin-left: -80px;
-}
-
-/* Responsive adjustments */
+/* Responsive Adjustments */
 @media (max-width: 768px) {
   .navbar {
     width: 60px;
@@ -110,6 +130,15 @@ html, body {
     width: calc(100% + 60px);
     margin-left: -60px;
     font-size: 0.9em;
+  }
+
+  .icon-btn img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .settings-dropdown {
+    left: 60px; /* Adjust for smaller screen size */
   }
 }
 
@@ -133,15 +162,17 @@ html, body {
     align-self: center;
   }
 
-  .nav-icon {
+  .nav-icon, .icon-image {
     width: 28px;
     height: 28px;
   }
 
   .icon-container {
-    width: 25px;
-    height: 25px;
     margin: 0;
+  }
+
+  .line {
+    display: none;
   }
 
   .taskbar {
@@ -153,24 +184,8 @@ html, body {
     margin-left: 0;
     justify-content: center;
   }
-}
 
-.update-location-btn {
-  position: fixed;
-  right: 2%;
-  bottom: 60px;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  z-index: 3;
-}
-
-.update-location-icon {
-  width: 40px;
-  height: 40px;
-}
-
-.update-location-btn:hover .update-location-icon {
-  transform: scale(1.1);
+  .settings-dropdown {
+    left: 50px; /* Adjust for smaller screen size */
+  }
 }

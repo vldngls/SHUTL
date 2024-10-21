@@ -4,11 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import '../css/DriverMain.css';
 import ProfilePopup from '../components/ProfilePopup';
-import NotificationPop from '../components/NotificationPop';
-import SettingsPop from '../components/SettingsPop';
+import ProfileIDCard from '../components/ProfileIDCard';
+import SettingsDropdown from '../components/SettingsDropdown';
 import L from 'leaflet';
 
-// Custom icon configuration
 const carIcon = new L.Icon({
   iconUrl: '/car.png', 
   iconRetinaUrl: '/car.png',
@@ -22,12 +21,19 @@ const carIcon = new L.Icon({
 const DriverMain = () => {
   const navigate = useNavigate();
   const [dateTime, setDateTime] = useState(new Date());
-  const [userLocation, setUserLocation] = useState(null); // User location state
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [userLocation, setUserLocation] = useState(null); 
+  const [isProfileIDOpen, setIsProfileIDOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const mapRef = useRef(null); // Reference to the map instance
-  const user = JSON.parse(localStorage.getItem('user'));
+  const mapRef = useRef(null); 
+  const user = JSON.parse(localStorage.getItem('user')) || {
+    identifier: 'SHUTL001-1A',
+    name: 'John Doe',
+    address: '412 Sta Fe Tomas Morato',
+    sex: 'M',
+    email: 'jam.teller@gmail.com',
+    eyeColor: 'Brown',
+    dob: '07/15/1983',
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -46,76 +52,95 @@ const DriverMain = () => {
     }
   }, []);
 
-  // Focus the map when `userLocation` is updated
-  useEffect(() => {
-    if (userLocation && mapRef.current) {
-      console.log("Focusing on user location:", userLocation); // Debugging: Log user location
-      mapRef.current.setView(userLocation, 15.5, { animate: true });
-    }
-  }, [userLocation]); // Trigger this effect when userLocation changes
-
   const updateUserLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
           const userCoords = [latitude, longitude];
-          console.log("User coordinates fetched:", userCoords); // Debugging: Log fetched coordinates
-          setUserLocation(userCoords); // Set userLocation, triggers useEffect
+          setUserLocation(userCoords);
         },
         (error) => {
           alert("Unable to retrieve your location. Please try again.");
-          console.error("Error accessing location", error);
         },
         { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
       );
     } else {
       alert("Geolocation is not supported by this browser.");
-      console.error("Geolocation is not supported by this browser.");
     }
   };
 
-  const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
+  const toggleProfileID = () => setIsProfileIDOpen(!isProfileIDOpen);
   const toggleSettings = () => setIsSettingsOpen(!isSettingsOpen);
-  const toggleNotifications = () => setIsNotificationOpen(!isNotificationOpen);
+  const handleNotificationClick = () => alert('Notifications clicked!');
 
   return (
     <>
       <div className="map-container">
-      <MapContainer
-  style={{ height: '100%', width: '100%' }}
-  center={[14.377, 120.983]} // Default center
-  zoom={15.5}
-  zoomControl={false} // Disables the default zoom controls
-  whenCreated={mapInstance => { mapRef.current = mapInstance }} // Capture the map instance reference
->
-  <TileLayer
-    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  />
-  {userLocation && (
-    <Marker position={userLocation} icon={carIcon}>
-      <Popup>
-        You are here.
-      </Popup>
-      <Tooltip direction="right" offset={[12, 0]} permanent>
-        Shuttle 001
-      </Tooltip>
-    </Marker>
-  )}
-</MapContainer>
+        <MapContainer
+          style={{ height: '100%', width: '100%' }}
+          center={[14.377, 120.983]} 
+          zoom={15.5}
+          zoomControl={false}
+          whenCreated={mapInstance => { mapRef.current = mapInstance }}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+          {userLocation && (
+            <Marker position={userLocation} icon={carIcon}>
+              <Popup>
+                You are here.
+              </Popup>
+              <Tooltip direction="right" offset={[12, 0]} permanent>
+                Shuttle 001
+              </Tooltip>
+            </Marker>
+          )}
+        </MapContainer>
       </div>
 
       <div className="navbar">
-        <div className="logo">SHU TL.</div>
-        <div className="status"></div>
+  <div className="logo">SHU TL.</div>
 
-        {/* Profile Icon */}
-        <div className="icon-container" onClick={toggleProfile}>
-          <div className="line"></div>
-          <img src="/icon.png" alt="Navigation Icon" className="nav-icon" />
+  {/* Middle Navbar Buttons */}
+  <div className="navbar-buttons">
+    {/* Profile Icon */}
+    <button className="icon-btn">
+      <img src="/message.png" alt="Profile Icon" className="icon-image" />
+    </button>
+
+    {/* Schedule Icon */}
+    <button className="icon-btn">
+      <img src="/calendar.png" alt="Schedule Icon" className="icon-image" />
+    </button>
+    
+    {/* Notification Icon */}
+    <button className="icon-btn" onClick={handleNotificationClick}>
+      <img src="/notif.png" alt="Notification Icon" className="icon-image" />
+    </button>
+
+    {/* Settings Button and Dropdown */}
+    <div className="settings-container">
+      <button className="icon-btn settings-btn" onClick={toggleSettings}>
+        <img src="/settings.png" alt="Settings Icon" className="icon-image" />
+      </button>
+      {isSettingsOpen && (
+        <div className="settings-dropdown">
+          <SettingsDropdown onClose={toggleSettings} />
         </div>
-      </div>
+      )}
+    </div>
+  </div>
+
+  {/* Profile Icon at the Bottom */}
+  <div className="icon-container" onClick={toggleProfileID}>
+    <div className="line"></div>
+    <img src="/profile.png" alt="Navigation Icon" className="nav-icon" />
+  </div>
+</div>
+
 
       <div className="taskbar">
         {dateTime.toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} - {dateTime.toLocaleTimeString('en-PH')}
@@ -125,11 +150,9 @@ const DriverMain = () => {
         <img src="/locup.png" alt="Update Location" className="update-location-icon" />
       </button>
 
-      {isProfileOpen && <ProfilePopup user={user} onClose={toggleProfile} />}
-      {isSettingsOpen && <SettingsPop onClose={toggleSettings} />}
-      {isNotificationOpen && <NotificationPop onClose={toggleNotifications} />}
+      {isProfileIDOpen && <ProfileIDCard user={user} onClose={toggleProfileID} />}
     </>
   );
-}
+};
 
 export default DriverMain;
