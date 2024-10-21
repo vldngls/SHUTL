@@ -6,6 +6,7 @@ import '../css/DriverMain.css';
 import ProfilePopup from '../components/ProfilePopup';
 import ProfileIDCard from '../components/ProfileIDCard';
 import SettingsDropdown from '../components/SettingsDropdown';
+import SchedulePopup from '../components/SchedulePopup'; // Import SchedulePopup
 import L from 'leaflet';
 
 const carIcon = new L.Icon({
@@ -25,10 +26,20 @@ const DriverMain = () => {
   const [isProfileIDOpen, setIsProfileIDOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMessageOpen, setIsMessageOpen] = useState(false);
+  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [messages, setMessages] = useState([
     { driver: 'Driver. 001', text: '2 Passengers currently waiting.' },
     { driver: 'Driver. 002', text: 'Thank you. Proceed with your current task.' },
     { driver: 'Driver. 003', text: 'Okay, I’ll take note and inform others.' }
+  ]);
+  const [schedule, setSchedule] = useState([
+    { day: 'Monday', time: '8:00 am', details: 'Person waiting: 5, Pickup loc: Ruby St.' },
+    { day: 'Monday', time: '11:00 am', details: 'Person waiting: 10, Pickup loc: Diamond St.' },
+    { day: 'Tuesday', time: '9:00 am', details: 'Person waiting: 2, Pickup loc: Cordoba St.' },
+    { day: 'Wednesday', time: '10:00 am', details: 'Person waiting: 2, Pickup loc: Bilbao St.' },
+    { day: 'Thursday', time: '9:00 am', details: 'Person waiting: 2, Pickup loc: Mallorca St.' },
+    { day: 'Friday', time: '10:00 am', details: 'Person waiting: 2, Pickup loc: Garnet St.' },
+    { day: 'Saturday', time: '2:00 pm', details: 'Person waiting: 2, Pickup loc: Coral St.' }
   ]);
   const mapRef = useRef(null); 
   const user = JSON.parse(localStorage.getItem('user')) || {
@@ -79,6 +90,7 @@ const DriverMain = () => {
   const toggleProfileID = () => setIsProfileIDOpen(!isProfileIDOpen);
   const toggleSettings = () => setIsSettingsOpen(!isSettingsOpen);
   const toggleMessageBox = () => setIsMessageOpen(!isMessageOpen);
+  const toggleSchedule = () => setIsScheduleOpen(!isScheduleOpen);
   const handleNotificationClick = () => alert('Notifications clicked!');
 
   return (
@@ -116,7 +128,7 @@ const DriverMain = () => {
             <img src="/message.png" alt="Message Icon" className="icon-image" />
           </button>
 
-          <button className="icon-btn">
+          <button className="icon-btn" onClick={toggleSchedule}>
             <img src="/calendar.png" alt="Schedule Icon" className="icon-image" />
           </button>
           
@@ -174,6 +186,14 @@ const DriverMain = () => {
             <button className="message-button">Emergency</button>
           </div>
         </div>
+      )}
+
+      {isScheduleOpen && (
+        <SchedulePopup
+          schedule={schedule}
+          onClose={() => setIsScheduleOpen(false)}
+          onSave={(updatedSchedule) => setSchedule(updatedSchedule)}
+        />
       )}
     </>
   );
