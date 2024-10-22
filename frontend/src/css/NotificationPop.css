@@ -1,32 +1,39 @@
 /* src/css/NotificationPop.css */
 
 .notification-popup {
-    position: fixed;
-    left: 17px; /* Same left position as other buttons */
-    top: 700px; /* Adjust according to your layout */
-    background: white; /* Background color */
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow effect */
-    z-index: 4; /* Ensure it is above other elements */
-    padding: 10px; /* Add some padding */
-  }
-  
-  .notification-popup h2 {
-    margin: 0 0 10px 0; /* Space below the heading */
-    font-size: 1.2em; /* Adjust heading size */
-  }
-  
-  .notification-popup button {
-    background: none; /* Remove default button styles */
-    border: none; /* Remove border */
-    cursor: pointer; /* Pointer cursor */
-    width: 100%; /* Full width */
-    text-align: left; /* Align text to the left */
-    padding: 10px; /* Add some padding */
-    color: #333; /* Text color */
-  }
-  
-  .notification-popup button:hover {
-    background-color: #f0f0f0; /* Hover effect */
-  }
-  
+  position: absolute; /* Position relative to notification button */
+  left: 88px; /* Align next to the notification button */
+  top: 500px; /* Position lower for better visibility */
+  background: #333; /* Dark background, matching the provided design */
+  border-radius: 15px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Subtle shadow for elevation */
+  z-index: 4; /* Ensure it appears above other elements */
+  min-width: 200px; /* Minimum width for consistent sizing */
+  max-width: 240px; /* Limit maximum width */
+  padding: 10px 0; /* Padding inside the popup to add space around items */
+}
+
+.notification-popup ul {
+  list-style: none; /* Remove default list styling */
+  padding: 0; /* Remove default padding */
+  margin: 0; /* Remove default margin */
+}
+
+.notification-popup ul li {
+  padding: 12px 20px; /* Spacing around each item for readability */
+  color: #f1f1f1; /* Light text color for good contrast against dark background */
+  font-size: 1em; /* Standardized font size */
+  cursor: pointer; /* Pointer cursor for interactive items */
+  transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+  display: flex; /* Flex layout for potential icon/text alignment */
+  align-items: center; /* Align items vertically */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Divider between items */
+}
+
+.notification-popup ul li:last-child {
+  border-bottom: none; /* Remove border for the last item */
+}
+
+.notification-popup ul li:hover {
+  background-color: rgba(255, 255, 255, 0.1); /* Lighter background when hovering over an item */
+}
