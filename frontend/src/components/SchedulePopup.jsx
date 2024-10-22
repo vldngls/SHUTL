@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import '../css/SchedulePopup.css';
+import ManageSchedule from './ManageSchedule';
 
 const SchedulePopup = ({ schedule, onClose, onSave }) => {
   const [editableSchedule, setEditableSchedule] = useState([...schedule]);
   const [newDay, setNewDay] = useState('');
   const [newTime, setNewTime] = useState('');
   const [newLocation, setNewLocation] = useState('');
+  const [isManageScheduleOpen, setIsManageScheduleOpen] = useState(false);
 
   const handleAddSlot = () => {
     if (newDay && newTime && newLocation) {
@@ -20,6 +22,14 @@ const SchedulePopup = ({ schedule, onClose, onSave }) => {
   const handleSave = () => {
     onSave(editableSchedule);
     onClose();
+  };
+
+  const handleOpenManageSchedule = () => {
+    setIsManageScheduleOpen(true);
+  };
+
+  const handleCloseManageSchedule = () => {
+    setIsManageScheduleOpen(false);
   };
 
   return (
@@ -78,9 +88,17 @@ const SchedulePopup = ({ schedule, onClose, onSave }) => {
           </div>
         </div>
         <div className="schedule-popup-footer">
+          <button className="manage-schedule-btn" onClick={handleOpenManageSchedule}>Manage Full Schedule</button>
           <button className="save-schedule-btn" onClick={handleSave}>Save</button>
         </div>
       </div>
+      {isManageScheduleOpen && (
+        <ManageSchedule
+          schedule={editableSchedule}
+          onClose={handleCloseManageSchedule}
+          onSave={(updatedSchedule) => setEditableSchedule(updatedSchedule)}
+        />
+      )}
     </div>
   );
 };

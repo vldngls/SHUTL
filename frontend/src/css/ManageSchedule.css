@@ -1,0 +1,118 @@
+/* src/css/ManageSchedule.css */
+
+.manage-schedule-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent background overlay */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000; /* Ensure it's above other elements */
+  }
+  
+  .manage-schedule-content {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    width: 90%; /* Adjusted width for better visibility */
+    max-width: 800px; /* Set a maximum width */
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Shadow for elevation */
+  }
+  
+  h2 {
+    margin-top: 0;
+    color: #333;
+    text-align: center;
+  }
+  
+  .schedule-list {
+    margin-bottom: 15px;
+  }
+  
+  .schedule-entry {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 10px;
+  }
+  
+  .schedule-input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+    font-size: 1em;
+  }
+  
+  .delete-button {
+    background: #e74c3c;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .delete-button:hover {
+    background: #c0392b;
+  }
+  
+  .add-button {
+    background: #3498db;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+    width: 100%;
+    margin-bottom: 15px;
+  }
+  
+  .add-button:hover {
+    background: #2980b9;
+  }
+  
+  .manage-schedule-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  
+  .save-button {
+    background: #2ecc71;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+    flex: 1;
+  }
+  
+  .save-button:hover {
+    background: #27ae60;
+  }
+  
+  .close-button {
+    background: #e0e0e0;
+    color: #333;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+    flex: 1;
+  }
+  
+  .close-button:hover {
+    background: #d5d5d5;
+  }
+  

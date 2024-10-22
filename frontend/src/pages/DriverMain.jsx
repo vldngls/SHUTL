@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Tooltip } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import '../css/DriverMain.css';
+import DriverMessage from '../components/DriverMessage';
 import ProfileIDCard from '../components/ProfileIDCard';
 import SettingsDropdown from '../components/SettingsDropdown';
 import SchedulePopup from '../components/SchedulePopup';
@@ -94,6 +95,14 @@ const DriverMain = () => {
   const toggleSchedule = () => setIsScheduleOpen(!isScheduleOpen);
   const toggleNotification = () => setIsNotificationOpen(!isNotificationOpen); // New function to toggle notification
 
+  const handleSendMessage = (messageText) => {
+    const newMessage = {
+      driver: 'You', // Hardcoded for now; you could replace this with dynamic driver info
+      text: messageText
+    };
+    setMessages([...messages, newMessage]);
+  };
+
   return (
     <>
       <div className="map-container">
@@ -164,11 +173,7 @@ const DriverMain = () => {
       </button>
 
       {isProfileIDOpen && <ProfileIDCard user={user} onClose={toggleProfileID} />}
-      {isMessageOpen && (
-        <div className="message-box">
-          {/* Message box content */}
-        </div>
-      )}
+
       {isScheduleOpen && (
         <SchedulePopup
           schedule={schedule}
@@ -178,6 +183,10 @@ const DriverMain = () => {
       )}
       {isNotificationOpen && (
         <NotificationPop onClose={toggleNotification} />
+      )}
+
+      {isMessageOpen && (
+        <DriverMessage messages={messages} onSendMessage={handleSendMessage} />
       )}
     </>
   );
