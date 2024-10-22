@@ -3,7 +3,6 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import '../css/TellerMain.css';
-import ProfilePopup from '../components/ProfilePopup'; // Ensure this path is correct
 import NotificationPop from '../components/NotificationPop'; // Import the new component
 import SettingsPop from '../components/SettingsPop'; // Import the new component
 import L from 'leaflet';

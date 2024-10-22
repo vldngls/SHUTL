@@ -3,7 +3,6 @@ import { MapContainer, TileLayer, Marker, Popup, Tooltip } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import '../css/DriverMain.css';
-import ProfilePopup from '../components/ProfilePopup';
 import ProfileIDCard from '../components/ProfileIDCard';
 import SettingsDropdown from '../components/SettingsDropdown';
 import SchedulePopup from '../components/SchedulePopup'; // Import SchedulePopup
