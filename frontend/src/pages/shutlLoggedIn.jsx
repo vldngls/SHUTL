@@ -63,8 +63,9 @@ const ShutlLoggedIn = () => {
   };
 
   const toggleProfile = () => {
-    setIsProfileOpen(!isProfileOpen);
-  };
+    setIsProfileOpen(prevState => !prevState); // Correctly toggle the state
+};
+
 
   const toggleSettings = () => {
     setIsSettingsOpen(!isSettingsOpen); // Toggle settings menu
@@ -100,7 +101,7 @@ const ShutlLoggedIn = () => {
       <div className="navbar">
         <div className="logo">SHU TL.</div>
         <div className="status"></div>
-        <div className="icon-container" onClick={toggleProfile}>
+        <div className="icon-container">
           <div className="line"></div>
           <img src="/icon.png" alt="Navigation Icon" className="nav-icon" />
         </div>
