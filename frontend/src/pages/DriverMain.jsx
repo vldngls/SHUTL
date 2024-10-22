@@ -32,7 +32,7 @@ const DriverMain = () => {
     { driver: 'Driver. 003', text: 'Okay, I’ll take note and inform others.' }
   ]);
   const [schedule, setSchedule] = useState([
-    { day: 'Monday', time: '8:00 am', details: 'Person waiting: 5, Pickup loc: Ruby St.' },
+    { day: 'Sunday', time: '8:00 am', details: 'Person waiting: 5, Pickup loc: Ruby St.' },
     { day: 'Monday', time: '11:00 am', details: 'Person waiting: 10, Pickup loc: Diamond St.' },
     { day: 'Tuesday', time: '9:00 am', details: 'Person waiting: 2, Pickup loc: Cordoba St.' },
     { day: 'Wednesday', time: '10:00 am', details: 'Person waiting: 2, Pickup loc: Bilbao St.' },
