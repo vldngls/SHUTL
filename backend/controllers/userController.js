@@ -36,34 +36,36 @@ export const registerUser = async (req, res) => {
 };
 
 export const loginUser = async (req, res) => {
-    try {
-        const { username, password } = req.body;
-        const user = await User.findOne({ username });
-        if (!user) return res.status(404).json({ message: 'User not found' });
+  try {
+      const { username, password } = req.body;
+      const user = await User.findOne({ username });
+      if (!user) return res.status(404).json({ message: 'User not found' });
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
-        const token = jwt.sign(
-            { id: user._id, userType: user.userType }, // Include userType in the token
-            process.env.JWT_SECRET,
-            { expiresIn: '1h' }
-          );
-          
-        res.status(200).json({
-            token,
-            user: {
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                username: user.username,
-                userType: user.userType
-            }
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+      // Include email in the token payload
+      const token = jwt.sign(
+          { id: user._id, email: user.email, userType: user.userType }, // Include email in the token payload
+          process.env.JWT_SECRET,
+          { expiresIn: '1h' }
+      );
+        
+      res.status(200).json({
+          token,
+          user: {
+              _id: user._id,
+              name: user.name,
+              email: user.email,
+              username: user.username,
+              userType: user.userType
+          }
+      });
+  } catch (error) {
+      res.status(500).json({ message: error.message });
+  }
 };
+
 
 // Get user count for admin dashboard
 export const getUserCount = async (req, res) => {
