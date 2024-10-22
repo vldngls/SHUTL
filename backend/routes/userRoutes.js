@@ -7,7 +7,7 @@ const router = express.Router();
 router.post('/register', registerUser);
 
 // Route to login a user
-router.post('/login', loginUser);
+router.post('/login', loginUser);  // Ensure this line exists
 
 // Route to get user count for admin dashboard
 router.get('/admin/user-count', getUserCount);
