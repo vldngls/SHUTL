@@ -171,7 +171,10 @@ const DriverMain = () => {
       <button className="update-location-btn" onClick={updateUserLocation}>
         <img src="/locup.png" alt="Update Location" className="update-location-icon" />
       </button>
-
+      
+      <button className="request-assistance-btn" onClick={() => alert('Assistance requested')}>
+?
+</button>
       {isProfileIDOpen && <ProfileIDCard user={user} onClose={toggleProfileID} />}
 
       {isScheduleOpen && (
