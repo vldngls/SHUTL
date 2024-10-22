@@ -188,6 +188,11 @@ const DriverMain = () => {
       {isMessageOpen && (
         <DriverMessage messages={messages} onSendMessage={handleSendMessage} />
       )}
+
+      {/* Operational Hours Section */}
+      <div className="operational-hours">
+        Operational hours: 8:00 AM to 10:00 PM
+      </div>
     </>
   );
 };
