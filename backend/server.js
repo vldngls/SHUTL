@@ -4,9 +4,21 @@ import mongoose from 'mongoose';
 import userDataRoutes from './routes/userDataRoutes.js';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
-import userRoutes from './routes/userRoutes.js'; // Ensure correct path
+import path from 'path';
+import { fileURLToPath } from 'url'; // Resolve __dirname in ES modules
+import userRoutes from './routes/userRoutes.js';
 
-dotenv.config();
+// Simulate __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env from the root directory
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
+if (!process.env.MONGO_URI) {
+  console.error('MongoDB connection string (MONGO_URI) is missing in .env file');
+  process.exit(1); // Exit with failure
+}
 
 const app = express();
 
@@ -16,21 +28,26 @@ app.use(cookieParser());
 
 // CORS configuration
 const corsOptions = {
-  origin: 'http://localhost:5173',  // Replace with your frontend's origin
-  credentials: true,  // Allow credentials (cookies) to be sent with requests
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true,
 };
-
 app.use(cors(corsOptions));
 
-app.use('/api/users', userRoutes);  // Ensure this is correct
 
 // Routes
-app.use('/api/userdata', userDataRoutes);  // Make sure this is added correctly
+app.use('/api/users', userRoutes);
+app.use('/api/userdata', userDataRoutes);
 
 // Database connection
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
   .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.error('MongoDB connection error:', err));
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1); // Exit if there's a connection error
+  });
 
 // Start server
 const PORT = process.env.PORT || 5000;
