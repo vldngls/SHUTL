@@ -1,0 +1,85 @@
+.suggestion-form-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0); /* Initially hidden */
+  background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+  padding: 20px;
+  border-radius: 10px;
+  width: 350px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  color: white;
+  font-family: Arial, sans-serif;
+  transition: transform 0.3s ease-in-out;
+  z-index: 1000;
+}
+
+.suggestion-form-container.show {
+  transform: translate(-50%, -50%) scale(1); /* Make it pop out */
+}
+
+
+.suggestion-form p {
+  font-size: 0.9em;
+  margin-bottom: 15px;
+}
+
+.suggestion-form a {
+  color: #1abc9c;
+  text-decoration: none;
+}
+
+.suggestion-form form {
+  display: flex;
+  flex-direction: column;
+}
+
+.suggestion-form label {
+  font-size: 0.85em;
+  margin-bottom: 5px;
+}
+
+.suggestion-form input,
+.suggestion-form textarea {
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  border: none;
+  background-color: #f5f5f5;
+  font-size: 0.85em;
+}
+
+.suggestion-form input::placeholder,
+.suggestion-form textarea::placeholder {
+  color: #b0b0b0;
+}
+
+.suggestion-form textarea {
+  resize: none;
+  height: 100px;
+}
+
+.send-btn {
+  background-color: #2ecc71;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.send-btn:hover {
+  background-color: #27ae60;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.2em;
+  cursor: pointer;
+}

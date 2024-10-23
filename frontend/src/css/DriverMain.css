@@ -1,3 +1,77 @@
+.request-assistance-btn {
+  background-color: #363636;
+  color: white;
+  border: none;
+  width: 43px; /* Set the width */
+  height: 43px; /* Set the height to be equal to the width for a perfect circle */
+  border-radius: 50%; /* Make the button circular */
+  cursor: pointer;
+  position: fixed; /* Ensures the button is always on screen */
+  bottom: 120px; /* 120px from the bottom of the screen */
+  right: 20px; /* 20px from the right of the screen */
+  font-size: 23px;
+  z-index: 1000; /* Ensures the button is above other content */
+  display: flex; /* Center the content inside */
+  justify-content: center; /* Center the content horizontally */
+  align-items: center; /* Center the content vertically */
+}
+
+.request-assistance-btn:hover {
+  background-color: #424242;
+}
+
+
+.operational-hours {
+  position: fixed;
+  right: 20px;
+  top: 5%;
+  transform: translateY(-50%);
+  background-color: #f0f0f0;
+  padding: 10px;
+  border-radius: 50%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  color: #333;
+  font-weight: bold;
+  z-index: 1000;
+} 
+
+.notifications-container {
+  position: relative;
+}
+
+.notifications-dropdown {
+  position: absolute;
+  width: 300px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  z-index: 1000;
+}
+
+.notifications-dropdown h3 {
+  margin: 0 0 10px;
+  font-size: 1.2em;
+  color: #2c3e50;
+}
+
+.notifications-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notification-item {
+  padding: 10px;
+  border-bottom: 1px solid #ececec;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.notification-item:hover {
+  background: #f9f9f9;
+}
+
 .icon-btn {
   background: none;
   border: none;

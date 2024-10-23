@@ -3,10 +3,11 @@ import { MapContainer, TileLayer, Marker, Popup, Tooltip } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import '../css/DriverMain.css';
-import ProfilePopup from '../components/ProfilePopup';
+import DriverMessage from '../components/DriverMessage';
 import ProfileIDCard from '../components/ProfileIDCard';
 import SettingsDropdown from '../components/SettingsDropdown';
-import SchedulePopup from '../components/SchedulePopup'; // Import SchedulePopup
+import SchedulePopup from '../components/SchedulePopup';
+import NotificationPop from '../components/NotificationPop'; // Import NotificationPop
 import L from 'leaflet';
 
 const carIcon = new L.Icon({
@@ -22,18 +23,19 @@ const carIcon = new L.Icon({
 const DriverMain = () => {
   const navigate = useNavigate();
   const [dateTime, setDateTime] = useState(new Date());
-  const [userLocation, setUserLocation] = useState(null); 
+  const [userLocation, setUserLocation] = useState(null);
   const [isProfileIDOpen, setIsProfileIDOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMessageOpen, setIsMessageOpen] = useState(false);
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false); // New state for notifications
   const [messages, setMessages] = useState([
     { driver: 'Driver. 001', text: '2 Passengers currently waiting.' },
     { driver: 'Driver. 002', text: 'Thank you. Proceed with your current task.' },
     { driver: 'Driver. 003', text: 'Okay, I’ll take note and inform others.' }
   ]);
   const [schedule, setSchedule] = useState([
-    { day: 'Monday', time: '8:00 am', details: 'Person waiting: 5, Pickup loc: Ruby St.' },
+    { day: 'Sunday', time: '8:00 am', details: 'Person waiting: 5, Pickup loc: Ruby St.' },
     { day: 'Monday', time: '11:00 am', details: 'Person waiting: 10, Pickup loc: Diamond St.' },
     { day: 'Tuesday', time: '9:00 am', details: 'Person waiting: 2, Pickup loc: Cordoba St.' },
     { day: 'Wednesday', time: '10:00 am', details: 'Person waiting: 2, Pickup loc: Bilbao St.' },
@@ -41,7 +43,7 @@ const DriverMain = () => {
     { day: 'Friday', time: '10:00 am', details: 'Person waiting: 2, Pickup loc: Garnet St.' },
     { day: 'Saturday', time: '2:00 pm', details: 'Person waiting: 2, Pickup loc: Coral St.' }
   ]);
-  const mapRef = useRef(null); 
+  const mapRef = useRef(null);
   const user = JSON.parse(localStorage.getItem('user')) || {
     identifier: 'SHUTL001-1A',
     name: 'John Doe',
@@ -91,14 +93,22 @@ const DriverMain = () => {
   const toggleSettings = () => setIsSettingsOpen(!isSettingsOpen);
   const toggleMessageBox = () => setIsMessageOpen(!isMessageOpen);
   const toggleSchedule = () => setIsScheduleOpen(!isScheduleOpen);
-  const handleNotificationClick = () => alert('Notifications clicked!');
+  const toggleNotification = () => setIsNotificationOpen(!isNotificationOpen); // New function to toggle notification
+
+  const handleSendMessage = (messageText) => {
+    const newMessage = {
+      driver: 'You', // Hardcoded for now; you could replace this with dynamic driver info
+      text: messageText
+    };
+    setMessages([...messages, newMessage]);
+  };
 
   return (
     <>
       <div className="map-container">
         <MapContainer
           style={{ height: '100%', width: '100%' }}
-          center={[14.377, 120.983]} 
+          center={[14.377, 120.983]}
           zoom={15.5}
           zoomControl={false}
           whenCreated={mapInstance => { mapRef.current = mapInstance }}
@@ -132,7 +142,7 @@ const DriverMain = () => {
             <img src="/calendar.png" alt="Schedule Icon" className="icon-image" />
           </button>
           
-          <button className="icon-btn" onClick={handleNotificationClick}>
+          <button className="icon-btn" onClick={toggleNotification}>
             <img src="/notif.png" alt="Notification Icon" className="icon-image" />
           </button>
 
@@ -161,32 +171,11 @@ const DriverMain = () => {
       <button className="update-location-btn" onClick={updateUserLocation}>
         <img src="/locup.png" alt="Update Location" className="update-location-icon" />
       </button>
-
+      
+      <button className="request-assistance-btn" onClick={() => alert('Assistance requested')}>
+?
+</button>
       {isProfileIDOpen && <ProfileIDCard user={user} onClose={toggleProfileID} />}
-
-      {isMessageOpen && (
-        <div className="message-box">
-          <div className="message-header">
-            <h3>SHUTL</h3>
-            <div className="message-tabs">
-              <button className="message-tab">Driver</button>
-              <button className="message-tab">Teller</button>
-            </div>
-          </div>
-          <div className="message-list">
-            {messages.map((message, index) => (
-              <div key={index} className="message-item">
-                <strong>{message.driver}</strong>: {message.text}
-              </div>
-            ))}
-          </div>
-          <div className="message-footer">
-            <button className="message-button">Full passenger</button>
-            <button className="message-button">Send location</button>
-            <button className="message-button">Emergency</button>
-          </div>
-        </div>
-      )}
 
       {isScheduleOpen && (
         <SchedulePopup
@@ -195,6 +184,18 @@ const DriverMain = () => {
           onSave={(updatedSchedule) => setSchedule(updatedSchedule)}
         />
       )}
+      {isNotificationOpen && (
+        <NotificationPop onClose={toggleNotification} />
+      )}
+
+      {isMessageOpen && (
+        <DriverMessage messages={messages} onSendMessage={handleSendMessage} />
+      )}
+
+      {/* Operational Hours Section */}
+      <div className="operational-hours">
+        Operational hours: 8:00 AM to 10:00 PM
+      </div>
     </>
   );
 };
