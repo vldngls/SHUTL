@@ -42,12 +42,12 @@ const AdministratorMaintenanceContent = () => {
   const groups = ['Commuters', 'Tellers', 'Administrators', 'Drivers'];
 
   return (
-    <div className="maintenance-content">
+    <div className="AdministratorMaintenance-maintenance-content">
       {/* API and Stats Panels */}
-      <div className="top-panels">
-        <div className="api-panel">
+      <div className="AdministratorMaintenance-top-panels">
+        <div className="AdministratorMaintenance-api-panel">
           <h3>API</h3>
-          <div className="api-stats">
+          <div className="AdministratorMaintenance-api-stats">
             <div>
               <span>{apiData.requests}</span>
               <p>Requests</p>
@@ -61,19 +61,19 @@ const AdministratorMaintenanceContent = () => {
               <p>Ping</p>
             </div>
           </div>
-          <div className="api-log">
+          <div className="AdministratorMaintenance-api-log">
             {apiData.logs.map((log, index) => (
               <p key={index}>
                 {log.time} - result: {log.result}
               </p>
             ))}
-            <p className="last-update">Last Update: 6:19 PM</p>
+            <p className="AdministratorMaintenance-last-update">Last Update: 6:19 PM</p>
           </div>
         </div>
 
-        <div className="stats-panel">
+        <div className="AdministratorMaintenance-stats-panel">
           <h3>Stats</h3>
-          <div className="stats-details">
+          <div className="AdministratorMaintenance-stats-details">
             <div>
               <span>{stats.users}</span>
               <p>Users</p>
@@ -90,34 +90,34 @@ const AdministratorMaintenanceContent = () => {
         </div>
 
         {/* Control Buttons */}
-        <div className="control-panel">
-          <button className="control-btn play">&#9654;</button>
-          <button className="control-btn pause">&#10074;&#10074;</button>
-          <button className="control-btn refresh">&#8635;</button>
-          <button className="control-btn key">&#128273;</button>
+        <div className="AdministratorMaintenance-control-panel">
+          <button className="AdministratorMaintenance-control-btn play">&#9654;</button>
+          <button className="AdministratorMaintenance-control-btn pause">&#10074;&#10074;</button>
+          <button className="AdministratorMaintenance-control-btn refresh">&#8635;</button>
+          <button className="AdministratorMaintenance-control-btn key">&#128273;</button>
         </div>
       </div>
 
       {/* Users and Groups Panels */}
-      <div className="bottom-panels">
-        <div className="users-panel">
+      <div className="AdministratorMaintenance-bottom-panels">
+        <div className="AdministratorMaintenance-users-panel">
           <h3>Users</h3>
-          <div className="user-list">
+          <div className="AdministratorMaintenance-user-list">
             {users.map((user, index) => (
-              <div key={index} className="user-item">
-                <img src="/avatar.png" alt="User Avatar" className="user-avatar" />
+              <div key={index} className="AdministratorMaintenance-user-item">
+                <img src="/avatar.png" alt="User Avatar" className="AdministratorMaintenance-user-avatar" />
                 <p>{user.name}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="group-panel">
+        <div className="AdministratorMaintenance-group-panel">
           <h3>Group</h3>
           <ul>
             {groups.map((group, index) => (
               <li key={index}>
-                <span className="group-icon">&#128100;</span> {group}
+                <span className="AdministratorMaintenance-group-icon">&#128100;</span> {group}
               </li>
             ))}
           </ul>

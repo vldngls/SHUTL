@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import '../css/ProfilePopup.css'; // Ensure this path is correct
 
-const ProfilePopup = ({ onClose }) => {
+const ShutlProfilePopup = ({ onClose }) => {
   const popupRef = useRef(null);
   const [userData, setUserData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -13,7 +13,7 @@ const ProfilePopup = ({ onClose }) => {
         method: 'GET',
         credentials: 'include',  // Send cookies
       });
-  
+
       if (response.ok) {
         const data = await response.json();
         console.log('Fetched User Data:', data); // Debugging log
@@ -64,9 +64,9 @@ const ProfilePopup = ({ onClose }) => {
         paymentMethod: editedData.paymentMethod || userData.paymentMethod || '',
         contactNumber: editedData.contactNumber || userData.contactNumber || '',
       };
-  
+
       console.log('Sending updated profile data:', updatedProfileData); // Debugging log
-  
+
       const response = await fetch('http://localhost:5000/api/userdata/update', {
         method: 'PUT',
         headers: {
@@ -74,7 +74,7 @@ const ProfilePopup = ({ onClose }) => {
         },
         body: JSON.stringify(updatedProfileData), // Send formatted data
       });
-  
+
       if (response.ok) {
         const updatedData = await response.json();
         setUserData(updatedData); // Update the state with new data
@@ -86,7 +86,6 @@ const ProfilePopup = ({ onClose }) => {
       console.error('Error updating user data:', error);
     }
   };
-  
 
   if (userData === null) return <p>Loading...</p>; // Display a loading message while fetching data
 
@@ -95,20 +94,29 @@ const ProfilePopup = ({ onClose }) => {
   };
 
   return (
-    <div className="profile-popup">
-      <div ref={popupRef} className="profile-popup-content">
+    <div className="ShutlProfilePopup">
+      <div ref={popupRef} className="ShutlProfilePopup-content">
         {/* Profile Header Section */}
-        <div className="profile-header">
-          <img src={userData.profilePicture || "https://via.placeholder.com/150"} alt="User Profile" className="profile-picture" />
-          <div className="profile-info">
+        <div className="ShutlProfilePopup-header">
+          <img
+            src={userData.profilePicture || "https://via.placeholder.com/150"}
+            alt="User Profile"
+            className="ShutlProfilePopup-picture"
+          />
+          <div className="ShutlProfilePopup-info">
             <h2>{renderField(userData.name, "N/A")}</h2>
-            <button className="edit-profile-btn" onClick={() => setIsEditing(true)}>Edit User Profile</button>
+            <button
+              className="ShutlProfilePopup-edit-btn"
+              onClick={() => setIsEditing(true)}
+            >
+              Edit User Profile
+            </button>
           </div>
         </div>
 
         {/* User Details Section */}
         {!isEditing ? (
-          <div className="user-details">
+          <div className="ShutlProfilePopup-details">
             <p><strong>Birthday:</strong> {userData.birthday ? new Date(userData.birthday).toISOString().substring(0, 10) : "N/A"}</p>
             <p><strong>Address:</strong> {renderField(userData.address, "N/A")}</p>
             <p><strong>Discount:</strong> {renderField(userData.discount, "N/A")}</p>
@@ -117,7 +125,7 @@ const ProfilePopup = ({ onClose }) => {
             <p><strong>Contact:</strong> {renderField(userData.contactNumber, "N/A")}</p>
           </div>
         ) : (
-          <div className="user-details">
+          <div className="ShutlProfilePopup-details">
             {/* Update the input types for proper data entry */}
             <input
               name="name"
@@ -172,7 +180,7 @@ const ProfilePopup = ({ onClose }) => {
         )}
 
         {/* Transaction History Section with Placeholder */}
-        <div className="transaction-history">
+        <div className="ShutlProfilePopup-transaction-history">
           <h3>Transaction history</h3>
           <p>Transaction history feature coming soon!</p>
         </div>
@@ -181,4 +189,4 @@ const ProfilePopup = ({ onClose }) => {
   );
 };
 
-export default ProfilePopup;
+export default ShutlProfilePopup;

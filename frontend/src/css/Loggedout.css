@@ -1,238 +1,238 @@
 html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    overflow: hidden; /* Prevent scroll bars */
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden; /* Prevent scroll bars */
+}
+
+/* ShutlLoggedOut Map container */
+.ShutlLoggedOut-map-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw; /* Ensure it takes the full viewport width */
+  height: 100vh; /* Ensure it takes the full viewport height */
+  z-index: 1; /* Ensure it is behind other elements */
+}
+
+/* Base styles for the ShutlLoggedOut navbar */
+.ShutlLoggedOut-navbar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80px;
+  height: 100vh;
+  background-color: #232323;
+  color: white;
+  border-top-right-radius: 38.5px;
+  border-bottom-right-radius: 38.5px;
+  padding: 16px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  box-sizing: border-box;
+}
+
+.ShutlLoggedOut-logo {
+  font-size: 1.6em; /* Adjusted to relative units */
+  font-weight: bold;
+  margin-bottom: 20px;
+  margin-top: 8px;
+}
+
+.ShutlLoggedOut-status {
+  font-size: 1em; /* Adjusted to relative units */
+  margin-top: auto;
+}
+
+.ShutlLoggedOut-icon-container {
+  position: relative;
+  width: auto; /* Adjusted size */
+  height: auto; /* Adjusted size */
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ShutlLoggedOut-line {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 58px;
+  height: 1px;
+  background-color: white;
+}
+
+.ShutlLoggedOut-nav-icon {
+  width: 48px; /* Adjusted size */
+  height: 48px; /* Adjusted size */
+  margin-top: 8px;
+}
+
+/* ShutlLoggedOut Taskbar */
+.ShutlLoggedOut-taskbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: calc(100% + 80px); /* Expand width to cover entire screen width */
+  background-color: #F5F5F5;
+  color: #333;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 10px 20px;
+  border-top: 2px solid #e0e0e0;
+  font-size: 1em; /* Adjusted to relative units */
+  z-index: 2; /* Ensure it is behind the navbar */
+  box-sizing: border-box;
+  margin-left: -80px; /* Shift taskbar left to align with the navbar's edge */
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .ShutlLoggedOut-navbar {
+    width: 48px;
+    padding: 8px;
   }
-  
-  /* Map container */
-  .map-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw; /* Ensure it takes the full viewport width */
-    height: 100vh; /* Ensure it takes the full viewport height */
-    z-index: 1; /* Ensure it is behind other elements */
+
+  .ShutlLoggedOut-logo {
+    font-size: 1.2em;
+    margin-bottom: 15px;
   }
-  
-  /* Base styles for the navbar */
-  .navbar {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 80px;
-    height: 100vh;
-    background-color: #232323;
-    color: white;
-    border-top-right-radius: 38.5px;
-    border-bottom-right-radius: 38.5px;
-    padding: 16px;
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 3;
-    box-sizing: border-box;
+
+  .ShutlLoggedOut-status {
+    font-size: 0.9em;
   }
-  
-  .logo {
-    font-size: 1.6em; /* Adjusted to relative units */
-    font-weight: bold;
-    margin-bottom: 20px;
-    margin-top: 8px;
+
+  .ShutlLoggedOut-nav-icon {
+    width: 30px;
+    height: 30px;
   }
-  
-  .status {
-    font-size: 1em; /* Adjusted to relative units */
-    margin-top: auto;
+
+  .ShutlLoggedOut-icon-container {
+    width: 30px;
+    height: 30px;
+    margin-top: auto; /* Center icon vertically */
+    margin-bottom: 20px; /* Space from the bottom */
   }
-  
-  .icon-container {
-    position: relative;
-    width: auto; /* Adjusted size */
-    height: auto; /* Adjusted size */
-    margin-top: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+
+  .ShutlLoggedOut-line {
+    top: -8px;
+    width: 15px;
   }
-  
-  .line {
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 58px;
-    height: 1px;
-    background-color: white;
+
+  .ShutlLoggedOut-taskbar {
+    width: calc(100% + 48px); /* Adjust to full viewport width on smaller screens */
+    margin-left: -48px; /* Adjust to align with navbar width */
   }
-  
-  .nav-icon {
-    width: 48px; /* Adjusted size */
-    height: 48px; /* Adjusted size */
-    margin-top: 8px;
-  }
-  
-  /* Taskbar */
-  .taskbar {
-    position: fixed;
+}
+
+@media (max-width: 480px) {
+  .ShutlLoggedOut-navbar {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    height: 50px;
+    border-radius: 0;
+    padding: 0 10px;
     bottom: 0;
-    left: 0;
+    position: fixed;
+    z-index: 2;
+  }
+
+  .ShutlLoggedOut-logo {
+    font-size: 1em;
+    margin-bottom: 0;
+    align-self: center;
+  }
+
+  .ShutlLoggedOut-status {
+    font-size: 0.9em;
+    margin-top: 0;
+    align-self: center;
+  }
+
+  .ShutlLoggedOut-nav-icon {
+    width: 25px;
+    height: 25px;
+  }
+
+  .ShutlLoggedOut-icon-container {
+    width: 25px;
+    height: 25px;
+    margin-top: auto; /* Center icon vertically */
+    margin-bottom: 10px; /* Space from the bottom */
+  }
+
+  .ShutlLoggedOut-line {
+    top: -4px;
+    width: 12px;
+  }
+
+  .ShutlLoggedOut-taskbar {
+    font-size: 0.9em;
+    padding: 8px 16px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
     width: calc(100% + 80px); /* Expand width to cover entire screen width */
-    background-color: #F5F5F5;
-    color: #333;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    padding: 10px 20px;
-    border-top: 2px solid #e0e0e0;
-    font-size: 1em; /* Adjusted to relative units */
-    z-index: 2; /* Ensure it is behind the navbar */
-    box-sizing: border-box;
     margin-left: -80px; /* Shift taskbar left to align with the navbar's edge */
   }
-  
-  /* Media Queries */
-  @media (max-width: 768px) {
-    .navbar {
-      width: 48px;
-      padding: 8px;
-    }
-  
-    .logo {
-      font-size: 1.2em;
-      margin-bottom: 15px;
-    }
-  
-    .status {
-      font-size: 0.9em;
-    }
-  
-    .nav-icon {
-      width: 30px;
-      height: 30px;
-    }
-  
-    .icon-container {
-      width: 30px;
-      height: 30px;
-      margin-top: auto; /* Center icon vertically */
-      margin-bottom: 20px; /* Space from the bottom */
-    }
-  
-    .line {
-      top: -8px;
-      width: 15px;
-    }
-  
-    .taskbar {
-      width: calc(100% + 48px); /* Adjust to full viewport width on smaller screens */
-      margin-left: -48px; /* Adjust to align with navbar width */
-    }
+
+  .ShutlLoggedOut-line {
+    display: none; /* Hide the line on smaller portrait devices */
   }
-  
-  @media (max-width: 480px) {
-    .navbar {
-      flex-direction: row;
-      justify-content: space-between;
-      width: 100%;
-      height: 50px;
-      border-radius: 0;
-      padding: 0 10px;
-      bottom: 0;
-      position: fixed;
-      z-index: 2;
-    }
-  
-    .logo {
-      font-size: 1em;
-      margin-bottom: 0;
-      align-self: center;
-    }
-  
-    .status {
-      font-size: 0.9em;
-      margin-top: 0;
-      align-self: center;
-    }
-  
-    .nav-icon {
-      width: 25px;
-      height: 25px;
-    }
-  
-    .icon-container {
-      width: 25px;
-      height: 25px;
-      margin-top: auto; /* Center icon vertically */
-      margin-bottom: 10px; /* Space from the bottom */
-    }
-  
-    .line {
-      top: -4px;
-      width: 12px;
-    }
-  
-    .taskbar {
-      font-size: 0.9em;
-      padding: 8px 16px;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      width: calc(100% + 80px); /* Expand width to cover entire screen width */
-      margin-left: -80px; /* Shift taskbar left to align with the navbar's edge */
-    }
-  
-    .line {
-      display: none; /* Hide the line on smaller portrait devices */
-    }
+}
+
+/* ShutlLoggedOut Update Location Button */
+.ShutlLoggedOut-update-location-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 60px; /* Adjust this value to position it above the taskbar */
+  background: none; /* Remove default button styles */
+  border: none; /* Remove default button border */
+  padding: 0; /* Remove default padding */
+  cursor: pointer;
+  z-index: 3; /* Ensure it stays above the map and taskbar */
+}
+
+.ShutlLoggedOut-update-location-icon {
+  width: 40px; /* Adjust the icon size */
+  height: 40px; /* Adjust the icon size */
+}
+
+.ShutlLoggedOut-update-location-btn:hover .ShutlLoggedOut-update-location-icon {
+  opacity: 0.8; /* Add hover effect */
+}
+
+@media (max-width: 768px) {
+  .ShutlLoggedOut-update-location-btn {
+    right: 10px;
+    bottom: 50px; /* Adjust for smaller screens */
   }
-  
-  /* Update Location Button */
-  .update-location-btn {
-    position: fixed;
-    right: 20px;
-    bottom: 60px; /* Adjust this value to position it above the taskbar */
-    background: none; /* Remove default button styles */
-    border: none; /* Remove default button border */
-    padding: 0; /* Remove default padding */
-    cursor: pointer;
-    z-index: 3; /* Ensure it stays above the map and taskbar */
+
+  .ShutlLoggedOut-update-location-icon {
+    width: 30px;
+    height: 30px;
   }
-  
-  .update-location-icon {
-    width: 40px; /* Adjust the icon size */
-    height: 40px; /* Adjust the icon size */
+}
+
+@media (max-width: 480px) {
+  .ShutlLoggedOut-update-location-btn {
+    right: 10px;
+    bottom: 60px; /* Adjust for smaller screens */
   }
-  
-  .update-location-btn:hover .update-location-icon {
-    opacity: 0.8; /* Add hover effect */
+
+  .ShutlLoggedOut-update-location-icon {
+    width: 25px;
+    height: 25px;
   }
-  
-  @media (max-width: 768px) {
-    .update-location-btn {
-      right: 10px;
-      bottom: 50px; /* Adjust for smaller screens */
-    }
-  
-    .update-location-icon {
-      width: 30px;
-      height: 30px;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .update-location-btn {
-      right: 10px;
-      bottom: 60px; /* Adjust for smaller screens */
-    }
-  
-    .update-location-icon {
-      width: 25px;
-      height: 25px;
-    }
-  }
-  
-  /* Popup Overlay */
-.overlay {
+}
+
+/* Popup Overlay */
+.ShutlLoggedOut-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -243,7 +243,7 @@ html, body {
 }
 
 /* Popup Container */
-.popup {
+.ShutlLoggedOut-popup {
   position: fixed;
   top: 50%;
   left: 50%;

@@ -111,7 +111,7 @@ const DriverMain = () => {
 
   return (
     <>
-      <div className="map-container">
+      <div className="DriverMain-map-container">
         <MapContainer
           style={{ height: '100%', width: '100%' }}
           center={[14.377, 120.983]}
@@ -134,55 +134,55 @@ const DriverMain = () => {
         </MapContainer>
       </div>
 
-      <div className="navbar">
-        <div className="logo">SHU TL.</div>
+      <div className="DriverMain-navbar">
+        <div className="DriverMain-logo">SHU TL.</div>
 
-        <div className="navbar-buttons">
-          <button className="icon-btn" onClick={toggleMessageBox}>
-            <img src="/message.png" alt="Message Icon" className="icon-image" />
+        <div className="DriverMain-navbar-buttons">
+          <button className="DriverMain-icon-btn" onClick={toggleMessageBox}>
+            <img src="/message.png" alt="Message Icon" className="DriverMain-icon-image" />
           </button>
 
-          <button className="icon-btn" onClick={toggleSchedule}>
-            <img src="/calendar.png" alt="Schedule Icon" className="icon-image" />
+          <button className="DriverMain-icon-btn" onClick={toggleSchedule}>
+            <img src="/calendar.png" alt="Schedule Icon" className="DriverMain-icon-image" />
           </button>
 
-          <button className="icon-btn" onClick={toggleNotification}>
-            <img src="/notif.png" alt="Notification Icon" className="icon-image" />
+          <button className="DriverMain-icon-btn" onClick={toggleNotification}>
+            <img src="/notif.png" alt="Notification Icon" className="DriverMain-icon-image" />
           </button>
 
-          <div className="settings-container">
-            <button className="icon-btn settings-btn" onClick={toggleSettings}>
-              <img src="/settings.png" alt="Settings Icon" className="icon-image" />
+          <div className="DriverMain-settings-container">
+            <button className="DriverMain-icon-btn DriverMain-settings-btn" onClick={toggleSettings}>
+              <img src="/settings.png" alt="Settings Icon" className="DriverMain-icon-image" />
             </button>
             {isSettingsOpen && (
-              <div className="settings-dropdown" style={{ top: '50%', left: '110%', transform: 'translateY(-50%)' }}>
+              <div className="DriverMain-settings-dropdown" style={{ top: '50%', left: '110%', transform: 'translateY(-50%)' }}>
                 <SettingsDropdown onClose={toggleSettings} />
               </div>
             )}
           </div>
         </div>
 
-        <div className="icon-container" onClick={toggleProfileID}>
-          <div className="line"></div>
-          <img src="/profile.png" alt="Navigation Icon" className="nav-icon" />
+        <div className="DriverMain-icon-container" onClick={toggleProfileID}>
+          <div className="DriverMain-line"></div>
+          <img src="/profile.png" alt="Navigation Icon" className="DriverMain-nav-icon" />
         </div>
       </div>
 
-      <div className="taskbar">
+      <div className="DriverMain-taskbar">
         {dateTime.toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} - {dateTime.toLocaleTimeString('en-PH')}
       </div>
 
-      <button className="update-location-btn" onClick={updateUserLocation}>
-        <img src="/locup.png" alt="Update Location" className="update-location-icon" />
+      <button className="DriverMain-update-location-btn" onClick={updateUserLocation}>
+        <img src="/locup.png" alt="Update Location" className="DriverMain-update-location-icon" />
       </button>
 
-      <button className="request-assistance-btn" onClick={toggleSuggestionForm}>
-  ?
-</button>
+      <button className="DriverMain-request-assistance-btn" onClick={toggleSuggestionForm}>
+        ?
+      </button>
 
-{isSuggestionOpen && (
-  <SuggestionForm onClose={toggleSuggestionForm} />
-)}
+      {isSuggestionOpen && (
+        <SuggestionForm onClose={toggleSuggestionForm} />
+      )}
 
       {isProfileIDOpen && <ProfileIDCard user={user} onClose={toggleProfileID} />}
 
@@ -201,7 +201,7 @@ const DriverMain = () => {
         <DriverMessage messages={messages} onSendMessage={handleSendMessage} />
       )}
 
-      <div className="operational-hours">
+      <div className="DriverMain-operational-hours">
         Operational hours: 8:00 AM to 10:00 PM
       </div>
     </>

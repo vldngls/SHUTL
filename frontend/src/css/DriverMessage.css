@@ -1,6 +1,5 @@
-/* src/css/DriverMessage.css */
-
-.driver-message-container {
+/* Layout and positioning for the driver message container */
+.DriverMessage-driver-message-container {
     position: fixed;
     top: 420px; /* Adjusted to appear at the top right corner */
     right: 80px; /* Full alignment to the right side */
@@ -14,7 +13,9 @@
     flex-direction: column;
     backdrop-filter: blur(6px); /* Blur effect for a modern glass look */
 }
-.driver-message-header {
+
+/* Header styling for the driver message container */
+.DriverMessage-driver-message-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -23,19 +24,20 @@
     border-radius: 12px;
     color: #000000;
     font-weight: bold;
-
 }
 
-.header-title {
+.DriverMessage-header-title {
     font-size: 1.2em;
 }
 
-.header-icons {
+/* Icon container in the header */
+.DriverMessage-header-icons {
     display: flex;
     align-items: center;
 }
 
-.call-button {
+/* Call button styling */
+.DriverMessage-call-button {
     background: linear-gradient(145deg, #42a1ec, #3498db); /* Gradient for a vibrant button look */
     color: #fff;
     border: none;
@@ -49,20 +51,22 @@
     justify-content: center;
 }
 
-.call-button:hover {
+.DriverMessage-call-button:hover {
     background: linear-gradient(145deg, #3498db, #2980b9); /* Darker gradient on hover */
     transform: translateY(-2px); /* Slight lift effect on hover */
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4); /* Increased shadow on hover */
 }
 
-.message-list {
+/* Styling for the list of messages */
+.DriverMessage-message-list {
     max-height: 250px; /* Increased height for more messages */
     overflow-y: auto;
     margin-bottom: 15px;
     padding-right: 5px; /* Added padding for better scroll visibility */
 }
 
-.message-item {
+/* Individual message styling */
+.DriverMessage-message-item {
     padding: 10px 15px;
     background: #444444; /* Lighter shade to distinguish from container */
     color: #f1f1f1;
@@ -71,32 +75,36 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow for message elevation */
 }
 
-.message-item:nth-child(odd) {
+/* Alternate background for messages */
+.DriverMessage-message-item:nth-child(odd) {
     background: #8d8d8d; /* Alternate background for better visual distinction */
 }
 
-.message-input-container {
+/* Container for the message input area */
+.DriverMessage-message-input-container {
     display: flex;
     align-items: center;
     background: #ffffff;
 }
 
-.message-input {
+/* Styling for the message input */
+.DriverMessage-message-input {
     flex: 1;
     padding: 12px;
     border: none;
     border-radius: 8px;
     outline: none;
     margin-right: 10px;
-    background: #ffffff; /* Darker background for the input field */
-    color: #000000; /* White text for contrast */
+    background: #ffffff;
+    color: #000000;
 }
 
-.message-input::placeholder {
+.DriverMessage-message-input::placeholder {
     color: #030303; /* Lighter placeholder text */
 }
 
-.send-button {
+/* Send button styling */
+.DriverMessage-send-button {
     background: linear-gradient(145deg, #42a1ec, #3498db); /* Gradient for a vibrant button look */
     color: #fff;
     border: none;
@@ -107,19 +115,21 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Slight shadow for button elevation */
 }
 
-.send-button:hover {
+.DriverMessage-send-button:hover {
     background: linear-gradient(145deg, #3498db, #2980b9); /* Darker gradient on hover */
     transform: translateY(-2px); /* Slight lift effect on hover */
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Increased shadow on hover */
 }
 
-.quick-replies {
+/* Quick replies section styling */
+.DriverMessage-quick-replies {
     display: flex;
     justify-content: space-around;
     margin-bottom: 15px;
 }
 
-.quick-reply-button {
+/* Quick reply button styling */
+.DriverMessage-quick-reply-button {
     background: #e0e0e0;
     color: #333;
     border: none;
@@ -131,7 +141,7 @@
     font-weight: bold;
 }
 
-.quick-reply-button:hover {
+.DriverMessage-quick-reply-button:hover {
     background: #d5d5d5; /* Slightly darker background on hover */
     transform: translateY(-2px); /* Lift effect on hover */
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Increased shadow on hover for emphasis */

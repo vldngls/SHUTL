@@ -13,7 +13,7 @@ const LoginForm = ({ onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/users/login', { // Make sure this URL matches your backend
+      const response = await fetch('http://localhost:5000/api/users/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -23,9 +23,8 @@ const LoginForm = ({ onClose }) => {
   
       if (response.ok) {
         const data = await response.json();
-        document.cookie = `token=${data.token}; path=/; SameSite=Lax`; // Set the token as a cookie
+        document.cookie = `token=${data.token}; path=/; SameSite=Lax`;
   
-        // Determine the user's type and redirect accordingly
         const userType = data.user.userType;
         if (userType === 'Commuter') {
           navigate('/ShutlLoggedIn');
@@ -37,7 +36,7 @@ const LoginForm = ({ onClose }) => {
           navigate('/DriverMain');
         }
   
-        onClose(); // Close the modal after successful login
+        onClose();
       } else {
         const errorData = await response.json();
         setError(errorData.message || 'Login failed');
@@ -49,17 +48,17 @@ const LoginForm = ({ onClose }) => {
   };
 
   return (
-    <div className="overlay" onClick={onClose}>
+    <div className="ShutlLoginForm-overlay" onClick={onClose}>
       {isRegistering ? (
         <RegisterForm onClose={onClose} />
       ) : (
-        <div className="login-container" onClick={(e) => e.stopPropagation()}>
-          <h1 className="login-title">SHUTL</h1>
-          <p className="login-subtitle">Welcome to SHUTL</p>
-          <form className="login-form" onSubmit={handleSubmit}>
-            <div className="login-input-group">
+        <div className="ShutlLoginForm-container" onClick={(e) => e.stopPropagation()}>
+          <h1 className="ShutlLoginForm-title">SHUTL</h1>
+          <p className="ShutlLoginForm-subtitle">Welcome to SHUTL</p>
+          <form className="ShutlLoginForm-form" onSubmit={handleSubmit}>
+            <div className="ShutlLoginForm-input-group">
               <input
-                className="login-input"
+                className="ShutlLoginForm-input"
                 type="text"
                 placeholder="Username"
                 value={username}
@@ -67,9 +66,9 @@ const LoginForm = ({ onClose }) => {
                 required
               />
             </div>
-            <div className="login-input-group">
+            <div className="ShutlLoginForm-input-group">
               <input
-                className="login-input"
+                className="ShutlLoginForm-input"
                 type="password"
                 placeholder="Password"
                 value={password}
@@ -77,15 +76,15 @@ const LoginForm = ({ onClose }) => {
                 required
               />
             </div>
-            <button className="login-button" type="submit">Login</button>
-            {error && <div className="login-error">{error}</div>}
+            <button className="ShutlLoginForm-button" type="submit">Login</button>
+            {error && <div className="ShutlLoginForm-error">{error}</div>}
           </form>
-          <p className="continue-with">or continue with</p>
-          <button className="google-button">Google</button>
-          <div className="login-footer">
-            <span>Dont have an account? </span>
+          <p className="ShutlLoginForm-continue-with">or continue with</p>
+          <button className="ShutlLoginForm-google-button">Google</button>
+          <div className="ShutlLoginForm-footer">
+            <span>Don't have an account? </span>
             <button
-              className="signup-button"
+              className="ShutlLoginForm-signup-button"
               onClick={() => setIsRegistering(true)}
             >
               Sign up here.

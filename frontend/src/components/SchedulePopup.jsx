@@ -37,10 +37,10 @@ const SchedulePopup = ({ schedule, onClose, onSave }) => {
       <div className="schedule-popup-content">
         <div className="schedule-popup-header">
           <h3>Driver Schedule - August 2024</h3>
-          <button className="close-schedule" onClick={onClose}>✖</button>
+          <button className="schedule-popup-close" onClick={onClose}>✖</button>
         </div>
         <div className="schedule-popup-body">
-          <table className="schedule-table" style={{ width: '100%' }}>
+          <table className="schedule-popup-table" style={{ width: '100%' }}>
             <thead>
               <tr>
                 <th>Day</th>
@@ -59,9 +59,9 @@ const SchedulePopup = ({ schedule, onClose, onSave }) => {
             </tbody>
           </table>
 
-          <div className="add-availability">
+          <div className="schedule-popup-add-availability">
             <h4>Add Availability</h4>
-            <select value={newDay} onChange={(e) => setNewDay(e.target.value)} className="availability-input">
+            <select value={newDay} onChange={(e) => setNewDay(e.target.value)} className="schedule-popup-availability-input">
               <option value="">Select Day</option>
               <option value="Monday">Monday</option>
               <option value="Tuesday">Tuesday</option>
@@ -75,21 +75,21 @@ const SchedulePopup = ({ schedule, onClose, onSave }) => {
               type="time"
               value={newTime}
               onChange={(e) => setNewTime(e.target.value)}
-              className="availability-input"
+              className="schedule-popup-availability-input"
             />
             <input
               type="text"
               value={newLocation}
               onChange={(e) => setNewLocation(e.target.value)}
               placeholder="Enter pickup location"
-              className="availability-input"
+              className="schedule-popup-availability-input"
             />
-            <button className="add-slot-btn" onClick={handleAddSlot}>Add Slot</button>
+            <button className="schedule-popup-add-slot-btn" onClick={handleAddSlot}>Add Slot</button>
           </div>
         </div>
         <div className="schedule-popup-footer">
-          <button className="manage-schedule-btn" onClick={handleOpenManageSchedule}>Manage Full Schedule</button>
-          <button className="save-schedule-btn" onClick={handleSave}>Save</button>
+          <button className="schedule-popup-manage-schedule-btn" onClick={handleOpenManageSchedule}>Manage Full Schedule</button>
+          <button className="schedule-popup-save-schedule-btn" onClick={handleSave}>Save</button>
         </div>
       </div>
       {isManageScheduleOpen && (

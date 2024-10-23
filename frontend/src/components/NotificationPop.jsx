@@ -1,17 +1,16 @@
 import React from 'react';
-import '../css/NotificationPop.css'; // Create a CSS file if needed
+import '../css/NotificationPop.css';
 
-const NotificationPop = ({ onClose }) => {
+const ShutlNotificationPop = ({ onClose }) => {
     return (
-        <div className="notification-popup">
-            {/* Example notification items */}
-            <ul>
-                <li>New update available!</li>
-                <li>Your trip has been confirmed.</li>
+        <div className="ShutlNotificationPop-popup" onClick={onClose}>
+            <ul className="ShutlNotificationPop-list">
+                <li className="ShutlNotificationPop-item">New update available!</li>
+                <li className="ShutlNotificationPop-item">Your trip has been confirmed.</li>
                 {/* Add more notifications as needed */}
             </ul>
         </div>
     );
 };
 
-export default NotificationPop;
+export default ShutlNotificationPop;

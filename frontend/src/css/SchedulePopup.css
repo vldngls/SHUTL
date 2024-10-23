@@ -1,12 +1,12 @@
-.add-availability {
+.schedule-popup-add-availability {
   margin-top: 20px;
 }
 
-.add-availability h4 {
+.schedule-popup-add-availability h4 {
   margin-bottom: 10px;
 }
 
-.availability-input {
+.schedule-popup-availability-input {
   padding: 10px;
   margin-bottom: 10px;
   margin-right: 10px;
@@ -15,7 +15,7 @@
   border-radius: 6px;
 }
 
-.add-slot-btn {
+.schedule-popup-add-slot-btn {
   background-color: #27ae60;
   color: #ffffff;
   border: none;
@@ -26,11 +26,11 @@
   transition: background-color 0.3s;
 }
 
-.add-slot-btn:hover {
+.schedule-popup-add-slot-btn:hover {
   background-color: #1e8449;
 }
 
-.save-schedule-btn {
+.schedule-popup-save-schedule-btn {
   background-color: #3498db;
   color: #ffffff;
   border: none;
@@ -41,11 +41,11 @@
   transition: background-color 0.3s;
 }
 
-.save-schedule-btn:hover {
+.schedule-popup-save-schedule-btn:hover {
   background-color: #2980b9;
 }
 
-.manage-schedule-btn {
+.schedule-popup-manage-schedule-btn {
   background-color: #f39c12;
   color: #ffffff;
   border: none;
@@ -57,7 +57,7 @@
   margin-right: 10px;
 }
 
-.manage-schedule-btn:hover {
+.schedule-popup-manage-schedule-btn:hover {
   background-color: #e67e22;
 }
 
@@ -91,7 +91,7 @@
   color: #333;
 }
 
-.close-schedule {
+.schedule-popup-close {
   background: none;
   border: none;
   font-size: 1.2em;
@@ -100,7 +100,7 @@
   transition: color 0.3s;
 }
 
-.close-schedule:hover {
+.schedule-popup-close:hover {
   color: #333;
 }
 
@@ -110,44 +110,9 @@
   overflow-y: auto;
 }
 
-.schedule-entry {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.schedule-entry strong {
-  margin-right: 10px;
-  font-size: 1em;
-  color: #555;
-}
-
-.schedule-input {
-  flex: 1;
-  padding: 8px;
-  font-size: 0.95em;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-
 .schedule-popup-footer {
   margin-top: 20px;
   text-align: right;
-}
-
-.save-schedule {
-  background-color: #3498db;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 20px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s;
-}
-
-.save-schedule:hover {
-  background-color: #2980b9;
 }
 
 @media (max-width: 480px) {
@@ -155,11 +120,11 @@
     width: 90%;
   }
 
-  .schedule-input {
+  .schedule-popup-availability-input {
     font-size: 0.85em;
   }
 
-  .save-schedule {
+  .schedule-popup-save-schedule-btn {
     padding: 8px 16px;
     font-size: 0.9em;
   }

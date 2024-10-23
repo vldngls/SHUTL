@@ -1,4 +1,4 @@
-.login-container {
+.ShutlLoginForm-container {
     position: fixed;
     top: 50%;
     left: 50%;
@@ -13,29 +13,29 @@
     text-align: center;
 }
 
-.login-title {
+.ShutlLoginForm-title {
     font-size: 24px;
     font-weight: bold;
     margin-bottom: 10px;
     color: #232323; /* Darkest color for text */
 }
 
-.login-subtitle {
+.ShutlLoginForm-subtitle {
     font-size: 14px;
     color: #888; /* Slightly lighter for subtitle */
     margin-bottom: 15px;
 }
 
-.login-form {
+.ShutlLoginForm-form {
     display: flex;
     flex-direction: column;
 }
 
-.login-input-group {
+.ShutlLoginForm-input-group {
     margin-bottom: 12px;
 }
 
-.login-input {
+.ShutlLoginForm-input {
     width: calc(100% - 20px);
     padding: 8px;
     border: 1px solid #ddd; /* Light border */
@@ -46,7 +46,7 @@
     color: #232323; /* Dark text color */
 }
 
-.login-button {
+.ShutlLoginForm-button {
     background-color: #232323; /* Darkest color */
     color: #ffffff; /* Light text color */
     padding: 10px;
@@ -57,17 +57,17 @@
     font-weight: bold;
 }
 
-.login-button:hover {
+.ShutlLoginForm-button:hover {
     background-color: #3a3a3a; /* Slightly lighter on hover */
 }
 
-.continue-with {
+.ShutlLoginForm-continue-with {
     font-size: 12px;
     color: #888;
     margin: 15px 0;
 }
 
-.google-button {
+.ShutlLoginForm-google-button {
     background-color: #ffffff;
     color: #232323;
     border: 1px solid #ddd;
@@ -81,17 +81,17 @@
     width: 100%;
 }
 
-.google-button img {
+.ShutlLoginForm-google-button img {
     margin-right: 10px;
 }
 
-.login-footer {
+.ShutlLoginForm-footer {
     margin-top: 15px;
     font-size: 12px;
     color: #555;
 }
 
-.signup-button {
+.ShutlLoginForm-signup-button {
     background: none;
     color: #555;
     border: none;
@@ -100,11 +100,11 @@
     text-decoration: underline;
 }
 
-.signup-button:hover {
+.ShutlLoginForm-signup-button:hover {
     color: #232323; /* Darker on hover */
 }
 
-.overlay {
+.ShutlLoginForm-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -114,7 +114,7 @@
     z-index: 900;
 }
 
-.login-error {
+.ShutlLoginForm-error {
     color: #d9534f; /* Red color for errors */
     margin-top: 10px;
     font-size: 14px;
@@ -122,26 +122,26 @@
 
 /* Responsive design adjustments */
 @media (max-width: 480px) {
-    .login-container {
+    .ShutlLoginForm-container {
         padding: 20px 10px;
         max-width: 280px;
     }
 
-    .login-title {
+    .ShutlLoginForm-title {
         font-size: 22px;
     }
 
-    .login-input {
+    .ShutlLoginForm-input {
         padding: 7px;
         font-size: 13px;
     }
 
-    .login-button, .google-button {
+    .ShutlLoginForm-button, .ShutlLoginForm-google-button {
         font-size: 13px;
         padding: 8px;
     }
 
-    .signup-button {
+    .ShutlLoginForm-signup-button {
         font-size: 11px;
     }
 }

@@ -1,4 +1,3 @@
-// src/pages/AdministratorMain.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../css/AdministratorMain.css';
@@ -9,18 +8,16 @@ import AdministratorShuttlesRoutesContent from '@components/AdministratorShuttle
 import AdministratorShuttleManagementContent from '@components/AdministratorShuttleManagementContent.jsx';
 import AdministratorTransactionsContent from '@components/AdministratorTransactionsContent.jsx';
 
-
-
 const AdministratorMain = () => {
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [dateTime, setDateTime] = useState(new Date());
 
   const navigate = useNavigate();
 
-const handleLogout = () => {
-  document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'; // Clear the token cookie
-  navigate('/ShutlLoggedOut'); // Redirect to ShutlLoggedOut
-};
+  const handleLogout = () => {
+    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'; // Clear the token cookie
+    navigate('/ShutlLoggedOut'); // Redirect to ShutlLoggedOut
+  };
 
   useEffect(() => {
     const timer = setInterval(() => setDateTime(new Date()), 1000);
@@ -47,10 +44,10 @@ const handleLogout = () => {
   };
 
   return (
-    <div className="admin-container">
-      <div className="sidebar">
-        <div className="logo">SHUTL</div>
-        <nav className="menu">
+    <div className="AdministratorMain-admin-container">
+      <div className="AdministratorMain-sidebar">
+        <div className="AdministratorMain-logo">SHUTL</div>
+        <nav className="AdministratorMain-menu">
           <button className={activeTab === 'Dashboard' ? 'active' : ''} onClick={() => setActiveTab('Dashboard')}>
             Dashboard
           </button>
@@ -70,17 +67,17 @@ const handleLogout = () => {
             Transactions
           </button>
         </nav>
-        <div className="footer-menu">
+        <div className="AdministratorMain-footer-menu">
           <button onClick={() => alert("Help Center coming soon!")}>Help Center</button>
           <button onClick={() => alert("Settings coming soon!")}>Settings</button>
           <button onClick={handleLogout}>Sign Out</button>
         </div>
       </div>
 
-      <div className="main-content">
-        <div className="admin-header">
+      <div className="AdministratorMain-main-content">
+        <div className="AdministratorMain-admin-header">
           <h1>{activeTab}</h1>
-          <div className="datetime">
+          <div className="AdministratorMain-datetime">
             <p>{dateTime.toLocaleDateString()}</p>
             <p>{dateTime.toLocaleTimeString()}</p>
           </div>

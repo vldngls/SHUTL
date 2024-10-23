@@ -1,174 +1,173 @@
 /* Layout for the dashboard */
-.dashboard-content {
-    display: grid;
-    grid-template-columns: 2fr 2fr 1fr;
-    grid-template-rows: repeat(3, 1fr);
-    gap: 20px;
-  }
-  
-  /* Real-Time Status */
-  .real-time-status {
-    grid-column: span 2;
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .real-time-status h3 {
-    margin-bottom: 10px;
-  }
-  
-  .status-grid {
-    display: flex;
-    justify-content: space-between;
-  }
-  
-  .status-grid div {
-    text-align: center;
-  }
-  
-  .status-grid span {
-    font-size: 24px;
-    font-weight: bold;
-    display: block;
-  }
-  
-  /* API Requests */
-  .api-requests {
-    grid-column: span 1;
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .api-details {
-    display: flex;
-    justify-content: space-between;
-  }
-  
-  .api-circle {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background-color: #ff6b35;
-  }
-  
-  .api-stats {
-    text-align: right;
-  }
-  
-  .api-stats h4 {
-    margin: 0;
-  }
-  
-  .api-stats h2 {
-    font-size: 24px;
-    font-weight: bold;
-  }
-  
-  /* Current Users */
-  .current-users {
-    grid-column: span 1;
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .users-number {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    font-size: 36px;
-    font-weight: bold;
-  }
-  
-  /* Bus Tracking */
-  .bus-tracking {
-    grid-column: span 2;
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .bus-grid {
-    display: flex;
-    justify-content: space-between;
-  }
-  
-  .bus-grid div {
-    text-align: center;
-  }
-  
-  .bus-grid h4 {
-    margin: 0;
-    font-size: 16px;
-  }
-  
-  .bus-grid p {
-    margin: 0;
-    font-size: 14px;
-    color: #777;
-  }
-  
-  /* Announcements */
-  .announcements {
-    grid-column: span 1;
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .announcements textarea {
-    width: 100%;
-    height: 80px;
-    margin-bottom: 10px;
-    padding: 10px;
-  }
-  
-  .announcements button {
-    width: 100%;
-    padding: 10px;
-    background-color: #ff6b35;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  /* Operational Hours */
-  .operational-hours {
-    grid-column: span 1;
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .hours-input {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-  }
-  
-  .hours-input input {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-  }
-  
-  .hours-input button {
-    padding: 10px;
-    background-color: #ff6b35;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
+.AdministratorDashboard-dashboard-content {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 20px;
+}
+
+/* Real-Time Status */
+.AdministratorDashboard-real-time-status {
+  grid-column: span 2;
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.AdministratorDashboard-real-time-status h3 {
+  margin-bottom: 10px;
+}
+
+.AdministratorDashboard-status-grid {
+  display: flex;
+  justify-content: space-between;
+}
+
+.AdministratorDashboard-status-grid div {
+  text-align: center;
+}
+
+.AdministratorDashboard-status-grid span {
+  font-size: 24px;
+  font-weight: bold;
+  display: block;
+}
+
+/* API Requests */
+.AdministratorDashboard-api-requests {
+  grid-column: span 1;
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.AdministratorDashboard-api-details {
+  display: flex;
+  justify-content: space-between;
+}
+
+.AdministratorDashboard-api-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: #ff6b35;
+}
+
+.AdministratorDashboard-api-stats {
+  text-align: right;
+}
+
+.AdministratorDashboard-api-stats h4 {
+  margin: 0;
+}
+
+.AdministratorDashboard-api-stats h2 {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Current Users */
+.AdministratorDashboard-current-users {
+  grid-column: span 1;
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.AdministratorDashboard-users-number {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  font-size: 36px;
+  font-weight: bold;
+}
+
+/* Bus Tracking */
+.AdministratorDashboard-bus-tracking {
+  grid-column: span 2;
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.AdministratorDashboard-bus-grid {
+  display: flex;
+  justify-content: space-between;
+}
+
+.AdministratorDashboard-bus-grid div {
+  text-align: center;
+}
+
+.AdministratorDashboard-bus-grid h4 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.AdministratorDashboard-bus-grid p {
+  margin: 0;
+  font-size: 14px;
+  color: #777;
+}
+
+/* Announcements */
+.AdministratorDashboard-announcements {
+  grid-column: span 1;
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.AdministratorDashboard-announcements textarea {
+  width: 100%;
+  height: 80px;
+  margin-bottom: 10px;
+  padding: 10px;
+}
+
+.AdministratorDashboard-announcements button {
+  width: 100%;
+  padding: 10px;
+  background-color: #ff6b35;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* Operational Hours */
+.AdministratorDashboard-operational-hours {
+  grid-column: span 1;
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.AdministratorDashboard-hours-input {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.AdministratorDashboard-hours-input input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.AdministratorDashboard-hours-input button {
+  padding: 10px;
+  background-color: #ff6b35;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}

@@ -1,4 +1,4 @@
-.maintenance-content {
+.AdministratorMaintenance-maintenance-content {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 20px;
@@ -6,14 +6,14 @@
 }
 
 /* Top Panels Layout */
-.top-panels {
+.AdministratorMaintenance-top-panels {
   display: flex;
   justify-content: space-between;
   gap: 20px;
 }
 
 /* API Panel */
-.api-panel {
+.AdministratorMaintenance-api-panel {
   background-color: white;
   padding: 20px;
   border-radius: 10px;
@@ -21,37 +21,37 @@
   flex: 1;
 }
 
-.api-stats {
+.AdministratorMaintenance-api-stats {
   display: flex;
   justify-content: space-between;
 }
 
-.api-stats div {
+.AdministratorMaintenance-api-stats div {
   text-align: center;
 }
 
-.api-stats span {
+.AdministratorMaintenance-api-stats span {
   display: block;
   font-size: 24px;
   font-weight: bold;
 }
 
-.api-log {
+.AdministratorMaintenance-api-log {
   margin-top: 10px;
 }
 
-.api-log p {
+.AdministratorMaintenance-api-log p {
   margin: 0;
 }
 
-.last-update {
+.AdministratorMaintenance-last-update {
   margin-top: 10px;
   font-size: 12px;
   color: gray;
 }
 
 /* Stats Panel */
-.stats-panel {
+.AdministratorMaintenance-stats-panel {
   background-color: white;
   padding: 20px;
   border-radius: 10px;
@@ -59,23 +59,23 @@
   flex: 1;
 }
 
-.stats-details {
+.AdministratorMaintenance-stats-details {
   display: flex;
   justify-content: space-between;
 }
 
-.stats-details div {
+.AdministratorMaintenance-stats-details div {
   text-align: center;
 }
 
-.stats-details span {
+.AdministratorMaintenance-stats-details span {
   display: block;
   font-size: 24px;
   font-weight: bold;
 }
 
 /* Control Panel */
-.control-panel {
+.AdministratorMaintenance-control-panel {
   display: flex;
   justify-content: space-between;
   flex-direction: column;
@@ -87,7 +87,7 @@
   flex: 0.3;
 }
 
-.control-btn {
+.AdministratorMaintenance-control-btn {
   background-color: #ff6b35;
   color: white;
   border: none;
@@ -97,12 +97,12 @@
   font-size: 18px;
 }
 
-.control-btn:hover {
+.AdministratorMaintenance-control-btn:hover {
   background-color: #e05d2b;
 }
 
 /* Bottom Panels Layout */
-.bottom-panels {
+.AdministratorMaintenance-bottom-panels {
   display: flex;
   justify-content: space-between;
   gap: 20px;
@@ -110,7 +110,7 @@
 }
 
 /* Users Panel */
-.users-panel {
+.AdministratorMaintenance-users-panel {
   background-color: white;
   padding: 20px;
   border-radius: 10px;
@@ -118,19 +118,19 @@
   flex: 1;
 }
 
-.user-list {
+.AdministratorMaintenance-user-list {
   max-height: 200px; /* Limit height */
   overflow-y: auto; /* Enable vertical scrolling */
   padding-right: 10px; /* Add padding for scrollbar */
 }
 
-.user-item {
+.AdministratorMaintenance-user-item {
   display: flex;
   align-items: center;
   margin-bottom: 10px;
 }
 
-.user-avatar {
+.AdministratorMaintenance-user-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -138,7 +138,7 @@
 }
 
 /* Group Panel */
-.group-panel {
+.AdministratorMaintenance-group-panel {
   background-color: white;
   padding: 20px;
   border-radius: 10px;
@@ -146,18 +146,18 @@
   flex: 0.6;
 }
 
-.group-panel ul {
+.AdministratorMaintenance-group-panel ul {
   list-style-type: none;
   padding: 0;
 }
 
-.group-panel li {
+.AdministratorMaintenance-group-panel li {
   margin-bottom: 10px;
   display: flex;
   align-items: center;
 }
 
-.group-icon {
+.AdministratorMaintenance-group-icon {
   margin-right: 10px;
   font-size: 24px;
 }

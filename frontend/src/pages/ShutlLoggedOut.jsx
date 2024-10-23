@@ -65,7 +65,7 @@ const ShutlLoggedOut = () => {
 
   return (
     <>
-      <div className="map-container">
+      <div className="ShutlLoggedOut-map-container">
         <MapContainer
           style={{ height: '100%', width: '100%' }}
           center={[14.377, 120.983]}
@@ -86,21 +86,21 @@ const ShutlLoggedOut = () => {
         </MapContainer>
       </div>
 
-      <div className="navbar">
-        <div className="logo">SHU TL.</div>
-        <div className="status"></div>
-        <div className="icon-container" onClick={handleLoginClick}>
-          <div className="line"></div>
-          <img src="/icon.png" alt="Navigation Icon" className="nav-icon" />
+      <div className="ShutlLoggedOut-navbar">
+        <div className="ShutlLoggedOut-logo">SHU TL.</div>
+        <div className="ShutlLoggedOut-status"></div>
+        <div className="ShutlLoggedOut-icon-container" onClick={handleLoginClick}>
+          <div className="ShutlLoggedOut-line"></div>
+          <img src="/icon.png" alt="Navigation Icon" className="ShutlLoggedOut-nav-icon" />
         </div>
       </div>
 
-      <div className="taskbar">
+      <div className="ShutlLoggedOut-taskbar">
         {dateTime.toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} - {dateTime.toLocaleTimeString('en-PH')}
       </div>
 
-      <button className="update-location-btn" onClick={updateUserLocation}>
-        <img src="/locup.png" alt="Update Location" className="update-location-icon" />
+      <button className="ShutlLoggedOut-update-location-btn" onClick={updateUserLocation}>
+        <img src="/locup.png" alt="Update Location" className="ShutlLoggedOut-update-location-icon" />
       </button>
 
       {showLogin && <LoginForm onClose={handleCloseLogin} />}

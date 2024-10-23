@@ -1,4 +1,3 @@
-// src/components/adminComponents/AdministratorFareContent.jsx
 import React from 'react';
 import '../css/AdministratorFareContent.css';
 
@@ -16,9 +15,9 @@ const AdministratorFareContent = () => {
   ];
 
   return (
-    <div className="fares-content">
+    <div className="AdministratorFare-fares-content">
       {/* Fare Matrix */}
-      <div className="fare-matrix">
+      <div className="AdministratorFare-fare-matrix">
         <h3>Fare Matrix</h3>
         <table>
           <thead>
@@ -36,25 +35,25 @@ const AdministratorFareContent = () => {
                 <td>{fare.fare}</td>
                 <td>{fare.price}</td>
                 <td>
-                  <button className="edit-btn">✏️</button>
+                  <button className="AdministratorFare-edit-btn">✏️</button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        <button className="add-btn">+ Add</button>
+        <button className="AdministratorFare-add-btn">+ Add</button>
       </div>
 
       {/* Fare Statistics */}
-      <div className="fare-statistics">
-        <div className="api-stats">
+      <div className="AdministratorFare-fare-statistics">
+        <div className="AdministratorFare-api-stats">
           <h4>Fare Matrix</h4>
           <p>13/08/2024</p>
           <p>Mapbox API</p>
           <h2>6,237</h2>
           <p>as of 12:42 PM</p>
         </div>
-        <div className="fare-breakdown">
+        <div className="AdministratorFare-fare-breakdown">
           <h4>Breakdown</h4>
           <p>Regular: PHP 6,XXX.00</p>
           <p>Discounted: PHP 1,XXX.00</p>
@@ -62,13 +61,13 @@ const AdministratorFareContent = () => {
       </div>
 
       {/* Activity */}
-      <div className="activity-feed">
+      <div className="AdministratorFare-activity-feed">
         <h4>Activity</h4>
         <ul>
           {activities.map((activity, index) => (
             <li key={index}>
-              <span className="activity-icon">💰</span> {activity.shuttle} posted {activity.trip}.
-              <span className="activity-time">{activity.time}</span>
+              <span className="AdministratorFare-activity-icon">💰</span> {activity.shuttle} posted {activity.trip}.
+              <span className="AdministratorFare-activity-time">{activity.time}</span>
             </li>
           ))}
         </ul>

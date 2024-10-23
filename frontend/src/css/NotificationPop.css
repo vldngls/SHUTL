@@ -1,6 +1,6 @@
-/* src/css/NotificationPop.css */
+/* ShutlNotificationPop Component Styles */
 
-.notification-popup {
+.ShutlNotificationPop-popup {
   position: absolute; /* Position relative to notification button */
   left: 88px; /* Align next to the notification button */
   top: 500px; /* Position lower for better visibility */
@@ -13,13 +13,13 @@
   padding: 10px 0; /* Padding inside the popup to add space around items */
 }
 
-.notification-popup ul {
+.ShutlNotificationPop-list {
   list-style: none; /* Remove default list styling */
   padding: 0; /* Remove default padding */
   margin: 0; /* Remove default margin */
 }
 
-.notification-popup ul li {
+.ShutlNotificationPop-item {
   padding: 12px 20px; /* Spacing around each item for readability */
   color: #f1f1f1; /* Light text color for good contrast against dark background */
   font-size: 1em; /* Standardized font size */
@@ -30,10 +30,10 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Divider between items */
 }
 
-.notification-popup ul li:last-child {
+.ShutlNotificationPop-item:last-child {
   border-bottom: none; /* Remove border for the last item */
 }
 
-.notification-popup ul li:hover {
+.ShutlNotificationPop-item:hover {
   background-color: rgba(255, 255, 255, 0.1); /* Lighter background when hovering over an item */
 }

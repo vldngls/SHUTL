@@ -1,4 +1,3 @@
-// src/components/adminComponents/AdministratorShuttlesRoutesContent.jsx
 import React from 'react';
 import '../css/AdministratorShuttlesRoutesContent.css';
 
@@ -14,11 +13,11 @@ const AdministratorShuttlesRoutesContent = () => {
   ];
 
   return (
-    <div className="shuttles-routes-content">
+    <div className="AdministratorShuttlesRoutes-shuttles-routes-content">
       {/* Summary Section */}
-      <div className="summary">
+      <div className="AdministratorShuttlesRoutes-summary">
         <h3>Summary</h3>
-        <div className="summary-grid">
+        <div className="AdministratorShuttlesRoutes-summary-grid">
           <div>
             <span>287</span>
             <p>Passengers</p>
@@ -32,16 +31,16 @@ const AdministratorShuttlesRoutesContent = () => {
             <p>Duration</p>
           </div>
         </div>
-        <div className="logs">
+        <div className="AdministratorShuttlesRoutes-logs">
           <p>6:19 PM - result: success.</p>
           <p>6:17 PM - paymentId: 1218. granted.</p>
           <p>6:15 PM - result: denied.</p>
         </div>
-        <button className="refresh-btn">🔄</button>
+        <button className="AdministratorShuttlesRoutes-refresh-btn">🔄</button>
       </div>
 
       {/* Shuttles Section */}
-      <div className="shuttles">
+      <div className="AdministratorShuttlesRoutes-shuttles">
         <h3>Shuttles</h3>
         <table>
           <thead>
@@ -58,7 +57,7 @@ const AdministratorShuttlesRoutesContent = () => {
           <tbody>
             {shuttleData.map((shuttle, index) => (
               <tr key={index}>
-                <td><span className={`status-circle ${shuttle.status}`}></span></td>
+                <td><span className={`AdministratorShuttlesRoutes-status-circle ${shuttle.status}`}></span></td>
                 <td>{shuttle.busName}</td>
                 <td>{shuttle.deploymentTime}</td>
                 <td>{shuttle.routeTime}</td>
@@ -69,11 +68,11 @@ const AdministratorShuttlesRoutesContent = () => {
             ))}
           </tbody>
         </table>
-        <button className="add-btn">+ Add</button>
+        <button className="AdministratorShuttlesRoutes-add-btn">+ Add</button>
       </div>
 
       {/* Routes Section */}
-      <div className="routes">
+      <div className="AdministratorShuttlesRoutes-routes">
         <h3>Routes</h3>
         <table>
           <thead>
@@ -89,7 +88,7 @@ const AdministratorShuttlesRoutesContent = () => {
           <tbody>
             {routeData.map((route, index) => (
               <tr key={index}>
-                <td><span className={`status-circle ${route.status}`}></span></td>
+                <td><span className={`AdministratorShuttlesRoutes-status-circle ${route.status}`}></span></td>
                 <td>{route.routeName}</td>
                 <td>{route.shuttles}</td>
                 <td>{route.totalPassengers}</td>
@@ -99,7 +98,7 @@ const AdministratorShuttlesRoutesContent = () => {
             ))}
           </tbody>
         </table>
-        <button className="add-btn">+ Add</button>
+        <button className="AdministratorShuttlesRoutes-add-btn">+ Add</button>
       </div>
     </div>
   );

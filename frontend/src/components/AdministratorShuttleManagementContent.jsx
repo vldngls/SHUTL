@@ -1,4 +1,3 @@
-// src/components/adminComponents/AdministratorShuttleManagementContent.jsx
 import React from 'react';
 import '../css/AdministratorShuttleManagementContent.css';
 
@@ -10,9 +9,9 @@ const AdministratorShuttleManagementContent = () => {
   ];
 
   return (
-    <div className="shuttle-management-content">
+    <div className="AdministratorShuttleManagement-shuttle-management-content">
       {/* Assigned Drivers Table */}
-      <div className="assigned-drivers-table">
+      <div className="AdministratorShuttleManagement-assigned-drivers-table">
         <h3>Assigned drivers</h3>
         <table>
           <thead>
@@ -22,9 +21,9 @@ const AdministratorShuttleManagementContent = () => {
               <th>Login username</th>
               <th>Login password</th>
               <th>
-                <button className="action-btn edit-btn">✏️</button>
-                <button className="action-btn delete-btn">🗑️</button>
-                <button className="action-btn add-btn">➕</button>
+                <button className="AdministratorShuttleManagement-action-btn AdministratorShuttleManagement-edit-btn">✏️</button>
+                <button className="AdministratorShuttleManagement-action-btn AdministratorShuttleManagement-delete-btn">🗑️</button>
+                <button className="AdministratorShuttleManagement-action-btn AdministratorShuttleManagement-add-btn">➕</button>
               </th>
             </tr>
           </thead>
@@ -42,45 +41,45 @@ const AdministratorShuttleManagementContent = () => {
       </div>
 
       {/* Driver Status Section */}
-      <div className="assigned-drivers-status">
+      <div className="AdministratorShuttleManagement-assigned-drivers-status">
         <h3>Assigned drivers</h3>
         {drivers.map((driver, index) => (
-          <div key={index} className="driver-status">
-            <span className={`status-circle ${driver.status}`}></span>
+          <div key={index} className="AdministratorShuttleManagement-driver-status">
+            <span className={`AdministratorShuttleManagement-status-circle ${driver.status}`}></span>
             <span>{driver.name}</span>
-            <div className="status-buttons">
-              <button className="status-btn">Dispatch</button>
-              <button className="status-btn">Idle</button>
-              <button className="status-btn">Pull out</button>
+            <div className="AdministratorShuttleManagement-status-buttons">
+              <button className="AdministratorShuttleManagement-status-btn">Dispatch</button>
+              <button className="AdministratorShuttleManagement-status-btn">Idle</button>
+              <button className="AdministratorShuttleManagement-status-btn">Pull out</button>
             </div>
           </div>
         ))}
       </div>
 
       {/* Automated Messages Section */}
-      <div className="automated-messages">
+      <div className="AdministratorShuttleManagement-automated-messages">
         <h3>Automated messages</h3>
-        <div className="message-box">
-          <select className="message-select">
+        <div className="AdministratorShuttleManagement-message-box">
+          <select className="AdministratorShuttleManagement-message-select">
             <option value="driver">Driver</option>
             {/* Add more options if needed */}
           </select>
-          <div className="message-list">
-            <div className="message-row">
+          <div className="AdministratorShuttleManagement-message-list">
+            <div className="AdministratorShuttleManagement-message-row">
               <span>Emergency</span>
-              <button className="message-action-btn">Call</button>
+              <button className="AdministratorShuttleManagement-message-action-btn">Call</button>
             </div>
-            <div className="message-row">
+            <div className="AdministratorShuttleManagement-message-row">
               <span>Full passenger</span>
-              <button className="message-action-btn">Dispatch alert</button>
+              <button className="AdministratorShuttleManagement-message-action-btn">Dispatch alert</button>
             </div>
-            <div className="message-row">
+            <div className="AdministratorShuttleManagement-message-row">
               <span>Action</span>
-              <button className="message-action-btn">Action</button>
+              <button className="AdministratorShuttleManagement-message-action-btn">Action</button>
             </div>
-            <div className="message-row">
+            <div className="AdministratorShuttleManagement-message-row">
               <span>Action</span>
-              <button className="message-action-btn">Action</button>
+              <button className="AdministratorShuttleManagement-message-action-btn">Action</button>
             </div>
           </div>
         </div>

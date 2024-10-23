@@ -25,11 +25,11 @@ const AdministratorDashboardContent = () => {
   }, []); // Empty dependency array ensures this effect runs only once
 
   return (
-    <div className="dashboard-content">
+    <div className="AdministratorDashboard-dashboard-content">
       {/* Real-Time Status */}
-      <div className="real-time-status">
+      <div className="AdministratorDashboard-real-time-status">
         <h3>Real Time Status</h3>
-        <div className="status-grid">
+        <div className="AdministratorDashboard-status-grid">
           <div>
             <span>3</span>
             <p>Shuttles</p>
@@ -50,13 +50,13 @@ const AdministratorDashboardContent = () => {
       </div>
 
       {/* API Requests */}
-      <div className="api-requests">
+      <div className="AdministratorDashboard-api-requests">
         <h3>API Requests</h3>
-        <div className="api-details">
-          <div className="api-circle">
+        <div className="AdministratorDashboard-api-details">
+          <div className="AdministratorDashboard-api-circle">
             {/* Add a chart or pie graph here */}
           </div>
-          <div className="api-stats">
+          <div className="AdministratorDashboard-api-stats">
             <h4>Mapbox API</h4>
             <p>Total Request</p>
             <h2>6,237</h2>
@@ -66,17 +66,17 @@ const AdministratorDashboardContent = () => {
       </div>
 
       {/* Current Users */}
-      <div className="current-users">
+      <div className="AdministratorDashboard-current-users">
         <h3>Current Users</h3>
-        <div className="users-number">
+        <div className="AdministratorDashboard-users-number">
           <h2>{userCount}</h2> {/* Display the dynamic user count here */}
         </div>
       </div>
 
       {/* Bus Tracking */}
-      <div className="bus-tracking">
+      <div className="AdministratorDashboard-bus-tracking">
         <h3>Bus Tracking</h3>
-        <div className="bus-grid">
+        <div className="AdministratorDashboard-bus-grid">
           <div>
             <h4>SHUTL. 001</h4>
             <p>Currently at Acosta Street</p>
@@ -96,16 +96,16 @@ const AdministratorDashboardContent = () => {
       </div>
 
       {/* Announcements */}
-      <div className="announcements">
+      <div className="AdministratorDashboard-announcements">
         <h3>Announcements</h3>
         <textarea placeholder="Post an announcement..." />
         <button>Post</button>
       </div>
 
       {/* Operational Hours */}
-      <div className="operational-hours">
+      <div className="AdministratorDashboard-operational-hours">
         <h3>Operational Hours</h3>
-        <div className="hours-input">
+        <div className="AdministratorDashboard-hours-input">
           <input type="time" />
           <input type="time" />
           <button>Save</button>

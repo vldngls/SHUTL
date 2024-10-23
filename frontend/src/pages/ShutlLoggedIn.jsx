@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -89,7 +88,7 @@ const ShutlLoggedIn = () => {
 
   return (
     <>
-      <div className="map-container">
+      <div className="ShutlLoggedIn-map-container">
         <MapContainer
           style={{ height: '100%', width: '100%' }}
           center={[14.377, 120.983]}
@@ -108,29 +107,29 @@ const ShutlLoggedIn = () => {
         </MapContainer>
       </div>
 
-      <div className="navbar">
-        <div className="logo">SHU TL.</div>
-        <div className="status"></div>
-        <div className="icon-container">
-          <div className="line"></div>
-          <img src="/icon.png" alt="Navigation Icon" className="nav-icon" onClick={() => togglePopup('profile')} />
+      <div className="ShutlLoggedIn-navbar">
+        <div className="ShutlLoggedIn-logo">SHU TL.</div>
+        <div className="ShutlLoggedIn-status"></div>
+        <div className="ShutlLoggedIn-icon-container">
+          <div className="ShutlLoggedIn-line"></div>
+          <img src="/icon.png" alt="Navigation Icon" className="ShutlLoggedIn-nav-icon" onClick={() => togglePopup('profile')} />
         </div>
       </div>
 
-      <div className="taskbar">
+      <div className="ShutlLoggedIn-taskbar">
         {formattedDate} - {formattedTime}
       </div>
 
-      <button className="update-location-btn" onClick={updateUserLocation}>
-        <img src="/locup.png" alt="Update Location" className="update-location-icon" />
+      <button className="ShutlLoggedIn-update-location-btn" onClick={updateUserLocation}>
+        <img src="/locup.png" alt="Update Location" className="ShutlLoggedIn-update-location-icon" />
       </button>
       
-      <button className="setting-btn" onClick={() => togglePopup('settings')}>
-        <img src="/settings.png" alt="Settings" className="setting-icon" />
+      <button className="ShutlLoggedIn-setting-btn" onClick={() => togglePopup('settings')}>
+        <img src="/settings.png" alt="Settings" className="ShutlLoggedIn-setting-icon" />
       </button>
       
-      <button className="notif-btn" onClick={() => togglePopup('notifications')}>
-        <img src="/notif.png" alt="Notification" className="notif-icon" />
+      <button className="ShutlLoggedIn-notif-btn" onClick={() => togglePopup('notifications')}>
+        <img src="/notif.png" alt="Notification" className="ShutlLoggedIn-notif-icon" />
       </button>
       
       <div ref={popupRef}>

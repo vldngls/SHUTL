@@ -1,119 +1,121 @@
-.manage-schedule-popup {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5); /* Semi-transparent background overlay */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000; /* Ensure it's above other elements */
-  }
-  
-  .manage-schedule-content {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 30px;
-    width: 90%; /* Increased width for better alignment */
-    max-width: 1100px; /* Set a larger maximum width to reduce wrapping */
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Shadow for elevation */
-  }
-  
-  h2 {
-    margin-top: 0;
-    color: #333;
-    text-align: center;
-    font-size: 1.8em;
-  }
-  
-  .schedule-list {
-    margin-bottom: 20px;
-  }
-  
-  .schedule-entry {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-    gap: 10px;
-  }
-  
-  .schedule-input {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    outline: none;
-    font-size: 1.1em;
-  }
-  
-  .delete-button {
-    background: #e74c3c;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-  
-  .delete-button:hover {
-    background: #c0392b;
-  }
-  
-  .add-button {
-    background: #3498db;
-    color: #fff;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.3s;
-    width: 100%;
-    margin-bottom: 20px;
-    font-size: 1.2em;
-  }
-  
-  .add-button:hover {
-    background: #2980b9;
-  }
-  
-  .manage-schedule-footer {
-    display: flex;
-    justify-content: space-between;
-    gap: 15px;
-  }
-  
-  .save-button {
-    background: #2ecc71;
-    color: #fff;
-    border: none;
-    padding: 12px 25px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.3s;
-    flex: 1;
-    font-size: 1.2em;
-  }
-  
-  .save-button:hover {
-    background: #27ae60;
-  }
-  
-  .close-button {
-    background: #e0e0e0;
-    color: #333;
-    border: none;
-    padding: 12px 25px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.3s;
-    flex: 1;
-    font-size: 1.2em;
-  }
-  
-  .close-button:hover {
-    background: #d5d5d5;
-  }
+/* ShutlManageSchedule Component Styles */
+
+.ShutlManageSchedule-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent background overlay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Ensure it's above other elements */
+}
+
+.ShutlManageSchedule-content {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 30px;
+  width: 90%; /* Increased width for better alignment */
+  max-width: 1100px; /* Set a larger maximum width to reduce wrapping */
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Shadow for elevation */
+}
+
+.ShutlManageSchedule-title {
+  margin-top: 0;
+  color: #333;
+  text-align: center;
+  font-size: 1.8em;
+}
+
+.ShutlManageSchedule-list {
+  margin-bottom: 20px;
+}
+
+.ShutlManageSchedule-entry {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  gap: 10px;
+}
+
+.ShutlManageSchedule-input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+  font-size: 1.1em;
+}
+
+.ShutlManageSchedule-delete-button {
+  background: #e74c3c;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.ShutlManageSchedule-delete-button:hover {
+  background: #c0392b;
+}
+
+.ShutlManageSchedule-add-button {
+  background: #3498db;
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+  width: 100%;
+  margin-bottom: 20px;
+  font-size: 1.2em;
+}
+
+.ShutlManageSchedule-add-button:hover {
+  background: #2980b9;
+}
+
+.ShutlManageSchedule-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.ShutlManageSchedule-save-button {
+  background: #2ecc71;
+  color: #fff;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+  flex: 1;
+  font-size: 1.2em;
+}
+
+.ShutlManageSchedule-save-button:hover {
+  background: #27ae60;
+}
+
+.ShutlManageSchedule-close-button {
+  background: #e0e0e0;
+  color: #333;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+  flex: 1;
+  font-size: 1.2em;
+}
+
+.ShutlManageSchedule-close-button:hover {
+  background: #d5d5d5;
+}

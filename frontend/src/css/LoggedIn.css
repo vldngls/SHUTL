@@ -4,7 +4,8 @@ html, body {
   height: 100%;
   overflow: hidden; /* Prevent scroll bars */
 }
-.settings-menu {
+
+.ShutlLoggedIn-settings-menu {
   position: fixed;
   left: 17px; /* Same left position as other buttons */
   top: 700px; /* Adjust according to your layout */
@@ -15,7 +16,7 @@ html, body {
   padding: 10px; /* Add some padding */
 }
 
-.settings-menu button {
+.ShutlLoggedIn-settings-menu button {
   background: none; /* Remove default button styles */
   border: none; /* Remove border */
   cursor: pointer; /* Pointer cursor */
@@ -25,11 +26,11 @@ html, body {
   color: #333; /* Text color */
 }
 
-.settings-menu button:hover {
+.ShutlLoggedIn-settings-menu button:hover {
   background-color: #f0f0f0; /* Hover effect */
 }
 
-.notif-btn {
+.ShutlLoggedIn-notif-btn {
   position: fixed; /* or absolute depending on your layout */
   left: 17px; /* Same left position as circle-btn */
   top: 585px; /* Adjust this value to place it below the circle button */
@@ -43,12 +44,12 @@ html, body {
   z-index: 3; /* Ensure it is above other elements */
 }
 
-.notif-icon {
+.ShutlLoggedIn-notif-icon {
   width: 100%; /* Make the icon fill the button */
   height: auto; /* Maintain aspect ratio */
 }
 
-.setting-btn{
+.ShutlLoggedIn-setting-btn {
   position: fixed; /* or absolute depending on your layout */
   left: 17px; /* Adjust according to your sidebar width */
   top: 650px; /* Adjust to the desired vertical position */
@@ -61,32 +62,33 @@ html, body {
   height: 48px; /* Set the height to match the icon size */
   z-index: 3; /* Ensure it is above other elements */
 }
-.setting-icon {
-width: 100%; /* Fill the button */
-height: 100%; /* Fill the button */
+
+.ShutlLoggedIn-setting-icon {
+  width: 100%; /* Fill the button */
+  height: 100%; /* Fill the button */
 }
 
-.setting-btn:hover .setting-icon{
-opacity: 0.8; /* Add hover effect */
+.ShutlLoggedIn-setting-btn:hover .ShutlLoggedIn-setting-icon {
+  opacity: 0.8; /* Add hover effect */
 }
 
 /* Media Queries for Responsiveness */
 @media (max-width: 768px) {
-.circle-btn {
-  right: 20px; /* Move it closer to the edge on smaller screens */
-  bottom: 50px; /* Adjust positioning on smaller screens */
-}
+  .ShutlLoggedIn-circle-btn {
+    right: 20px; /* Move it closer to the edge on smaller screens */
+    bottom: 50px; /* Adjust positioning on smaller screens */
+  }
 }
 
 @media (max-width: 480px) {
-.circle-btn {
-  right: 10px; /* Adjust for even smaller screens */
-  bottom: 40px;
-}
+  .ShutlLoggedIn-circle-btn {
+    right: 10px; /* Adjust for even smaller screens */
+    bottom: 40px;
+  }
 }
 
 /* Map container */
-.map-container {
+.ShutlLoggedIn-map-container {
   position: absolute;
   top: 0;
   left: 0;
@@ -96,7 +98,7 @@ opacity: 0.8; /* Add hover effect */
 }
 
 /* Base styles for the navbar */
-.navbar {
+.ShutlLoggedIn-navbar {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -114,19 +116,19 @@ opacity: 0.8; /* Add hover effect */
   box-sizing: border-box;
 }
 
-.logo {
+.ShutlLoggedIn-logo {
   font-size: 1.6em; /* Adjusted to relative units */
   font-weight: bold;
   margin-bottom: 20px;
   margin-top: 8px;
 }
 
-.status {
+.ShutlLoggedIn-status {
   font-size: 1em; /* Adjusted to relative units */
   margin-top: auto;
 }
 
-.icon-container {
+.ShutlLoggedIn-icon-container {
   position: relative;
   width: auto; /* Adjusted size */
   height: auto; /* Adjusted size */
@@ -136,7 +138,7 @@ opacity: 0.8; /* Add hover effect */
   justify-content: center;
 }
 
-.line {
+.ShutlLoggedIn-line {
   position: absolute;
   top: -10px;
   left: 50%;
@@ -146,14 +148,14 @@ opacity: 0.8; /* Add hover effect */
   background-color: white;
 }
 
-.nav-icon {
+.ShutlLoggedIn-nav-icon {
   width: 48px; /* Adjusted size */
   height: 48px; /* Adjusted size */
   margin-top: 8px;
 }
 
 /* Taskbar */
-.taskbar {
+.ShutlLoggedIn-taskbar {
   position: fixed;
   bottom: 0;
   left: 0;
@@ -173,45 +175,45 @@ opacity: 0.8; /* Add hover effect */
 
 /* Media Queries */
 @media (max-width: 768px) {
-  .navbar {
+  .ShutlLoggedIn-navbar {
     width: 48px;
     padding: 8px;
   }
 
-  .logo {
+  .ShutlLoggedIn-logo {
     font-size: 1.2em;
     margin-bottom: 15px;
   }
 
-  .status {
+  .ShutlLoggedIn-status {
     font-size: 0.9em;
   }
 
-  .nav-icon {
+  .ShutlLoggedIn-nav-icon {
     width: 30px;
     height: 30px;
   }
 
-  .icon-container {
+  .ShutlLoggedIn-icon-container {
     width: 30px;
     height: 30px;
     margin-top: auto; /* Center icon vertically */
     margin-bottom: 20px; /* Space from the bottom */
   }
 
-  .line {
+  .ShutlLoggedIn-line {
     top: -8px;
     width: 15px;
   }
 
-  .taskbar {
+  .ShutlLoggedIn-taskbar {
     width: calc(100% + 48px); /* Adjust to full viewport width on smaller screens */
     margin-left: -48px; /* Adjust to align with navbar width */
   }
 }
 
 @media (max-width: 480px) {
-  .navbar {
+  .ShutlLoggedIn-navbar {
     flex-direction: row;
     justify-content: space-between;
     width: 100%;
@@ -223,36 +225,36 @@ opacity: 0.8; /* Add hover effect */
     z-index: 2;
   }
 
-  .logo {
+  .ShutlLoggedIn-logo {
     font-size: 1em;
     margin-bottom: 0;
     align-self: center;
   }
 
-  .status {
+  .ShutlLoggedIn-status {
     font-size: 0.9em;
     margin-top: 0;
     align-self: center;
   }
 
-  .nav-icon {
+  .ShutlLoggedIn-nav-icon {
     width: 25px;
     height: 25px;
   }
 
-  .icon-container {
+  .ShutlLoggedIn-icon-container {
     width: 25px;
     height: 25px;
     margin-top: auto; /* Center icon vertically */
     margin-bottom: 10px; /* Space from the bottom */
   }
 
-  .line {
+  .ShutlLoggedIn-line {
     top: -4px;
     width: 12px;
   }
 
-  .taskbar {
+  .ShutlLoggedIn-taskbar {
     font-size: 0.9em;
     padding: 8px 16px;
     white-space: nowrap;
@@ -261,13 +263,13 @@ opacity: 0.8; /* Add hover effect */
     margin-left: -80px; /* Shift taskbar left to align with the navbar's edge */
   }
 
-  .line {
+  .ShutlLoggedIn-line {
     display: none; /* Hide the line on smaller portrait devices */
   }
 }
 
 /* Update Location Button */
-.update-location-btn {
+.ShutlLoggedIn-update-location-btn {
   position: fixed;
   right: 20px;
   bottom: 60px; /* Adjust this value to position it above the taskbar */
@@ -278,55 +280,55 @@ opacity: 0.8; /* Add hover effect */
   z-index: 3; /* Ensure it stays above the map and taskbar */
 }
 
-.update-location-icon {
+.ShutlLoggedIn-update-location-icon {
   width: 40px; /* Adjust the icon size */
   height: 40px; /* Adjust the icon size */
 }
 
-.update-location-btn:hover .update-location-icon {
+.ShutlLoggedIn-update-location-btn:hover .ShutlLoggedIn-update-location-icon {
   opacity: 0.8; /* Add hover effect */
 }
 
 @media (max-width: 768px) {
-  .update-location-btn {
+  .ShutlLoggedIn-update-location-btn {
     right: 10px;
     bottom: 50px; /* Adjust for smaller screens */
   }
 
-  .update-location-icon {
+  .ShutlLoggedIn-update-location-icon {
     width: 30px;
     height: 30px;
   }
 }
 
 @media (max-width: 480px) {
-  .update-location-btn {
+  .ShutlLoggedIn-update-location-btn {
     right: 10px;
     bottom: 60px; /* Adjust for smaller screens */
   }
 
-  .update-location-icon {
+  .ShutlLoggedIn-update-location-icon {
     width: 25px;
     height: 25px;
   }
 }
 
 /* Popup Overlay */
-.overlay {
-position: fixed;
-top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-z-index: 1000; /* Ensure it appears above other elements */
+.ShutlLoggedIn-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  z-index: 1000; /* Ensure it appears above other elements */
 }
 
 /* Popup Container */
-.popup {
-position: fixed;
-top: 50%;
-left: 50%;
-transform: translate(-50%, -50%);
-z-index: 1001; /* Ensure it's above the overlay */
+.ShutlLoggedIn-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1001; /* Ensure it's above the overlay */
 }

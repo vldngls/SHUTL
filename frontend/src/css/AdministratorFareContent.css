@@ -1,114 +1,113 @@
 /* Fare matrix layout */
-.fares-content {
-    display: grid;
-    grid-template-columns: 3fr 2fr 1fr;
-    gap: 20px;
-  }
-  
-  .fare-matrix {
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    grid-column: span 3;
-  }
-  
-  .fare-matrix h3 {
-    margin-bottom: 10px;
-  }
-  
-  .fare-matrix table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 10px;
-  }
-  
-  .fare-matrix th, .fare-matrix td {
-    padding: 10px;
-    border: 1px solid #ddd;
-    text-align: left;
-  }
-  
-  .edit-btn {
-    background-color: #ff6b35;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .add-btn {
-    background-color: #ff6b35;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 10px;
-    float: right;
-  }
-  
-  /* Fare statistics and breakdown */
-  .fare-statistics {
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    grid-column: span 2;
-    display: flex;
-    justify-content: space-between;
-  }
-  
-  .api-stats, .fare-breakdown {
-    flex: 1;
-  }
-  
-  .api-stats h4, .fare-breakdown h4 {
-    margin-bottom: 10px;
-  }
-  
-  .api-stats h2 {
-    font-size: 24px;
-    font-weight: bold;
-  }
-  
-  .fare-breakdown p {
-    font-size: 16px;
-    color: #333;
-    margin: 5px 0;
-  }
-  
-  /* Activity Feed */
-  .activity-feed {
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .activity-feed h4 {
-    margin-bottom: 10px;
-  }
-  
-  .activity-feed ul {
-    list-style: none;
-    padding: 0;
-  }
-  
-  .activity-feed li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-  
-  .activity-icon {
-    margin-right: 10px;
-  }
-  
-  .activity-time {
-    color: #999;
-    font-size: 12px;
-  }
-  
+.AdministratorFare-fares-content {
+  display: grid;
+  grid-template-columns: 3fr 2fr 1fr;
+  gap: 20px;
+}
+
+.AdministratorFare-fare-matrix {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  grid-column: span 3;
+}
+
+.AdministratorFare-fare-matrix h3 {
+  margin-bottom: 10px;
+}
+
+.AdministratorFare-fare-matrix table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.AdministratorFare-fare-matrix th, .AdministratorFare-fare-matrix td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.AdministratorFare-edit-btn {
+  background-color: #ff6b35;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.AdministratorFare-add-btn {
+  background-color: #ff6b35;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  float: right;
+}
+
+/* Fare statistics and breakdown */
+.AdministratorFare-fare-statistics {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  grid-column: span 2;
+  display: flex;
+  justify-content: space-between;
+}
+
+.AdministratorFare-api-stats, .AdministratorFare-fare-breakdown {
+  flex: 1;
+}
+
+.AdministratorFare-api-stats h4, .AdministratorFare-fare-breakdown h4 {
+  margin-bottom: 10px;
+}
+
+.AdministratorFare-api-stats h2 {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.AdministratorFare-fare-breakdown p {
+  font-size: 16px;
+  color: #333;
+  margin: 5px 0;
+}
+
+/* Activity Feed */
+.AdministratorFare-activity-feed {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.AdministratorFare-activity-feed h4 {
+  margin-bottom: 10px;
+}
+
+.AdministratorFare-activity-feed ul {
+  list-style: none;
+  padding: 0;
+}
+
+.AdministratorFare-activity-feed li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.AdministratorFare-activity-icon {
+  margin-right: 10px;
+}
+
+.AdministratorFare-activity-time {
+  color: #999;
+  font-size: 12px;
+}

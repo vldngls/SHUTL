@@ -1,4 +1,3 @@
-// src/components/adminComponents/AdministratorTransactionsContent.jsx
 import React from 'react';
 import '../css/AdministratorTransactionsContent.css';
 
@@ -14,9 +13,9 @@ const AdministratorTransactionsContent = () => {
   ];
 
   return (
-    <div className="transactions-content">
+    <div className="AdministratorTransactions-transactions-content">
       {/* Payments Section */}
-      <div className="payments-section">
+      <div className="AdministratorTransactions-payments-section">
         <h3>Payments</h3>
         <table>
           <thead>
@@ -41,19 +40,19 @@ const AdministratorTransactionsContent = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="no-data">No payment data available</td>
+                <td colSpan="5" className="AdministratorTransactions-no-data">No payment data available</td>
               </tr>
             )}
           </tbody>
         </table>
-        <div className="table-actions">
-          <button className="edit-btn">✏️</button>
-          <button className="add-btn">➕</button>
+        <div className="AdministratorTransactions-table-actions">
+          <button className="AdministratorTransactions-edit-btn">✏️</button>
+          <button className="AdministratorTransactions-add-btn">➕</button>
         </div>
       </div>
 
       {/* Shuttle Trips Section */}
-      <div className="shuttle-trips-section">
+      <div className="AdministratorTransactions-shuttle-trips-section">
         <h3>Shuttle Trips</h3>
         <table>
           <thead>
@@ -76,14 +75,14 @@ const AdministratorTransactionsContent = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="4" className="no-data">No shuttle trip data available</td>
+                <td colSpan="4" className="AdministratorTransactions-no-data">No shuttle trip data available</td>
               </tr>
             )}
           </tbody>
         </table>
-        <div className="table-actions">
-          <button className="edit-btn">✏️</button>
-          <button className="add-btn">➕</button>
+        <div className="AdministratorTransactions-table-actions">
+          <button className="AdministratorTransactions-edit-btn">✏️</button>
+          <button className="AdministratorTransactions-add-btn">➕</button>
         </div>
       </div>
     </div>
