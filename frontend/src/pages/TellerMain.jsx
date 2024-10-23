@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import '../css/TellerMain.css';
 import NotificationPop from '../components/NotificationPop'; // Import the new component
-import SettingsPop from '../components/SettingsPop'; // Import the new component
+import SettingsDropdown from '../components/SettingsDropdown'; // Import the new component
+import ProfilePopup from '../components/ProfilePopup';
 import L from 'leaflet';
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -138,7 +139,7 @@ const TellerMain = () => {
       {isProfileOpen && <ProfilePopup user={user} onClose={toggleProfile} />}
       
       {/* Settings Menu */}
-      {isSettingsOpen && <SettingsPop onClose={toggleSettings} />}
+      {isSettingsOpen && <SettingsDropdown onClose={toggleSettings} />}
       
       {/* Notification Popup */}
       {isNotificationOpen && <NotificationPop onClose={toggleNotifications} />}
