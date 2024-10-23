@@ -1,15 +1,17 @@
 /* ShutlNotificationPop Component Styles */
 
+/* ShutlNotificationPop Component Styles */
 .ShutlNotificationPop-popup {
-  position: absolute; /* Position relative to notification button */
+  position: relative;
   background: #333; /* Dark background, matching the provided design */
   border-radius: 15px; /* Rounded corners */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Subtle shadow for elevation */
-  z-index: 4; /* Ensure it appears above other elements */
+  z-index: 1001; /* Ensure it appears above other elements */
   min-width: 200px; /* Minimum width for consistent sizing */
   max-width: 240px; /* Limit maximum width */
   padding: 10px 0; /* Padding inside the popup to add space around items */
 }
+
 
 .ShutlNotificationPop-list {
   list-style: none; /* Remove default list styling */

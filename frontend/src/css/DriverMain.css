@@ -69,7 +69,6 @@
     position: relative;
 }
 
-
 .DriverMain-settings-dropdown {
     position: absolute;
     z-index: 1000;
@@ -78,10 +77,12 @@
     position: relative;
 }
 
-
-.DriverMain-notification-dropdown {
+.ShutlNotificationPop-popup {
     position: absolute;
     z-index: 1000;
+    left: 80px;
+    top: 18px;
+    transform: translateY(-50%);
 }
 
 /* Profile icon styling and container positioning */
