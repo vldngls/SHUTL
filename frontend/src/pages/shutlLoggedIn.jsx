@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import '../css/LoggedIn.css'; // Assuming similar styles are used
 import NotificationPop from '../components/NotificationPop'; // Import the new component
-import SettingsPop from '../components/SettingsPop'; // Import the new component
+import SettingsDropdown from '../components/SettingsDropdown'; // Import the new component
 import L from 'leaflet';
 import ProfilePopup from '../components/ProfilePopup'; // Import the ProfilePopup component
 
@@ -134,7 +134,7 @@ const ShutlLoggedIn = () => {
       </button>
       
       <div ref={popupRef}>
-        {activePopup === 'settings' && <SettingsPop onClose={() => setActivePopup(null)} />}
+        {activePopup === 'settings' && <SettingsDropdown onClose={() => setActivePopup(null)} />}
         {activePopup === 'notifications' && <NotificationPop onClose={() => setActivePopup(null)} />}
         {activePopup === 'profile' && <ProfilePopup onClose={() => setActivePopup(null)} />}
       </div>
