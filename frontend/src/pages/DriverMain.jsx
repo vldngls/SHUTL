@@ -155,7 +155,7 @@ const DriverMain = () => {
               <img src="/settings.png" alt="Settings Icon" className="DriverMain-icon-image" />
             </button>
             {isSettingsOpen && (
-              <div className="DriverMain-settings-dropdown" style={{ top: '50%', left: '110%', transform: 'translateY(-50%)' }}>
+              <div className="DriverMain-settings-dropdown" style={{ bottom: '220%', left: '130%', transform: 'translateY(-50%)' }}>
                 <SettingsDropdown onClose={toggleSettings} />
               </div>
             )}

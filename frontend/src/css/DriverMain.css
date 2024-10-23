@@ -72,11 +72,6 @@
 /* Settings dropdown styling */
 .DriverMain-settings-dropdown {
     position: absolute;
-    width: 200px;
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding: 15px;
     z-index: 1000;
 }
 
