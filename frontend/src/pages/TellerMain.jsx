@@ -140,8 +140,65 @@ const TellerMain = () => {
       <button className="update-location-btn" onClick={updateUserLocation}>
         <img src="/locup.png" alt="Update Location" className="update-location-icon" />
       </button>
-
       
+      <button className="setting-btn" onClick={toggleSettings}>
+        <img src="/settings.png" alt="Settings Icon" className="setting-icon" />
+      </button>
+      
+      {/* New Notification Button */}
+      <button className="notif-btn" onClick={toggleNotifications}>
+        <img src="/notif.png" alt="Notification Icon" className="notif-icon" />
+      </button>
+
+      {/* New Message Button */}
+      <button className="message-btn" onClick={toggleMessages}>
+        <img src="/message.png" alt="Message Icon" className="message-icon" />
+      </button>
+
+      {isProfileOpen && <ProfilePopup user={user} onClose={toggleProfile} />}
+      
+      {/* Settings Menu */}
+      {isSettingsOpen && <SettingsPop onClose={toggleSettings} />}
+      
+      {/* Notification Popup */}
+      {isNotificationOpen && <NotificationPop onClose={toggleNotifications} />}
+
+      {/* Message Panel */}
+      <div className={`message-panel ${isMessageOpen ? 'open' : ''}`}>
+        <div className="message-header">
+          <h3>Messages</h3>
+          <button className="close-btn" onClick={toggleMessages}>×</button>
+        </div>
+        <div className="message-body">
+          <div className="messages-view">
+            {messages.map((msg, index) => (
+              <div key={index} className="message">
+                {msg}
+              </div>
+            ))}
+          </div>
+          <input
+            type="text"
+            className="message-input"
+            placeholder="Type a message..."
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                sendMessage(e.target.value);
+                e.target.value = ''; // Clear input after sending
+              }
+            }}
+          />
+          <button className="send-btn" onClick={() => {
+            const input = document.querySelector('.message-input');
+            if (input.value) {
+              sendMessage(input.value);
+              input.value = ''; // Clear input after sending
+            }
+          }}>
+            Send
+          </button>
+        </div>
+      </div>
     </>
   );
 };
