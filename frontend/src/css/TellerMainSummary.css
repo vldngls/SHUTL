@@ -1,0 +1,101 @@
+/* Overlay for when the summary is open */
+.TellerMain-summary-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000; /* Ensure it's on top of other elements */
+  }
+  
+  /* Summary Panel */
+  .TellerMain-summary-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px; /* Adjust width as needed */
+    background-color: white;
+    padding: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    z-index: 1001;
+    max-height: 90vh; /* Prevent it from overflowing the screen */
+    overflow-y: auto;
+  }
+  
+  /* Close button styling */
+  .TellerMain-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: #333;
+    float: right;
+  }
+  
+  .TellerMain-summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  /* Summary Overview Section */
+  .TellerMain-summary-overview {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  
+  .TellerMain-summary-overview div {
+    background-color: #f5f5f5;
+    padding: 15px;
+    border-radius: 10px;
+    flex: 1;
+    text-align: center;
+    margin-right: 10px;
+  }
+  
+  .TellerMain-summary-overview div:last-child {
+    margin-right: 0;
+  }
+  
+  .TellerMain-summary-overview h3 {
+    margin: 0;
+    font-size: 1.2em;
+    color: #333;
+  }
+  
+  .TellerMain-summary-overview p {
+    margin-top: 5px;
+    font-size: 1.5em;
+    font-weight: bold;
+  }
+  
+  .TellerMain-total-passenger,
+  .TellerMain-route-time {
+    margin-top: 20px;
+  }
+  
+  .TellerMain-transaction-history {
+    margin-top: 20px;
+    text-align: center;
+  }
+  
+  .TellerMain-transaction-history button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .TellerMain-transaction-history button:hover {
+    background-color: #2980b9;
+  }
+  
