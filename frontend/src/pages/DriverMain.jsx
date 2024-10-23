@@ -184,10 +184,6 @@ const DriverMain = () => {
   <SuggestionForm onClose={toggleSuggestionForm} />
 )}
 
-
-
-
-
       {isProfileIDOpen && <ProfileIDCard user={user} onClose={toggleProfileID} />}
 
       {isScheduleOpen && (

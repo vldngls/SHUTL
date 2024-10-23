@@ -125,6 +125,8 @@
   flex-direction: column;
   align-items: center;
   gap: 20px; /* Space between the buttons */
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 /* Profile Icon Styling - At the Bottom of Sidebar */

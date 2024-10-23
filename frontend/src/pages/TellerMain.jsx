@@ -3,8 +3,9 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import '../css/TellerMain.css';
-import NotificationPop from '../components/NotificationPop'; // Import the new component
-import SettingsPop from '../components/SettingsPop'; // Import the new component
+import SettingsDropdown from '../components/SettingsDropdown';
+import NotificationPop from '../components/NotificationPop';
+import SuggestionForm from '../components/SuggestionForm';
 import L from 'leaflet';
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -16,14 +17,15 @@ L.Icon.Default.mergeOptions({
 });
 
 const TellerMain = () => {
-  const navigate = useNavigate(); // Initialize navigate
+  const navigate = useNavigate(); 
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMessageBoxOpen, setIsMessageBoxOpen] = useState(false);
+  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false); // State for notifications
-  const [isMessageOpen, setIsMessageOpen] = useState(false); // State for message panel
-  const [messages, setMessages] = useState([]); // State for messages
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false); // State for Summary Button
   const mapRef = useRef();
   const user = JSON.parse(localStorage.getItem('user'));
 
@@ -61,25 +63,12 @@ const TellerMain = () => {
     }
   };
 
-  const toggleProfile = () => {
-    setIsProfileOpen(!isProfileOpen);
-  };
-
-  const toggleSettings = () => {
-    setIsSettingsOpen(!isSettingsOpen); // Toggle settings menu
-  };
-
-  const toggleNotifications = () => {
-    setIsNotificationOpen(!isNotificationOpen); // Toggle notifications
-  };
-
-  const toggleMessages = () => {
-    setIsMessageOpen(!isMessageOpen); // Toggle message panel
-  };
-
-  const sendMessage = (message) => {
-    setMessages(prevMessages => [...prevMessages, message]);
-  };
+  const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
+  const toggleMessageBox = () => setIsMessageBoxOpen(!isMessageBoxOpen);
+  const toggleSchedule = () => setIsScheduleOpen(!isScheduleOpen);
+  const toggleNotification = () => setIsNotificationOpen(!isNotificationOpen);
+  const toggleSettings = () => setIsSettingsOpen(!isSettingsOpen); // Toggles SettingsDropdown
+  const toggleSummary = () => setIsSummaryOpen(!isSummaryOpen); // Toggles Summary
 
   return (
     <>
@@ -106,6 +95,33 @@ const TellerMain = () => {
 
       <div className="navbar">
         <div className="logo">SHU TL.</div>
+        <div className="navbar-buttons">
+          <button className="icon-btn" onClick={toggleSummary}>
+            <img src="/summary.png" alt="Summary Icon" className="icon-image" />
+          </button>
+          <button className="icon-btn" onClick={toggleMessageBox}>
+            <img src="/message.png" alt="Message Icon" className="icon-image" />
+          </button>
+
+          <button className="icon-btn" onClick={toggleSchedule}>
+            <img src="/calendar.png" alt="Schedule Icon" className="icon-image" />
+          </button>
+
+          <button className="icon-btn" onClick={toggleNotification}>
+            <img src="/notif.png" alt="Notification Icon" className="icon-image" />
+          </button>
+
+          <div className="settings-container">
+            <button className="icon-btn settings-btn" onClick={toggleSettings}>
+              <img src="/settings.png" alt="Settings Icon" className="icon-image" />
+            </button>
+            {isSettingsOpen && (
+              <div className="settings-dropdown" style={{ top: '50%', left: '110%', transform: 'translateY(-50%)' }}>
+                <SettingsDropdown onClose={toggleSettings} />
+              </div>
+            )}
+          </div>
+        </div>
         <div className="status"></div>
         <div className="icon-container" onClick={toggleProfile}>
           <div className="line"></div>
@@ -117,70 +133,17 @@ const TellerMain = () => {
         {dateTime.toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} - {dateTime.toLocaleTimeString('en-PH')}
       </div>
 
+      <div className="operational-hours">
+        Operational hours: 8:00 AM to 10:00 PM
+      </div>
+
       <button className="update-location-btn" onClick={updateUserLocation}>
         <img src="/locup.png" alt="Update Location" className="update-location-icon" />
       </button>
-      
-      <button className="setting-btn" onClick={toggleSettings}>
-        <img src="/settings.png" alt="Settings Icon" className="setting-icon" />
-      </button>
-      
-      {/* New Notification Button */}
-      <button className="notif-btn" onClick={toggleNotifications}>
-        <img src="/notif.png" alt="Notification Icon" className="notif-icon" />
-      </button>
 
-      {/* New Message Button */}
-      <button className="message-btn" onClick={toggleMessages}>
-        <img src="/message.png" alt="Message Icon" className="message-icon" />
-      </button>
-
-      {isProfileOpen && <ProfilePopup user={user} onClose={toggleProfile} />}
       
-      {/* Settings Menu */}
-      {isSettingsOpen && <SettingsPop onClose={toggleSettings} />}
-      
-      {/* Notification Popup */}
-      {isNotificationOpen && <NotificationPop onClose={toggleNotifications} />}
-
-      {/* Message Panel */}
-      <div className={`message-panel ${isMessageOpen ? 'open' : ''}`}>
-        <div className="message-header">
-          <h3>Messages</h3>
-          <button className="close-btn" onClick={toggleMessages}>×</button>
-        </div>
-        <div className="message-body">
-          <div className="messages-view">
-            {messages.map((msg, index) => (
-              <div key={index} className="message">
-                {msg}
-              </div>
-            ))}
-          </div>
-          <input
-            type="text"
-            className="message-input"
-            placeholder="Type a message..."
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                sendMessage(e.target.value);
-                e.target.value = ''; // Clear input after sending
-              }
-            }}
-          />
-          <button className="send-btn" onClick={() => {
-            const input = document.querySelector('.message-input');
-            if (input.value) {
-              sendMessage(input.value);
-              input.value = ''; // Clear input after sending
-            }
-          }}>
-            Send
-          </button>
-        </div>
-      </div>
     </>
   );
-}
+};
 
 export default TellerMain;

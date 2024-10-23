@@ -20,8 +20,6 @@ const SettingsDropdown = ({ onClose }) => {
   return (
     <div className="settings-dropdown" onClick={onClose}>
       <div className="settings-dropdown-content" onClick={(e) => e.stopPropagation()}>
-        <button className="settings-option" onClick={handleManageSchedule}>Manage Schedule</button>
-        <hr />
         <button className="settings-option">Profile Settings</button>
         <hr />
         <button className="settings-option">Notification Settings</button>
