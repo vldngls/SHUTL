@@ -28,7 +28,10 @@ const SuggestionForm = ({ onClose }) => {
     })
     .then(response => response.json())
     .then(data => {
-      console.log('Form successfully submitted:', data);
+      // Show success alert after submission
+      alert('Suggestion sent, thank you for your feedback!');
+      
+      // Close the suggestion form
       onClose();
     })
     .catch(error => {
