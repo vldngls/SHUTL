@@ -69,8 +69,17 @@
     position: relative;
 }
 
-/* Settings dropdown styling */
+
 .DriverMain-settings-dropdown {
+    position: absolute;
+    z-index: 1000;
+}
+.DriverMain-notification-container {
+    position: relative;
+}
+
+
+.DriverMain-notification-dropdown {
     position: absolute;
     z-index: 1000;
 }

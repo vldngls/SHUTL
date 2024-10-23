@@ -2,8 +2,6 @@
 
 .ShutlNotificationPop-popup {
   position: absolute; /* Position relative to notification button */
-  left: 88px; /* Align next to the notification button */
-  top: 500px; /* Position lower for better visibility */
   background: #333; /* Dark background, matching the provided design */
   border-radius: 15px; /* Rounded corners */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Subtle shadow for elevation */

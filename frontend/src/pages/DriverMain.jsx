@@ -146,9 +146,17 @@ const DriverMain = () => {
             <img src="/calendar.png" alt="Schedule Icon" className="DriverMain-icon-image" />
           </button>
 
-          <button className="DriverMain-icon-btn" onClick={toggleNotification}>
-            <img src="/notif.png" alt="Notification Icon" className="DriverMain-icon-image" />
-          </button>
+           <div className="DriverMain-notification-container">
+            <button className="DriverMain-icon-btn DriverMain-notification-btn" onClick={toggleNotification}>
+              <img src="/notif.png" className="DriverMain-icon-image" />
+            </button>
+            {isNotificationOpen && (
+              <div className="DriverMain-notfication-dropdown" style={{ bottom: '220%', left: '130%', transform: 'translateY(-50%)' }}>
+                <NotificationPop onClose={toggleNotification} />
+              </div>
+            )}
+          </div>
+
 
           <div className="DriverMain-settings-container">
             <button className="DriverMain-icon-btn DriverMain-settings-btn" onClick={toggleSettings}>
@@ -192,9 +200,6 @@ const DriverMain = () => {
           onClose={() => setIsScheduleOpen(false)}
           onSave={(updatedSchedule) => setSchedule(updatedSchedule)}
         />
-      )}
-      {isNotificationOpen && (
-        <NotificationPop onClose={toggleNotification} />
       )}
 
       {isMessageOpen && (
