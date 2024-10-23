@@ -17,12 +17,25 @@ const SuggestionForm = ({ onClose }) => {
     });
   };
 
-  // Handle form submission (e.g., logging data for now)
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    onClose(); // Close the form after submission
+    fetch('https://your-api-endpoint.com/submit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Form successfully submitted:', data);
+      onClose();
+    })
+    .catch(error => {
+      console.error('Error submitting form:', error);
+    });
   };
+  
 
   return (
     <div className="suggestion-form-container">

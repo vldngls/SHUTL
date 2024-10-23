@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Tooltip } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import '../css/DriverMain.css';
+import SuggestionForm from '../components/SuggestionForm';
 import DriverMessage from '../components/DriverMessage';
 import ProfileIDCard from '../components/ProfileIDCard';
 import SettingsDropdown from '../components/SettingsDropdown';
@@ -28,7 +29,8 @@ const DriverMain = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMessageOpen, setIsMessageOpen] = useState(false);
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false); // New state for notifications
+  const [isSuggestionOpen, setIsSuggestionOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [messages, setMessages] = useState([
     { driver: 'Driver. 001', text: '2 Passengers currently waiting.' },
     { driver: 'Driver. 002', text: 'Thank you. Proceed with your current task.' },
@@ -88,16 +90,20 @@ const DriverMain = () => {
       alert("Geolocation is not supported by this browser.");
     }
   };
-
+  const toggleSuggestionForm = () => {
+    console.log('Is suggestion form open?', isSuggestionOpen);
+    setIsSuggestionOpen(!isSuggestionOpen);
+  };
+  
   const toggleProfileID = () => setIsProfileIDOpen(!isProfileIDOpen);
   const toggleSettings = () => setIsSettingsOpen(!isSettingsOpen);
   const toggleMessageBox = () => setIsMessageOpen(!isMessageOpen);
   const toggleSchedule = () => setIsScheduleOpen(!isScheduleOpen);
-  const toggleNotification = () => setIsNotificationOpen(!isNotificationOpen); // New function to toggle notification
+  const toggleNotification = () => setIsNotificationOpen(!isNotificationOpen);
 
   const handleSendMessage = (messageText) => {
     const newMessage = {
-      driver: 'You', // Hardcoded for now; you could replace this with dynamic driver info
+      driver: 'You',
       text: messageText
     };
     setMessages([...messages, newMessage]);
@@ -119,9 +125,7 @@ const DriverMain = () => {
           />
           {userLocation && (
             <Marker position={userLocation} icon={carIcon}>
-              <Popup>
-                You are here.
-              </Popup>
+              <Popup>You are here.</Popup>
               <Tooltip direction="right" offset={[12, 0]} permanent>
                 Shuttle 001
               </Tooltip>
@@ -141,7 +145,7 @@ const DriverMain = () => {
           <button className="icon-btn" onClick={toggleSchedule}>
             <img src="/calendar.png" alt="Schedule Icon" className="icon-image" />
           </button>
-          
+
           <button className="icon-btn" onClick={toggleNotification}>
             <img src="/notif.png" alt="Notification Icon" className="icon-image" />
           </button>
@@ -171,10 +175,19 @@ const DriverMain = () => {
       <button className="update-location-btn" onClick={updateUserLocation}>
         <img src="/locup.png" alt="Update Location" className="update-location-icon" />
       </button>
-      
-      <button className="request-assistance-btn" onClick={() => alert('Assistance requested')}>
-?
+
+      <button className="request-assistance-btn" onClick={toggleSuggestionForm}>
+  ?
 </button>
+
+{isSuggestionOpen && (
+  <SuggestionForm onClose={toggleSuggestionForm} />
+)}
+
+
+
+
+
       {isProfileIDOpen && <ProfileIDCard user={user} onClose={toggleProfileID} />}
 
       {isScheduleOpen && (
@@ -192,7 +205,6 @@ const DriverMain = () => {
         <DriverMessage messages={messages} onSendMessage={handleSendMessage} />
       )}
 
-      {/* Operational Hours Section */}
       <div className="operational-hours">
         Operational hours: 8:00 AM to 10:00 PM
       </div>
