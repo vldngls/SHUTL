@@ -3,9 +3,9 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import '../css/TellerMain.css';
-import SettingsDropdown from '../components/SettingsDropdown';
-import NotificationPop from '../components/NotificationPop';
-import SuggestionForm from '../components/SuggestionForm';
+import NotificationPop from '../components/NotificationPop'; // Import the new component
+import SettingsDropdown from '../components/SettingsDropdown'; // Import the new component
+import ProfilePopup from '../components/ProfilePopup';
 import L from 'leaflet';
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -17,15 +17,14 @@ L.Icon.Default.mergeOptions({
 });
 
 const TellerMain = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate(); // Initialize navigate
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isMessageBoxOpen, setIsMessageBoxOpen] = useState(false);
-  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isSummaryOpen, setIsSummaryOpen] = useState(false); // State for Summary Button
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false); // State for notifications
+  const [isMessageOpen, setIsMessageOpen] = useState(false); // State for message panel
+  const [messages, setMessages] = useState([]); // State for messages
   const mapRef = useRef();
   const user = JSON.parse(localStorage.getItem('user'));
 
@@ -63,12 +62,25 @@ const TellerMain = () => {
     }
   };
 
-  const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
-  const toggleMessageBox = () => setIsMessageBoxOpen(!isMessageBoxOpen);
-  const toggleSchedule = () => setIsScheduleOpen(!isScheduleOpen);
-  const toggleNotification = () => setIsNotificationOpen(!isNotificationOpen);
-  const toggleSettings = () => setIsSettingsOpen(!isSettingsOpen); // Toggles SettingsDropdown
-  const toggleSummary = () => setIsSummaryOpen(!isSummaryOpen); // Toggles Summary
+  const toggleProfile = () => {
+    setIsProfileOpen(!isProfileOpen);
+  };
+
+  const toggleSettings = () => {
+    setIsSettingsOpen(!isSettingsOpen); // Toggle settings menu
+  };
+
+  const toggleNotifications = () => {
+    setIsNotificationOpen(!isNotificationOpen); // Toggle notifications
+  };
+
+  const toggleMessages = () => {
+    setIsMessageOpen(!isMessageOpen); // Toggle message panel
+  };
+
+  const sendMessage = (message) => {
+    setMessages(prevMessages => [...prevMessages, message]);
+  };
 
   return (
     <>
@@ -95,33 +107,6 @@ const TellerMain = () => {
 
       <div className="navbar">
         <div className="logo">SHU TL.</div>
-        <div className="navbar-buttons">
-          <button className="icon-btn" onClick={toggleSummary}>
-            <img src="/summary.png" alt="Summary Icon" className="icon-image" />
-          </button>
-          <button className="icon-btn" onClick={toggleMessageBox}>
-            <img src="/message.png" alt="Message Icon" className="icon-image" />
-          </button>
-
-          <button className="icon-btn" onClick={toggleSchedule}>
-            <img src="/calendar.png" alt="Schedule Icon" className="icon-image" />
-          </button>
-
-          <button className="icon-btn" onClick={toggleNotification}>
-            <img src="/notif.png" alt="Notification Icon" className="icon-image" />
-          </button>
-
-          <div className="settings-container">
-            <button className="icon-btn settings-btn" onClick={toggleSettings}>
-              <img src="/settings.png" alt="Settings Icon" className="icon-image" />
-            </button>
-            {isSettingsOpen && (
-              <div className="settings-dropdown" style={{ top: '50%', left: '110%', transform: 'translateY(-50%)' }}>
-                <SettingsDropdown onClose={toggleSettings} />
-              </div>
-            )}
-          </div>
-        </div>
         <div className="status"></div>
         <div className="icon-container" onClick={toggleProfile}>
           <div className="line"></div>
@@ -131,10 +116,6 @@ const TellerMain = () => {
 
       <div className="taskbar">
         {dateTime.toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} - {dateTime.toLocaleTimeString('en-PH')}
-      </div>
-
-      <div className="operational-hours">
-        Operational hours: 8:00 AM to 10:00 PM
       </div>
 
       <button className="update-location-btn" onClick={updateUserLocation}>
@@ -158,7 +139,7 @@ const TellerMain = () => {
       {isProfileOpen && <ProfilePopup user={user} onClose={toggleProfile} />}
       
       {/* Settings Menu */}
-      {isSettingsOpen && <SettingsPop onClose={toggleSettings} />}
+      {isSettingsOpen && <SettingsDropdown onClose={toggleSettings} />}
       
       {/* Notification Popup */}
       {isNotificationOpen && <NotificationPop onClose={toggleNotifications} />}
@@ -201,6 +182,6 @@ const TellerMain = () => {
       </div>
     </>
   );
-};
+}
 
 export default TellerMain;
