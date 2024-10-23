@@ -125,27 +125,27 @@ html, body {
 
 .TellerMain-settings-menu {
   position: fixed;
-  left: 17px; /* Same left position as other buttons */
-  top: 700px; /* Adjust according to your layout */
-  background: white; /* Background color */
-  border-radius: 8px; /* Rounded corners */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow effect */
-  z-index: 4; /* Ensure it is above other elements */
-  padding: 10px; /* Add some padding */
+  left: 17px;
+  top: 700px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 4;
+  padding: 10px;
 }
 
 .TellerMain-settings-menu button {
-  background: none; /* Remove default button styles */
-  border: none; /* Remove border */
-  cursor: pointer; /* Pointer cursor */
-  width: 100%; /* Full width */
-  text-align: left; /* Align text to the left */
-  padding: 10px; /* Add some padding */
-  color: #333; /* Text color */
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  padding: 10px;
+  color: #333;
 }
 
 .TellerMain-settings-menu button:hover {
-  background-color: #f0f0f0; /* Hover effect */
+  background-color: #f0f0f0;
 }
 
 .TellerMain-notif-btn {
@@ -156,15 +156,15 @@ html, body {
   border: none;
   padding: 0;
   cursor: pointer;
-  border-radius: 50%; /* Make the button circular */
-  width: 48px; /* Set the width to match the icon size */
-  height: 48px; /* Set the height to match the icon size */
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
   z-index: 3;
 }
 
 .TellerMain-notif-icon {
-  width: 100%; /* Make the icon fill the button */
-  height: auto; /* Maintain aspect ratio */
+  width: 100%;
+  height: auto;
 }
 
 .TellerMain-setting-btn {
@@ -175,19 +175,19 @@ html, body {
   border: none;
   padding: 0;
   cursor: pointer;
-  border-radius: 50%; /* Make the button circular */
-  width: 48px; /* Set the width to match the icon size */
-  height: 48px; /* Set the height to match the icon size */
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
   z-index: 3;
 }
 
 .TellerMain-setting-icon {
-  width: 100%; /* Fill the button */
-  height: 100%; /* Fill the button */
+  width: 100%;
+  height: 100%;
 }
 
 .TellerMain-setting-btn:hover .TellerMain-setting-icon {
-  opacity: 0.8; /* Add hover effect */
+  opacity: 0.8;
 }
 
 /* Media Queries for Responsiveness */
@@ -212,7 +212,7 @@ html, body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 1; /* Ensure it is behind other elements */
+  z-index: 1;
 }
 
 /* Base styles for the navbar */
@@ -235,14 +235,14 @@ html, body {
 }
 
 .TellerMain-logo {
-  font-size: 1.6em; /* Adjusted to relative units */
+  font-size: 1.6em;
   font-weight: bold;
   margin-bottom: 20px;
   margin-top: 8px;
 }
 
 .TellerMain-status {
-  font-size: 1em; /* Adjusted to relative units */
+  font-size: 1em;
   margin-top: auto;
 }
 
@@ -277,7 +277,7 @@ html, body {
   position: fixed;
   bottom: 0;
   left: 0;
-  width: calc(100% + 80px); /* Expand width to cover entire screen width */
+  width: calc(100% + 80px);
   background-color: #F5F5F5;
   color: #333;
   display: flex;
@@ -285,105 +285,10 @@ html, body {
   align-items: center;
   padding: 10px 20px;
   border-top: 2px solid #e0e0e0;
-  font-size: 1em; /* Adjusted to relative units */
-  z-index: 2; /* Ensure it is behind the navbar */
+  font-size: 1em;
+  z-index: 2;
   box-sizing: border-box;
-  margin-left: -80px; /* Shift taskbar left to align with the navbar's edge */
-}
-
-/* Media Queries */
-@media (max-width: 768px) {
-  .TellerMain-navbar {
-    width: 48px;
-    padding: 8px;
-  }
-
-  .TellerMain-logo {
-    font-size: 1.2em;
-    margin-bottom: 15px;
-  }
-
-  .TellerMain-status {
-    font-size: 0.9em;
-  }
-
-  .TellerMain-nav-icon {
-    width: 30px;
-    height: 30px;
-  }
-
-  .TellerMain-icon-container {
-    width: 30px;
-    height: 30px;
-    margin-top: auto;
-    margin-bottom: 20px;
-  }
-
-  .TellerMain-line {
-    top: -8px;
-    width: 15px;
-  }
-
-  .TellerMain-taskbar {
-    width: calc(100% + 48px);
-    margin-left: -48px;
-  }
-}
-
-@media (max-width: 480px) {
-  .TellerMain-navbar {
-    flex-direction: row;
-    justify-content: space-between;
-    width: 100%;
-    height: 50px;
-    border-radius: 0;
-    padding: 0 10px;
-    bottom: 0;
-    position: fixed;
-    z-index: 2;
-  }
-
-  .TellerMain-logo {
-    font-size: 1em;
-    margin-bottom: 0;
-    align-self: center;
-  }
-
-  .TellerMain-status {
-    font-size: 0.9em;
-    margin-top: 0;
-    align-self: center;
-  }
-
-  .TellerMain-nav-icon {
-    width: 25px;
-    height: 25px;
-  }
-
-  .TellerMain-icon-container {
-    width: 25px;
-    height: 25px;
-    margin-top: auto;
-    margin-bottom: 10px;
-  }
-
-  .TellerMain-line {
-    top: -4px;
-    width: 12px;
-  }
-
-  .TellerMain-taskbar {
-    font-size: 0.9em;
-    padding: 8px 16px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    width: calc(100% + 80px);
-    margin-left: -80px;
-  }
-
-  .TellerMain-line {
-    display: none;
-  }
+  margin-left: -80px;
 }
 
 /* Update Location Button */
@@ -405,30 +310,6 @@ html, body {
 
 .TellerMain-update-location-btn:hover .TellerMain-update-location-icon {
   opacity: 0.8;
-}
-
-@media (max-width: 768px) {
-  .TellerMain-update-location-btn {
-    right: 10px;
-    bottom: 50px;
-  }
-
-  .TellerMain-update-location-icon {
-    width: 30px;
-    height: 30px;
-  }
-}
-
-@media (max-width: 480px) {
-  .TellerMain-update-location-btn {
-    right: 10px;
-    bottom: 60px;
-  }
-
-  .TellerMain-update-location-icon {
-    width: 25px;
-    height: 25px;
-  }
 }
 
 /* Popup Overlay */
