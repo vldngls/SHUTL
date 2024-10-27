@@ -331,3 +331,25 @@ html, body {
   transform: translate(-50%, -50%);
   z-index: 1001;
 }
+
+/* Popup Container for Trip Tracking */
+.TellerMain-TripTracking-popup {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  position: relative;
+}
+
+/* Close Button for Popup */
+.TellerMain-close-popup-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #333;
+  font-size: 1.2em;
+  cursor: pointer;
+}
