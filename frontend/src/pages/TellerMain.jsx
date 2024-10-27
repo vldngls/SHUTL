@@ -6,6 +6,7 @@ import '../css/TellerMain.css';
 import SettingsDropdown from '../components/SettingsDropdown';
 import NotificationPop from '../components/NotificationPop';
 import SuggestionForm from '../components/SuggestionForm';
+import ShuttleTripTracking from '../components/ShuttleTripTracking'; // Import ShuttleTripTracking component
 import L from 'leaflet';
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -17,7 +18,7 @@ L.Icon.Default.mergeOptions({
 });
 
 const TellerMain = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -25,7 +26,8 @@ const TellerMain = () => {
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isSummaryOpen, setIsSummaryOpen] = useState(false); 
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
+  const [isTripFormOpen, setIsTripFormOpen] = useState(false); // State for trip form
   const mapRef = useRef();
   const user = JSON.parse(localStorage.getItem('user'));
 
@@ -68,7 +70,10 @@ const TellerMain = () => {
   const toggleSchedule = () => setIsScheduleOpen(!isScheduleOpen);
   const toggleNotification = () => setIsNotificationOpen(!isNotificationOpen);
   const toggleSettings = () => setIsSettingsOpen(!isSettingsOpen);
-  const toggleSummary = () => setIsSummaryOpen(!isSummaryOpen); 
+  const toggleSummary = () => setIsSummaryOpen(!isSummaryOpen);
+
+  const openTripForm = () => setIsTripFormOpen(true); // Function to show the trip form
+  const closeTripForm = () => setIsTripFormOpen(false); // Function to hide the trip form
 
   return (
     <>
@@ -102,15 +107,15 @@ const TellerMain = () => {
           <button className="TellerMain-icon-btn" onClick={toggleMessageBox}>
             <img src="/message.png" alt="Message Icon" className="TellerMain-icon-image" />
           </button>
-
           <button className="TellerMain-icon-btn" onClick={toggleSchedule}>
             <img src="/calendar.png" alt="Schedule Icon" className="TellerMain-icon-image" />
           </button>
-
           <button className="TellerMain-icon-btn" onClick={toggleNotification}>
             <img src="/notif.png" alt="Notification Icon" className="TellerMain-icon-image" />
           </button>
-
+          <button className="TellerMain-icon-btn" onClick={openTripForm}> {/* New Trip Button */}
+            Trip
+          </button>
           <div className="TellerMain-settings-container">
             <button className="TellerMain-icon-btn TellerMain-settings-btn" onClick={toggleSettings}>
               <img src="/settings.png" alt="Settings Icon" className="TellerMain-icon-image" />
@@ -122,24 +127,20 @@ const TellerMain = () => {
             )}
           </div>
         </div>
-        <div className="TellerMain-status"></div>
-        <div className="TellerMain-icon-container" onClick={toggleProfile}>
-          <div className="TellerMain-line"></div>
-          <img src="/icon.png" alt="Navigation Icon" className="TellerMain-nav-icon" />
-        </div>
       </div>
+
+      {isTripFormOpen && (
+        <div className="TellerMain-overlay" onClick={closeTripForm}>
+          <div className="TellerMain-TripTracking-popup" onClick={(e) => e.stopPropagation()}>
+            <ShuttleTripTracking />
+            <button onClick={closeTripForm} className="TellerMain-close-popup-btn">Close</button>
+          </div>
+        </div>
+      )}
 
       <div className="TellerMain-taskbar">
         {dateTime.toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} - {dateTime.toLocaleTimeString('en-PH')}
       </div>
-
-      <div className="TellerMain-operational-hours">
-        Operational hours: 8:00 AM to 10:00 PM
-      </div>
-
-      <button className="TellerMain-update-location-btn" onClick={updateUserLocation}>
-        <img src="/locup.png" alt="Update Location" className="TellerMain-update-location-icon" />
-      </button>
     </>
   );
 };
