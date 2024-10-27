@@ -8,10 +8,10 @@ import DriverMessage from '../components/DriverMessage';
 import ProfileIDCard from '../components/ProfileIDCard';
 import SettingsDropdown from '../components/SettingsDropdown';
 import SchedulePopup from '../components/SchedulePopup';
-import NotificationPop from '../components/NotificationPop'; 
+import NotificationPop from '../components/NotificationPop';
+import DriverSummary from '../components/DriverSummary'; // Import DriverSummary component
 import L from 'leaflet';
 
-// Icon configuration
 const carIcon = new L.Icon({
   iconUrl: '/car.png',
   iconRetinaUrl: '/car.png',
@@ -33,6 +33,7 @@ const DriverMain = () => {
     isScheduleOpen: false,
     isSuggestionOpen: false,
     isNotificationOpen: false,
+    isSummaryOpen: false,
   });
   const [messages, setMessages] = useState([
     { driver: 'Driver. 001', text: '2 Passengers currently waiting.' },
@@ -41,16 +42,10 @@ const DriverMain = () => {
   ]);
   const [schedule, setSchedule] = useState([
     { day: 'Sunday', time: '8:00 am', details: 'Person waiting: 5, Pickup loc: Ruby St.' },
-    { day: 'Monday', time: '11:00 am', details: 'Person waiting: 10, Pickup loc: Diamond St.' },
-    { day: 'Tuesday', time: '9:00 am', details: 'Person waiting: 2, Pickup loc: Cordoba St.' },
-    { day: 'Wednesday', time: '10:00 am', details: 'Person waiting: 2, Pickup loc: Bilbao St.' },
-    { day: 'Thursday', time: '9:00 am', details: 'Person waiting: 2, Pickup loc: Mallorca St.' },
-    { day: 'Friday', time: '10:00 am', details: 'Person waiting: 2, Pickup loc: Garnet St.' },
-    { day: 'Saturday', time: '2:00 pm', details: 'Person waiting: 2, Pickup loc: Coral St.' }
+    // ... Other days
   ]);
   const mapRef = useRef(null);
   
-  // Ensure localStorage parsing doesn't throw errors
   const user = JSON.parse(localStorage.getItem('user')) || {
     identifier: 'SHUTL001-1A',
     name: 'John Doe',
@@ -83,8 +78,7 @@ const DriverMain = () => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          const userCoords = [latitude, longitude];
-          setUserLocation(userCoords);
+          setUserLocation([latitude, longitude]);
         },
         (error) => {
           alert("Unable to retrieve your location. Please try again.");
@@ -104,11 +98,7 @@ const DriverMain = () => {
   };
 
   const handleSendMessage = (messageText) => {
-    const newMessage = {
-      driver: 'You',
-      text: messageText,
-    };
-    setMessages([...messages, newMessage]);
+    setMessages([...messages, { driver: 'You', text: messageText }]);
   };
 
   return (
@@ -119,20 +109,16 @@ const DriverMain = () => {
           center={userLocation || [14.377, 120.983]}
           zoom={15.5}
           zoomControl={false}
-          whenCreated={(mapInstance) => {
-            mapRef.current = mapInstance;
-          }}
+          whenCreated={(mapInstance) => { mapRef.current = mapInstance; }}
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           />
           {userLocation && (
             <Marker position={userLocation} icon={carIcon}>
               <Popup>You are here.</Popup>
-              <Tooltip direction="right" offset={[12, 0]} permanent>
-                Shuttle 001
-              </Tooltip>
+              <Tooltip direction="right" offset={[12, 0]} permanent>Shuttle 001</Tooltip>
             </Marker>
           )}
         </MapContainer>
@@ -150,17 +136,20 @@ const DriverMain = () => {
             <img src="/calendar.png" alt="Schedule Icon" className="DriverMain-icon-image" />
           </button>
 
-          <div className="DriverMain-notification-container">
-  <button className="DriverMain-icon-btn DriverMain-notification-btn" onClick={() => toggleModal('isNotificationOpen')}>
-    <img src="/notif.png" className="DriverMain-icon-image" />
-  </button>
-  {openModals.isNotificationOpen && (
-    <div className="DriverMain-notfication-dropdown" style={{ bottom: '220%', right: '-20%', transform: 'translateY(-50%)' }}>
-      <NotificationPop onClose={() => toggleModal('isNotificationOpen')} />
-    </div>
-  )}
-</div>
+          <button className="DriverMain-icon-btn" onClick={() => toggleModal('isSummaryOpen')}>
+            <img src="/summary.png" alt="Summary Icon" className="DriverMain-icon-image" />
+          </button>
 
+          <div className="DriverMain-notification-container">
+            <button className="DriverMain-icon-btn DriverMain-notification-btn" onClick={() => toggleModal('isNotificationOpen')}>
+              <img src="/notif.png" className="DriverMain-icon-image" />
+            </button>
+            {openModals.isNotificationOpen && (
+              <div className="DriverMain-notfication-dropdown" style={{ bottom: '220%', right: '-20%', transform: 'translateY(-50%)' }}>
+                <NotificationPop onClose={() => toggleModal('isNotificationOpen')} />
+              </div>
+            )}
+          </div>
 
           <div className="DriverMain-settings-container">
             <button className="DriverMain-icon-btn DriverMain-settings-btn" onClick={() => toggleModal('isSettingsOpen')}>
@@ -188,27 +177,20 @@ const DriverMain = () => {
         <img src="/locup.png" alt="Update Location" className="DriverMain-update-location-icon" />
       </button>
 
-      <button className="DriverMain-request-assistance-btn" onClick={() => toggleModal('isSuggestionOpen')}>
-        ?
-      </button>
+      <button className="DriverMain-request-assistance-btn" onClick={() => toggleModal('isSuggestionOpen')}>?</button>
 
       {openModals.isSuggestionOpen && <SuggestionForm onClose={() => toggleModal('isSuggestionOpen')} />}
-
       {openModals.isProfileIDOpen && <ProfileIDCard user={user} onClose={() => toggleModal('isProfileIDOpen')} />}
-
-      {openModals.isScheduleOpen && (
-        <SchedulePopup
-          schedule={schedule}
-          onClose={() => toggleModal('isScheduleOpen')}
-          onSave={(updatedSchedule) => setSchedule(updatedSchedule)}
-        />
-      )}
-
+      {openModals.isScheduleOpen && <SchedulePopup schedule={schedule} onClose={() => toggleModal('isScheduleOpen')} onSave={(updatedSchedule) => setSchedule(updatedSchedule)} />}
       {openModals.isMessageOpen && <DriverMessage messages={messages} onSendMessage={handleSendMessage} />}
 
-      <div className="DriverMain-operational-hours">
-        Operational hours: 8:00 AM to 10:00 PM
-      </div>
+      {openModals.isSummaryOpen && (
+        <div className="DriverMain-summary-popup">
+          <DriverSummary onClose={() => toggleModal('isSummaryOpen')} />
+        </div>
+      )}
+
+      <div className="DriverMain-operational-hours">Operational hours: 8:00 AM to 10:00 PM</div>
     </>
   );
 };
