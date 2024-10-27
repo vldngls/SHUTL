@@ -2,11 +2,12 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import userDataRoutes from './routes/userDataRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import shuttleRoutes from './routes/shuttleRoutes.js'; // Import shuttleRoutes
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url'; // Resolve __dirname in ES modules
-import userRoutes from './routes/userRoutes.js';
 
 // Simulate __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -33,10 +34,10 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/userdata', userDataRoutes);
+app.use('/api/shuttle', shuttleRoutes); // Add route for shuttle trips
 
 // Database connection
 mongoose.connect(process.env.MONGO_URI, {

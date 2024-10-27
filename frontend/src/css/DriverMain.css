@@ -69,15 +69,20 @@
     position: relative;
 }
 
-/* Settings dropdown styling */
 .DriverMain-settings-dropdown {
     position: absolute;
-    width: 200px;
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding: 15px;
     z-index: 1000;
+}
+.DriverMain-notification-container {
+    position: relative;
+}
+
+.ShutlNotificationPop-popup {
+    position: absolute;
+    z-index: 1000;
+    left: 80px;
+    top: 18px;
+    transform: translateY(-50%);
 }
 
 /* Profile icon styling and container positioning */
@@ -138,7 +143,7 @@
 }
 
 .DriverMain-update-location-btn:hover {
-    background-color: #424242;
+    background-color: #cacaca21;
 }
 
 .DriverMain-update-location-icon {

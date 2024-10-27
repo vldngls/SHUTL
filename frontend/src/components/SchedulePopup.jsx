@@ -40,7 +40,7 @@ const SchedulePopup = ({ schedule, onClose, onSave }) => {
           <button className="schedule-popup-close" onClick={onClose}>✖</button>
         </div>
         <div className="schedule-popup-body">
-          <table className="schedule-popup-table" style={{ width: '100%' }}>
+          <table className="schedule-popup-table">
             <thead>
               <tr>
                 <th>Day</th>
@@ -61,7 +61,11 @@ const SchedulePopup = ({ schedule, onClose, onSave }) => {
 
           <div className="schedule-popup-add-availability">
             <h4>Add Availability</h4>
-            <select value={newDay} onChange={(e) => setNewDay(e.target.value)} className="schedule-popup-availability-input">
+            <select
+              value={newDay}
+              onChange={(e) => setNewDay(e.target.value)}
+              className="schedule-popup-availability-input"
+            >
               <option value="">Select Day</option>
               <option value="Monday">Monday</option>
               <option value="Tuesday">Tuesday</option>
