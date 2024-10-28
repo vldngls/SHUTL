@@ -114,7 +114,7 @@ const TellerMain = () => {
             <img src="/notif.png" alt="Notification Icon" className="TellerMain-icon-image" />
           </button>
           <button className="TellerMain-icon-btn" onClick={openTripForm}> {/* New Trip Button */}
-            Trip
+          <img src="/trip.png" alt="Trip Icon" className="TellerMain-icon-image" />
           </button>
           <div className="TellerMain-settings-container">
             <button className="TellerMain-icon-btn TellerMain-settings-btn" onClick={toggleSettings}>
