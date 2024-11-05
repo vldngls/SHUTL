@@ -6,7 +6,7 @@ import '../css/TellerMain.css';
 import SettingsDropdown from '../components/SettingsDropdown';
 import NotificationPop from '../components/NotificationPop';
 import SuggestionForm from '../components/SuggestionForm';
-import ShuttleTripTracking from '../components/ShuttleTripTracking'; // Import ShuttleTripTracking component
+import ShuttleTripTracking from '../components/ShuttleTripTracking';
 import L from 'leaflet';
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -27,43 +27,13 @@ const TellerMain = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
-  const [isTripFormOpen, setIsTripFormOpen] = useState(false); // State for trip form
+  const [isTripFormOpen, setIsTripFormOpen] = useState(false);
   const mapRef = useRef();
-  const user = JSON.parse(localStorage.getItem('user'));
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setDateTime(new Date());
-    }, 1000);
-
+    const timer = setInterval(() => setDateTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
-
-  const updateUserLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          const userCoords = [latitude, longitude];
-          setUserLocation(userCoords);
-
-          if (mapRef.current) {
-            mapRef.current.setView(userCoords, 15.5, { animate: true });
-          }
-        },
-        (error) => {
-          console.error("Error accessing location", error);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0
-        }
-      );
-    } else {
-      console.error("Geolocation is not supported by this browser.");
-    }
-  };
 
   const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
   const toggleMessageBox = () => setIsMessageBoxOpen(!isMessageBoxOpen);
@@ -72,8 +42,8 @@ const TellerMain = () => {
   const toggleSettings = () => setIsSettingsOpen(!isSettingsOpen);
   const toggleSummary = () => setIsSummaryOpen(!isSummaryOpen);
 
-  const openTripForm = () => setIsTripFormOpen(true); // Function to show the trip form
-  const closeTripForm = () => setIsTripFormOpen(false); // Function to hide the trip form
+  const openTripForm = () => setIsTripFormOpen(true);
+  const closeTripForm = () => setIsTripFormOpen(false);
 
   return (
     <>
@@ -82,7 +52,7 @@ const TellerMain = () => {
           style={{ height: '100%', width: '100%' }}
           center={[14.377, 120.983]}
           zoom={15.5}
-          whenCreated={mapInstance => { mapRef.current = mapInstance }}
+          whenCreated={(mapInstance) => { mapRef.current = mapInstance; }}
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -90,9 +60,7 @@ const TellerMain = () => {
           />
           {userLocation && (
             <Marker position={userLocation}>
-              <Popup>
-                You are here.
-              </Popup>
+              <Popup>You are here.</Popup>
             </Marker>
           )}
         </MapContainer>
@@ -121,7 +89,10 @@ const TellerMain = () => {
               <img src="/settings.png" alt="Settings Icon" className="TellerMain-icon-image" />
             </button>
             {isSettingsOpen && (
-              <div className="TellerMain-settings-dropdown" style={{ top: '50%', left: '110%', transform: 'translateY(-50%)' }}>
+              <div
+                className="TellerMain-settings-dropdown"
+                style={{ top: '50%', left: '110%', transform: 'translateY(-50%)' }}
+              >
                 <SettingsDropdown onClose={toggleSettings} />
               </div>
             )}
@@ -130,16 +101,17 @@ const TellerMain = () => {
       </div>
 
       {isTripFormOpen && (
-        <div className="TellerMain-overlay" onClick={closeTripForm}>
-          <div className="TellerMain-TripTracking-popup" onClick={(e) => e.stopPropagation()}>
-            <ShuttleTripTracking />
-            <button onClick={closeTripForm} className="TellerMain-close-popup-btn">Close</button>
-          </div>
+        <div className="TellerMain-TripTracking-popup">
+          <ShuttleTripTracking />
+          <button onClick={closeTripForm} className="TellerMain-close-popup-btn">
+            Close
+          </button>
         </div>
       )}
 
       <div className="TellerMain-taskbar">
-        {dateTime.toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} - {dateTime.toLocaleTimeString('en-PH')}
+        {dateTime.toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} -{' '}
+        {dateTime.toLocaleTimeString('en-PH')}
       </div>
     </>
   );
