@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react';
 import '../css/SchedulePopup.css';
 import ManageSchedule from './ManageSchedule';
 
-const SchedulePopup = ({ schedule, onClose }) => {
-  const [editableSchedule, setEditableSchedule] = useState(schedule);
+const SchedulePopup = ({ onClose }) => {
+  const [editableSchedule, setEditableSchedule] = useState([]);
   const [selectedDay, setSelectedDay] = useState('');
-  const [newTime, setNewTime] = useState('');
-  const [newLocation, setNewLocation] = useState('');
   const [isManageScheduleOpen, setIsManageScheduleOpen] = useState(false);
   const [dateRange, setDateRange] = useState([]);
   const [formattedDateRange, setFormattedDateRange] = useState('');
@@ -14,71 +12,60 @@ const SchedulePopup = ({ schedule, onClose }) => {
   const get7DayRange = () => {
     const today = new Date();
     const days = [];
+    
+    // Set the time to local midnight
+    today.setHours(0, 0, 0, 0);
+  
     for (let i = 0; i < 7; i++) {
       const date = new Date(today);
-      date.setUTCHours(16, 0, 0, 0); // Midnight in UTC+8
       date.setDate(today.getDate() + i);
       days.push(date.toISOString().split('T')[0]);
     }
+    
     return days;
   };
-
+  
   useEffect(() => {
-    // Function to refresh date range at midnight in the Philippines
+    const fetchSchedule = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/schedule');
+        const data = await response.json();
+        setEditableSchedule(data);
+      } catch (error) {
+        console.error('Error fetching schedule:', error);
+      }
+    };
+
     const updateDateRange = () => {
       const newRange = get7DayRange();
       setDateRange(newRange);
       setFormattedDateRange(formatDateRange(newRange));
-      setSelectedDay(newRange[0]); // Set to the first day in the range
-      updateEditableSchedule(newRange);
+      setSelectedDay(newRange[0]);
     };
 
-    const updateEditableSchedule = (newRange) => {
-      const initialSchedule = newRange.map(day =>
-        editableSchedule.find(entry => entry.day === day) || { day, time: '', details: '' }
-      );
-      setEditableSchedule(initialSchedule);
-    };
-
-    // Set initial date range on component mount
+    fetchSchedule();
     updateDateRange();
 
-    // Set a timeout to refresh at midnight Philippines time
     const now = new Date();
     const midnight = new Date();
-    midnight.setUTCHours(16, 0, 0, 0); // Midnight in UTC+8 (Philippines)
-    midnight.setDate(now.getUTCDate() + 1); // Set to the next midnight
+    midnight.setUTCHours(16, 0, 0, 0);
+    midnight.setDate(now.getUTCDate() + 1);
 
     const timeUntilMidnight = midnight - now;
     const midnightTimeout = setTimeout(updateDateRange, timeUntilMidnight);
 
     return () => clearTimeout(midnightTimeout);
-  }, [schedule]);
-
-  const handleAddSlot = () => {
-    if (selectedDay && newTime && newLocation) {
-      const newSlot = { day: selectedDay, time: newTime, details: `Pickup loc: ${newLocation}` };
-      setEditableSchedule(prevSchedule =>
-        prevSchedule.map(entry => entry.day === selectedDay ? newSlot : entry)
-      );
-      setNewTime('');
-      setNewLocation('');
-    }
-  };
+  }, []);
 
   const handleSave = async () => {
     try {
       const response = await fetch('http://localhost:5000/api/schedule', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editableSchedule),
       });
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
+      if (!response.ok) throw new Error('Network response was not ok');
 
       const data = await response.json();
       console.log('Schedule saved:', data);
@@ -111,16 +98,17 @@ const SchedulePopup = ({ schedule, onClose }) => {
 
   const filteredSchedule = editableSchedule.filter(entry => entry.day === selectedDay);
 
-  const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Manila' };
-    return new Date(dateString).toLocaleDateString('en-PH', options);
-  };
+const formatDate = (dateString) => {
+  const options = { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Manila' };
+  return new Date(dateString).toLocaleDateString('en-PH', options);
+};
 
-  const formatDateRange = (range) => {
-    const startDate = new Date(range[0]);
-    const endDate = new Date(range[range.length - 1]);
-    return `${formatDate(startDate)} - ${formatDate(endDate)}`;
-  };
+const formatDateRange = (range) => {
+  const startDate = range[0];
+  const endDate = range[range.length - 1];
+  return `${formatDate(startDate.iso)} - ${formatDate(endDate.iso)}`;
+};
+
 
   return (
     <div className="schedule-popup">

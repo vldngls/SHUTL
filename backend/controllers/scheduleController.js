@@ -2,16 +2,21 @@
 
 import Schedule from '../models/schedule.model.js';
 
-// Controller to create a new schedule
+// Controller to create a new schedule or multiple schedules
 export const createSchedule = async (req, res) => {
+  console.log('Data received on backend:', req.body);
+  
   try {
-    await Schedule.deleteMany(); // Optional: Clear previous schedules
-    const schedules = req.body; // Assuming an array of schedules is sent
-    const createdSchedules = await Schedule.insertMany(schedules);
-    res.status(201).json(createdSchedules);
+    let result;
+    if (Array.isArray(req.body)) {
+      result = await Schedule.insertMany(req.body);
+    } else {
+      result = await Schedule.create(req.body);
+    }
+    res.status(201).json(result);
   } catch (error) {
-    console.error("Error saving schedules: ", error);
-    res.status(500).json({ message: "Server error" });
+    console.error('Error creating schedule:', error);
+    res.status(400).json({ message: 'Error creating schedule', error });
   }
 };
 
@@ -25,6 +30,7 @@ export const getAllSchedules = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 // Controller to get a specific schedule by ID
 export const getScheduleById = async (req, res) => {
