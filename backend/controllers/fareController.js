@@ -1,4 +1,3 @@
-// controllers/fareController.js
 import Fare from '../models/fares.model.js';
 
 // Get all fares

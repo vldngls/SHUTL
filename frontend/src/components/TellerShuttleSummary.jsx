@@ -1,4 +1,3 @@
-// TellerShuttleSummary.jsx
 import React from 'react';
 import '../css/TellerShuttleSummary.css';
 
