@@ -9,15 +9,15 @@ const ShutlIntro = () => {
 
   useEffect(() => {
     const token = getTokenFromCookies();
-    console.log("Token found in cookies:", token); // Check if the token is found correctly
-
+    console.log("Token found in cookies:", token);
+  
     if (token) {
-      // If token exists, navigate to logged-in page after intro
-      setTimeout(() => {
-        navigate('/ShutlLoggedIn');
-      }, 0); // Optional: A delay if you want to give a moment for the intro to finish
+      navigate('/ShutlLoggedIn');
+    } else {
+      navigate('/ShutlLoggedOut'); // Add fallback here if token is not found
     }
   }, [navigate]);
+  
 
   // Function to handle navigation between intros
   const handleNext = () => {

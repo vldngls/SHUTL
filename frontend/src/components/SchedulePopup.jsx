@@ -8,38 +8,52 @@ const SchedulePopup = ({ schedule, onClose }) => {
   const [newTime, setNewTime] = useState('');
   const [newLocation, setNewLocation] = useState('');
   const [isManageScheduleOpen, setIsManageScheduleOpen] = useState(false);
+  const [dateRange, setDateRange] = useState([]);
+  const [formattedDateRange, setFormattedDateRange] = useState('');
 
   const get7DayRange = () => {
     const today = new Date();
     const days = [];
     for (let i = 0; i < 7; i++) {
       const date = new Date(today);
+      date.setUTCHours(16, 0, 0, 0); // Midnight in UTC+8
       date.setDate(today.getDate() + i);
-      days.push(date.toISOString().split('T')[0]); // format to "YYYY-MM-DD"
+      days.push(date.toISOString().split('T')[0]);
     }
     return days;
   };
 
-  const [dateRange, setDateRange] = useState(get7DayRange());
-
   useEffect(() => {
-    // Set the initial editable schedule based on the current date range and schedule
-    const initialSchedule = dateRange.map(day => 
-      editableSchedule.find(entry => entry.day === day) || { day, time: '', details: '' }
-    );
-    setEditableSchedule(initialSchedule);
-    
-    // Set the selected day to today if it falls within the date range
-    const todayString = new Date().toISOString().split('T')[0];
-    const firstDateInRange = dateRange[0];
-    const lastDateInRange = dateRange[dateRange.length - 1];
+    // Function to refresh date range at midnight in the Philippines
+    const updateDateRange = () => {
+      const newRange = get7DayRange();
+      setDateRange(newRange);
+      setFormattedDateRange(formatDateRange(newRange));
+      setSelectedDay(newRange[0]); // Set to the first day in the range
+      updateEditableSchedule(newRange);
+    };
 
-    if (todayString >= firstDateInRange && todayString <= lastDateInRange) {
-      setSelectedDay(todayString);
-    } else {
-      setSelectedDay(dateRange[0]); // default to the first day if today is out of range
-    }
-  }, [dateRange, schedule]);
+    const updateEditableSchedule = (newRange) => {
+      const initialSchedule = newRange.map(day =>
+        editableSchedule.find(entry => entry.day === day) || { day, time: '', details: '' }
+      );
+      setEditableSchedule(initialSchedule);
+    };
+
+    // Set initial date range on component mount
+    updateDateRange();
+
+    // Set a timeout to refresh at midnight Philippines time
+    const now = new Date();
+    const midnight = new Date();
+    midnight.setUTCHours(16, 0, 0, 0); // Midnight in UTC+8 (Philippines)
+    midnight.setDate(now.getUTCDate() + 1); // Set to the next midnight
+
+    const timeUntilMidnight = midnight - now;
+    const midnightTimeout = setTimeout(updateDateRange, timeUntilMidnight);
+
+    return () => clearTimeout(midnightTimeout);
+  }, [schedule]);
 
   const handleAddSlot = () => {
     if (selectedDay && newTime && newLocation) {
@@ -68,7 +82,7 @@ const SchedulePopup = ({ schedule, onClose }) => {
 
       const data = await response.json();
       console.log('Schedule saved:', data);
-      onClose(); // Close the popup after saving
+      onClose();
     } catch (error) {
       console.error('Error saving schedule:', error);
     }
@@ -97,16 +111,14 @@ const SchedulePopup = ({ schedule, onClose }) => {
 
   const filteredSchedule = editableSchedule.filter(entry => entry.day === selectedDay);
 
-  // Function to format date
   const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+    const options = { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Manila' };
+    return new Date(dateString).toLocaleDateString('en-PH', options);
   };
 
-  // Function to format the date range header
-  const formatDateRange = () => {
-    const startDate = new Date(dateRange[0]);
-    const endDate = new Date(dateRange[dateRange.length - 1]);
+  const formatDateRange = (range) => {
+    const startDate = new Date(range[0]);
+    const endDate = new Date(range[range.length - 1]);
     return `${formatDate(startDate)} - ${formatDate(endDate)}`;
   };
 
@@ -114,7 +126,7 @@ const SchedulePopup = ({ schedule, onClose }) => {
     <div className="schedule-popup">
       <div className="schedule-popup-content">
         <div className="schedule-popup-header">
-          <h3>Driver Schedule - {formatDateRange()}</h3>
+          <h3>Driver Schedule - {formattedDateRange}</h3>
           <button className="schedule-popup-close" onClick={onClose}>✖</button>
         </div>
         <div className="schedule-popup-body">

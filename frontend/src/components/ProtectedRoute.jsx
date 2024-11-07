@@ -1,19 +1,21 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { getTokenFromCookies } from '../utils/tokenUtils';
+import jwt_decode from 'jwt-decode';
 
 const ProtectedRoute = ({ element, allowedRoles }) => {
   const token = getTokenFromCookies();
-  const user = token ? JSON.parse(atob(token.split('.')[1])) : null; // Decode token to get user info
-  
-  const userType = user?.userType;
+  let userType = null;
 
-  // Check if the user's role is allowed
+  if (token) {
+    try {
+      const decoded = jwt_decode(token);
+      userType = decoded.userType;
+    } catch (error) {
+      console.error("Error decoding token:", error);
+    }
+  }
+
   if (!token || !userType || !allowedRoles.includes(userType)) {
     return <Navigate to="/ShutlLoggedOut" />;
   }
 
   return element;
 };
-
-export default ProtectedRoute;

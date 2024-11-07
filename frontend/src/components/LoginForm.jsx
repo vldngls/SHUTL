@@ -19,11 +19,12 @@ const LoginForm = ({ onClose }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ username, password }),
-      });
+        credentials: 'include',  // Ensure credentials are included in the request
+      });      
   
       if (response.ok) {
         const data = await response.json();
-        document.cookie = `token=${data.token}; path=/; SameSite=Lax`;
+        document.cookie = `token=${data.token}; path=/; SameSite=None; Secure`;
   
         const userType = data.user.userType;
         if (userType === 'Commuter') {
