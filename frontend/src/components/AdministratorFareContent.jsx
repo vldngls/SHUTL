@@ -1,22 +1,85 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import '../css/AdministratorFareContent.css';
 
 const AdministratorFareContent = () => {
-  const fareMatrix = [
-    { id: 1, fare: 'Regular', price: 'PHP 30.00' },
-    { id: 2, fare: 'Senior Citizen', price: 'PHP 26.00' },
-    { id: 3, fare: 'Student', price: 'PHP 26.00' },
-  ];
+  const [fareMatrix, setFareMatrix] = useState([]);
+  const [newFare, setNewFare] = useState({ fare: '', price: '' });
+  const [editingFare, setEditingFare] = useState(null);
+  
+  useEffect(() => {
+    fetchFares();
+  }, []);
 
-  const activities = [
-    { time: '6:29 PM', trip: 'TRIP 014', shuttle: 'SHUTL. 001' },
-    { time: '6:01 PM', trip: 'TRIP 011', shuttle: 'SHUTL. 002' },
-    { time: '6:01 PM', trip: 'TRIP 008', shuttle: 'SHUTL. 003' },
-  ];
+  // Fetch fares from the backend
+  const fetchFares = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/fares');
+      if (!response.ok) throw new Error('Failed to fetch fares');
+      const data = await response.json();
+      setFareMatrix(data);
+    } catch (error) {
+      console.error('Error fetching fares:', error);
+    }
+  };
+
+  // Handle new fare input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewFare({ ...newFare, [name]: value });
+  };
+
+  // Add a new fare
+  const addFare = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/fares', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newFare),
+      });
+      if (!response.ok) throw new Error('Failed to add fare');
+      const data = await response.json();
+      setFareMatrix([...fareMatrix, data]);
+      setNewFare({ fare: '', price: '' });
+    } catch (error) {
+      console.error('Error adding fare:', error);
+    }
+  };
+
+  // Start editing a fare
+  const startEditFare = (fare) => {
+    setEditingFare(fare);
+  };
+
+  // Save the edited fare
+  const saveEditFare = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/fares/${editingFare._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingFare),
+      });
+      if (!response.ok) throw new Error('Failed to update fare');
+      const updatedFare = await response.json();
+      setFareMatrix(fareMatrix.map((fare) => (fare._id === updatedFare._id ? updatedFare : fare)));
+      setEditingFare(null);
+    } catch (error) {
+      console.error('Error updating fare:', error);
+    }
+  };
+
+  // Delete a fare
+  const deleteFare = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/fares/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to delete fare');
+      setFareMatrix(fareMatrix.filter((fare) => fare._id !== id));
+    } catch (error) {
+      console.error('Error deleting fare:', error);
+    }
+  };
 
   return (
     <div className="AdministratorFare-fares-content">
-      {/* Fare Matrix */}
       <div className="AdministratorFare-fare-matrix">
         <h3>Fare Matrix</h3>
         <table>
@@ -25,52 +88,66 @@ const AdministratorFareContent = () => {
               <th>ID</th>
               <th>FARE</th>
               <th>PRICE</th>
-              <th>EDIT</th>
+              <th>ACTIONS</th>
             </tr>
           </thead>
           <tbody>
             {fareMatrix.map((fare, index) => (
-              <tr key={index}>
-                <td>{fare.id}</td>
-                <td>{fare.fare}</td>
-                <td>{fare.price}</td>
+              <tr key={fare._id || index}>
+                <td>{index + 1}</td>
                 <td>
-                  <button className="AdministratorFare-edit-btn">✏️</button>
+                  {editingFare && editingFare._id === fare._id ? (
+                    <input
+                      type="text"
+                      value={editingFare.fare}
+                      onChange={(e) => setEditingFare({ ...editingFare, fare: e.target.value })}
+                    />
+                  ) : (
+                    fare.fare
+                  )}
+                </td>
+                <td>
+                  {editingFare && editingFare._id === fare._id ? (
+                    <input
+                      type="text"
+                      value={editingFare.price}
+                      onChange={(e) => setEditingFare({ ...editingFare, price: e.target.value })}
+                    />
+                  ) : (
+                    fare.price
+                  )}
+                </td>
+                <td>
+                  {editingFare && editingFare._id === fare._id ? (
+                    <button onClick={saveEditFare}>Save</button>
+                  ) : (
+                    <button onClick={() => startEditFare(fare)}>Edit</button>
+                  )}
+                  <button onClick={() => deleteFare(fare._id)}>Delete</button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        <button className="AdministratorFare-add-btn">+ Add</button>
-      </div>
 
-      {/* Fare Statistics */}
-      <div className="AdministratorFare-fare-statistics">
-        <div className="AdministratorFare-api-stats">
-          <h4>Fare Matrix</h4>
-          <p>13/08/2024</p>
-          <p>Mapbox API</p>
-          <h2>6,237</h2>
-          <p>as of 12:42 PM</p>
+        <div className="AdministratorFare-add-section">
+          <h4>Add New Fare</h4>
+          <input
+            type="text"
+            name="fare"
+            placeholder="Fare Type"
+            value={newFare.fare}
+            onChange={handleInputChange}
+          />
+          <input
+            type="text"
+            name="price"
+            placeholder="Price"
+            value={newFare.price}
+            onChange={handleInputChange}
+          />
+          <button onClick={addFare}>Add Fare</button>
         </div>
-        <div className="AdministratorFare-fare-breakdown">
-          <h4>Breakdown</h4>
-          <p>Regular: PHP 6,XXX.00</p>
-          <p>Discounted: PHP 1,XXX.00</p>
-        </div>
-      </div>
-
-      {/* Activity */}
-      <div className="AdministratorFare-activity-feed">
-        <h4>Activity</h4>
-        <ul>
-          {activities.map((activity, index) => (
-            <li key={index}>
-              <span className="AdministratorFare-activity-icon">💰</span> {activity.shuttle} posted {activity.trip}.
-              <span className="AdministratorFare-activity-time">{activity.time}</span>
-            </li>
-          ))}
-        </ul>
       </div>
     </div>
   );
