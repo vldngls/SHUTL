@@ -19,23 +19,18 @@ const LoginForm = ({ onClose }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ username, password }),
-        credentials: 'include',  // Ensure credentials are included in the request
-      });      
+        credentials: 'include',
+      });
   
       if (response.ok) {
         const data = await response.json();
         document.cookie = `token=${data.token}; path=/; SameSite=None; Secure`;
   
         const userType = data.user.userType;
-        if (userType === 'Commuter') {
-          navigate('/ShutlLoggedIn');
-        } else if (userType === 'Admin') {
-          navigate('/AdministratorMain');
-        } else if (userType === 'Teller') {
-          navigate('/TellerMain');
-        } else if (userType === 'Driver') {
-          navigate('/DriverMain');
-        }
+        if (userType === 'Commuter') navigate('/ShutlLoggedIn');
+        else if (userType === 'Admin') navigate('/AdministratorMain');
+        else if (userType === 'Teller') navigate('/TellerMain');
+        else if (userType === 'Driver') navigate('/DriverMain');
   
         onClose();
       } else {
@@ -47,6 +42,7 @@ const LoginForm = ({ onClose }) => {
       setError('An error occurred');
     }
   };
+  
 
   return (
     <div className="ShutlLoginForm-overlay" onClick={onClose}>
