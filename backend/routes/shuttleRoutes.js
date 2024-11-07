@@ -1,5 +1,3 @@
-// shuttleRoutes.js
-
 import express from 'express';
 import { createTrip, getAllTrips, getTripById, updateTrip, deleteTrip } from '../controllers/shuttleController.js';
 

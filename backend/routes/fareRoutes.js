@@ -1,4 +1,3 @@
-// routes/fareRoutes.js
 import express from 'express';
 import { getFares, createFare, updateFare, deleteFare } from '../controllers/fareController.js';
 

@@ -1,0 +1,71 @@
+/* TellerShuttleSummary.css */
+.TellerShutSum-popup {
+    position: fixed;
+    top: 20px; /* Adjusted to place the popup closer to the top */
+    left: 20px; /* Added margin on the left */
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 15px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 580px; /* Width set to 580px */
+    height: 500px; /* Height set to 500px */
+    z-index: 1000;
+    padding: 20px;
+  }
+  
+  .TellerShutSum-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .TellerShutSum-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+  }
+  
+  .TellerShutSum-content {
+    margin-top: 10px;
+    overflow-y: auto; /* Allow scrolling if content exceeds height */
+    height: 380px; /* Set height for content area */
+  }
+  
+  .TellerShutSum-stats-container {
+    display: flex;
+    justify-content: space-between;
+    background-color: #D9D9D9; /* Background color for stats container */
+    padding: 10px;
+    border-radius: 8px; /* Rounded corners for stats container */
+    margin-bottom: 10px;
+  }
+  
+  .TellerShutSum-stat {
+    text-align: center;
+  }
+  
+  .TellerShutSum-number {
+    font-size: 24px; /* Bigger font size for numbers */
+    font-weight: bold;
+  }
+  
+  .TellerShutSum-label {
+    font-size: 14px; /* Standard font size for labels */
+  }
+  
+  .TellerShutSum-timeline {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  
+  .TellerShutSum-collect-fare-btn {
+    background-color: #232323; /* Background color of the button */
+    color: white;
+    border: none;
+    padding: 15px; /* Padding for the button */
+    border-radius: 5px; /* Rounded corners for the button */
+    cursor: pointer;
+    width: 100%; /* Make button span the entire width */
+  }
+  

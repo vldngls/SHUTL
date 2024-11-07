@@ -1,4 +1,3 @@
-// config/cors.js
 import cors from 'cors';
 
 const corsOptions = {

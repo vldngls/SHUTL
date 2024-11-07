@@ -1,5 +1,3 @@
-// shuttleTrip.model.js
-
 import mongoose from 'mongoose';
 
 const shuttleTripSchema = new mongoose.Schema({

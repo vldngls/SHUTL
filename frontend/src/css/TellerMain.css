@@ -3,6 +3,8 @@ html, body {
   padding: 0;
   height: 100%;
   overflow: hidden; /* Prevent scroll bars */
+  display: flex;
+  flex-direction: column; /* Make sure the layout uses flex column */
 }
 
 /* Adjust position of the buttons */
@@ -199,6 +201,7 @@ html, body {
   width: 100vw;
   height: 100vh;
   z-index: 1; /* Ensure it is behind other elements */
+  flex:1;
 }
 
 /* Base styles for the navbar */
@@ -302,12 +305,14 @@ html, body {
   }
 
   .TellerMain-taskbar {
-    font-size: 0.9em;
-    padding: 8px 16px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    width: calc(100% + 80px);
-    margin-left: -80px;
+    position: fixed; /* Make it fixed at the bottom */
+    bottom: 0; /* Align it to the bottom */
+    left: 0; /* Align it to the left */
+    width: 100%; /* Full width */
+    background-color: #f8f8f8; /* A light background for visibility */
+    padding: 10px 20px; /* Add some padding */
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+    z-index: 100; /* Ensure it stays above other content */
   }
 
   .TellerMain-line {

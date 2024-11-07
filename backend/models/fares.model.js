@@ -1,4 +1,3 @@
-// models/fares.model.js
 import mongoose from 'mongoose';
 
 const fareSchema = new mongoose.Schema(
