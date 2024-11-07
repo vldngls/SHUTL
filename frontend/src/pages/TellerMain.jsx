@@ -1,3 +1,4 @@
+// TellerMain.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +8,7 @@ import SettingsDropdown from '../components/SettingsDropdown';
 import NotificationPop from '../components/NotificationPop';
 import SuggestionForm from '../components/SuggestionForm';
 import ShuttleTripTracking from '../components/ShuttleTripTracking';
+import TellerShuttleSummary from '../components/TellerShuttleSummary'; // Importing the new summary component
 import L from 'leaflet';
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -41,7 +43,6 @@ const TellerMain = () => {
   const toggleNotification = () => setIsNotificationOpen(!isNotificationOpen);
   const toggleSettings = () => setIsSettingsOpen(!isSettingsOpen);
   const toggleSummary = () => setIsSummaryOpen(!isSummaryOpen);
-
   const openTripForm = () => setIsTripFormOpen(true);
   const closeTripForm = () => setIsTripFormOpen(false);
 
@@ -63,8 +64,21 @@ const TellerMain = () => {
               <Popup>You are here.</Popup>
             </Marker>
           )}
+          <Marker 
+            position={[14.377, 120.983]} 
+            icon={L.icon({ iconUrl: '/car.png', iconSize: [25, 41] })}
+            eventHandlers={{
+              click: () => {
+                setIsSummaryOpen(true);
+              },
+            }}
+          />
         </MapContainer>
       </div>
+
+      {isSummaryOpen && (
+        <TellerShuttleSummary onClose={() => setIsSummaryOpen(false)} />
+      )}
 
       <div className="TellerMain-navbar">
         <div className="TellerMain-logo">SHU TL.</div>
@@ -81,8 +95,8 @@ const TellerMain = () => {
           <button className="TellerMain-icon-btn" onClick={toggleNotification}>
             <img src="/notif.png" alt="Notification Icon" className="TellerMain-icon-image" />
           </button>
-          <button className="TellerMain-icon-btn" onClick={openTripForm}> {/* New Trip Button */}
-          <img src="/trip.png" alt="Trip Icon" className="TellerMain-icon-image" />
+          <button className="TellerMain-icon-btn" onClick={openTripForm}>
+            <img src="/trip.png" alt="Trip Icon" className="TellerMain-icon-image" />
           </button>
           <div className="TellerMain-settings-container">
             <button className="TellerMain-icon-btn TellerMain-settings-btn" onClick={toggleSettings}>
