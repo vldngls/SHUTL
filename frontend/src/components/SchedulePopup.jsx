@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../css/SchedulePopup.css';
 import ManageSchedule from './ManageSchedule';
 
-const SchedulePopup = ({ schedule, onClose, onSave }) => {
+const SchedulePopup = ({ schedule, onClose }) => {
   const [editableSchedule, setEditableSchedule] = useState(schedule);
   const [selectedDay, setSelectedDay] = useState('');
   const [newTime, setNewTime] = useState('');
@@ -23,25 +23,55 @@ const SchedulePopup = ({ schedule, onClose, onSave }) => {
   const [dateRange, setDateRange] = useState(get7DayRange());
 
   useEffect(() => {
+    // Set the initial editable schedule based on the current date range and schedule
     const initialSchedule = dateRange.map(day => 
       editableSchedule.find(entry => entry.day === day) || { day, time: '', details: '' }
     );
     setEditableSchedule(initialSchedule);
-    setSelectedDay(dateRange[0]);
+    
+    // Set the selected day to today if it falls within the date range
+    const todayString = new Date().toISOString().split('T')[0];
+    const firstDateInRange = dateRange[0];
+    const lastDateInRange = dateRange[dateRange.length - 1];
+
+    if (todayString >= firstDateInRange && todayString <= lastDateInRange) {
+      setSelectedDay(todayString);
+    } else {
+      setSelectedDay(dateRange[0]); // default to the first day if today is out of range
+    }
   }, [dateRange, schedule]);
 
   const handleAddSlot = () => {
     if (selectedDay && newTime && newLocation) {
       const newSlot = { day: selectedDay, time: newTime, details: `Pickup loc: ${newLocation}` };
-      setEditableSchedule(editableSchedule.map(entry => entry.day === selectedDay ? newSlot : entry));
+      setEditableSchedule(prevSchedule =>
+        prevSchedule.map(entry => entry.day === selectedDay ? newSlot : entry)
+      );
       setNewTime('');
       setNewLocation('');
     }
   };
 
-  const handleSave = () => {
-    onSave(editableSchedule);
-    onClose();
+  const handleSave = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/schedule', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editableSchedule),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+      console.log('Schedule saved:', data);
+      onClose(); // Close the popup after saving
+    } catch (error) {
+      console.error('Error saving schedule:', error);
+    }
   };
 
   const handleOpenManageSchedule = () => {
@@ -67,11 +97,24 @@ const SchedulePopup = ({ schedule, onClose, onSave }) => {
 
   const filteredSchedule = editableSchedule.filter(entry => entry.day === selectedDay);
 
+  // Function to format date
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
+  // Function to format the date range header
+  const formatDateRange = () => {
+    const startDate = new Date(dateRange[0]);
+    const endDate = new Date(dateRange[dateRange.length - 1]);
+    return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+  };
+
   return (
     <div className="schedule-popup">
       <div className="schedule-popup-content">
         <div className="schedule-popup-header">
-          <h3>Driver Schedule - {dateRange[0]} - {dateRange[6]}</h3>
+          <h3>Driver Schedule - {formatDateRange()}</h3>
           <button className="schedule-popup-close" onClick={onClose}>✖</button>
         </div>
         <div className="schedule-popup-body">
@@ -79,7 +122,7 @@ const SchedulePopup = ({ schedule, onClose, onSave }) => {
             <label>Select Day: </label>
             <select value={selectedDay} onChange={(e) => setSelectedDay(e.target.value)}>
               {dateRange.map(day => (
-                <option key={day} value={day}>{day}</option>
+                <option key={day} value={day}>{formatDate(day)}</option>
               ))}
             </select>
           </div>
