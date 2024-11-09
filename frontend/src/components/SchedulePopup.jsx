@@ -12,10 +12,8 @@ const SchedulePopup = ({ onClose }) => {
   const get7DayRange = () => {
     const today = new Date();
     const days = [];
-    
-    // Set the time to local midnight
     today.setHours(0, 0, 0, 0);
-  
+    
     for (let i = 0; i < 7; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
@@ -24,7 +22,7 @@ const SchedulePopup = ({ onClose }) => {
     
     return days;
   };
-  
+
   useEffect(() => {
     const fetchSchedule = async () => {
       try {
@@ -66,7 +64,6 @@ const SchedulePopup = ({ onClose }) => {
       });
 
       if (!response.ok) throw new Error('Network response was not ok');
-
       const data = await response.json();
       console.log('Schedule saved:', data);
       onClose();
@@ -75,13 +72,8 @@ const SchedulePopup = ({ onClose }) => {
     }
   };
 
-  const handleOpenManageSchedule = () => {
-    setIsManageScheduleOpen(true);
-  };
-
-  const handleCloseManageSchedule = () => {
-    setIsManageScheduleOpen(false);
-  };
+  const handleOpenManageSchedule = () => setIsManageScheduleOpen(true);
+  const handleCloseManageSchedule = () => setIsManageScheduleOpen(false);
 
   if (isManageScheduleOpen) {
     return (
@@ -98,17 +90,16 @@ const SchedulePopup = ({ onClose }) => {
 
   const filteredSchedule = editableSchedule.filter(entry => entry.day === selectedDay);
 
-const formatDate = (dateString) => {
-  const options = { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Manila' };
-  return new Date(dateString).toLocaleDateString('en-PH', options);
-};
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Manila' };
+    return new Date(dateString).toLocaleDateString('en-PH', options);
+  };
 
-const formatDateRange = (range) => {
-  const startDate = range[0];
-  const endDate = range[range.length - 1];
-  return `${formatDate(startDate.iso)} - ${formatDate(endDate.iso)}`;
-};
-
+  const formatDateRange = (range) => {
+    const startDate = range[0];
+    const endDate = range[range.length - 1];
+    return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+  };
 
   return (
     <div className="schedule-popup">

@@ -5,17 +5,16 @@ const ManageSchedule = ({ schedule, onClose, onSave }) => {
   const [editedSchedule, setEditedSchedule] = useState(schedule);
   const [dateRange, setDateRange] = useState([]);
   const [selectedDay, setSelectedDay] = useState('');
+  const [filteredSchedule, setFilteredSchedule] = useState([]);
+
   const generate7DayRange = () => {
     const today = new Date();
     const days = [];
-    
-    // Set today to local midnight to avoid any carry-over from the current time
     today.setHours(0, 0, 0, 0);
-  
+
     for (let i = 0; i < 7; i++) {
-      // Create a new date for each day based on `today`, avoiding direct modification of `today`
       const date = new Date(today);
-      date.setDate(today.getDate() + i); // Increment day while respecting local time
+      date.setDate(today.getDate() + i);
       const formattedDate = date.toLocaleDateString('en-US', {
         month: 'long',
         day: 'numeric',
@@ -23,10 +22,9 @@ const ManageSchedule = ({ schedule, onClose, onSave }) => {
       });
       days.push({ iso: date.toISOString().split('T')[0], formatted: formattedDate });
     }
-  
+
     return days;
   };
-  
 
   useEffect(() => {
     const range = generate7DayRange();
@@ -34,7 +32,12 @@ const ManageSchedule = ({ schedule, onClose, onSave }) => {
     setSelectedDay(range[0].iso);
   }, []);
 
+  useEffect(() => {
+    setFilteredSchedule(editedSchedule.filter(entry => entry.day === selectedDay));
+  }, [selectedDay, editedSchedule]);
+
   const handleInputChange = (index, field, value) => {
+    console.log(`Updating index ${index}, field ${field}, with value ${value}`);
     const updatedSchedule = [...editedSchedule];
     updatedSchedule[index][field] = value;
     setEditedSchedule(updatedSchedule);
@@ -54,8 +57,6 @@ const ManageSchedule = ({ schedule, onClose, onSave }) => {
     const updatedSchedule = editedSchedule.filter((_, i) => i !== index);
     setEditedSchedule(updatedSchedule);
   };
-
-  const filteredSchedule = editedSchedule.filter(entry => entry.day === selectedDay);
 
   return (
     <div className="ShutlManageSchedule-popup" onClick={onClose} role="dialog">
