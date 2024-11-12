@@ -6,14 +6,23 @@ html, body {
   display: flex;
   flex-direction: column; /* Make sure the layout uses flex column */
 }
+/* Additional spacing for the last button in the navbar */
+.TellerMain-profile-btn {
+  margin-top: auto; /* Pushes this button to the bottom of the navbar */
+  margin-bottom: 18px; /* Add space from the taskbar */
+}
+.TellerMain-navbar-bottom {
+  margin-top: auto; /* Pushes this container to the bottom */
+  padding-bottom: 16px; /* Adds space from the navbar edge */
+}
 
 /* Adjust position of the buttons */
 .TellerMain-navbar-buttons {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  margin-top: auto; /* Move buttons to the bottom */
-  margin-bottom: auto; /* Add some space above the taskbar */
+  justify-content: center; /* Center main buttons */
+  flex-grow: 1;
 }
 
 /* Button styling (adjusted sizes for consistent look) */
@@ -32,6 +41,20 @@ html, body {
 .TellerMain-icon-image {
   width: 100%;
   height: auto;
+}
+
+.TellerMain-navbar-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 225px; /* Increase this value to move icons lower */
+  flex-grow: 1;
+}
+
+/* Profile button container remains anchored at the bottom */
+.TellerMain-navbar-bottom {
+  margin-top: auto;
+  padding-bottom: 16px; /* Adds some space from the bottom edge */
 }
 
 /* Summary Button */
@@ -231,8 +254,10 @@ html, body {
   }
 
   .TellerMain-logo {
-    font-size: 1.2em;
-    margin-bottom: 15px;
+    font-size: 1.6em; 
+    font-weight: bold;
+    margin-bottom: 20px;
+    margin-top: 8px;
   }
 
   .TellerMain-status {
@@ -276,9 +301,10 @@ html, body {
   }
 
   .TellerMain-logo {
-    font-size: 1em;
-    margin-bottom: 0;
-    align-self: center;
+    font-size: 1.6em; /* Adjusted to relative units */
+  font-weight: bold;
+  margin-bottom: 20px;
+  margin-top: 8px;
   }
 
   .TellerMain-status {

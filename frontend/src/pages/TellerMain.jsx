@@ -1,4 +1,3 @@
-// TellerMain.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
@@ -8,11 +7,12 @@ import SettingsDropdown from '../components/SettingsDropdown';
 import NotificationPop from '../components/NotificationPop';
 import SuggestionForm from '../components/SuggestionForm';
 import ShuttleTripTracking from '../components/ShuttleTripTracking';
-import TellerShuttleSummary from '../components/TellerShuttleSummary'; // Importing the new summary component
+import TellerShuttleSummary from '../components/TellerShuttleSummary';
+import TellerProfile from '../components/TellerProfile'; // Updated import to match new file name
 import L from 'leaflet';
 
+// Leaflet icon settings
 delete L.Icon.Default.prototype._getIconUrl;
-
 L.Icon.Default.mergeOptions({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -48,6 +48,7 @@ const TellerMain = () => {
 
   return (
     <>
+      {/* Map Component */}
       <div className="TellerMain-map-container">
         <MapContainer
           style={{ height: '100%', width: '100%' }}
@@ -76,10 +77,7 @@ const TellerMain = () => {
         </MapContainer>
       </div>
 
-      {isSummaryOpen && (
-        <TellerShuttleSummary onClose={() => setIsSummaryOpen(false)} />
-      )}
-
+      {/* Components for Notifications, Messages, and Schedule */}
       <div className="TellerMain-navbar">
         <div className="TellerMain-logo">SHU TL.</div>
         <div className="TellerMain-navbar-buttons">
@@ -111,18 +109,35 @@ const TellerMain = () => {
               </div>
             )}
           </div>
+          {/* Profile Icon at the Bottom */}
+          <div className="TellerMain-navbar-bottom">
+            <button className="TellerMain-icon-btn" onClick={toggleProfile}>
+              <img src="/teller-profile.png" alt="Profile Icon" className="TellerMain-icon-image" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {isTripFormOpen && (
-        <div className="TellerMain-TripTracking-popup">
-          <ShuttleTripTracking />
-          <button onClick={closeTripForm} className="TellerMain-close-popup-btn">
-            Close
-          </button>
-        </div>
+      {/* Modals and Popups */}
+      {isSummaryOpen && (
+        <TellerShuttleSummary onClose={() => setIsSummaryOpen(false)} />
       )}
 
+      {isProfileOpen && (
+        <TellerProfile onClose={toggleProfile} /> 
+      )}
+
+{isTripFormOpen && (
+  <div className="TellerMain-TripTracking-popup">
+    <ShuttleTripTracking />
+    <button onClick={closeTripForm} className="TellerMain-close-popup-btn">
+      Close
+    </button>
+  </div>
+)}
+
+
+      {/* Taskbar displaying Date and Time */}
       <div className="TellerMain-taskbar">
         {dateTime.toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} -{' '}
         {dateTime.toLocaleTimeString('en-PH')}
