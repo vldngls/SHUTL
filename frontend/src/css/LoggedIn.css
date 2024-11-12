@@ -1,103 +1,23 @@
+/* General Reset for Body */
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
   overflow: hidden; /* Prevent scroll bars */
+  font-family: Arial, sans-serif;
 }
 
-.ShutlLoggedIn-settings-menu {
-  position: fixed;
-  left: 17px; /* Same left position as other buttons */
-  top: 700px; /* Adjust according to your layout */
-  background: white; /* Background color */
-  border-radius: 8px; /* Rounded corners */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow effect */
-  z-index: 4; /* Ensure it is above other elements */
-  padding: 10px; /* Add some padding */
-}
-
-.ShutlLoggedIn-settings-menu button {
-  background: none; /* Remove default button styles */
-  border: none; /* Remove border */
-  cursor: pointer; /* Pointer cursor */
-  width: 100%; /* Full width */
-  text-align: left; /* Align text to the left */
-  padding: 10px; /* Add some padding */
-  color: #333; /* Text color */
-}
-
-.ShutlLoggedIn-settings-menu button:hover {
-  background-color: #f0f0f0; /* Hover effect */
-}
-
-.ShutlLoggedIn-notif-btn {
-  position: fixed; /* or absolute depending on your layout */
-  left: 17px; /* Same left position as circle-btn */
-  top: 585px; /* Adjust this value to place it below the circle button */
-  background: none; /* Remove default button styles */
-  border: none; /* Remove default button border */
-  padding: 0; /* Remove default padding */
-  cursor: pointer; /* Change cursor to pointer */
-  border-radius: 50%; /* Make the button circular */
-  width: 48px; /* Set the width to match the icon size */
-  height: 48px; /* Set the height to match the icon size */
-  z-index: 3; /* Ensure it is above other elements */
-}
-
-.ShutlLoggedIn-notif-icon {
-  width: 100%; /* Make the icon fill the button */
-  height: auto; /* Maintain aspect ratio */
-}
-
-.ShutlLoggedIn-setting-btn {
-  position: fixed; /* or absolute depending on your layout */
-  left: 17px; /* Adjust according to your sidebar width */
-  top: 650px; /* Adjust to the desired vertical position */
-  background: none; /* Remove default button styles */
-  border: none; /* Remove default button border */
-  padding: 0; /* Remove default padding */
-  cursor: pointer; /* Change cursor to pointer */
-  border-radius: 50%; /* Make the button circular */
-  width: 48px; /* Set the width to match the icon size */
-  height: 48px; /* Set the height to match the icon size */
-  z-index: 3; /* Ensure it is above other elements */
-}
-
-.ShutlLoggedIn-setting-icon {
-  width: 100%; /* Fill the button */
-  height: 100%; /* Fill the button */
-}
-
-.ShutlLoggedIn-setting-btn:hover .ShutlLoggedIn-setting-icon {
-  opacity: 0.8; /* Add hover effect */
-}
-
-/* Media Queries for Responsiveness */
-@media (max-width: 768px) {
-  .ShutlLoggedIn-circle-btn {
-    right: 20px; /* Move it closer to the edge on smaller screens */
-    bottom: 50px; /* Adjust positioning on smaller screens */
-  }
-}
-
-@media (max-width: 480px) {
-  .ShutlLoggedIn-circle-btn {
-    right: 10px; /* Adjust for even smaller screens */
-    bottom: 40px;
-  }
-}
-
-/* Map container */
+/* Map Container */
 .ShutlLoggedIn-map-container {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100vw; /* Ensure it takes the full viewport width */
-  height: 100vh; /* Ensure it takes the full viewport height */
-  z-index: 1; /* Ensure it is behind other elements */
+  width: 100vw; /* Full viewport width */
+  height: 100vh; /* Full viewport height */
+  z-index: 1; /* Behind other elements */
 }
 
-/* Base styles for the navbar */
+/* Navbar */
 .ShutlLoggedIn-navbar {
   display: flex;
   flex-direction: column;
@@ -114,44 +34,65 @@ html, body {
   top: 0;
   z-index: 3;
   box-sizing: border-box;
+  justify-content: space-between;
 }
 
+/* Logo at the top */
 .ShutlLoggedIn-logo {
-  font-size: 1.6em; /* Adjusted to relative units */
+  font-size: 1.6em;
   font-weight: bold;
   margin-bottom: 20px;
   margin-top: 8px;
 }
 
+/* Notification and settings buttons centered */
 .ShutlLoggedIn-status {
-  font-size: 1em; /* Adjusted to relative units */
-  margin-top: auto;
-}
-
-.ShutlLoggedIn-icon-container {
-  position: relative;
-  width: auto; /* Adjusted size */
-  height: auto; /* Adjusted size */
-  margin-top: 24px;
   display: flex;
+  flex-direction: column;
   align-items: center;
+  gap: 20px;
+  flex-grow: 1;
   justify-content: center;
 }
 
+.ShutlLoggedIn-setting-btn,
+.ShutlLoggedIn-notif-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  z-index: 3;
+}
+
+.ShutlLoggedIn-setting-icon,
+.ShutlLoggedIn-notif-icon {
+  width: 100%;
+  height: auto;
+}
+
+/* Profile icon at the bottom */
+.ShutlLoggedIn-icon-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 8px;
+}
+
 .ShutlLoggedIn-line {
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
   width: 58px;
   height: 1px;
   background-color: white;
 }
 
 .ShutlLoggedIn-nav-icon {
-  width: 48px; /* Adjusted size */
-  height: 48px; /* Adjusted size */
-  margin-top: 8px;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
 }
 
 /* Taskbar */
@@ -159,7 +100,7 @@ html, body {
   position: fixed;
   bottom: 0;
   left: 0;
-  width: calc(100% + 80px); /* Expand width to cover entire screen width */
+  width: calc(100% + 80px); /* Expands to cover the entire width including the navbar */
   background-color: #F5F5F5;
   color: #333;
   display: flex;
@@ -167,48 +108,56 @@ html, body {
   align-items: center;
   padding: 10px 20px;
   border-top: 2px solid #e0e0e0;
-  font-size: 1em; /* Adjusted to relative units */
-  z-index: 2; /* Ensure it is behind the navbar */
+  font-size: 1em;
+  z-index: 2;
   box-sizing: border-box;
-  margin-left: -80px; /* Shift taskbar left to align with the navbar's edge */
+  margin-left: -80px; /* Align with the navbar's edge */
 }
 
-/* Media Queries */
+/* Update location button */
+.ShutlLoggedIn-update-location-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 60px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  z-index: 3;
+}
+
+.ShutlLoggedIn-update-location-icon {
+  width: 100%;
+  height: auto;
+}
+
+/* Media Queries for Smaller Devices */
 @media (max-width: 768px) {
   .ShutlLoggedIn-navbar {
-    width: 48px;
+    width: 60px;
     padding: 8px;
   }
 
   .ShutlLoggedIn-logo {
     font-size: 1.2em;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
   }
 
-  .ShutlLoggedIn-status {
-    font-size: 0.9em;
-  }
-
-  .ShutlLoggedIn-nav-icon {
-    width: 30px;
-    height: 30px;
-  }
-
-  .ShutlLoggedIn-icon-container {
-    width: 30px;
-    height: 30px;
-    margin-top: auto; /* Center icon vertically */
-    margin-bottom: 20px; /* Space from the bottom */
-  }
-
-  .ShutlLoggedIn-line {
-    top: -8px;
-    width: 15px;
+  .ShutlLoggedIn-nav-icon,
+  .ShutlLoggedIn-update-location-btn,
+  .ShutlLoggedIn-setting-btn,
+  .ShutlLoggedIn-notif-btn {
+    width: 40px;
+    height: 40px;
   }
 
   .ShutlLoggedIn-taskbar {
-    width: calc(100% + 48px); /* Adjust to full viewport width on smaller screens */
-    margin-left: -48px; /* Adjust to align with navbar width */
+    width: calc(100% + 60px);
+    margin-left: -60px;
+    font-size: 0.9em;
   }
 }
 
@@ -217,99 +166,47 @@ html, body {
     flex-direction: row;
     justify-content: space-between;
     width: 100%;
-    height: 50px;
+    height: 48px;
     border-radius: 0;
-    padding: 0 10px;
-    bottom: 0;
+    padding: 0 4px;
     position: fixed;
     z-index: 2;
+    align-items: center;
   }
 
   .ShutlLoggedIn-logo {
     font-size: 1em;
-    margin-bottom: 0;
+    margin-top: 12px;
+    margin-left: 4px;
     align-self: center;
-  }
-
-  .ShutlLoggedIn-status {
-    font-size: 0.9em;
-    margin-top: 0;
-    align-self: center;
-  }
-
-  .ShutlLoggedIn-nav-icon {
-    width: 25px;
-    height: 25px;
-  }
-
-  .ShutlLoggedIn-icon-container {
-    width: 25px;
-    height: 25px;
-    margin-top: auto; /* Center icon vertically */
-    margin-bottom: 10px; /* Space from the bottom */
-  }
-
-  .ShutlLoggedIn-line {
-    top: -4px;
-    width: 12px;
   }
 
   .ShutlLoggedIn-taskbar {
     font-size: 0.9em;
     padding: 8px 16px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    width: calc(100% + 80px); /* Expand width to cover entire screen width */
-    margin-left: -80px; /* Shift taskbar left to align with the navbar's edge */
+    width: 100%;
+    margin-left: 0;
+    justify-content: center;
   }
 
+  .ShutlLoggedIn-nav-icon,
+  .ShutlLoggedIn-update-location-icon,
+  .ShutlLoggedIn-setting-icon,
+  .ShutlLoggedIn-notif-icon {
+    margin-bottom: 18px;
+    width: 32px;
+    height: 32px;
+  }
+
+  /* Hide the line on mobile */
   .ShutlLoggedIn-line {
-    display: none; /* Hide the line on smaller portrait devices */
+    display: none;
   }
-}
 
-/* Update Location Button */
-.ShutlLoggedIn-update-location-btn {
-  position: fixed;
-  right: 20px;
-  bottom: 60px; /* Adjust this value to position it above the taskbar */
-  background: none; /* Remove default button styles */
-  border: none; /* Remove default button border */
-  padding: 0; /* Remove default padding */
-  cursor: pointer;
-  z-index: 3; /* Ensure it stays above the map and taskbar */
-}
-
-.ShutlLoggedIn-update-location-icon {
-  width: 40px; /* Adjust the icon size */
-  height: 40px; /* Adjust the icon size */
-}
-
-.ShutlLoggedIn-update-location-btn:hover .ShutlLoggedIn-update-location-icon {
-  opacity: 0.8; /* Add hover effect */
-}
-
-@media (max-width: 768px) {
+  /* Adjust button positions */
   .ShutlLoggedIn-update-location-btn {
-    right: 10px;
-    bottom: 50px; /* Adjust for smaller screens */
-  }
-
-  .ShutlLoggedIn-update-location-icon {
-    width: 30px;
-    height: 30px;
-  }
-}
-
-@media (max-width: 480px) {
-  .ShutlLoggedIn-update-location-btn {
-    right: 10px;
-    bottom: 60px; /* Adjust for smaller screens */
-  }
-
-  .ShutlLoggedIn-update-location-icon {
-    width: 25px;
-    height: 25px;
+    right: 8px;
+    bottom: 50px;
   }
 }
 
@@ -320,8 +217,8 @@ html, body {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-  z-index: 1000; /* Ensure it appears above other elements */
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
 }
 
 /* Popup Container */
@@ -330,5 +227,9 @@ html, body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 1001; /* Ensure it's above the overlay */
+  z-index: 1001;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 20px;
 }
