@@ -1,5 +1,8 @@
+// frontend/src/pages/AdministratorMain.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { io } from 'socket.io-client';
+import ShutlNotificationPop from '../components/NotificationPop';
 import '../css/AdministratorMain.css';
 import AdministratorDashboardContent from '@components/AdministratorDashboardContent.jsx';
 import AdministratorMaintenanceContent from '@components/AdministratorMaintenanceContent.jsx';
@@ -8,20 +11,52 @@ import AdministratorShuttlesRoutesContent from '@components/AdministratorShuttle
 import AdministratorShuttleManagementContent from '@components/AdministratorShuttleManagementContent.jsx';
 import AdministratorTransactionsContent from '@components/AdministratorTransactionsContent.jsx';
 
+const socket = io('http://localhost:5000');
+
 const AdministratorMain = () => {
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [dateTime, setDateTime] = useState(new Date());
+  const [notifications, setNotifications] = useState([]);
+  const [showPopup, setShowPopup] = useState(false);
 
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'; // Clear the token cookie
-    navigate('/ShutlLoggedOut'); // Redirect to ShutlLoggedOut
+    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    navigate('/ShutlLoggedOut');
   };
 
   useEffect(() => {
     const timer = setInterval(() => setDateTime(new Date()), 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch('/api/notifications/user', {
+          headers: {
+            Authorization: `Bearer ${getCookie('token')}`, // Replace with your token management
+          },
+        });
+        const data = await response.json();
+        setNotifications(data);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      }
+    };
+    fetchNotifications();
+  }, []);
+
+  useEffect(() => {
+    socket.on('new_notification', (notification) => {
+      setNotifications((prevNotifications) => [notification, ...prevNotifications]);
+      setShowPopup(true);
+    });
+
+    return () => {
+      socket.off('new_notification');
+    };
   }, []);
 
   const renderContent = () => {
@@ -84,6 +119,11 @@ const AdministratorMain = () => {
         </div>
 
         {renderContent()}
+
+        {/* Notification popup for new notifications */}
+        {showPopup && notifications[0] && (
+          <ShutlNotificationPop message={notifications[0].message} onClose={() => setShowPopup(false)} />
+        )}
       </div>
     </div>
   );

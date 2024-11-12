@@ -1,11 +1,12 @@
-// server.js
-
+// backend/server.js
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
+import { Server } from 'socket.io';
+import http from 'http';
 
 import connectDB from './config/db.js';
 import fareRoutes from './routes/fareRoutes.js';
@@ -13,6 +14,7 @@ import userDataRoutes from './routes/userDataRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import shuttleRoutes from './routes/shuttleRoutes.js';
 import scheduleRoutes from './routes/scheduleRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 
 // Set up __dirname and load environment variables from root-level .env file
 const __filename = fileURLToPath(import.meta.url);
@@ -27,6 +29,7 @@ if (!process.env.MONGO_URI) {
 
 // Initialize Express app
 const app = express();
+const server = http.createServer(app); // Create an HTTP server for Socket.io
 
 // Middleware
 app.use(express.json());
@@ -44,12 +47,34 @@ app.use('/api/userdata', userDataRoutes);
 app.use('/api/shuttle', shuttleRoutes);
 app.use('/api/fares', fareRoutes);
 app.use('/api/schedule', scheduleRoutes);
+app.use('/api/notifications', notificationRoutes); // Include notification routes
 
 // Connect to the database
 connectDB();
 
+// Set up Socket.io
+const io = new Server(server, {
+  cors: {
+    origin: 'http://localhost:5173',
+    credentials: true,
+  },
+});
+
+// Handle client connections
+io.on('connection', (socket) => {
+  console.log('A user connected:', socket.id);
+
+  // Handle disconnection
+  socket.on('disconnect', () => {
+    console.log('A user disconnected:', socket.id);
+  });
+});
+
+// Export io to use it in other modules (optional, if needed)
+export { io };
+
 // Start the server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

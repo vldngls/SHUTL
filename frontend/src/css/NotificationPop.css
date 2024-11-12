@@ -1,17 +1,20 @@
-/* ShutlNotificationPop Component Styles */
-
-/* ShutlNotificationPop Component Styles */
+/* NotificationPop.css */
 .ShutlNotificationPop-popup {
-  position: relative;
-  background: #333; /* Dark background, matching the provided design */
-  border-radius: 15px; /* Rounded corners */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Subtle shadow for elevation */
+  position: absolute;
+  top: 20px; /* Space from the top */
+  right: 20px; /* Space from the right */
+  background: rgba(50, 50, 50, 0.9); /* Dark, translucent background */
+  border-radius: 10px; /* Rounded corners */
+  padding: 15px 20px; /* Padding for spacing */
+  max-width: 300px; /* Set a reasonable max width */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add a subtle shadow */
+  color: #fff; /* White text color for contrast */
+  font-size: 1em; /* Standard font size for readability */
   z-index: 1001; /* Ensure it appears above other elements */
-  min-width: 200px; /* Minimum width for consistent sizing */
-  max-width: 240px; /* Limit maximum width */
-  padding: 10px 0; /* Padding inside the popup to add space around items */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
-
 
 .ShutlNotificationPop-list {
   list-style: none; /* Remove default list styling */
@@ -20,14 +23,8 @@
 }
 
 .ShutlNotificationPop-item {
-  padding: 12px 20px; /* Spacing around each item for readability */
-  color: #f1f1f1; /* Light text color for good contrast against dark background */
-  font-size: 1em; /* Standardized font size */
-  cursor: pointer; /* Pointer cursor for interactive items */
-  transition: background-color 0.3s ease; /* Smooth transition for hover effect */
-  display: flex; /* Flex layout for potential icon/text alignment */
-  align-items: center; /* Align items vertically */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Divider between items */
+  padding: 10px 0; /* Space between items */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Divider between items */
 }
 
 .ShutlNotificationPop-item:last-child {
@@ -35,5 +32,19 @@
 }
 
 .ShutlNotificationPop-item:hover {
-  background-color: rgba(255, 255, 255, 0.1); /* Lighter background when hovering over an item */
+  background-color: rgba(255, 255, 255, 0.1); /* Slight highlight on hover */
+}
+
+.ShutlNotificationPop-close {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 1.2em;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.ShutlNotificationPop-close:hover {
+  color: #fff;
 }

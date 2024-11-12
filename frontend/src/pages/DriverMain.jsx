@@ -1,31 +1,39 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Tooltip } from 'react-leaflet';
-import { useNavigate } from 'react-router-dom';
-import 'leaflet/dist/leaflet.css';
-import '../css/DriverMain.css';
-import SuggestionForm from '../components/SuggestionForm';
-import DriverMessage from '../components/DriverMessage';
-import ProfileIDCard from '../components/ProfileIDCard';
-import SettingsDropdown from '../components/SettingsDropdown';
-import SchedulePopup from '../components/SchedulePopup';
-import NotificationPop from '../components/NotificationPop';
-import DriverSummary from '../components/DriverSummary'; // Import DriverSummary component
-import L from 'leaflet';
+// frontend/src/pages/DriverMain.jsx
+import React, { useState, useEffect, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
+import { useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
+import "leaflet/dist/leaflet.css";
+import "../css/DriverMain.css";
+import SuggestionForm from "../components/SuggestionForm";
+import DriverMessage from "../components/DriverMessage";
+import ProfileIDCard from "../components/ProfileIDCard";
+import SettingsDropdown from "../components/SettingsDropdown";
+import SchedulePopup from "../components/SchedulePopup";
+import NotificationPop from "../components/NotificationPop";
+import DriverSummary from "../components/DriverSummary";
+import L from "leaflet";
+import { getCookie } from "../utils/cookieUtils"; // Ensure this exists
+
+const socket = io("http://localhost:5000");
 
 const carIcon = new L.Icon({
-  iconUrl: '/car.png',
-  iconRetinaUrl: '/car.png',
+  iconUrl: "/car.png",
+  iconRetinaUrl: "/car.png",
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   iconSize: [29, 59],
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  shadowSize: [41, 41]
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  shadowSize: [41, 41],
 });
 
 const DriverMain = () => {
   const navigate = useNavigate();
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [showPopup, setShowPopup] = useState(false);
+
   const [openModals, setOpenModals] = useState({
     isProfileIDOpen: false,
     isSettingsOpen: false,
@@ -35,25 +43,17 @@ const DriverMain = () => {
     isNotificationOpen: false,
     isSummaryOpen: false,
   });
-  const [messages, setMessages] = useState([
-    { driver: 'Driver. 001', text: '2 Passengers currently waiting.' },
-    { driver: 'Driver. 002', text: 'Thank you. Proceed with your current task.' },
-    { driver: 'Driver. 003', text: 'Okay, I’ll take note and inform others.' }
-  ]);
-  const [schedule, setSchedule] = useState([
-    { day: 'Sunday', time: '8:00 am', details: 'Person waiting: 5, Pickup loc: Ruby St.' },
-    // ... Other days
-  ]);
+
   const mapRef = useRef(null);
-  
-  const user = JSON.parse(localStorage.getItem('user')) || {
-    identifier: 'SHUTL001-1A',
-    name: 'John Doe',
-    address: '412 Sta Fe Tomas Morato',
-    sex: 'M',
-    email: 'jam.teller@gmail.com',
-    eyeColor: 'Brown',
-    dob: '07/15/1983',
+
+  const user = JSON.parse(localStorage.getItem("user")) || {
+    identifier: "SHUTL001-1A",
+    name: "John Doe",
+    address: "412 Sta Fe Tomas Morato",
+    sex: "M",
+    email: "jam.teller@gmail.com",
+    eyeColor: "Brown",
+    dob: "07/15/1983",
   };
 
   useEffect(() => {
@@ -68,9 +68,47 @@ const DriverMain = () => {
       const handleResize = () => {
         mapRef.current.invalidateSize();
       };
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
     }
+  }, []);
+
+  // Fetch notifications and set up Socket.io
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      const token = getCookie("token");
+
+      try {
+        const response = await fetch(
+          "http://localhost:5000/api/notifications/user",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        setNotifications(data);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+    fetchNotifications();
+
+    socket.on("new_notification", (notification) => {
+      if (notification.recipientType === "Driver") {
+        setNotifications((prevNotifications = []) => [
+          notification,
+          ...prevNotifications,
+        ]);
+        setShowPopup(true);
+      }
+    });
+
+    return () => {
+      socket.off("new_notification");
+    };
   }, []);
 
   const updateUserLocation = () => {
@@ -80,14 +118,10 @@ const DriverMain = () => {
           const { latitude, longitude } = position.coords;
           setUserLocation([latitude, longitude]);
         },
-        (error) => {
-          alert("Unable to retrieve your location. Please try again.");
-        },
+        () => alert("Unable to retrieve your location. Please try again."),
         { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
       );
-    } else {
-      alert("Geolocation is not supported by this browser.");
-    }
+    } else alert("Geolocation is not supported by this browser.");
   };
 
   const toggleModal = (modalName) => {
@@ -97,15 +131,11 @@ const DriverMain = () => {
     }));
   };
 
-  const handleSendMessage = (messageText) => {
-    setMessages([...messages, { driver: 'You', text: messageText }]);
-  };
-
   return (
     <>
       <div className="DriverMain-map-container">
         <MapContainer
-          style={{ height: '100%', width: '100%' }}
+          style={{ height: "100%", width: "100%" }}
           center={userLocation || [14.377, 120.983]}
           zoom={15.5}
           zoomControl={false}
@@ -118,7 +148,9 @@ const DriverMain = () => {
           {userLocation && (
             <Marker position={userLocation} icon={carIcon}>
               <Popup>You are here.</Popup>
-              <Tooltip direction="right" offset={[12, 0]} permanent>Shuttle 001</Tooltip>
+              <Tooltip direction="right" offset={[12, 0]} permanent>
+                Shuttle 001
+              </Tooltip>
             </Marker>
           )}
         </MapContainer>
@@ -128,69 +160,65 @@ const DriverMain = () => {
         <div className="DriverMain-logo">SHU TL.</div>
 
         <div className="DriverMain-navbar-buttons">
-          <button className="DriverMain-icon-btn" onClick={() => toggleModal('isMessageOpen')}>
+          <button className="DriverMain-icon-btn" onClick={() => toggleModal("isMessageOpen")}>
             <img src="/message.png" alt="Message Icon" className="DriverMain-icon-image" />
           </button>
 
-          <button className="DriverMain-icon-btn" onClick={() => toggleModal('isScheduleOpen')}>
+          <button className="DriverMain-icon-btn" onClick={() => toggleModal("isScheduleOpen")}>
             <img src="/calendar.png" alt="Schedule Icon" className="DriverMain-icon-image" />
           </button>
 
-          <button className="DriverMain-icon-btn" onClick={() => toggleModal('isSummaryOpen')}>
+          <button className="DriverMain-icon-btn" onClick={() => toggleModal("isSummaryOpen")}>
             <img src="/summary.png" alt="Summary Icon" className="DriverMain-icon-image" />
           </button>
 
           <div className="DriverMain-notification-container">
-            <button className="DriverMain-icon-btn DriverMain-notification-btn" onClick={() => toggleModal('isNotificationOpen')}>
+            <button
+              className="DriverMain-icon-btn DriverMain-notification-btn"
+              onClick={() => toggleModal("isNotificationOpen")}
+            >
               <img src="/notif.png" className="DriverMain-icon-image" />
             </button>
             {openModals.isNotificationOpen && (
-              <div className="DriverMain-notfication-dropdown" style={{ bottom: '220%', right: '-20%', transform: 'translateY(-50%)' }}>
-                <NotificationPop onClose={() => toggleModal('isNotificationOpen')} />
+              <div className="DriverMain-notification-dropdown">
+                <NotificationPop notifications={notifications} onClose={() => toggleModal("isNotificationOpen")} />
               </div>
             )}
           </div>
 
           <div className="DriverMain-settings-container">
-            <button className="DriverMain-icon-btn DriverMain-settings-btn" onClick={() => toggleModal('isSettingsOpen')}>
+            <button
+              className="DriverMain-icon-btn DriverMain-settings-btn"
+              onClick={() => toggleModal("isSettingsOpen")}
+            >
               <img src="/settings.png" alt="Settings Icon" className="DriverMain-icon-image" />
             </button>
             {openModals.isSettingsOpen && (
-              <div className="DriverMain-settings-dropdown" style={{ bottom: '220%', left: '130%', transform: 'translateY(-50%)' }}>
-                <SettingsDropdown onClose={() => toggleModal('isSettingsOpen')} />
+              <div className="DriverMain-settings-dropdown">
+                <SettingsDropdown onClose={() => toggleModal("isSettingsOpen")} />
               </div>
             )}
           </div>
         </div>
-
-        <div className="DriverMain-icon-container" onClick={() => toggleModal('isProfileIDOpen')}>
-          <div className="DriverMain-line"></div>
-          <img src="/profile.png" alt="Navigation Icon" className="DriverMain-nav-icon" />
-        </div>
       </div>
 
       <div className="DriverMain-taskbar">
-        {dateTime.toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} - {dateTime.toLocaleTimeString('en-PH')}
+        {dateTime.toLocaleDateString("en-PH", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })}{" "}
+        - {dateTime.toLocaleTimeString("en-PH")}
       </div>
 
       <button className="DriverMain-update-location-btn" onClick={updateUserLocation}>
         <img src="/locup.png" alt="Update Location" className="DriverMain-update-location-icon" />
       </button>
 
-      <button className="DriverMain-request-assistance-btn" onClick={() => toggleModal('isSuggestionOpen')}>?</button>
-
-      {openModals.isSuggestionOpen && <SuggestionForm onClose={() => toggleModal('isSuggestionOpen')} />}
-      {openModals.isProfileIDOpen && <ProfileIDCard user={user} onClose={() => toggleModal('isProfileIDOpen')} />}
-      {openModals.isScheduleOpen && <SchedulePopup schedule={schedule} onClose={() => toggleModal('isScheduleOpen')} onSave={(updatedSchedule) => setSchedule(updatedSchedule)} />}
-      {openModals.isMessageOpen && <DriverMessage messages={messages} onSendMessage={handleSendMessage} />}
-
-      {openModals.isSummaryOpen && (
-        <div className="DriverMain-summary-popup">
-          <DriverSummary onClose={() => toggleModal('isSummaryOpen')} />
-        </div>
+      {openModals.isNotificationOpen && showPopup && notifications[0] && (
+        <NotificationPop notifications={notifications} onClose={() => setShowPopup(false)} />
       )}
-
-      <div className="DriverMain-operational-hours">Operational hours: 8:00 AM to 10:00 PM</div>
     </>
   );
 };

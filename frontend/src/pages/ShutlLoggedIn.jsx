@@ -1,11 +1,13 @@
+// frontend/src/pages/ShutlLoggedIn.jsx
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import '../css/LoggedIn.css'; // Assuming similar styles are used
-import NotificationPop from '../components/NotificationPop'; // Import the new component
-import SettingsDropdown from '../components/SettingsDropdown'; // Import the new component
+import '../css/LoggedIn.css';
+import NotificationPop from '../components/NotificationPop';
+import SettingsDropdown from '../components/SettingsDropdown';
+import ProfilePopup from '../components/ProfilePopup';
 import L from 'leaflet';
-import ProfilePopup from '../components/ProfilePopup'; // Import the ProfilePopup component
+import { io } from 'socket.io-client';
 
 // Fix for default Leaflet icons issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -16,19 +18,52 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
 });
 
+const socket = io('http://localhost:5000'); // Make sure this URL matches your backend
+
 const ShutlLoggedIn = () => {
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
   const [activePopup, setActivePopup] = useState(null);
   const [mapInstance, setMapInstance] = useState(null);
-
+  const [notifications, setNotifications] = useState([]); // List of notifications
   const popupRef = useRef(null);
 
-  // Placeholder user data
   const user = useMemo(() => ({
     name: 'John Doe',
     email: 'john.doe@example.com'
   }), []);
+
+  // Fetch past notifications for the "Commuter" type on load
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/notifications/user', { // Make sure the URL is correct
+          headers: {
+            Authorization: `Bearer ${getCookie('token')}`,
+          },
+        });        
+        const data = await response.json();
+        setNotifications(data);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      }
+    };
+    fetchNotifications();
+  }, []);
+
+  // Real-time notifications listener
+  useEffect(() => {
+    socket.on('new_notification', (notification) => {
+      if (notification.recipientType === 'Commuter') {
+        setNotifications((prevNotifications) => [notification, ...prevNotifications]);
+        setActivePopup('notifications'); // Automatically open the notifications popup for new notification
+      }
+    });
+
+    return () => {
+      socket.off('new_notification');
+    };
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => setDateTime(new Date()), 1000);
@@ -134,11 +169,19 @@ const ShutlLoggedIn = () => {
       
       <div ref={popupRef}>
         {activePopup === 'settings' && <SettingsDropdown onClose={() => setActivePopup(null)} />}
-        {activePopup === 'notifications' && <NotificationPop onClose={() => setActivePopup(null)} />}
+        {activePopup === 'notifications' && <NotificationPop notifications={notifications} onClose={() => setActivePopup(null)} />}
         {activePopup === 'profile' && <ProfilePopup onClose={() => setActivePopup(null)} />}
       </div>
     </>
   );
 }
+
+// Utility to get cookie by name
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+};
 
 export default ShutlLoggedIn;

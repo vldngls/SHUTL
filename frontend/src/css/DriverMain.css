@@ -77,14 +77,6 @@
     position: relative;
 }
 
-.ShutlNotificationPop-popup {
-    position: absolute;
-    z-index: 1000;
-    left: 80px;
-    top: 18px;
-    transform: translateY(-50%);
-}
-
 /* Profile icon styling and container positioning */
 .DriverMain-icon-container {
     display: flex;
@@ -261,3 +253,16 @@
         justify-content: center;
     }
 }
+
+
+/* Adjusted Notification Dropdown Positioning */
+.DriverMain-notification-dropdown {
+    position: fixed; /* Use fixed to keep it in a specific place relative to the viewport */
+    top: 60px; /* Adjust based on the button location */
+    right: 100px; /* Adjust to align with the notification button */
+    width: 250px;
+    border-radius: 8px;
+    z-index: 1001;
+    padding: 10px;
+  }
+  

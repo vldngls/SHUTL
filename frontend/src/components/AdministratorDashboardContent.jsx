@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import '../css/AdministratorDashboardContent.css';
+import { getCookie } from '../utils/cookieUtils'; // Utility function to get the cookie
 
 const AdministratorDashboardContent = () => {
   const [userCount, setUserCount] = useState(0); // State to hold the user count
+  const [notificationMessage, setNotificationMessage] = useState(''); // State for notification message
+  const [recipientType, setRecipientType] = useState('Commuter'); // Default recipient type
+  const [notificationStatus, setNotificationStatus] = useState(null); // Status message for feedback
 
   useEffect(() => {
     // Function to fetch the user count from the backend API
@@ -23,6 +27,32 @@ const AdministratorDashboardContent = () => {
     
     fetchUserCount();
   }, []); // Empty dependency array ensures this effect runs only once
+
+  // Function to handle sending the notification
+  const handleSendNotification = async () => {
+    const token = getCookie('token'); // Retrieve token from cookies
+
+    try {
+      const response = await fetch('http://localhost:5000/api/notifications/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ message: notificationMessage, recipientType }),
+      });
+
+      if (response.ok) {
+        setNotificationStatus('Notification sent successfully!');
+        setNotificationMessage(''); // Clear message after sending
+      } else {
+        setNotificationStatus('Failed to send notification.');
+      }
+    } catch (error) {
+      console.error('Error sending notification:', error);
+      setNotificationStatus('Error sending notification.');
+    }
+  };
 
   return (
     <div className="AdministratorDashboard-dashboard-content">
@@ -95,11 +125,27 @@ const AdministratorDashboardContent = () => {
         </div>
       </div>
 
-      {/* Announcements */}
+      {/* Announcements - now handles sending notifications */}
       <div className="AdministratorDashboard-announcements">
         <h3>Announcements</h3>
-        <textarea placeholder="Post an announcement..." />
-        <button>Post</button>
+        <textarea
+          placeholder="Post an announcement..."
+          value={notificationMessage}
+          onChange={(e) => setNotificationMessage(e.target.value)}
+        />
+        <select
+          value={recipientType}
+          onChange={(e) => setRecipientType(e.target.value)}
+        >
+          <option value="Commuter">Commuter</option>
+          <option value="Driver">Driver</option>
+          <option value="Administrator">Administrator</option>
+          {/* Add more user types as needed */}
+        </select>
+        <button onClick={handleSendNotification}>Post</button>
+
+        {/* Display the notification status message */}
+        {notificationStatus && <p className="notification-status">{notificationStatus}</p>}
       </div>
 
       {/* Operational Hours */}
