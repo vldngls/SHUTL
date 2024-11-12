@@ -8,7 +8,8 @@ import NotificationPop from '../components/NotificationPop';
 import SuggestionForm from '../components/SuggestionForm';
 import ShuttleTripTracking from '../components/ShuttleTripTracking';
 import TellerShuttleSummary from '../components/TellerShuttleSummary';
-import TellerProfile from '../components/TellerProfile'; // Updated import to match new file name
+import TellerProfile from '../components/TellerProfile';
+import TellerSummary from '../components/TellerSummary'; // Import TellerSummary component
 import L from 'leaflet';
 
 // Leaflet icon settings
@@ -77,7 +78,7 @@ const TellerMain = () => {
         </MapContainer>
       </div>
 
-      {/* Components for Notifications, Messages, and Schedule */}
+      {/* Navbar and Buttons */}
       <div className="TellerMain-navbar">
         <div className="TellerMain-logo">SHU TL.</div>
         <div className="TellerMain-navbar-buttons">
@@ -120,22 +121,21 @@ const TellerMain = () => {
 
       {/* Modals and Popups */}
       {isSummaryOpen && (
-        <TellerShuttleSummary onClose={() => setIsSummaryOpen(false)} />
+        <TellerSummary onClose={() => setIsSummaryOpen(false)} />
       )}
 
       {isProfileOpen && (
         <TellerProfile onClose={toggleProfile} /> 
       )}
 
-{isTripFormOpen && (
-  <div className="TellerMain-TripTracking-popup">
-    <ShuttleTripTracking />
-    <button onClick={closeTripForm} className="TellerMain-close-popup-btn">
-      Close
-    </button>
-  </div>
-)}
-
+      {isTripFormOpen && (
+        <div className="TellerMain-TripTracking-popup">
+          <ShuttleTripTracking />
+          <button onClick={closeTripForm} className="TellerMain-close-popup-btn">
+            Close
+          </button>
+        </div>
+      )}
 
       {/* Taskbar displaying Date and Time */}
       <div className="TellerMain-taskbar">
