@@ -13,7 +13,7 @@ import SchedulePopup from "../components/SchedulePopup";
 import NotificationPop from "../components/NotificationPop";
 import DriverSummary from "../components/DriverSummary";
 import L from "leaflet";
-import { getCookie } from "../utils/cookieUtils"; // Ensure this exists
+import { getCookie } from "../utils/cookieUtils";
 
 const socket = io("http://localhost:5000");
 
@@ -31,18 +31,8 @@ const DriverMain = () => {
   const navigate = useNavigate();
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
-  const [notifications, setNotifications] = useState([]);
-  const [showPopup, setShowPopup] = useState(false);
-
-  const [openModals, setOpenModals] = useState({
-    isProfileIDOpen: false,
-    isSettingsOpen: false,
-    isMessageOpen: false,
-    isScheduleOpen: false,
-    isSuggestionOpen: false,
-    isNotificationOpen: false,
-    isSummaryOpen: false,
-  });
+  const [notifications, setNotifications] = useState([]); // All notifications, including initial ones
+  const [activeModal, setActiveModal] = useState(null); // Track the active modal
 
   const mapRef = useRef(null);
 
@@ -89,7 +79,7 @@ const DriverMain = () => {
         );
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
-        setNotifications(data);
+        setNotifications(data); // Store fetched notifications
       } catch (error) {
         console.error("Error fetching notifications:", error);
       }
@@ -98,11 +88,11 @@ const DriverMain = () => {
 
     socket.on("new_notification", (notification) => {
       if (notification.recipientType === "Driver") {
-        setNotifications((prevNotifications = []) => [
+        setNotifications((prevNotifications) => [
           notification,
           ...prevNotifications,
         ]);
-        setShowPopup(true);
+        setActiveModal("isNotificationOpen"); // Open notification popout for new notifications
       }
     });
 
@@ -124,11 +114,15 @@ const DriverMain = () => {
     } else alert("Geolocation is not supported by this browser.");
   };
 
+  // Toggle function to handle showing one modal at a time
   const toggleModal = (modalName) => {
-    setOpenModals((prev) => ({
-      ...prev,
-      [modalName]: !prev[modalName],
-    }));
+    if (activeModal === modalName) {
+      // If the same modal is clicked again, close it
+      setActiveModal(null);
+    } else {
+      // Open the selected modal and close others
+      setActiveModal(modalName);
+    }
   };
 
   return (
@@ -179,11 +173,6 @@ const DriverMain = () => {
             >
               <img src="/notif.png" className="DriverMain-icon-image" />
             </button>
-            {openModals.isNotificationOpen && (
-              <div className="DriverMain-notification-dropdown">
-                <NotificationPop notifications={notifications} onClose={() => toggleModal("isNotificationOpen")} />
-              </div>
-            )}
           </div>
 
           <div className="DriverMain-settings-container">
@@ -193,12 +182,16 @@ const DriverMain = () => {
             >
               <img src="/settings.png" alt="Settings Icon" className="DriverMain-icon-image" />
             </button>
-            {openModals.isSettingsOpen && (
-              <div className="DriverMain-settings-dropdown">
-                <SettingsDropdown onClose={() => toggleModal("isSettingsOpen")} />
-              </div>
-            )}
           </div>
+        </div>
+
+        <div className="DriverMain-profile-container">
+          <button
+            className="DriverMain-icon-btn"
+            onClick={() => toggleModal("isProfileIDOpen")}
+          >
+            <img src="/profile.png" alt="Profile Icon" className="DriverMain-icon-image" />
+          </button>
         </div>
       </div>
 
@@ -216,9 +209,16 @@ const DriverMain = () => {
         <img src="/locup.png" alt="Update Location" className="DriverMain-update-location-icon" />
       </button>
 
-      {openModals.isNotificationOpen && showPopup && notifications[0] && (
-        <NotificationPop notifications={notifications} onClose={() => setShowPopup(false)} />
+      {/* Pop-outs for different components, only show if activeModal matches */}
+      {activeModal === "isMessageOpen" && <DriverMessage messages={notifications} onClose={() => setActiveModal(null)} />}
+      {activeModal === "isScheduleOpen" && <SchedulePopup onClose={() => setActiveModal(null)} />}
+      {activeModal === "isSummaryOpen" && <DriverSummary onClose={() => setActiveModal(null)} />}
+      {activeModal === "isNotificationOpen" && (
+        <NotificationPop notifications={notifications} onClose={() => setActiveModal(null)} />
       )}
+      {activeModal === "isSettingsOpen" && <SettingsDropdown onClose={() => setActiveModal(null)} />}
+      {activeModal === "isProfileIDOpen" && <ProfileIDCard user={user} onClose={() => setActiveModal(null)} />}
+      {activeModal === "isSuggestionOpen" && <SuggestionForm onClose={() => setActiveModal(null)} />}
     </>
   );
 };

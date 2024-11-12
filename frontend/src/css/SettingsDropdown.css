@@ -1,7 +1,7 @@
 .settings-dropdown {
     position: absolute; /* Changed from fixed to absolute */
-    top: 60px; /* Adjusted so it appears just below the button */
-    left: 0; /* Align to the left of the container */
+    top: 650px; /* Adjusted so it appears just below the button */
+    left: 89px; /* Align to the left of the container */
     z-index: 101;
   }
   
