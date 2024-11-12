@@ -1,4 +1,3 @@
-// TellerMain.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
@@ -80,39 +79,46 @@ const TellerMain = () => {
         <TellerShuttleSummary onClose={() => setIsSummaryOpen(false)} />
       )}
 
-      <div className="TellerMain-navbar">
-        <div className="TellerMain-logo">SHU TL.</div>
-        <div className="TellerMain-navbar-buttons">
-          <button className="TellerMain-icon-btn" onClick={toggleSummary}>
-            <img src="/summary.png" alt="Summary Icon" className="TellerMain-icon-image" />
-          </button>
-          <button className="TellerMain-icon-btn" onClick={toggleMessageBox}>
-            <img src="/message.png" alt="Message Icon" className="TellerMain-icon-image" />
-          </button>
-          <button className="TellerMain-icon-btn" onClick={toggleSchedule}>
-            <img src="/calendar.png" alt="Schedule Icon" className="TellerMain-icon-image" />
-          </button>
-          <button className="TellerMain-icon-btn" onClick={toggleNotification}>
-            <img src="/notif.png" alt="Notification Icon" className="TellerMain-icon-image" />
-          </button>
-          <button className="TellerMain-icon-btn" onClick={openTripForm}>
-            <img src="/trip.png" alt="Trip Icon" className="TellerMain-icon-image" />
-          </button>
-          <div className="TellerMain-settings-container">
-            <button className="TellerMain-icon-btn TellerMain-settings-btn" onClick={toggleSettings}>
-              <img src="/settings.png" alt="Settings Icon" className="TellerMain-icon-image" />
-            </button>
-            {isSettingsOpen && (
-              <div
-                className="TellerMain-settings-dropdown"
-                style={{ top: '50%', left: '110%', transform: 'translateY(-50%)' }}
-              >
-                <SettingsDropdown onClose={toggleSettings} />
-              </div>
-            )}
-          </div>
+<div className="TellerMain-navbar">
+  <div className="TellerMain-logo">SHU TL.</div>
+  <div className="TellerMain-navbar-buttons">
+    <button className="TellerMain-icon-btn" onClick={toggleSummary}>
+      <img src="/summary.png" alt="Summary Icon" className="TellerMain-icon-image" />
+    </button>
+    <button className="TellerMain-icon-btn" onClick={toggleMessageBox}>
+      <img src="/message.png" alt="Message Icon" className="TellerMain-icon-image" />
+    </button>
+    <button className="TellerMain-icon-btn" onClick={toggleSchedule}>
+      <img src="/calendar.png" alt="Schedule Icon" className="TellerMain-icon-image" />
+    </button>
+    <button className="TellerMain-icon-btn" onClick={toggleNotification}>
+      <img src="/notif.png" alt="Notification Icon" className="TellerMain-icon-image" />
+    </button>
+    <button className="TellerMain-icon-btn" onClick={openTripForm}>
+      <img src="/trip.png" alt="Trip Icon" className="TellerMain-icon-image" />
+    </button>
+    <div className="TellerMain-settings-container">
+      <button className="TellerMain-icon-btn TellerMain-settings-btn" onClick={toggleSettings}>
+        <img src="/settings.png" alt="Settings Icon" className="TellerMain-icon-image" />
+      </button>
+      {isSettingsOpen && (
+        <div
+          className="TellerMain-settings-dropdown"
+          style={{ top: '50%', left: '110%', transform: 'translateY(-50%)' }}
+        >
+          <SettingsDropdown onClose={toggleSettings} />
         </div>
-      </div>
+      )}
+    </div>
+    {/* New container for the profile button to push it to the bottom */}
+    <div className="TellerMain-navbar-bottom">
+      <button className="TellerMain-icon-btn" onClick={toggleProfile}>
+        <img src="/teller-profile.png" alt="Profile Icon" className="TellerMain-icon-image" />
+      </button>
+    </div>
+  </div>
+</div>
+
 
       {isTripFormOpen && (
         <div className="TellerMain-TripTracking-popup">
