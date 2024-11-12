@@ -1,4 +1,3 @@
-// frontend/src/pages/DriverMain.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import { useNavigate } from "react-router-dom";
@@ -77,7 +76,8 @@ const DriverMain = () => {
             },
           }
         );
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok)
+          throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         setNotifications(data); // Store fetched notifications
       } catch (error) {
@@ -133,7 +133,9 @@ const DriverMain = () => {
           center={userLocation || [14.377, 120.983]}
           zoom={15.5}
           zoomControl={false}
-          whenCreated={(mapInstance) => { mapRef.current = mapInstance; }}
+          whenCreated={(mapInstance) => {
+            mapRef.current = mapInstance;
+          }}
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -154,16 +156,37 @@ const DriverMain = () => {
         <div className="DriverMain-logo">SHU TL.</div>
 
         <div className="DriverMain-navbar-buttons">
-          <button className="DriverMain-icon-btn" onClick={() => toggleModal("isMessageOpen")}>
-            <img src="/message.png" alt="Message Icon" className="DriverMain-icon-image" />
+          <button
+            className="DriverMain-icon-btn"
+            onClick={() => toggleModal("isMessageOpen")}
+          >
+            <img
+              src="/message.png"
+              alt="Message Icon"
+              className="DriverMain-icon-image"
+            />
           </button>
 
-          <button className="DriverMain-icon-btn" onClick={() => toggleModal("isScheduleOpen")}>
-            <img src="/calendar.png" alt="Schedule Icon" className="DriverMain-icon-image" />
+          <button
+            className="DriverMain-icon-btn"
+            onClick={() => toggleModal("isScheduleOpen")}
+          >
+            <img
+              src="/calendar.png"
+              alt="Schedule Icon"
+              className="DriverMain-icon-image"
+            />
           </button>
 
-          <button className="DriverMain-icon-btn" onClick={() => toggleModal("isSummaryOpen")}>
-            <img src="/summary.png" alt="Summary Icon" className="DriverMain-icon-image" />
+          <button
+            className="DriverMain-icon-btn"
+            onClick={() => toggleModal("isSummaryOpen")}
+          >
+            <img
+              src="/summary.png"
+              alt="Summary Icon"
+              className="DriverMain-icon-image"
+            />
           </button>
 
           <div className="DriverMain-notification-container">
@@ -180,7 +203,11 @@ const DriverMain = () => {
               className="DriverMain-icon-btn DriverMain-settings-btn"
               onClick={() => toggleModal("isSettingsOpen")}
             >
-              <img src="/settings.png" alt="Settings Icon" className="DriverMain-icon-image" />
+              <img
+                src="/settings.png"
+                alt="Settings Icon"
+                className="DriverMain-icon-image"
+              />
             </button>
           </div>
         </div>
@@ -190,7 +217,11 @@ const DriverMain = () => {
             className="DriverMain-icon-btn"
             onClick={() => toggleModal("isProfileIDOpen")}
           >
-            <img src="/profile.png" alt="Profile Icon" className="DriverMain-icon-image" />
+            <img
+              src="/profile.png"
+              alt="Profile Icon"
+              className="DriverMain-icon-image"
+            />
           </button>
         </div>
       </div>
@@ -205,20 +236,45 @@ const DriverMain = () => {
         - {dateTime.toLocaleTimeString("en-PH")}
       </div>
 
-      <button className="DriverMain-update-location-btn" onClick={updateUserLocation}>
-        <img src="/locup.png" alt="Update Location" className="DriverMain-update-location-icon" />
+      <button
+        className="DriverMain-update-location-btn"
+        onClick={updateUserLocation}
+      >
+        <img
+          src="/locup.png"
+          alt="Update Location"
+          className="DriverMain-update-location-icon"
+        />
       </button>
 
       {/* Pop-outs for different components, only show if activeModal matches */}
-      {activeModal === "isMessageOpen" && <DriverMessage messages={notifications} onClose={() => setActiveModal(null)} />}
-      {activeModal === "isScheduleOpen" && <SchedulePopup onClose={() => setActiveModal(null)} />}
-      {activeModal === "isSummaryOpen" && <DriverSummary onClose={() => setActiveModal(null)} />}
-      {activeModal === "isNotificationOpen" && (
-        <NotificationPop notifications={notifications} onClose={() => setActiveModal(null)} />
+      {activeModal === "isMessageOpen" && (
+        <DriverMessage
+          messages={notifications}
+          onClose={() => setActiveModal(null)}
+        />
       )}
-      {activeModal === "isSettingsOpen" && <SettingsDropdown onClose={() => setActiveModal(null)} />}
-      {activeModal === "isProfileIDOpen" && <ProfileIDCard user={user} onClose={() => setActiveModal(null)} />}
-      {activeModal === "isSuggestionOpen" && <SuggestionForm onClose={() => setActiveModal(null)} />}
+      {activeModal === "isScheduleOpen" && (
+        <SchedulePopup onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === "isSummaryOpen" && (
+        <DriverSummary onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === "isNotificationOpen" && (
+        <NotificationPop
+          notifications={notifications}
+          onClose={() => setActiveModal(null)}
+        />
+      )}
+      {activeModal === "isSettingsOpen" && (
+        <SettingsDropdown onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === "isProfileIDOpen" && (
+        <ProfileIDCard user={user} onClose={() => setActiveModal(null)} />
+      )}
+      {activeModal === "isSuggestionOpen" && (
+        <SuggestionForm onClose={() => setActiveModal(null)} />
+      )}
     </>
   );
 };
