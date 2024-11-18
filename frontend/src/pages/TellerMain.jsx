@@ -115,7 +115,7 @@ const TellerMain = () => {
           </div>
           {/* Profile Icon at the Bottom */}
           <div className="TellerMain-navbar-bottom">
-            <button className="TellerMain-icon-btn" onClick={toggleProfilePopup}>
+            <button className="TellerMain-icon-btn" onClick={toggleProfile}>
               <img src="/teller-profile.png" alt="Profile Icon" className="TellerMain-icon-image" />
             </button>
           </div>
