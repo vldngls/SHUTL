@@ -1,234 +1,25 @@
-html,
-body {
+/* Base Layout */
+html, body {
   margin: 0;
   padding: 0;
   height: 100%;
   overflow: hidden; /* Prevent scroll bars */
   display: flex;
-  flex-direction: column; /* Make sure the layout uses flex column */
-}
-/* Additional spacing for the last button in the navbar */
-.TellerMain-profile-btn {
-  margin-top: auto; /* Pushes this button to the bottom of the navbar */
-  margin-bottom: 18px; /* Add space from the taskbar */
-}
-.TellerMain-navbar-bottom {
-  margin-top: auto; /* Pushes this container to the bottom */
-  padding-bottom: 16px; /* Adds space from the navbar edge */
+  flex-direction: column; /* Use flex for layout */
 }
 
-/* Adjust position of the buttons */
-.TellerMain-navbar-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  justify-content: center; /* Center main buttons */
-  flex-grow: 1;
-}
-
-/* Button styling (adjusted sizes for consistent look) */
-.TellerMain-icon-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-}
-
-.TellerMain-icon-image {
-  width: 100%;
-  height: auto;
-}
-
-.TellerMain-navbar-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding-top: 225px; /* Increase this value to move icons lower */
-  flex-grow: 1;
-}
-
-/* Profile button container remains anchored at the bottom */
-.TellerMain-navbar-bottom {
-  margin-top: auto;
-  padding-bottom: 16px; /* Adds some space from the bottom edge */
-}
-
-/* Summary Button */
-.TellerMain-summary-btn {
-  position: fixed;
-  left: 17px; /* Align with other sidebar buttons */
-  top: 110px; /* Position above other buttons */
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.TellerMain-summary-icon {
-  width: 48px;
-  height: 48px;
-}
-
-/* Message Button */
-.TellerMain-message-btn {
-  position: fixed;
-  left: 17px;
-  top: 170px;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  z-index: 3;
-}
-
-.TellerMain-message-icon {
-  width: 48px;
-  height: 48px;
-}
-
-/* Message Panel */
-.TellerMain-message-panel {
-  position: fixed;
-  top: 0;
-  left: -300px; /* Start hidden off the screen */
-  width: 90vw; /* Use viewport width */
-  max-width: 300px;
-  height: 100%;
-  background: white;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
-  transform: translateX(0);
-  transition: transform 0.3s ease-in-out;
-  z-index: 4;
-}
-
-.TellerMain-message-panel.open {
-  transform: translateX(300px); /* Slide in when open */
-}
-
-/* Overlay when the summary panel is open */
-.TellerMain-summary-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1000; /* Ensure it's on top of other elements */
-}
-
-/* Summary Panel */
-.TellerMain-summary-panel {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 400px;
-  background-color: white;
-  padding: 20px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
-  z-index: 1001;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-/* Close button styling */
-.TellerMain-close-btn {
-  background: none;
-  border: none;
-  font-size: 1.5em;
-  cursor: pointer;
-  color: #333;
-}
-
-.TellerMain-summary-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #ddd;
-}
-
-/* Summary Overview Section */
-.TellerMain-summary-overview {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-}
-
-.TellerMain-summary-overview div {
-  background-color: #f5f5f5;
-  padding: 15px;
-  border-radius: 10px;
-  flex: 1;
-  text-align: center;
-  margin-right: 10px;
-}
-
-.TellerMain-summary-overview div:last-child {
-  margin-right: 0;
-}
-
-.TellerMain-summary-overview h3 {
-  margin: 0;
-  font-size: 1.2em;
-  color: #333;
-}
-
-.TellerMain-summary-overview p {
-  margin-top: 5px;
-  font-size: 1.5em;
-  font-weight: bold;
-}
-
-/* Other sections */
-.TellerMain-total-passenger,
-.TellerMain-route-time {
-  margin-top: 20px;
-}
-
-.TellerMain-transaction-history {
-  margin-top: 20px;
-  text-align: center;
-}
-
-.TellerMain-transaction-history button {
-  background-color: #3498db;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.TellerMain-transaction-history button:hover {
-  background-color: #2980b9;
-}
-
-/* Other styles (unchanged from your original) */
-
-/* Map container */
+/* Map Container */
 .TellerMain-map-container {
   position: absolute;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: 1; /* Ensure it is behind other elements */
+  z-index: 1; /* Ensure it stays behind other elements */
   flex: 1;
 }
 
-/* Base styles for the navbar */
+/* Navbar */
 .TellerMain-navbar {
   display: flex;
   flex-direction: column;
@@ -247,44 +38,129 @@ body {
   box-sizing: border-box;
 }
 
-/* Media Queries (no changes needed for responsiveness) */
+.TellerMain-navbar-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex-grow: 1; /* Pushes buttons apart evenly */
+  justify-content: center; /* Centers buttons vertically */
+  padding-top: 225px; /* Adjust to move buttons lower */
+}
+
+.TellerMain-profile-btn,
+.TellerMain-navbar-bottom {
+  margin-top: auto; /* Push these to the bottom */
+  padding-bottom: 16px; /* Adds space from the edge */
+}
+
+/* Buttons */
+.TellerMain-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+}
+
+.TellerMain-icon-image {
+  width: 100%;
+  height: auto;
+}
+
+/* Popup Modals */
+.TellerMain-TripTracking-popup {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  position: fixed;
+  top: 50%; /* Centers vertically */
+  left: 50%; /* Centers horizontally */
+  transform: translate(-50%, -50%); /* Centers the popup */
+  z-index: 1003; /* Ensure above other elements */
+}
+
+/* Summary and Overlay */
+.TellerMain-summary-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.TellerMain-summary-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  background-color: white;
+  padding: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  z-index: 1001;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.TellerMain-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Close Button */
+.TellerMain-close-popup-btn,
+.TellerMain-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #333;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
+/* Taskbar */
+.TellerMain-taskbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 10px 0;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Media Queries */
 @media (max-width: 768px) {
   .TellerMain-navbar {
     width: 48px;
     padding: 8px;
   }
 
-  .TellerMain-logo {
-    font-size: 1.6em;
-    font-weight: bold;
-    margin-bottom: 20px;
-    margin-top: 8px;
+  .TellerMain-navbar-buttons {
+    padding-top: 120px; /* Adjust button position */
   }
 
-  .TellerMain-status {
-    font-size: 0.9em;
-  }
-
-  .TellerMain-nav-icon {
-    width: 30px;
-    height: 30px;
-  }
-
-  .TellerMain-icon-container {
-    width: 30px;
-    height: 30px;
-    margin-top: auto;
-    margin-bottom: 20px;
-  }
-
-  .TellerMain-line {
-    top: -8px;
-    width: 15px;
-  }
-
-  .TellerMain-taskbar {
-    width: calc(100% + 48px);
-    margin-left: -48px;
+  .TellerMain-icon-btn {
+    width: 40px;
+    height: 40px;
   }
 }
 
@@ -296,78 +172,16 @@ body {
     height: 50px;
     border-radius: 0;
     padding: 0 10px;
-    bottom: 0;
     position: fixed;
-    z-index: 2;
-  }
-
-  .TellerMain-logo {
-    font-size: 1.6em; /* Adjusted to relative units */
-    font-weight: bold;
-    margin-bottom: 20px;
-    margin-top: 8px;
-  }
-
-  .TellerMain-status {
-    font-size: 0.9em;
-    margin-top: 0;
-    align-self: center;
-  }
-
-  .TellerMain-nav-icon {
-    width: 25px;
-    height: 25px;
-  }
-
-  .TellerMain-icon-container {
-    width: 25px;
-    height: 25px;
-    margin-top: auto;
-    margin-bottom: 10px;
-  }
-
-  .TellerMain-line {
-    top: -4px;
-    width: 12px;
+    bottom: 0;
   }
 
   .TellerMain-taskbar {
-    position: fixed; /* Make it fixed at the bottom */
-    bottom: 0; /* Align it to the bottom */
-    left: 0; /* Align it to the left */
-    width: 100%; /* Full width */
-    background-color: #f8f8f8; /* A light background for visibility */
-    padding: 10px 20px; /* Add some padding */
-    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
-    z-index: 100; /* Ensure it stays above other content */
+    display: none; /* Hide taskbar for smaller screens */
   }
 
-  .TellerMain-line {
-    display: none;
+  .TellerMain-icon-btn {
+    width: 36px;
+    height: 36px;
   }
-}
-/* Popup styling to float above the content */
-.TellerMain-TripTracking-popup {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 500px;
-  position: fixed;
-  top: 50%; /* Centers vertically */
-  left: 50%; /* Centers horizontally */
-  transform: translate(-50%, -50%); /* Centers the popup */
-  z-index: 1003; /* Ensure it appears above other elements */
-}
-
-/* Close button styling */
-.TellerMain-close-popup-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  color: #333;
-  font-size: 1.2em;
-  cursor: pointer;
 }
