@@ -1,15 +1,46 @@
-import React from 'react';
-import '../css/AdministratorShuttlesRoutesContent.css';
+import React from "react";
+import "../css/AdministratorShuttlesRoutesContent.css";
 
 const AdministratorShuttlesRoutesContent = () => {
   const shuttleData = [
-    { status: 'green', busName: 'SHUTL. 001', deploymentTime: '23 mins', routeTime: '40 mins', driver: 'Salceda A.', location: 'Acosta Street', avgPassengers: '11.7 pax' },
-    { status: 'green', busName: 'SHUTL. 002', deploymentTime: '30 mins', routeTime: '48 mins', driver: 'Salceda A.', location: 'Madrid Street', avgPassengers: '11.7 pax' },
-    { status: 'yellow', busName: 'SHUTL. 003', deploymentTime: '-', routeTime: '-', driver: '-', location: 'Vistamall DH', avgPassengers: '-' },
+    {
+      status: "green",
+      busName: "SHUTL. 001",
+      deploymentTime: "23 mins",
+      routeTime: "40 mins",
+      driver: "Salceda A.",
+      location: "Acosta Street",
+      avgPassengers: "11.7 pax",
+    },
+    {
+      status: "green",
+      busName: "SHUTL. 002",
+      deploymentTime: "30 mins",
+      routeTime: "48 mins",
+      driver: "Salceda A.",
+      location: "Madrid Street",
+      avgPassengers: "11.7 pax",
+    },
+    {
+      status: "yellow",
+      busName: "SHUTL. 003",
+      deploymentTime: "-",
+      routeTime: "-",
+      driver: "-",
+      location: "Vistamall DH",
+      avgPassengers: "-",
+    },
   ];
 
   const routeData = [
-    { status: 'green', routeName: 'Vistamall Daang Hari - Camella Daang Hari', shuttles: 3, totalPassengers: '176 pax', avgRouteTime: '1hr 21mins', trips: 76 },
+    {
+      status: "green",
+      routeName: "Vistamall Daang Hari - Camella Daang Hari",
+      shuttles: 3,
+      totalPassengers: "176 pax",
+      avgRouteTime: "1hr 21mins",
+      trips: 76,
+    },
   ];
 
   return (
@@ -57,7 +88,11 @@ const AdministratorShuttlesRoutesContent = () => {
           <tbody>
             {shuttleData.map((shuttle, index) => (
               <tr key={index}>
-                <td><span className={`AdministratorShuttlesRoutes-status-circle ${shuttle.status}`}></span></td>
+                <td>
+                  <span
+                    className={`AdministratorShuttlesRoutes-status-circle ${shuttle.status}`}
+                  ></span>
+                </td>
                 <td>{shuttle.busName}</td>
                 <td>{shuttle.deploymentTime}</td>
                 <td>{shuttle.routeTime}</td>
@@ -88,7 +123,11 @@ const AdministratorShuttlesRoutesContent = () => {
           <tbody>
             {routeData.map((route, index) => (
               <tr key={index}>
-                <td><span className={`AdministratorShuttlesRoutes-status-circle ${route.status}`}></span></td>
+                <td>
+                  <span
+                    className={`AdministratorShuttlesRoutes-status-circle ${route.status}`}
+                  ></span>
+                </td>
                 <td>{route.routeName}</td>
                 <td>{route.shuttles}</td>
                 <td>{route.totalPassengers}</td>

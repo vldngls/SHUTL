@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const fareSchema = new mongoose.Schema(
   {
@@ -10,6 +10,6 @@ const fareSchema = new mongoose.Schema(
   }
 );
 
-const Fare = mongoose.model('Fare', fareSchema);
+const Fare = mongoose.model("Fare", fareSchema);
 
 export default Fare;

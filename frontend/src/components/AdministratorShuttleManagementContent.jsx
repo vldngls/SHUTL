@@ -1,11 +1,29 @@
-import React from 'react';
-import '../css/AdministratorShuttleManagementContent.css';
+import React from "react";
+import "../css/AdministratorShuttleManagementContent.css";
 
 const AdministratorShuttleManagementContent = () => {
   const drivers = [
-    { name: 'Juan A', shuttleId: 'Shuttle 001', username: 'shuttle123', password: '*****', status: 'green' },
-    { name: 'John B', shuttleId: 'Shuttle 002', username: 'shuttle234', password: '*****', status: 'green' },
-    { name: 'Mark C', shuttleId: 'Shuttle 003', username: 'shuttle345', password: '*****', status: 'yellow' },
+    {
+      name: "Juan A",
+      shuttleId: "Shuttle 001",
+      username: "shuttle123",
+      password: "*****",
+      status: "green",
+    },
+    {
+      name: "John B",
+      shuttleId: "Shuttle 002",
+      username: "shuttle234",
+      password: "*****",
+      status: "green",
+    },
+    {
+      name: "Mark C",
+      shuttleId: "Shuttle 003",
+      username: "shuttle345",
+      password: "*****",
+      status: "yellow",
+    },
   ];
 
   return (
@@ -21,9 +39,15 @@ const AdministratorShuttleManagementContent = () => {
               <th>Login username</th>
               <th>Login password</th>
               <th>
-                <button className="AdministratorShuttleManagement-action-btn AdministratorShuttleManagement-edit-btn">✏️</button>
-                <button className="AdministratorShuttleManagement-action-btn AdministratorShuttleManagement-delete-btn">🗑️</button>
-                <button className="AdministratorShuttleManagement-action-btn AdministratorShuttleManagement-add-btn">➕</button>
+                <button className="AdministratorShuttleManagement-action-btn AdministratorShuttleManagement-edit-btn">
+                  ✏️
+                </button>
+                <button className="AdministratorShuttleManagement-action-btn AdministratorShuttleManagement-delete-btn">
+                  🗑️
+                </button>
+                <button className="AdministratorShuttleManagement-action-btn AdministratorShuttleManagement-add-btn">
+                  ➕
+                </button>
               </th>
             </tr>
           </thead>
@@ -44,13 +68,24 @@ const AdministratorShuttleManagementContent = () => {
       <div className="AdministratorShuttleManagement-assigned-drivers-status">
         <h3>Assigned drivers</h3>
         {drivers.map((driver, index) => (
-          <div key={index} className="AdministratorShuttleManagement-driver-status">
-            <span className={`AdministratorShuttleManagement-status-circle ${driver.status}`}></span>
+          <div
+            key={index}
+            className="AdministratorShuttleManagement-driver-status"
+          >
+            <span
+              className={`AdministratorShuttleManagement-status-circle ${driver.status}`}
+            ></span>
             <span>{driver.name}</span>
             <div className="AdministratorShuttleManagement-status-buttons">
-              <button className="AdministratorShuttleManagement-status-btn">Dispatch</button>
-              <button className="AdministratorShuttleManagement-status-btn">Idle</button>
-              <button className="AdministratorShuttleManagement-status-btn">Pull out</button>
+              <button className="AdministratorShuttleManagement-status-btn">
+                Dispatch
+              </button>
+              <button className="AdministratorShuttleManagement-status-btn">
+                Idle
+              </button>
+              <button className="AdministratorShuttleManagement-status-btn">
+                Pull out
+              </button>
             </div>
           </div>
         ))}
@@ -67,19 +102,27 @@ const AdministratorShuttleManagementContent = () => {
           <div className="AdministratorShuttleManagement-message-list">
             <div className="AdministratorShuttleManagement-message-row">
               <span>Emergency</span>
-              <button className="AdministratorShuttleManagement-message-action-btn">Call</button>
+              <button className="AdministratorShuttleManagement-message-action-btn">
+                Call
+              </button>
             </div>
             <div className="AdministratorShuttleManagement-message-row">
               <span>Full passenger</span>
-              <button className="AdministratorShuttleManagement-message-action-btn">Dispatch alert</button>
+              <button className="AdministratorShuttleManagement-message-action-btn">
+                Dispatch alert
+              </button>
             </div>
             <div className="AdministratorShuttleManagement-message-row">
               <span>Action</span>
-              <button className="AdministratorShuttleManagement-message-action-btn">Action</button>
+              <button className="AdministratorShuttleManagement-message-action-btn">
+                Action
+              </button>
             </div>
             <div className="AdministratorShuttleManagement-message-row">
               <span>Action</span>
-              <button className="AdministratorShuttleManagement-message-action-btn">Action</button>
+              <button className="AdministratorShuttleManagement-message-action-btn">
+                Action
+              </button>
             </div>
           </div>
         </div>

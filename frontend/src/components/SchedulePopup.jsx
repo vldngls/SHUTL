@@ -1,36 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import '../css/SchedulePopup.css';
-import ManageSchedule from './ManageSchedule';
+import React, { useState, useEffect } from "react";
+import "../css/SchedulePopup.css";
+import ManageSchedule from "./ManageSchedule";
 
 const SchedulePopup = ({ onClose }) => {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Use API_BASE_URL for backend endpoints
   const [editableSchedule, setEditableSchedule] = useState([]);
-  const [selectedDay, setSelectedDay] = useState('');
+  const [selectedDay, setSelectedDay] = useState("");
   const [isManageScheduleOpen, setIsManageScheduleOpen] = useState(false);
   const [dateRange, setDateRange] = useState([]);
-  const [formattedDateRange, setFormattedDateRange] = useState('');
+  const [formattedDateRange, setFormattedDateRange] = useState("");
 
   const get7DayRange = () => {
     const today = new Date();
     const days = [];
     today.setHours(0, 0, 0, 0);
-    
+
     for (let i = 0; i < 7; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
-      days.push(date.toISOString().split('T')[0]);
+      days.push(date.toISOString().split("T")[0]);
     }
-    
+
     return days;
   };
 
   useEffect(() => {
     const fetchSchedule = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/schedule');
+        const response = await fetch(`${API_BASE_URL}/schedule`);
         const data = await response.json();
         setEditableSchedule(data);
       } catch (error) {
-        console.error('Error fetching schedule:', error);
+        console.error("Error fetching schedule:", error);
       }
     };
 
@@ -57,18 +58,18 @@ const SchedulePopup = ({ onClose }) => {
 
   const handleSave = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/schedule', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch(`${API_BASE_URL}/schedule`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editableSchedule),
       });
 
-      if (!response.ok) throw new Error('Network response was not ok');
+      if (!response.ok) throw new Error("Network response was not ok");
       const data = await response.json();
-      console.log('Schedule saved:', data);
+      console.log("Schedule saved:", data);
       onClose();
     } catch (error) {
-      console.error('Error saving schedule:', error);
+      console.error("Error saving schedule:", error);
     }
   };
 
@@ -88,11 +89,18 @@ const SchedulePopup = ({ onClose }) => {
     );
   }
 
-  const filteredSchedule = editableSchedule.filter(entry => entry.day === selectedDay);
+  const filteredSchedule = editableSchedule.filter(
+    (entry) => entry.day === selectedDay
+  );
 
   const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Manila' };
-    return new Date(dateString).toLocaleDateString('en-PH', options);
+    const options = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      timeZone: "Asia/Manila",
+    };
+    return new Date(dateString).toLocaleDateString("en-PH", options);
   };
 
   const formatDateRange = (range) => {
@@ -106,14 +114,21 @@ const SchedulePopup = ({ onClose }) => {
       <div className="schedule-popup-content">
         <div className="schedule-popup-header">
           <h3>Driver Schedule - {formattedDateRange}</h3>
-          <button className="schedule-popup-close" onClick={onClose}>✖</button>
+          <button className="schedule-popup-close" onClick={onClose}>
+            ✖
+          </button>
         </div>
         <div className="schedule-popup-body">
           <div className="schedule-day-selector">
             <label>Select Day: </label>
-            <select value={selectedDay} onChange={(e) => setSelectedDay(e.target.value)}>
-              {dateRange.map(day => (
-                <option key={day} value={day}>{formatDate(day)}</option>
+            <select
+              value={selectedDay}
+              onChange={(e) => setSelectedDay(e.target.value)}
+            >
+              {dateRange.map((day) => (
+                <option key={day} value={day}>
+                  {formatDate(day)}
+                </option>
               ))}
             </select>
           </div>
@@ -137,8 +152,18 @@ const SchedulePopup = ({ onClose }) => {
           </table>
         </div>
         <div className="schedule-popup-footer">
-          <button className="schedule-popup-manage-schedule-btn" onClick={handleOpenManageSchedule}>Manage Full Schedule</button>
-          <button className="schedule-popup-save-schedule-btn" onClick={handleSave}>Save</button>
+          <button
+            className="schedule-popup-manage-schedule-btn"
+            onClick={handleOpenManageSchedule}
+          >
+            Manage Full Schedule
+          </button>
+          <button
+            className="schedule-popup-save-schedule-btn"
+            onClick={handleSave}
+          >
+            Save
+          </button>
         </div>
       </div>
     </div>

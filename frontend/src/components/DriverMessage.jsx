@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import '../css/DriverMessage.css';
-import { FaPhoneAlt } from 'react-icons/fa'; // Import only the call icon
+import React, { useState } from "react";
+import "../css/DriverMessage.css";
+import { FaPhoneAlt } from "react-icons/fa"; // Import only the call icon
 
 const DriverMessage = ({ messages, onSendMessage }) => {
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
 
   const handleInputChange = (e) => {
     setNewMessage(e.target.value);
   };
 
   const handleSendClick = () => {
-    if (newMessage.trim() !== '') {
+    if (newMessage.trim() !== "") {
       onSendMessage(newMessage);
-      setNewMessage('');
+      setNewMessage("");
     }
   };
 
@@ -38,9 +38,24 @@ const DriverMessage = ({ messages, onSendMessage }) => {
         ))}
       </div>
       <div className="DriverMessage-quick-replies">
-        <button className="DriverMessage-quick-reply-button" onClick={() => handleQuickReplyClick('Full passenger')}>Full passenger</button>
-        <button className="DriverMessage-quick-reply-button" onClick={() => handleQuickReplyClick('Send location')}>Send location</button>
-        <button className="DriverMessage-quick-reply-button" onClick={() => handleQuickReplyClick('Emergency')}>Emergency</button>
+        <button
+          className="DriverMessage-quick-reply-button"
+          onClick={() => handleQuickReplyClick("Full passenger")}
+        >
+          Full passenger
+        </button>
+        <button
+          className="DriverMessage-quick-reply-button"
+          onClick={() => handleQuickReplyClick("Send location")}
+        >
+          Send location
+        </button>
+        <button
+          className="DriverMessage-quick-reply-button"
+          onClick={() => handleQuickReplyClick("Emergency")}
+        >
+          Emergency
+        </button>
       </div>
       <div className="DriverMessage-message-input-container">
         <input

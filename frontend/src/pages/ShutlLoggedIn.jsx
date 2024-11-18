@@ -24,7 +24,8 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-const socket = io("http://localhost:5000"); // Make sure this URL matches your backend
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Dynamic API Base URL
+const socket = io(API_BASE_URL); // Dynamic WebSocket connection
 
 const ShutlLoggedIn = () => {
   const [dateTime, setDateTime] = useState(new Date());
@@ -39,7 +40,7 @@ const ShutlLoggedIn = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/userdata/me", {
+        const response = await fetch(`${API_BASE_URL}/userdata/me`, {
           method: "GET",
           credentials: "include", // Include cookies for authentication
         });
@@ -64,15 +65,11 @@ const ShutlLoggedIn = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:5000/api/notifications/user",
-          {
-            // Make sure the URL is correct
-            headers: {
-              Authorization: `Bearer ${getCookie("token")}`,
-            },
-          }
-        );
+        const response = await fetch(`${API_BASE_URL}/notifications/user`, {
+          headers: {
+            Authorization: `Bearer ${getCookie("token")}`,
+          },
+        });
         const data = await response.json();
         setNotifications(data);
       } catch (error) {

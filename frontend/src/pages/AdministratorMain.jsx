@@ -10,7 +10,8 @@ import AdministratorShuttlesRoutesContent from "@components/AdministratorShuttle
 import AdministratorShuttleManagementContent from "@components/AdministratorShuttleManagementContent.jsx";
 import AdministratorTransactionsContent from "@components/AdministratorTransactionsContent.jsx";
 
-const socket = io("http://localhost:5000");
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Use API_BASE_URL for the backend API
+const socket = io(API_BASE_URL); // Dynamic WebSocket connection to the backend
 
 const AdministratorMain = () => {
   const [activeTab, setActiveTab] = useState("Dashboard");
@@ -33,13 +34,17 @@ const AdministratorMain = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await fetch("/api/notifications/user", {
+        const response = await fetch(`${API_BASE_URL}/notifications/user`, {
           headers: {
             Authorization: `Bearer ${getCookie("token")}`, // Replace with your token management
           },
         });
-        const data = await response.json();
-        setNotifications(data);
+        if (response.ok) {
+          const data = await response.json();
+          setNotifications(data);
+        } else {
+          console.error("Error fetching notifications:", response.statusText);
+        }
       } catch (error) {
         console.error("Error fetching notifications:", error);
       }

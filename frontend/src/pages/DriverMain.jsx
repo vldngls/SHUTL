@@ -14,7 +14,8 @@ import DriverSummary from "../components/DriverSummary";
 import L from "leaflet";
 import { getCookie } from "../utils/cookieUtils";
 
-const socket = io("http://localhost:5000");
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Dynamic API Base URL
+const socket = io(API_BASE_URL); // Dynamic WebSocket connection
 
 const carIcon = new L.Icon({
   iconUrl: "/car.png",
@@ -68,14 +69,11 @@ const DriverMain = () => {
       const token = getCookie("token");
 
       try {
-        const response = await fetch(
-          "http://localhost:5000/api/notifications/user",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await fetch(`${API_BASE_URL}/notifications/user`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (!response.ok)
           throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();

@@ -1,147 +1,148 @@
 .ShutlLoginForm-container {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #f5f5f5; /* Lightest background color */
-    border-radius: 20px;
-    padding: 30px 15px;
-    max-width: 320px;
-    width: 100%;
-    box-shadow: 0 4px 8px rgba(35, 35, 35, 0.1); /* Slight shadow with darkest color */
-    z-index: 1000;
-    text-align: center;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #f5f5f5; /* Lightest background color */
+  border-radius: 20px;
+  padding: 30px 15px;
+  max-width: 320px;
+  width: 100%;
+  box-shadow: 0 4px 8px rgba(35, 35, 35, 0.1); /* Slight shadow with darkest color */
+  z-index: 1000;
+  text-align: center;
 }
 
 .ShutlLoginForm-title {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 10px;
-    color: #232323; /* Darkest color for text */
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #232323; /* Darkest color for text */
 }
 
 .ShutlLoginForm-subtitle {
-    font-size: 14px;
-    color: #888; /* Slightly lighter for subtitle */
-    margin-bottom: 15px;
+  font-size: 14px;
+  color: #888; /* Slightly lighter for subtitle */
+  margin-bottom: 15px;
 }
 
 .ShutlLoginForm-form {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 .ShutlLoginForm-input-group {
-    margin-bottom: 12px;
+  margin-bottom: 12px;
 }
 
 .ShutlLoginForm-input {
-    width: calc(100% - 20px);
-    padding: 8px;
-    border: 1px solid #ddd; /* Light border */
-    border-radius: 8px;
-    box-sizing: border-box;
-    font-size: 14px;
-    background-color: #ffffff; /* Light background for input */
-    color: #232323; /* Dark text color */
+  width: calc(100% - 20px);
+  padding: 8px;
+  border: 1px solid #ddd; /* Light border */
+  border-radius: 8px;
+  box-sizing: border-box;
+  font-size: 14px;
+  background-color: #ffffff; /* Light background for input */
+  color: #232323; /* Dark text color */
 }
 
 .ShutlLoginForm-button {
-    background-color: #232323; /* Darkest color */
-    color: #ffffff; /* Light text color */
-    padding: 10px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
+  background-color: #232323; /* Darkest color */
+  color: #ffffff; /* Light text color */
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
 }
 
 .ShutlLoginForm-button:hover {
-    background-color: #3a3a3a; /* Slightly lighter on hover */
+  background-color: #3a3a3a; /* Slightly lighter on hover */
 }
 
 .ShutlLoginForm-continue-with {
-    font-size: 12px;
-    color: #888;
-    margin: 15px 0;
+  font-size: 12px;
+  color: #888;
+  margin: 15px 0;
 }
 
 .ShutlLoginForm-google-button {
-    background-color: #ffffff;
-    color: #232323;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
+  background-color: #ffffff;
+  color: #232323;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .ShutlLoginForm-google-button img {
-    margin-right: 10px;
+  margin-right: 10px;
 }
 
 .ShutlLoginForm-footer {
-    margin-top: 15px;
-    font-size: 12px;
-    color: #555;
+  margin-top: 15px;
+  font-size: 12px;
+  color: #555;
 }
 
 .ShutlLoginForm-signup-button {
-    background: none;
-    color: #555;
-    border: none;
-    cursor: pointer;
-    font-size: 12px;
-    text-decoration: underline;
+  background: none;
+  color: #555;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  text-decoration: underline;
 }
 
 .ShutlLoginForm-signup-button:hover {
-    color: #232323; /* Darker on hover */
+  color: #232323; /* Darker on hover */
 }
 
 .ShutlLoginForm-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(35, 35, 35, 0.5); /* Dark overlay */
-    z-index: 900;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(35, 35, 35, 0.5); /* Dark overlay */
+  z-index: 900;
 }
 
 .ShutlLoginForm-error {
-    color: #d9534f; /* Red color for errors */
-    margin-top: 10px;
-    font-size: 14px;
+  color: #d9534f; /* Red color for errors */
+  margin-top: 10px;
+  font-size: 14px;
 }
 
 /* Responsive design adjustments */
 @media (max-width: 480px) {
-    .ShutlLoginForm-container {
-        padding: 20px 10px;
-        max-width: 280px;
-    }
+  .ShutlLoginForm-container {
+    padding: 20px 10px;
+    max-width: 280px;
+  }
 
-    .ShutlLoginForm-title {
-        font-size: 22px;
-    }
+  .ShutlLoginForm-title {
+    font-size: 22px;
+  }
 
-    .ShutlLoginForm-input {
-        padding: 7px;
-        font-size: 13px;
-    }
+  .ShutlLoginForm-input {
+    padding: 7px;
+    font-size: 13px;
+  }
 
-    .ShutlLoginForm-button, .ShutlLoginForm-google-button {
-        font-size: 13px;
-        padding: 8px;
-    }
+  .ShutlLoginForm-button,
+  .ShutlLoginForm-google-button {
+    font-size: 13px;
+    padding: 8px;
+  }
 
-    .ShutlLoginForm-signup-button {
-        font-size: 11px;
-    }
+  .ShutlLoginForm-signup-button {
+    font-size: 11px;
+  }
 }

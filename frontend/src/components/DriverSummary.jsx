@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
-import '../css/DriverSummary.css';
+import React, { useState } from "react";
+import "../css/DriverSummary.css";
 
 const DriverSummary = ({ onClose }) => {
   // Static data for pickup locations and counts
   const pickupSummary = [
-    { location: 'Ruby St.', count: 5 },
-    { location: 'Diamond St.', count: 10 },
-    { location: 'Cordoba St.', count: 2 },
-    { location: 'Bilbao St.', count: 2 },
-    { location: 'Mallorca St.', count: 2 },
-    { location: 'Garnet St.', count: 2 },
-    { location: 'Coral St.', count: 2 },
+    { location: "Ruby St.", count: 5 },
+    { location: "Diamond St.", count: 10 },
+    { location: "Cordoba St.", count: 2 },
+    { location: "Bilbao St.", count: 2 },
+    { location: "Mallorca St.", count: 2 },
+    { location: "Garnet St.", count: 2 },
+    { location: "Coral St.", count: 2 },
   ];
 
   const [personCount, setPersonCount] = useState(5); // Editable current count
-  const [departureTime, setDepartureTime] = useState('8:00 AM');
-  const [arrivalTime, setArrivalTime] = useState('10:00 AM');
+  const [departureTime, setDepartureTime] = useState("8:00 AM");
+  const [arrivalTime, setArrivalTime] = useState("10:00 AM");
 
   const handlePersonCountChange = (e) => {
     const newCount = parseInt(e.target.value, 10);
@@ -26,7 +26,9 @@ const DriverSummary = ({ onClose }) => {
     <div className="DriverSummary">
       <div className="DriverSummary-header">
         <h2>Shuttle Summary</h2>
-        <button onClick={onClose} className="DriverSummary-close-btn">X</button>
+        <button onClick={onClose} className="DriverSummary-close-btn">
+          X
+        </button>
       </div>
 
       <div className="DriverSummary-section">

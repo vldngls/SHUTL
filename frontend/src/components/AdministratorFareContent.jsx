@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import '../css/AdministratorFareContent.css';
+import React, { useEffect, useState } from "react";
+import "../css/AdministratorFareContent.css";
 
 const AdministratorFareContent = () => {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Base URL from environment variables
   const [fareMatrix, setFareMatrix] = useState([]);
-  const [newFare, setNewFare] = useState({ fare: '', price: '' });
+  const [newFare, setNewFare] = useState({ fare: "", price: "" });
   const [editingFare, setEditingFare] = useState(null);
-  
+
   useEffect(() => {
     fetchFares();
   }, []);
@@ -13,12 +14,12 @@ const AdministratorFareContent = () => {
   // Fetch fares from the backend
   const fetchFares = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/fares');
-      if (!response.ok) throw new Error('Failed to fetch fares');
+      const response = await fetch(`${API_BASE_URL}/fares`);
+      if (!response.ok) throw new Error("Failed to fetch fares");
       const data = await response.json();
       setFareMatrix(data);
     } catch (error) {
-      console.error('Error fetching fares:', error);
+      console.error("Error fetching fares:", error);
     }
   };
 
@@ -31,17 +32,17 @@ const AdministratorFareContent = () => {
   // Add a new fare
   const addFare = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/fares', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch(`${API_BASE_URL}/fares`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newFare),
       });
-      if (!response.ok) throw new Error('Failed to add fare');
+      if (!response.ok) throw new Error("Failed to add fare");
       const data = await response.json();
       setFareMatrix([...fareMatrix, data]);
-      setNewFare({ fare: '', price: '' });
+      setNewFare({ fare: "", price: "" });
     } catch (error) {
-      console.error('Error adding fare:', error);
+      console.error("Error adding fare:", error);
     }
   };
 
@@ -53,28 +54,34 @@ const AdministratorFareContent = () => {
   // Save the edited fare
   const saveEditFare = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/fares/${editingFare._id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch(`${API_BASE_URL}/fares/${editingFare._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editingFare),
       });
-      if (!response.ok) throw new Error('Failed to update fare');
+      if (!response.ok) throw new Error("Failed to update fare");
       const updatedFare = await response.json();
-      setFareMatrix(fareMatrix.map((fare) => (fare._id === updatedFare._id ? updatedFare : fare)));
+      setFareMatrix(
+        fareMatrix.map((fare) =>
+          fare._id === updatedFare._id ? updatedFare : fare
+        )
+      );
       setEditingFare(null);
     } catch (error) {
-      console.error('Error updating fare:', error);
+      console.error("Error updating fare:", error);
     }
   };
 
   // Delete a fare
   const deleteFare = async (id) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/fares/${id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Failed to delete fare');
+      const response = await fetch(`${API_BASE_URL}/fares/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete fare");
       setFareMatrix(fareMatrix.filter((fare) => fare._id !== id));
     } catch (error) {
-      console.error('Error deleting fare:', error);
+      console.error("Error deleting fare:", error);
     }
   };
 
@@ -100,7 +107,9 @@ const AdministratorFareContent = () => {
                     <input
                       type="text"
                       value={editingFare.fare}
-                      onChange={(e) => setEditingFare({ ...editingFare, fare: e.target.value })}
+                      onChange={(e) =>
+                        setEditingFare({ ...editingFare, fare: e.target.value })
+                      }
                     />
                   ) : (
                     fare.fare
@@ -111,7 +120,12 @@ const AdministratorFareContent = () => {
                     <input
                       type="text"
                       value={editingFare.price}
-                      onChange={(e) => setEditingFare({ ...editingFare, price: e.target.value })}
+                      onChange={(e) =>
+                        setEditingFare({
+                          ...editingFare,
+                          price: e.target.value,
+                        })
+                      }
                     />
                   ) : (
                     fare.price

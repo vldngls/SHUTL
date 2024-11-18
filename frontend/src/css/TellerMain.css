@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -224,7 +225,7 @@ html, body {
   width: 100vw;
   height: 100vh;
   z-index: 1; /* Ensure it is behind other elements */
-  flex:1;
+  flex: 1;
 }
 
 /* Base styles for the navbar */
@@ -254,7 +255,7 @@ html, body {
   }
 
   .TellerMain-logo {
-    font-size: 1.6em; 
+    font-size: 1.6em;
     font-weight: bold;
     margin-bottom: 20px;
     margin-top: 8px;
@@ -302,9 +303,9 @@ html, body {
 
   .TellerMain-logo {
     font-size: 1.6em; /* Adjusted to relative units */
-  font-weight: bold;
-  margin-bottom: 20px;
-  margin-top: 8px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    margin-top: 8px;
   }
 
   .TellerMain-status {

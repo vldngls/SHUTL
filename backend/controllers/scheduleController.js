@@ -1,11 +1,11 @@
 // controllers/scheduleController.js
 
-import Schedule from '../models/schedule.model.js';
+import Schedule from "../models/schedule.model.js";
 
 // Controller to create a new schedule or multiple schedules
 export const createSchedule = async (req, res) => {
-  console.log('Data received on backend:', req.body);
-  
+  console.log("Data received on backend:", req.body);
+
   try {
     let result;
     if (Array.isArray(req.body)) {
@@ -15,8 +15,8 @@ export const createSchedule = async (req, res) => {
     }
     res.status(201).json(result);
   } catch (error) {
-    console.error('Error creating schedule:', error);
-    res.status(400).json({ message: 'Error creating schedule', error });
+    console.error("Error creating schedule:", error);
+    res.status(400).json({ message: "Error creating schedule", error });
   }
 };
 
@@ -30,7 +30,6 @@ export const getAllSchedules = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 // Controller to get a specific schedule by ID
 export const getScheduleById = async (req, res) => {
@@ -51,7 +50,9 @@ export const getScheduleById = async (req, res) => {
 export const updateSchedule = async (req, res) => {
   const { id } = req.params;
   try {
-    const updatedSchedule = await Schedule.findByIdAndUpdate(id, req.body, { new: true });
+    const updatedSchedule = await Schedule.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
     if (!updatedSchedule) {
       return res.status(404).json({ message: "Schedule not found" });
     }

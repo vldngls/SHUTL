@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import '../css/TellerProfile.css';
+import React, { useState, useEffect } from "react";
+import "../css/TellerProfile.css";
 
 const TellerProfile = ({ onClose, onImageChange }) => {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Use API_BASE_URL for backend endpoints
+
   const initialProfileData = {
-    name: '',
+    name: "",
     age: 0,
-    address: '',
-    email: 'johndoe@example.com',
-    birthday: '',
-    position: '',
-    profileImage: '/teller-profile.png',
+    address: "",
+    email: "johndoe@example.com",
+    birthday: "",
+    position: "",
+    profileImage: "/teller-profile.png",
   };
 
   const [profileData, setProfileData] = useState(initialProfileData);
@@ -18,20 +20,22 @@ const TellerProfile = ({ onClose, onImageChange }) => {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/teller/${profileData.email}`);
+        const response = await fetch(
+          `${API_BASE_URL}/teller/${profileData.email}`
+        );
         if (!response.ok) {
           if (response.status === 404) {
             console.error("Profile not found");
           } else {
-            throw new Error('Failed to fetch profile data');
+            throw new Error("Failed to fetch profile data");
           }
         } else {
           const fetchedProfile = await response.json();
           setProfileData({
             ...fetchedProfile,
             birthday: fetchedProfile.birthday
-              ? new Date(fetchedProfile.birthday).toISOString().split('T')[0]
-              : '', // Ensure birthday is formatted correctly
+              ? new Date(fetchedProfile.birthday).toISOString().split("T")[0]
+              : "", // Ensure birthday is formatted correctly
           });
         }
       } catch (error) {
@@ -63,16 +67,16 @@ const TellerProfile = ({ onClose, onImageChange }) => {
 
   const handleSave = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/teller', {
-        method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/teller`, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(profileData),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save profile data');
+        throw new Error("Failed to save profile data");
       }
 
       const savedProfile = await response.json();
@@ -94,11 +98,23 @@ const TellerProfile = ({ onClose, onImageChange }) => {
   return (
     <div className="TellerProfile-modal">
       <div className="TellerProfile-container">
-        <button onClick={onClose} className="TellerProfile-close-btn">Close</button>
+        <button onClick={onClose} className="TellerProfile-close-btn">
+          Close
+        </button>
 
         <div className="TellerProfile-icon">
-          <img src={profileData.profileImage} alt="Profile Icon" className="TellerProfile-icon-image" />
-          {isEditMode && <input type="file" onChange={handleImageChange} className="TellerProfile-upload" />}
+          <img
+            src={profileData.profileImage}
+            alt="Profile Icon"
+            className="TellerProfile-icon-image"
+          />
+          {isEditMode && (
+            <input
+              type="file"
+              onChange={handleImageChange}
+              className="TellerProfile-upload"
+            />
+          )}
         </div>
 
         <div className="TellerProfile-details">
@@ -167,11 +183,23 @@ const TellerProfile = ({ onClose, onImageChange }) => {
         <div className="TellerProfile-actions">
           {isEditMode ? (
             <>
-              <button onClick={handleSave} className="TellerProfile-save-btn">Save</button>
-              <button onClick={handleCancel} className="TellerProfile-cancel-btn">Cancel</button>
+              <button onClick={handleSave} className="TellerProfile-save-btn">
+                Save
+              </button>
+              <button
+                onClick={handleCancel}
+                className="TellerProfile-cancel-btn"
+              >
+                Cancel
+              </button>
             </>
           ) : (
-            <button onClick={() => setIsEditMode(true)} className="TellerProfile-edit-btn">Edit</button>
+            <button
+              onClick={() => setIsEditMode(true)}
+              className="TellerProfile-edit-btn"
+            >
+              Edit
+            </button>
           )}
         </div>
       </div>

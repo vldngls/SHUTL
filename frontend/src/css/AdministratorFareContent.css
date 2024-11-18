@@ -23,7 +23,8 @@
   margin-bottom: 10px;
 }
 
-.AdministratorFare-fare-matrix th, .AdministratorFare-fare-matrix td {
+.AdministratorFare-fare-matrix th,
+.AdministratorFare-fare-matrix td {
   padding: 10px;
   border: 1px solid #ddd;
   text-align: left;
@@ -60,11 +61,13 @@
   justify-content: space-between;
 }
 
-.AdministratorFare-api-stats, .AdministratorFare-fare-breakdown {
+.AdministratorFare-api-stats,
+.AdministratorFare-fare-breakdown {
   flex: 1;
 }
 
-.AdministratorFare-api-stats h4, .AdministratorFare-fare-breakdown h4 {
+.AdministratorFare-api-stats h4,
+.AdministratorFare-fare-breakdown h4 {
   margin-bottom: 10px;
 }
 

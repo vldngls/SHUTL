@@ -2,230 +2,229 @@
 
 /* Modal overlay */
 .TellerSummary-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6); /* Dark overlay */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 20px;
-    overflow: hidden; /* Prevent overlay from scrolling */
-  }
-  
-  /* Summary container */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6); /* Dark overlay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  overflow: hidden; /* Prevent overlay from scrolling */
+}
+
+/* Summary container */
+.TellerSummary-container {
+  background-color: #ffffff;
+  padding: 30px 25px 25px; /* Extra padding to avoid overlapping with the close button */
+  border-radius: 12px;
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh; /* Restrict height to viewport */
+  overflow-y: auto; /* Enable scrolling for content overflow */
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.15);
+  position: relative;
+  font-family: "Arial", sans-serif;
+  color: #333;
+  box-sizing: border-box;
+
+  /* Hide scrollbar but keep scrolling */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.TellerSummary-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
+}
+
+/* Close button */
+.TellerSummary-close-btn {
+  position: fixed; /* Fixed positioning inside the container */
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #888;
+  transition: color 0.2s ease;
+  z-index: 10; /* Ensure it appears above other elements */
+}
+
+.TellerSummary-close-btn:hover {
+  color: #333;
+}
+
+/* Summary Section styling */
+.TellerSummary-section {
+  margin-bottom: 25px;
+  padding: 25px;
+  background-color: #f1f3f5;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Title and subtitle styling */
+.TellerSummary-section h3 {
+  font-size: 20px;
+  color: #007bff;
+  margin-bottom: 10px;
+}
+
+.TellerSummary-section p {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 15px;
+}
+
+/* 2x2 grid for summary items */
+.TellerSummary-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 columns */
+  gap: 10px; /* Space between items */
+}
+
+/* Individual stat item styling */
+.TellerSummary-stats div {
+  background-color: #e9ecef;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 16px;
+  color: #333;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.TellerSummary-stats div:hover {
+  background-color: #d1d9e0;
+}
+
+/* Placeholder for chart */
+.TellerSummary-chart {
+  height: 140px;
+  background-color: #dee2e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: #777;
+  font-size: 14px;
+  margin-top: 15px;
+}
+
+/* Current status items */
+.status-item {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.status-item strong {
+  color: #007bff;
+  font-size: 16px;
+}
+
+.status-item p {
+  font-size: 15px;
+  color: #555;
+}
+
+.status-item button {
+  background-color: #007bff;
+  color: #ffffff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 10px;
+  transition: background-color 0.2s ease;
+}
+
+.status-item button:hover {
+  background-color: #0056b3;
+}
+
+/* Transaction history button */
+.transaction-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+  width: 100%;
+  margin-top: 15px;
+  transition: background-color 0.2s ease;
+}
+
+.transaction-btn:hover {
+  background-color: #218838;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
   .TellerSummary-container {
-    background-color: #ffffff;
-    padding: 30px 25px 25px; /* Extra padding to avoid overlapping with the close button */
-    border-radius: 12px;
-    width: 100%;
-    max-width: 700px;
-    max-height: 90vh; /* Restrict height to viewport */
-    overflow-y: auto; /* Enable scrolling for content overflow */
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.15);
-    position: relative;
-    font-family: 'Arial', sans-serif;
-    color: #333;
-    box-sizing: border-box;
-  
-    /* Hide scrollbar but keep scrolling */
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
+    padding: 20px;
+    max-width: 100%;
   }
-  
-  .TellerSummary-container::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, and Opera */
-  }
-  
-  /* Close button */
-  .TellerSummary-close-btn {
-    position: fixed; /* Fixed positioning inside the container */
-    top: 10px;
-    right: 15px;
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: #888;
-    transition: color 0.2s ease;
-    z-index: 10; /* Ensure it appears above other elements */
-  }
-  
-  .TellerSummary-close-btn:hover {
-    color: #333;
-  }
-  
-  /* Summary Section styling */
+
   .TellerSummary-section {
-    margin-bottom: 25px;
-    padding: 25px;
-    background-color: #f1f3f5;
-    border-radius: 10px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
   }
-  
-  /* Title and subtitle styling */
-  .TellerSummary-section h3 {
-    font-size: 20px;
-    color: #007bff;
+
+  .TellerSummary-close-btn {
+    font-size: 18px;
+  }
+
+  .TellerSummary-stats div,
+  .TellerSummary-route div,
+  .TellerSummary-fare div {
+    flex: 1 1 48%;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .TellerSummary-container {
+    padding: 15px;
+  }
+
+  .TellerSummary-section {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+
+  .TellerSummary-close-btn {
+    font-size: 16px;
+  }
+
+  .TellerSummary-stats div,
+  .TellerSummary-route div,
+  .TellerSummary-fare div {
+    flex: 1 1 100%;
+    font-size: 14px;
     margin-bottom: 10px;
   }
-  
-  .TellerSummary-section p {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 15px;
-  }
-  
-  /* 2x2 grid for summary items */
-  .TellerSummary-stats {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 columns */
-    gap: 10px; /* Space between items */
-  }
-  
-  /* Individual stat item styling */
-  .TellerSummary-stats div {
-    background-color: #e9ecef;
-    padding: 15px;
-    border-radius: 8px;
-    text-align: center;
-    font-size: 16px;
-    color: #333;
-    font-weight: bold;
-    transition: background-color 0.2s ease;
-  }
-  
-  .TellerSummary-stats div:hover {
-    background-color: #d1d9e0;
-  }
-  
-  /* Placeholder for chart */
-  .TellerSummary-chart {
-    height: 140px;
-    background-color: #dee2e6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    color: #777;
-    font-size: 14px;
-    margin-top: 15px;
-  }
-  
-  /* Current status items */
-  .status-item {
-    background-color: #f8f9fa;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-    display: flex;
+
+  .TellerSummary-stats,
+  .TellerSummary-route,
+  .TellerSummary-fare {
     flex-direction: column;
   }
-  
-  .status-item strong {
-    color: #007bff;
-    font-size: 16px;
-  }
-  
-  .status-item p {
-    font-size: 15px;
-    color: #555;
-  }
-  
-  .status-item button {
-    background-color: #007bff;
-    color: #ffffff;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    margin-top: 10px;
-    transition: background-color 0.2s ease;
-  }
-  
-  .status-item button:hover {
-    background-color: #0056b3;
-  }
-  
-  /* Transaction history button */
+
+  .status-item button,
   .transaction-btn {
-    background-color: #28a745;
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 15px;
-    width: 100%;
-    margin-top: 15px;
-    transition: background-color 0.2s ease;
+    font-size: 14px;
+    padding: 10px;
   }
-  
-  .transaction-btn:hover {
-    background-color: #218838;
-  }
-  
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .TellerSummary-container {
-      padding: 20px;
-      max-width: 100%;
-    }
-  
-    .TellerSummary-section {
-      padding: 20px;
-    }
-  
-    .TellerSummary-close-btn {
-      font-size: 18px;
-    }
-  
-    .TellerSummary-stats div,
-    .TellerSummary-route div,
-    .TellerSummary-fare div {
-      flex: 1 1 48%;
-      font-size: 15px;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .TellerSummary-container {
-      padding: 15px;
-    }
-  
-    .TellerSummary-section {
-      padding: 15px;
-      margin-bottom: 15px;
-    }
-  
-    .TellerSummary-close-btn {
-      font-size: 16px;
-    }
-  
-    .TellerSummary-stats div,
-    .TellerSummary-route div,
-    .TellerSummary-fare div {
-      flex: 1 1 100%;
-      font-size: 14px;
-      margin-bottom: 10px;
-    }
-  
-    .TellerSummary-stats,
-    .TellerSummary-route,
-    .TellerSummary-fare {
-      flex-direction: column;
-    }
-  
-    .status-item button,
-    .transaction-btn {
-      font-size: 14px;
-      padding: 10px;
-    }
-  }
-  
+}

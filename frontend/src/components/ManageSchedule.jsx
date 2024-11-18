@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import '../css/ManageSchedule.css';
+import React, { useState, useEffect } from "react";
+import "../css/ManageSchedule.css";
 
 const ManageSchedule = ({ schedule, onClose, onSave }) => {
   const [editedSchedule, setEditedSchedule] = useState(schedule);
   const [dateRange, setDateRange] = useState([]);
-  const [selectedDay, setSelectedDay] = useState('');
+  const [selectedDay, setSelectedDay] = useState("");
   const [filteredSchedule, setFilteredSchedule] = useState([]);
 
   const generate7DayRange = () => {
@@ -15,12 +15,15 @@ const ManageSchedule = ({ schedule, onClose, onSave }) => {
     for (let i = 0; i < 7; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
-      const formattedDate = date.toLocaleDateString('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
+      const formattedDate = date.toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
       });
-      days.push({ iso: date.toISOString().split('T')[0], formatted: formattedDate });
+      days.push({
+        iso: date.toISOString().split("T")[0],
+        formatted: formattedDate,
+      });
     }
 
     return days;
@@ -33,7 +36,9 @@ const ManageSchedule = ({ schedule, onClose, onSave }) => {
   }, []);
 
   useEffect(() => {
-    setFilteredSchedule(editedSchedule.filter(entry => entry.day === selectedDay));
+    setFilteredSchedule(
+      editedSchedule.filter((entry) => entry.day === selectedDay)
+    );
   }, [selectedDay, editedSchedule]);
 
   const handleInputChange = (index, field, value) => {
@@ -49,7 +54,7 @@ const ManageSchedule = ({ schedule, onClose, onSave }) => {
   };
 
   const handleAddEntry = () => {
-    const newEntry = { day: selectedDay, time: '', details: '' };
+    const newEntry = { day: selectedDay, time: "", details: "" };
     setEditedSchedule([...editedSchedule, newEntry]);
   };
 
@@ -60,20 +65,30 @@ const ManageSchedule = ({ schedule, onClose, onSave }) => {
 
   return (
     <div className="ShutlManageSchedule-popup" onClick={onClose} role="dialog">
-      <div className="ShutlManageSchedule-content" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="ShutlManageSchedule-content"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="ShutlManageSchedule-title">
-          Manage Schedule for {new Date(selectedDay).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })}
+          Manage Schedule for{" "}
+          {new Date(selectedDay).toLocaleDateString("en-PH", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })}
         </h2>
-        
+
         <div className="ShutlManageSchedule-day-selector">
           <label>Select Day: </label>
-          <select 
-            value={selectedDay} 
+          <select
+            value={selectedDay}
             onChange={(e) => setSelectedDay(e.target.value)}
             className="styled-dropdown"
           >
-            {dateRange.map(day => (
-              <option key={day.iso} value={day.iso}>{day.formatted}</option>
+            {dateRange.map((day) => (
+              <option key={day.iso} value={day.iso}>
+                {day.formatted}
+              </option>
             ))}
           </select>
         </div>
@@ -84,14 +99,18 @@ const ManageSchedule = ({ schedule, onClose, onSave }) => {
               <input
                 type="time"
                 value={entry.time}
-                onChange={(e) => handleInputChange(index, 'time', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange(index, "time", e.target.value)
+                }
                 placeholder="Time"
                 className="ShutlManageSchedule-input"
               />
               <input
                 type="text"
                 value={entry.details}
-                onChange={(e) => handleInputChange(index, 'details', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange(index, "details", e.target.value)
+                }
                 placeholder="Details"
                 className="ShutlManageSchedule-input"
               />
@@ -105,11 +124,26 @@ const ManageSchedule = ({ schedule, onClose, onSave }) => {
           ))}
         </div>
 
-        <button className="ShutlManageSchedule-add-button" onClick={handleAddEntry}>Add Entry</button>
-        
+        <button
+          className="ShutlManageSchedule-add-button"
+          onClick={handleAddEntry}
+        >
+          Add Entry
+        </button>
+
         <div className="ShutlManageSchedule-footer">
-          <button className="ShutlManageSchedule-save-button" onClick={handleSave}>Save</button>
-          <button className="ShutlManageSchedule-close-button" onClick={onClose}>Close</button>
+          <button
+            className="ShutlManageSchedule-save-button"
+            onClick={handleSave}
+          >
+            Save
+          </button>
+          <button
+            className="ShutlManageSchedule-close-button"
+            onClick={onClose}
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

@@ -30,7 +30,8 @@
   flex-grow: 1;
 }
 
-.AdministratorMain-menu button, .AdministratorMain-footer-menu button {
+.AdministratorMain-menu button,
+.AdministratorMain-footer-menu button {
   background: none;
   border: none;
   color: white;
@@ -45,7 +46,8 @@
   transition: background-color 0.3s ease;
 }
 
-.AdministratorMain-menu button:hover, .AdministratorMain-footer-menu button:hover {
+.AdministratorMain-menu button:hover,
+.AdministratorMain-footer-menu button:hover {
   background-color: #ff6b35;
 }
 

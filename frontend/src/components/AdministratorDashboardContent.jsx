@@ -1,56 +1,57 @@
-import React, { useEffect, useState } from 'react';
-import '../css/AdministratorDashboardContent.css';
-import { getCookie } from '../utils/cookieUtils'; // Utility function to get the cookie
+import React, { useEffect, useState } from "react";
+import "../css/AdministratorDashboardContent.css";
+import { getCookie } from "../utils/cookieUtils"; // Utility function to get the cookie
 
 const AdministratorDashboardContent = () => {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Base URL from environment variables
   const [userCount, setUserCount] = useState(0); // State to hold the user count
-  const [notificationMessage, setNotificationMessage] = useState(''); // State for notification message
-  const [recipientType, setRecipientType] = useState('Commuter'); // Default recipient type
+  const [notificationMessage, setNotificationMessage] = useState(""); // State for notification message
+  const [recipientType, setRecipientType] = useState("Commuter"); // Default recipient type
   const [notificationStatus, setNotificationStatus] = useState(null); // Status message for feedback
 
   useEffect(() => {
     // Function to fetch the user count from the backend API
     const fetchUserCount = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/users/admin/user-count'); // Explicitly define backend URL
-    
+        const response = await fetch(`${API_BASE_URL}/users/admin/user-count`); // Use template literal for URL
+
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-    
+
         const data = await response.json();
         setUserCount(data.count); // Update user count state
       } catch (error) {
-        console.error('Error fetching user count:', error);
+        console.error("Error fetching user count:", error);
       }
     };
-    
+
     fetchUserCount();
   }, []); // Empty dependency array ensures this effect runs only once
 
   // Function to handle sending the notification
   const handleSendNotification = async () => {
-    const token = getCookie('token'); // Retrieve token from cookies
+    const token = getCookie("token"); // Retrieve token from cookies
 
     try {
-      const response = await fetch('http://localhost:5000/api/notifications/send', {
-        method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/notifications/send`, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ message: notificationMessage, recipientType }),
       });
 
       if (response.ok) {
-        setNotificationStatus('Notification sent successfully!');
-        setNotificationMessage(''); // Clear message after sending
+        setNotificationStatus("Notification sent successfully!");
+        setNotificationMessage(""); // Clear message after sending
       } else {
-        setNotificationStatus('Failed to send notification.');
+        setNotificationStatus("Failed to send notification.");
       }
     } catch (error) {
-      console.error('Error sending notification:', error);
-      setNotificationStatus('Error sending notification.');
+      console.error("Error sending notification:", error);
+      setNotificationStatus("Error sending notification.");
     }
   };
 
@@ -145,7 +146,9 @@ const AdministratorDashboardContent = () => {
         <button onClick={handleSendNotification}>Post</button>
 
         {/* Display the notification status message */}
-        {notificationStatus && <p className="notification-status">{notificationStatus}</p>}
+        {notificationStatus && (
+          <p className="notification-status">{notificationStatus}</p>
+        )}
       </div>
 
       {/* Operational Hours */}

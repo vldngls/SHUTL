@@ -1,21 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import '../css/AdministratorMaintenanceContent.css';
+import React, { useEffect, useState } from "react";
+import "../css/AdministratorMaintenanceContent.css";
 
 const AdministratorMaintenanceContent = () => {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Base URL from environment variables
   const [users, setUsers] = useState([]); // State to hold the list of users
 
   // Fetch users from backend API
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/users/admin/users');
+        const response = await fetch(`${API_BASE_URL}/users/admin/users`); // Use API_BASE_URL
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
         setUsers(data); // Set the fetched users
       } catch (error) {
-        console.error('Error fetching users:', error);
+        console.error("Error fetching users:", error);
       }
     };
 
@@ -27,9 +28,9 @@ const AdministratorMaintenanceContent = () => {
     success: 1007,
     ping: 47.2,
     logs: [
-      { time: '6:19 PM', result: 'success' },
-      { time: '6:17 PM', result: 'paymentId: 1218. granted' },
-      { time: '6:15 PM', result: 'denied' },
+      { time: "6:19 PM", result: "success" },
+      { time: "6:17 PM", result: "paymentId: 1218. granted" },
+      { time: "6:15 PM", result: "denied" },
     ],
   };
 
@@ -39,7 +40,7 @@ const AdministratorMaintenanceContent = () => {
     tellers: 12,
   };
 
-  const groups = ['Commuters', 'Tellers', 'Administrators', 'Drivers'];
+  const groups = ["Commuters", "Tellers", "Administrators", "Drivers"];
 
   return (
     <div className="AdministratorMaintenance-maintenance-content">
@@ -67,7 +68,9 @@ const AdministratorMaintenanceContent = () => {
                 {log.time} - result: {log.result}
               </p>
             ))}
-            <p className="AdministratorMaintenance-last-update">Last Update: 6:19 PM</p>
+            <p className="AdministratorMaintenance-last-update">
+              Last Update: 6:19 PM
+            </p>
           </div>
         </div>
 
@@ -91,10 +94,18 @@ const AdministratorMaintenanceContent = () => {
 
         {/* Control Buttons */}
         <div className="AdministratorMaintenance-control-panel">
-          <button className="AdministratorMaintenance-control-btn play">&#9654;</button>
-          <button className="AdministratorMaintenance-control-btn pause">&#10074;&#10074;</button>
-          <button className="AdministratorMaintenance-control-btn refresh">&#8635;</button>
-          <button className="AdministratorMaintenance-control-btn key">&#128273;</button>
+          <button className="AdministratorMaintenance-control-btn play">
+            &#9654;
+          </button>
+          <button className="AdministratorMaintenance-control-btn pause">
+            &#10074;&#10074;
+          </button>
+          <button className="AdministratorMaintenance-control-btn refresh">
+            &#8635;
+          </button>
+          <button className="AdministratorMaintenance-control-btn key">
+            &#128273;
+          </button>
         </div>
       </div>
 
@@ -105,7 +116,11 @@ const AdministratorMaintenanceContent = () => {
           <div className="AdministratorMaintenance-user-list">
             {users.map((user, index) => (
               <div key={index} className="AdministratorMaintenance-user-item">
-                <img src="/avatar.png" alt="User Avatar" className="AdministratorMaintenance-user-avatar" />
+                <img
+                  src="/avatar.png"
+                  alt="User Avatar"
+                  className="AdministratorMaintenance-user-avatar"
+                />
                 <p>{user.name}</p>
               </div>
             ))}
@@ -117,7 +132,10 @@ const AdministratorMaintenanceContent = () => {
           <ul>
             {groups.map((group, index) => (
               <li key={index}>
-                <span className="AdministratorMaintenance-group-icon">&#128100;</span> {group}
+                <span className="AdministratorMaintenance-group-icon">
+                  &#128100;
+                </span>{" "}
+                {group}
               </li>
             ))}
           </ul>

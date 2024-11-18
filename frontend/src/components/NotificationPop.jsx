@@ -1,6 +1,6 @@
 // frontend/src/components/NotificationPop.jsx
-import React from 'react';
-import '../css/NotificationPop.css';
+import React from "react";
+import "../css/NotificationPop.css";
 
 const ShutlNotificationPop = ({ notifications = [], onClose }) => {
   return (

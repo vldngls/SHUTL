@@ -95,7 +95,7 @@
 
 /* Table Header Styling */
 .schedule-popup-table th {
-  background-color: #4CAF50; /* Green header for contrast */
+  background-color: #4caf50; /* Green header for contrast */
   color: #ffffff;
   font-weight: bold;
   text-transform: uppercase;
@@ -117,7 +117,7 @@
 
 .schedule-popup-add-availability h4 {
   font-weight: bold;
-  color: #4CAF50;
+  color: #4caf50;
   margin-bottom: 15px;
 }
 
@@ -131,7 +131,6 @@
   width: calc(33% - 10px); /* Adjust width if needed */
   box-sizing: border-box;
 }
-
 
 .schedule-popup-add-slot-btn {
   background-color: #27ae60;
@@ -192,7 +191,7 @@
   .schedule-popup {
     width: 90%;
   }
-  
+
   .schedule-popup-availability-input {
     font-size: 0.85em;
     width: 100%; /* Full width on small screens */

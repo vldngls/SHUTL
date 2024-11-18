@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import './TellerMainSummary.css';
+import React, { useState } from "react";
+import "./TellerMainSummary.css";
 
 const TellerMainSummary = () => {
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
@@ -19,7 +19,11 @@ const TellerMainSummary = () => {
       {/* Sidebar with the buttons */}
       <div className="TellerMain-navbar">
         <button className="TellerMain-icon-btn" onClick={handleOpenSummary}>
-          <img src="path/to/summary-icon.svg" alt="Summary" className="TellerMain-icon-image" />
+          <img
+            src="path/to/summary-icon.svg"
+            alt="Summary"
+            className="TellerMain-icon-image"
+          />
         </button>
       </div>
 
@@ -29,7 +33,12 @@ const TellerMainSummary = () => {
           <div className="TellerMain-summary-panel">
             <div className="TellerMain-summary-header">
               <h2>Summary</h2>
-              <button className="TellerMain-close-btn" onClick={handleCloseSummary}>✖</button>
+              <button
+                className="TellerMain-close-btn"
+                onClick={handleCloseSummary}
+              >
+                ✖
+              </button>
             </div>
 
             {/* Summary content */}
@@ -55,7 +64,9 @@ const TellerMainSummary = () => {
             {/* Other sections of the summary */}
             <div className="TellerMain-total-passenger">
               <h3>Total Passenger</h3>
-              <div className="TellerMain-passenger-chart">[Passenger Chart]</div>
+              <div className="TellerMain-passenger-chart">
+                [Passenger Chart]
+              </div>
             </div>
             <div className="TellerMain-route-time">
               <h3>Route Time</h3>

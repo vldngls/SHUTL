@@ -1,7 +1,8 @@
-import React, { useRef, useEffect, useState } from 'react';
-import '../css/ProfilePopup.css';
+import React, { useRef, useEffect, useState } from "react";
+import "../css/ProfilePopup.css";
 
 const ShutlProfilePopup = ({ onClose }) => {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Use API_BASE_URL from environment variables
   const popupRef = useRef(null);
   const [userData, setUserData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -11,20 +12,22 @@ const ShutlProfilePopup = ({ onClose }) => {
   // Fetch user data from the backend
   const fetchUserData = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/userdata/me', {
-        method: 'GET',
-        credentials: 'include', // Include cookies for JWT
+      const response = await fetch(`${API_BASE_URL}/userdata/me`, {
+        method: "GET",
+        credentials: "include", // Include cookies for JWT
       });
 
       if (response.ok) {
         const data = await response.json();
         setUserData(data);
-        setProfileImage(data.profilePicture || "https://via.placeholder.com/150"); // Default image if none exists
+        setProfileImage(
+          data.profilePicture || "https://via.placeholder.com/150"
+        ); // Default image if none exists
       } else {
-        console.error('Failed to fetch user data');
+        console.error("Failed to fetch user data");
       }
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      console.error("Error fetching user data:", error);
     }
   };
 
@@ -39,9 +42,9 @@ const ShutlProfilePopup = ({ onClose }) => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [onClose]);
 
@@ -57,8 +60,8 @@ const ShutlProfilePopup = ({ onClose }) => {
       reader.onload = (event) => {
         const img = new Image();
         img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
 
           // Set canvas dimensions to 150x150
           canvas.width = 150;
@@ -91,7 +94,7 @@ const ShutlProfilePopup = ({ onClose }) => {
         setProfileImage(resizedImage); // Update the profile image preview
         setEditedData({ ...editedData, profilePicture: resizedImage }); // Save to edited data
       } catch (error) {
-        console.error('Error resizing and cropping image:', error);
+        console.error("Error resizing and cropping image:", error);
       }
     }
   };
@@ -104,23 +107,23 @@ const ShutlProfilePopup = ({ onClose }) => {
         profilePicture: profileImage, // Use the state holding the updated profile image
         ...editedData, // Include other fields being edited (like name, etc.)
       };
-  
-      const response = await fetch('http://localhost:5000/api/userdata/update', {
-        method: 'PUT',
+
+      const response = await fetch(`${API_BASE_URL}/userdata/update`, {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(updatedData),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Failed to update user data:', errorData);
+        console.error("Failed to update user data:", errorData);
         return;
       }
-  
+
       const updatedUser = await response.json();
-  
+
       // Update state immediately to reflect the new data
       setUserData((prevData) => ({
         ...prevData,
@@ -128,10 +131,9 @@ const ShutlProfilePopup = ({ onClose }) => {
       }));
       setIsEditing(false); // Exit edit mode
     } catch (error) {
-      console.error('Error updating user data:', error);
+      console.error("Error updating user data:", error);
     }
   };
-  
 
   if (!userData) return <p>Loading...</p>; // Show a loading message while data is being fetched
 
@@ -167,33 +169,53 @@ const ShutlProfilePopup = ({ onClose }) => {
         {/* Profile Details Section */}
         {!isEditing ? (
           <div className="ShutlProfilePopup-details">
-            <p><strong>Email:</strong> {userData.email || "N/A"}</p>
-            <p><strong>Birthday:</strong> {userData.birthday ? new Date(userData.birthday).toISOString().substring(0, 10) : "N/A"}</p>
-            <p><strong>Address:</strong> {userData.address || "N/A"}</p>
-            <p><strong>Discount:</strong> {userData.discount || 0}%</p>
-            <p><strong>Payment Method:</strong> {userData.paymentMethod || "N/A"}</p>
-            <p><strong>Contact:</strong> {userData.contactNumber || "N/A"}</p>
+            <p>
+              <strong>Email:</strong> {userData.email || "N/A"}
+            </p>
+            <p>
+              <strong>Birthday:</strong>{" "}
+              {userData.birthday
+                ? new Date(userData.birthday).toISOString().substring(0, 10)
+                : "N/A"}
+            </p>
+            <p>
+              <strong>Address:</strong> {userData.address || "N/A"}
+            </p>
+            <p>
+              <strong>Discount:</strong> {userData.discount || 0}%
+            </p>
+            <p>
+              <strong>Payment Method:</strong> {userData.paymentMethod || "N/A"}
+            </p>
+            <p>
+              <strong>Contact:</strong> {userData.contactNumber || "N/A"}
+            </p>
           </div>
         ) : (
           <div className="ShutlProfilePopup-edit-details">
             <input
               name="name"
               type="text"
-              value={editedData.name || userData.name || ''}
+              value={editedData.name || userData.name || ""}
               onChange={handleInputChange}
               placeholder="Name"
             />
             <input
               name="birthday"
               type="date"
-              value={editedData.birthday || (userData.birthday && new Date(userData.birthday).toISOString().substring(0, 10)) || ''}
+              value={
+                editedData.birthday ||
+                (userData.birthday &&
+                  new Date(userData.birthday).toISOString().substring(0, 10)) ||
+                ""
+              }
               onChange={handleInputChange}
               placeholder="Birthday"
             />
             <input
               name="address"
               type="text"
-              value={editedData.address || userData.address || ''}
+              value={editedData.address || userData.address || ""}
               onChange={handleInputChange}
               placeholder="Address"
             />
@@ -207,14 +229,14 @@ const ShutlProfilePopup = ({ onClose }) => {
             <input
               name="paymentMethod"
               type="text"
-              value={editedData.paymentMethod || userData.paymentMethod || ''}
+              value={editedData.paymentMethod || userData.paymentMethod || ""}
               onChange={handleInputChange}
               placeholder="Payment Method"
             />
             <input
               name="contactNumber"
               type="tel"
-              value={editedData.contactNumber || userData.contactNumber || ''}
+              value={editedData.contactNumber || userData.contactNumber || ""}
               onChange={handleInputChange}
               placeholder="Contact Number"
             />

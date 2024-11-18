@@ -1,12 +1,14 @@
-import React from 'react';
-import '../css/TellerShuttleSummary.css';
+import React from "react";
+import "../css/TellerShuttleSummary.css";
 
 const TellerShuttleSummary = ({ onClose }) => {
   return (
     <div className="TellerShutSum-popup">
       <div className="TellerShutSum-header">
         <h2>Shuttle Summary</h2>
-        <button onClick={onClose} className="TellerShutSum-close-btn">X</button>
+        <button onClick={onClose} className="TellerShutSum-close-btn">
+          X
+        </button>
       </div>
       <div className="TellerShutSum-content">
         <div className="TellerShutSum-stats-container">

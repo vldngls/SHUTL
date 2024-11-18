@@ -1,5 +1,6 @@
 /* General Reset for Body */
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -101,8 +102,10 @@ html, body {
   position: fixed;
   bottom: 0;
   left: 0;
-  width: calc(100% + 80px); /* Expands to cover the entire width including the navbar */
-  background-color: #F5F5F5;
+  width: calc(
+    100% + 80px
+  ); /* Expands to cover the entire width including the navbar */
+  background-color: #f5f5f5;
   color: #333;
   display: flex;
   justify-content: flex-end;

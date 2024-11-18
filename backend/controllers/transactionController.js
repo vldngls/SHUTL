@@ -1,4 +1,4 @@
-import Transaction from '../models/transaction.model.js';
+import Transaction from "../models/transaction.model.js";
 
 export const createTransaction = async (req, res) => {
   try {

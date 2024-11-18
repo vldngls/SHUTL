@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getTokenFromCookies } from '../utils/tokenUtils';
-import '../css/SplashScreen.css';
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { getTokenFromCookies } from "../utils/tokenUtils";
+import "../css/SplashScreen.css";
 
 const SplashScreen = () => {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Use API_BASE_URL from environment variables
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -12,9 +13,9 @@ const SplashScreen = () => {
     const handleNavigation = async () => {
       if (token) {
         try {
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/me`, {
+          const response = await fetch(`${API_BASE_URL}/users/me`, {
             headers: { Authorization: `Bearer ${token}` },
-            credentials: 'include',
+            credentials: "include",
           });
 
           if (response.ok) {
@@ -22,19 +23,19 @@ const SplashScreen = () => {
             const userType = data.userType;
 
             // Navigate based on userType
-            if (userType === 'Commuter') navigate('/ShutlLoggedIn');
-            else if (userType === 'Driver') navigate('/DriverMain');
-            else if (userType === 'Admin') navigate('/AdministratorMain');
-            else if (userType === 'Teller') navigate('/TellerMain');
+            if (userType === "Commuter") navigate("/ShutlLoggedIn");
+            else if (userType === "Driver") navigate("/DriverMain");
+            else if (userType === "Admin") navigate("/AdministratorMain");
+            else if (userType === "Teller") navigate("/TellerMain");
           } else {
-            navigate('/ShutlIntro'); // Navigate to intro if token is invalid
+            navigate("/ShutlIntro"); // Navigate to intro if token is invalid
           }
         } catch (error) {
           console.error("Error fetching user type:", error);
-          navigate('/ShutlIntro'); // Navigate to intro on error
+          navigate("/ShutlIntro"); // Navigate to intro on error
         }
       } else {
-        navigate('/ShutlIntro'); // No token, go to intro
+        navigate("/ShutlIntro"); // No token, go to intro
       }
     };
 
@@ -44,7 +45,7 @@ const SplashScreen = () => {
     }, 3250); // Adjust time if needed
 
     return () => clearTimeout(timer);
-  }, [navigate]);
+  }, [navigate, API_BASE_URL]);
 
   return (
     <div className="splash-container">

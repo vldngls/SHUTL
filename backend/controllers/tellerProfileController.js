@@ -1,12 +1,13 @@
-import TellerProfile from '../models/tellerProfile.model.js';
+import TellerProfile from "../models/tellerProfile.model.js";
 
 // POST - Create or Update Teller Profile
 export const createOrUpdateTellerProfile = async (req, res) => {
-  const { name, age, address, email, birthday, position, profileImage } = req.body;
+  const { name, age, address, email, birthday, position, profileImage } =
+    req.body;
 
   // Simple validation check for required fields
   if (!name || !age || !address || !email || !birthday || !position) {
-    return res.status(400).json({ message: 'All fields are required' });
+    return res.status(400).json({ message: "All fields are required" });
   }
 
   try {
@@ -41,12 +42,13 @@ export const createOrUpdateTellerProfile = async (req, res) => {
     }
   } catch (error) {
     // Updated error handling for specific duplicate key errors and other server errors
-    if (error.code === 11000) { // Mongoose duplicate key error
-      console.error('Duplicate email error:', error);
-      return res.status(400).json({ message: 'Email already exists' });
+    if (error.code === 11000) {
+      // Mongoose duplicate key error
+      console.error("Duplicate email error:", error);
+      return res.status(400).json({ message: "Email already exists" });
     }
-    console.error('Server error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Server error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -59,10 +61,10 @@ export const fetchTellerProfileByEmail = async (req, res) => {
     if (profile) {
       return res.status(200).json(profile);
     } else {
-      return res.status(404).json({ message: 'Profile not found' });
+      return res.status(404).json({ message: "Profile not found" });
     }
   } catch (error) {
-    console.error('Error fetching profile:', error);
-    return res.status(500).json({ message: 'Server error' });
+    console.error("Error fetching profile:", error);
+    return res.status(500).json({ message: "Server error" });
   }
 };

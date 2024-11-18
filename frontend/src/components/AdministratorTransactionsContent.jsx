@@ -1,5 +1,5 @@
-import React from 'react';
-import '../css/AdministratorTransactionsContent.css';
+import React from "react";
+import "../css/AdministratorTransactionsContent.css";
 
 const AdministratorTransactionsContent = () => {
   const payments = [
@@ -40,7 +40,9 @@ const AdministratorTransactionsContent = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="AdministratorTransactions-no-data">No payment data available</td>
+                <td colSpan="5" className="AdministratorTransactions-no-data">
+                  No payment data available
+                </td>
               </tr>
             )}
           </tbody>
@@ -75,7 +77,9 @@ const AdministratorTransactionsContent = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="4" className="AdministratorTransactions-no-data">No shuttle trip data available</td>
+                <td colSpan="4" className="AdministratorTransactions-no-data">
+                  No shuttle trip data available
+                </td>
               </tr>
             )}
           </tbody>

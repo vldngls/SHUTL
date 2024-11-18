@@ -38,9 +38,10 @@ app.use(cookieParser());
 
 // CORS configuration
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: process.env.FRONTEND_ORIGIN || 'http://localhost:5173', // Default to localhost for dev
   credentials: true,
 }));
+
 
 // Routes
 app.use('/api/users', userRoutes);
