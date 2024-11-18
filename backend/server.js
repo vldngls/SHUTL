@@ -15,6 +15,7 @@ import userRoutes from './routes/userRoutes.js';
 import shuttleRoutes from './routes/shuttleRoutes.js';
 import scheduleRoutes from './routes/scheduleRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import tellerRoutes from './routes/tellerRoutes.js'; // Import teller routes
 
 // Set up __dirname and load environment variables from root-level .env file
 const __filename = fileURLToPath(import.meta.url);
@@ -48,6 +49,7 @@ app.use('/api/shuttle', shuttleRoutes);
 app.use('/api/fares', fareRoutes);
 app.use('/api/schedule', scheduleRoutes);
 app.use('/api/notifications', notificationRoutes); // Include notification routes
+app.use('/api/teller', tellerRoutes); // Include teller profile routes
 
 // Connect to the database
 connectDB();

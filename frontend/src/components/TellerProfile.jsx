@@ -1,27 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../css/TellerProfile.css';
 
 const TellerProfile = ({ onClose, onImageChange }) => {
+  // Initial profile data
   const initialProfileData = {
-    name: 'John Doe',
-    age: 30,
-    address: '123 Main St',
-    email: 'johndoe@example.com',
-    birthday: '1992-01-01',
-    position: 'Teller 1',
-    profileImage: '/teller-profile.png' // Default profile image
+    name: '',
+    age: 0,
+    address: '',
+    email: 'johndoe@example.com', // Replace this with dynamic email from logged-in user context if available
+    birthday: '',
+    position: '',
+    profileImage: '/teller-profile.png',
   };
 
+  // State variables
   const [profileData, setProfileData] = useState(initialProfileData);
-  const [isEditMode, setIsEditMode] = useState(false); // Edit mode toggle
+  const [isEditMode, setIsEditMode] = useState(false);
 
+  // Fetch profile data when the component mounts
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        // Make a GET request to fetch the profile data by email
+        const response = await fetch(`http://localhost:5000/api/teller/${profileData.email}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            console.error("Profile not found");
+          } else {
+            throw new Error('Failed to fetch profile data');
+          }
+        } else {
+          const fetchedProfile = await response.json();
+          setProfileData(fetchedProfile);
+        }
+      } catch (error) {
+        console.error("Error fetching profile data:", error);
+      }
+    };
+
+    fetchProfileData();
+  }, []); // Runs once when the component is mounted
+
+  // Function to handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProfileData({ ...profileData, [name]: value });
   };
 
+  // Function to handle profile image changes
   const handleImageChange = (e) => {
-    if (isEditMode) { // Allow image change only in edit mode
+    if (isEditMode) {
       const file = e.target.files[0];
       if (file) {
         const reader = new FileReader();
@@ -34,15 +63,37 @@ const TellerProfile = ({ onClose, onImageChange }) => {
     }
   };
 
-  const handleSave = () => {
-    console.log("Profile saved:", profileData);
-    setIsEditMode(false); // Exit edit mode after saving
-    onClose();
+  // Function to save profile data - Updated to use fetch
+  const handleSave = async () => {
+    try {
+      // Make a POST request to save the profile data
+      const response = await fetch('http://localhost:5000/api/teller', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(profileData),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to save profile data');
+      }
+  
+      const savedProfile = await response.json();
+      console.log("Profile saved:", savedProfile);
+  
+      // After saving, exit edit mode
+      setIsEditMode(false);
+      onClose(); // Optionally close the modal
+    } catch (error) {
+      console.error("Error saving profile data:", error);
+    }
   };
 
+  // Function to cancel edits
   const handleCancel = () => {
-    setProfileData(initialProfileData); // Revert changes
-    setIsEditMode(false); // Exit edit mode without saving
+    setProfileData(initialProfileData);
+    setIsEditMode(false);
     onClose();
   };
 
@@ -64,7 +115,7 @@ const TellerProfile = ({ onClose, onImageChange }) => {
               name="name"
               value={profileData.name}
               onChange={handleInputChange}
-              readOnly={!isEditMode} // Editable only in edit mode
+              readOnly={!isEditMode}
             />
           </label>
           <label>
