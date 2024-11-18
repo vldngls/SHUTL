@@ -70,45 +70,35 @@ export const getUserDataByEmail = async (req, res) => {
 };
 
 export const updateUserDataByEmail = async (req, res) => {
-  try {
-      const { email, name, birthday, address, discount, paymentMethod, contactNumber, profilePicture } = req.body;
-
-      if (!email) {
-          return res.status(400).json({ message: 'Email is required' });
-      }
-
-      let userData = await UserData.findOne({ email });
-
-      if (!userData) {
-          userData = new UserData({
-              email,
-              name,
-              birthday,
-              address,
-              discount,
-              paymentMethod,
-              contactNumber,
-              profilePicture
-          });
-      } else {
-          userData.name = name;
-          userData.birthday = birthday;
-          userData.address = address;
-          userData.discount = discount;
-          userData.paymentMethod = paymentMethod;
-          userData.contactNumber = contactNumber;
-          userData.profilePicture = profilePicture; // Update profile picture
-      }
-
-      await userData.save();
-      res.status(200).json(userData);
-  } catch (error) {
-      console.error('Error updating or creating user data:', error);
-      res.status(500).json({ message: 'Server error' });
-  }
-};
-
+    try {
+      const { email, ...updates } = req.body;
   
+      if (!email) {
+        return res.status(400).json({ message: 'Email is required' });
+      }
+  
+      // Find user by email
+      const userData = await UserData.findOne({ email });
+  
+      if (!userData) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      // Update only the fields provided in the request body
+      for (const [key, value] of Object.entries(updates)) {
+        if (value !== undefined) {
+          userData[key] = value;
+        }
+      }
+  
+      await userData.save(); // Save updated data
+  
+      res.status(200).json(userData);
+    } catch (error) {
+      console.error('Error updating user data:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
 
 // Get user data based on JWT token from cookies
 export const getUserDataFromToken = async (req, res) => {

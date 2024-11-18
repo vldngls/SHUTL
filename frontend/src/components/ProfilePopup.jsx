@@ -98,8 +98,13 @@ const ShutlProfilePopup = ({ onClose }) => {
 
   const handleUpdateProfile = async () => {
     try {
-      const updatedData = { ...editedData, email: userData.email }; // Include the user's email for identification
-
+      // Use profileImage for the profile picture field
+      const updatedData = {
+        email: userData.email, // Include email for identification
+        profilePicture: profileImage, // Use the state holding the updated profile image
+        ...editedData, // Include other fields being edited (like name, etc.)
+      };
+  
       const response = await fetch('http://localhost:5000/api/userdata/update', {
         method: 'PUT',
         headers: {
@@ -107,18 +112,26 @@ const ShutlProfilePopup = ({ onClose }) => {
         },
         body: JSON.stringify(updatedData),
       });
-
-      if (response.ok) {
-        const updatedUser = await response.json();
-        setUserData(updatedUser); // Update the state with new data
-        setIsEditing(false); // Exit edit mode
-      } else {
-        console.error('Failed to update user data', await response.json());
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Failed to update user data:', errorData);
+        return;
       }
+  
+      const updatedUser = await response.json();
+  
+      // Update state immediately to reflect the new data
+      setUserData((prevData) => ({
+        ...prevData,
+        ...updatedUser, // Merge updated user data into current state
+      }));
+      setIsEditing(false); // Exit edit mode
     } catch (error) {
       console.error('Error updating user data:', error);
     }
   };
+  
 
   if (!userData) return <p>Loading...</p>; // Show a loading message while data is being fetched
 

@@ -32,15 +32,33 @@ const ShutlLoggedIn = () => {
   const [activePopup, setActivePopup] = useState(null);
   const [mapInstance, setMapInstance] = useState(null);
   const [notifications, setNotifications] = useState([]); // List of notifications
+  const [profilePicture, setProfilePicture] = useState("/icon.png"); // Default profile icon
   const popupRef = useRef(null);
 
-  const user = useMemo(
-    () => ({
-      name: "John Doe",
-      email: "john.doe@example.com",
-    }),
-    []
-  );
+  // Fetch user profile data, including the profile picture
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/userdata/me", {
+          method: "GET",
+          credentials: "include", // Include cookies for authentication
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.profilePicture) {
+            setProfilePicture(data.profilePicture); // Set the profile picture URL
+          }
+        } else {
+          console.error("Failed to fetch user profile data");
+        }
+      } catch (error) {
+        console.error("Error fetching user profile data:", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   // Fetch past notifications for the "Commuter" type on load
   useEffect(() => {
@@ -187,7 +205,7 @@ const ShutlLoggedIn = () => {
         <div className="ShutlLoggedIn-icon-container">
           <div className="ShutlLoggedIn-line"></div>
           <img
-            src="/icon.png"
+            src={profilePicture} // Dynamic profile picture
             alt="Navigation Icon"
             className="ShutlLoggedIn-nav-icon"
             onClick={() => togglePopup("profile")}
