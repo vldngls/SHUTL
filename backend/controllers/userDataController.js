@@ -4,7 +4,7 @@ import User from '../models/user.model.js';  // Import the users model
 
 // Save new user data
 export const saveUserData = async (req, res) => {
-    const { email, birthday, address, discount, paymentMethod, contactNumber } = req.body;
+    const { email, birthday, address, discount, paymentMethod, contactNumber, profilePicture } = req.body;
 
     try {
         // Check if the email is already in use
@@ -20,7 +20,8 @@ export const saveUserData = async (req, res) => {
             address,
             discount,
             paymentMethod,
-            contactNumber
+            contactNumber,
+            profilePicture
         });
 
         res.status(201).json({
@@ -30,7 +31,8 @@ export const saveUserData = async (req, res) => {
             address: newUserData.address,
             discount: newUserData.discount,
             paymentMethod: newUserData.paymentMethod,
-            contactNumber: newUserData.contactNumber
+            contactNumber: newUserData.contactNumber,
+            profilePicture: newUserData.profilePicture
         });
     } catch (error) {
         console.error('Error saving user data:', error);
@@ -68,95 +70,90 @@ export const getUserDataByEmail = async (req, res) => {
 };
 
 export const updateUserDataByEmail = async (req, res) => {
-    try {
-      const { email, name, birthday, address, discount, paymentMethod, contactNumber } = req.body;
-  
-      // Validate that the email is provided
+  try {
+      const { email, name, birthday, address, discount, paymentMethod, contactNumber, profilePicture } = req.body;
+
       if (!email) {
-        return res.status(400).json({ message: 'Email is required' });
+          return res.status(400).json({ message: 'Email is required' });
       }
-  
-      // Check if the user data already exists
+
       let userData = await UserData.findOne({ email });
-  
+
       if (!userData) {
-        // If no user data exists, create new user data
-        userData = new UserData({
-          email,
-          name,
-          birthday,
-          address,
-          discount,
-          paymentMethod,
-          contactNumber
-        });
+          userData = new UserData({
+              email,
+              name,
+              birthday,
+              address,
+              discount,
+              paymentMethod,
+              contactNumber,
+              profilePicture
+          });
       } else {
-        // If user data exists, update it
-        userData.name = name;
-        userData.birthday = birthday;
-        userData.address = address;
-        userData.discount = discount;
-        userData.paymentMethod = paymentMethod;
-        userData.contactNumber = contactNumber;
+          userData.name = name;
+          userData.birthday = birthday;
+          userData.address = address;
+          userData.discount = discount;
+          userData.paymentMethod = paymentMethod;
+          userData.contactNumber = contactNumber;
+          userData.profilePicture = profilePicture; // Update profile picture
       }
-  
-      // Save the new or updated user data
+
       await userData.save();
-  
-      res.status(200).json(userData); // Return the new or updated data to the client
-    } catch (error) {
+      res.status(200).json(userData);
+  } catch (error) {
       console.error('Error updating or creating user data:', error);
       res.status(500).json({ message: 'Server error' });
-    }
-  };
+  }
+};
+
   
 
 // Get user data based on JWT token from cookies
 export const getUserDataFromToken = async (req, res) => {
-    try {
+  try {
       const token = req.cookies.token;
       if (!token) {
-        return res.status(401).json({ message: 'No token provided' });
+          return res.status(401).json({ message: 'No token provided' });
       }
-  
+
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const email = decoded.email;
-  
-      // Fetch user info from users collection
+
       const user = await User.findOne({ email });
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+          return res.status(404).json({ message: 'User not found' });
       }
-  
-      // Fetch user data from userData collection
+
       let userData = await UserData.findOne({ email });
-      
+
       if (!userData) {
-        // If no userData exists, initialize with default values
-        userData = {
-          email: user.email,
-          birthday: '',
-          address: '',
-          discount: '',
-          paymentMethod: '',
-          contactNumber: ''
-        };
+          userData = {
+              email: user.email,
+              birthday: '',
+              address: '',
+              discount: '',
+              paymentMethod: '',
+              contactNumber: '',
+              profilePicture: ''
+          };
       }
-  
-      // Merge the data from both collections (add name from user collection)
+
       const mergedData = {
-        name: user.name,  // Get name from users collection
-        email: user.email,
-        birthday: userData.birthday,
-        address: userData.address,
-        discount: userData.discount,
-        paymentMethod: userData.paymentMethod,
-        contactNumber: userData.contactNumber,
+          name: user.name,
+          email: user.email,
+          birthday: userData.birthday,
+          address: userData.address,
+          discount: userData.discount,
+          paymentMethod: userData.paymentMethod,
+          contactNumber: userData.contactNumber,
+          profilePicture: userData.profilePicture // Add profile picture
       };
-  
+
       res.status(200).json(mergedData);
-    } catch (error) {
+  } catch (error) {
       console.error('Error fetching user data:', error);
       res.status(500).json({ message: 'Server error' });
-    }
-  };
+  }
+};

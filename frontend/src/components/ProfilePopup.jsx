@@ -1,23 +1,25 @@
 import React, { useRef, useEffect, useState } from 'react';
-import '../css/ProfilePopup.css'; // Ensure this path is correct
+import '../css/ProfilePopup.css';
 
 const ShutlProfilePopup = ({ onClose }) => {
   const popupRef = useRef(null);
   const [userData, setUserData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState({});
+  const [profileImage, setProfileImage] = useState(null);
 
+  // Fetch user data from the backend
   const fetchUserData = async () => {
     try {
       const response = await fetch('http://localhost:5000/api/userdata/me', {
         method: 'GET',
-        credentials: 'include',  // Send cookies
+        credentials: 'include', // Include cookies for JWT
       });
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Fetched User Data:', data); // Debugging log
         setUserData(data);
+        setProfileImage(data.profilePicture || "https://via.placeholder.com/150"); // Default image if none exists
       } else {
         console.error('Failed to fetch user data');
       }
@@ -26,12 +28,10 @@ const ShutlProfilePopup = ({ onClose }) => {
     }
   };
 
-  // Fetch user data on component load
   useEffect(() => {
     fetchUserData();
   }, []);
 
-  // Close popup when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (popupRef.current && !popupRef.current.contains(event.target)) {
@@ -45,39 +45,72 @@ const ShutlProfilePopup = ({ onClose }) => {
     };
   }, [onClose]);
 
-  // Handle form input change
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setEditedData({ ...editedData, [name]: value });
   };
 
-  // Handle profile update submission
+  // Handle image resizing and cropping
+  const resizeAndCropImage = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+
+          // Set canvas dimensions to 150x150
+          canvas.width = 150;
+          canvas.height = 150;
+
+          // Calculate the square cropping area
+          const minDim = Math.min(img.width, img.height);
+          const cropX = (img.width - minDim) / 2;
+          const cropY = (img.height - minDim) / 2;
+
+          // Draw the cropped and resized image on the canvas
+          ctx.drawImage(img, cropX, cropY, minDim, minDim, 0, 0, 150, 150);
+
+          // Convert canvas to base64 image
+          resolve(canvas.toDataURL());
+        };
+        img.onerror = reject;
+        img.src = event.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        const resizedImage = await resizeAndCropImage(file);
+        setProfileImage(resizedImage); // Update the profile image preview
+        setEditedData({ ...editedData, profilePicture: resizedImage }); // Save to edited data
+      } catch (error) {
+        console.error('Error resizing and cropping image:', error);
+      }
+    }
+  };
+
   const handleUpdateProfile = async () => {
     try {
-      // Convert and ensure correct data types
-      const updatedProfileData = {
-        email: userData.email,
-        name: editedData.name || userData.name || '',
-        birthday: editedData.birthday || userData.birthday || '',
-        address: editedData.address || userData.address || '',
-        discount: editedData.discount ? parseFloat(editedData.discount) : parseFloat(userData.discount || 0), // Ensure discount is a number
-        paymentMethod: editedData.paymentMethod || userData.paymentMethod || '',
-        contactNumber: editedData.contactNumber || userData.contactNumber || '',
-      };
-
-      console.log('Sending updated profile data:', updatedProfileData); // Debugging log
+      const updatedData = { ...editedData, email: userData.email }; // Include the user's email for identification
 
       const response = await fetch('http://localhost:5000/api/userdata/update', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updatedProfileData), // Send formatted data
+        body: JSON.stringify(updatedData),
       });
 
       if (response.ok) {
-        const updatedData = await response.json();
-        setUserData(updatedData); // Update the state with new data
+        const updatedUser = await response.json();
+        setUserData(updatedUser); // Update the state with new data
         setIsEditing(false); // Exit edit mode
       } else {
         console.error('Failed to update user data', await response.json());
@@ -87,46 +120,49 @@ const ShutlProfilePopup = ({ onClose }) => {
     }
   };
 
-  if (userData === null) return <p>Loading...</p>; // Display a loading message while fetching data
-
-  const renderField = (field, defaultValue = "N/A") => {
-    return field ? field : defaultValue;
-  };
+  if (!userData) return <p>Loading...</p>; // Show a loading message while data is being fetched
 
   return (
     <div className="ShutlProfilePopup">
       <div ref={popupRef} className="ShutlProfilePopup-content">
         {/* Profile Header Section */}
         <div className="ShutlProfilePopup-header">
-          <img
-            src={userData.profilePicture || "https://via.placeholder.com/150"}
-            alt="User Profile"
-            className="ShutlProfilePopup-picture"
-          />
-          <div className="ShutlProfilePopup-info">
-            <h2>{renderField(userData.name, "N/A")}</h2>
-            <button
-              className="ShutlProfilePopup-edit-btn"
-              onClick={() => setIsEditing(true)}
-            >
-              Edit User Profile
-            </button>
+          <div className="ShutlProfilePopup-picture-container">
+            <img
+              src={profileImage}
+              alt="Profile"
+              className="ShutlProfilePopup-picture"
+            />
+            {isEditing && (
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="ShutlProfilePopup-upload"
+              />
+            )}
           </div>
+          <h2>{userData.name || "User Name"}</h2>
+          <button
+            className="ShutlProfilePopup-edit-btn"
+            onClick={() => setIsEditing(true)}
+          >
+            Edit Profile
+          </button>
         </div>
 
-        {/* User Details Section */}
+        {/* Profile Details Section */}
         {!isEditing ? (
           <div className="ShutlProfilePopup-details">
+            <p><strong>Email:</strong> {userData.email || "N/A"}</p>
             <p><strong>Birthday:</strong> {userData.birthday ? new Date(userData.birthday).toISOString().substring(0, 10) : "N/A"}</p>
-            <p><strong>Address:</strong> {renderField(userData.address, "N/A")}</p>
-            <p><strong>Discount:</strong> {renderField(userData.discount, "N/A")}</p>
-            <p><strong>Payment Method:</strong> {renderField(userData.paymentMethod, "N/A")}</p>
-            <p><strong>Email:</strong> {renderField(userData.email, "N/A")}</p>
-            <p><strong>Contact:</strong> {renderField(userData.contactNumber, "N/A")}</p>
+            <p><strong>Address:</strong> {userData.address || "N/A"}</p>
+            <p><strong>Discount:</strong> {userData.discount || 0}%</p>
+            <p><strong>Payment Method:</strong> {userData.paymentMethod || "N/A"}</p>
+            <p><strong>Contact:</strong> {userData.contactNumber || "N/A"}</p>
           </div>
         ) : (
-          <div className="ShutlProfilePopup-details">
-            {/* Update the input types for proper data entry */}
+          <div className="ShutlProfilePopup-edit-details">
             <input
               name="name"
               type="text"
@@ -134,15 +170,13 @@ const ShutlProfilePopup = ({ onClose }) => {
               onChange={handleInputChange}
               placeholder="Name"
             />
-
             <input
               name="birthday"
-              type="date"  // Date input for birthday
+              type="date"
               value={editedData.birthday || (userData.birthday && new Date(userData.birthday).toISOString().substring(0, 10)) || ''}
               onChange={handleInputChange}
               placeholder="Birthday"
             />
-
             <input
               name="address"
               type="text"
@@ -150,15 +184,13 @@ const ShutlProfilePopup = ({ onClose }) => {
               onChange={handleInputChange}
               placeholder="Address"
             />
-
             <input
               name="discount"
-              type="number"  // Number input for discount
-              value={editedData.discount || userData.discount || ''}
+              type="number"
+              value={editedData.discount || userData.discount || 0}
               onChange={handleInputChange}
-              placeholder="Discount"
+              placeholder="Discount (%)"
             />
-
             <input
               name="paymentMethod"
               type="text"
@@ -166,22 +198,20 @@ const ShutlProfilePopup = ({ onClose }) => {
               onChange={handleInputChange}
               placeholder="Payment Method"
             />
-
             <input
               name="contactNumber"
-              type="tel"  // Telephone input for contact number
+              type="tel"
               value={editedData.contactNumber || userData.contactNumber || ''}
               onChange={handleInputChange}
               placeholder="Contact Number"
             />
-
             <button onClick={handleUpdateProfile}>Save Changes</button>
           </div>
         )}
 
-        {/* Transaction History Section with Placeholder */}
+        {/* Transaction History Section */}
         <div className="ShutlProfilePopup-transaction-history">
-          <h3>Transaction history</h3>
+          <h3>Transaction History</h3>
           <p>Transaction history feature coming soon!</p>
         </div>
       </div>

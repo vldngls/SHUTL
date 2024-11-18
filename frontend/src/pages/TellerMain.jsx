@@ -9,6 +9,7 @@ import SuggestionForm from '../components/SuggestionForm';
 import ShuttleTripTracking from '../components/ShuttleTripTracking';
 import TellerShuttleSummary from '../components/TellerShuttleSummary';
 import TellerProfile from '../components/TellerProfile';
+import ProfilePopup from "../components/ProfilePopup";
 import TellerSummary from '../components/TellerSummary'; // Import TellerSummary component
 import L from 'leaflet';
 
@@ -25,6 +26,7 @@ const TellerMain = () => {
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
   const [isMessageBoxOpen, setIsMessageBoxOpen] = useState(false);
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -39,6 +41,7 @@ const TellerMain = () => {
   }, []);
 
   const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
+  const toggleProfilePopup = () => setIsProfilePopupOpen(!isProfilePopupOpen);
   const toggleMessageBox = () => setIsMessageBoxOpen(!isMessageBoxOpen);
   const toggleSchedule = () => setIsScheduleOpen(!isScheduleOpen);
   const toggleNotification = () => setIsNotificationOpen(!isNotificationOpen);
@@ -112,7 +115,7 @@ const TellerMain = () => {
           </div>
           {/* Profile Icon at the Bottom */}
           <div className="TellerMain-navbar-bottom">
-            <button className="TellerMain-icon-btn" onClick={toggleProfile}>
+            <button className="TellerMain-icon-btn" onClick={toggleProfilePopup}>
               <img src="/teller-profile.png" alt="Profile Icon" className="TellerMain-icon-image" />
             </button>
           </div>
@@ -126,6 +129,10 @@ const TellerMain = () => {
 
       {isProfileOpen && (
         <TellerProfile onClose={toggleProfile} /> 
+      )}
+
+      {isProfilePopupOpen && (
+        <ProfilePopup onClose={toggleProfilePopup} /> 
       )}
 
       {isTripFormOpen && (

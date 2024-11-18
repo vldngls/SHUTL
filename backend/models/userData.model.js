@@ -25,6 +25,10 @@ const userDataSchema = new mongoose.Schema({
     contactNumber: {
         type: String,
         required: true
+    },
+    profilePicture: {
+        type: String,
+        default: "https://via.placeholder.com/150" // Default profile picture URL
     }
 }, {
     timestamps: true
