@@ -43,25 +43,27 @@ export const loginUser = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(400).json({ message: "Invalid credentials" });
+    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
     // Generate JWT token (Include email in the token payload)
     const token = jwt.sign(
-      { id: user._id, email: user.email, userType: user.userType }, // Include email in the token payload
+      { id: user._id, email: user.email, userType: user.userType },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    // Set cookie with the token
+    // Clear any existing token cookies
+    res.clearCookie('token'); // Optional, in case there are any stale cookies
+
+    // Set the token cookie
     res.cookie('token', token, {
-      httpOnly: true,        // Prevents access by JavaScript
-      secure: process.env.NODE_ENV === 'production',  // Only set cookies over HTTPS in production
-      sameSite: 'None',      // Essential for cross-origin requests
-      maxAge: 3600000,       // Cookie expiration (1 hour)
+      httpOnly: true,           // Prevent access via JavaScript
+      secure: process.env.NODE_ENV === 'production',  // Ensure it’s only sent over HTTPS
+      sameSite: 'None',         // Needed for cross-origin requests
+      maxAge: 3600000,          // Cookie expiration (1 hour)
     });
 
-    // Send user data and success message
+    // Respond with user info, excluding the token from the response body
     res.status(200).json({
       message: "Logged in successfully!",
       user: {
@@ -73,9 +75,11 @@ export const loginUser = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error during login:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
+
 
 // Get user count for admin dashboard
 export const getUserCount = async (req, res) => {
