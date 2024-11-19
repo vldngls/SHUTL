@@ -39,21 +39,31 @@ export const loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
+
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
       return res.status(400).json({ message: "Invalid credentials" });
 
-    // Include email in the token payload
+    // Generate JWT token (Include email in the token payload)
     const token = jwt.sign(
       { id: user._id, email: user.email, userType: user.userType }, // Include email in the token payload
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
+    // Set cookie with the token
+    res.cookie('token', token, {
+      httpOnly: true,        // Prevents access by JavaScript
+      secure: process.env.NODE_ENV === 'production',  // Only set cookies over HTTPS in production
+      sameSite: 'None',      // Essential for cross-origin requests
+      maxAge: 3600000,       // Cookie expiration (1 hour)
+    });
+
+    // Send user data and success message
     res.status(200).json({
-      token,
+      message: "Logged in successfully!",
       user: {
         _id: user._id,
         name: user.name,

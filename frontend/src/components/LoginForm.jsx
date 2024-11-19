@@ -25,7 +25,10 @@ const LoginForm = ({ onClose }) => {
 
       if (response.ok) {
         const data = await response.json();
-        document.cookie = `token=${data.token}; path=/; SameSite=None; Secure`;
+        document.cookie = `token=${data.token}; path=/; SameSite=None; ${
+  process.env.NODE_ENV === 'production' ? 'Secure' : ''
+}`;
+
 
         const userType = data.user.userType;
         if (userType === "Commuter") navigate("/ShutlLoggedIn");
