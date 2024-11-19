@@ -87,7 +87,7 @@ const ShutlLoggedOut = () => {
       </div>
 
       <div className="ShutlLoggedOut-navbar">
-        <div className="ShutlLoggedOut-logo">SHU TL.</div>
+        <div className="ShutlLoggedOut-logo">SHATOOOOL</div>
         <div className="ShutlLoggedOut-status"></div>
         <div
           className="ShutlLoggedOut-icon-container"
