@@ -64,11 +64,15 @@ export const loginUser = async (req, res) => {
 
     // Set the token cookie
     res.cookie('token', token, {
-      httpOnly: true,           // Prevent access via JavaScript
-      secure: true,  // Use only HTTPS in production
-      sameSite: 'None',         // Required for cross-origin requests
-      maxAge: 3600000,          // Cookie expiration (1 hour)
+      httpOnly: true, // Cookie can't be accessed by JavaScript
+      secure: true,   // Use HTTPS
+      sameSite: 'None', // Allow cross-origin cookies
+      maxAge: 3600000, // 1-hour expiry
     });
+    
+    // Verify token is valid before sending
+    console.log("Generated token:", token);
+    
 
     // Respond with user info (without the token)
     res.status(200).json({
