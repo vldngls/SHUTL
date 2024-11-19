@@ -1,3 +1,4 @@
+// backend/server.js
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
@@ -32,21 +33,18 @@ const server = http.createServer(app);
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(
-  cors({
-    origin: 'https://shutl.justbecause.ph', // Frontend domain
-    credentials: true, // Allow cookies to be sent
-  })
-);
+app.use(cors({
+  origin: process.env.FRONTEND_ORIGIN || 'http://localhost:5173', // Default to localhost for dev
+  credentials: true,
+}));
 
-// Routes
 app.use('/api/users', userRoutes);
 app.use('/api/userdata', userDataRoutes);
 app.use('/api/shuttle', shuttleRoutes);
 app.use('/api/fares', fareRoutes);
 app.use('/api/schedule', scheduleRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/teller', tellerRoutes);
+app.use('/api/notifications', notificationRoutes); // Include notification routes
+app.use('/api/teller', tellerRoutes); // Include teller profile routes
 
 connectDB();
 
