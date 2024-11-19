@@ -24,8 +24,9 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Dynamic API Base URL
-const socket = io(API_BASE_URL); // Dynamic WebSocket connection
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Ensure this is correctly set
+const socket = io(API_BASE_URL); // Correct WebSocket connection
+
 
 const ShutlLoggedIn = () => {
   const [dateTime, setDateTime] = useState(new Date());
@@ -37,29 +38,27 @@ const ShutlLoggedIn = () => {
   const popupRef = useRef(null);
 
   // Fetch user profile data, including the profile picture
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/userdata/me`, {
-          method: "GET",
-          credentials: "include", // Include cookies for authentication
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.profilePicture) {
-            setProfilePicture(data.profilePicture); // Set the profile picture URL
-          }
-        } else {
-          console.error("Failed to fetch user profile data");
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/userdata/me`, {
+        method: "GET",
+        credentials: "include", // Include cookies for authentication
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        if (data.profilePicture) {
+          setProfilePicture(data.profilePicture);
         }
-      } catch (error) {
-        console.error("Error fetching user profile data:", error);
+      } else {
+        console.error("Failed to fetch user profile data");
+        setProfilePicture("/icon.png");
       }
-    };
-
-    fetchUserProfile();
-  }, []);
+    } catch (error) {
+      console.error("Error fetching user profile data:", error);
+    }
+  };
+  
 
   // Fetch past notifications for the "Commuter" type on load
   useEffect(() => {
@@ -127,8 +126,9 @@ const ShutlLoggedIn = () => {
         setUserLocation(userCoords);
 
         if (mapInstance) {
-          mapInstance.setView(userCoords, 15.5, { animate: true });
+          mapInstance.flyTo(userCoords, 15.5, { animate: true }); // Use flyTo for smooth animation
         }
+        
       },
       (error) => console.error("Error accessing location", error),
       { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
