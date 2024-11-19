@@ -1,3 +1,5 @@
+import jwt from "jsonwebtoken";
+
 export const authenticateToken = (req, res, next) => {
   const token = req.cookies.token; // Extract token from cookies
   console.log("Token received from cookie:", token);
