@@ -14,9 +14,9 @@ router.post("/login", loginUser);
 router.get("/admin/user-count", getUserCount);
 router.get("/admin/users", getAllUsers);
 
-// New route to get current user's userType based on JWT
+// Route to get the current user's userType based on JWT
 router.get("/me", authenticateToken, (req, res) => {
-  console.log("Decoded user info:", req.user); // Log to verify decoded user
+  console.log("Decoded user info:", req.user);  // Log the decoded user
   res.json({ userType: req.user.userType });
 });
 

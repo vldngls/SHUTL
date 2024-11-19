@@ -4,7 +4,7 @@ import "../css/LoginForm.css";
 import RegisterForm from "./RegisterForm";
 
 const LoginForm = ({ onClose }) => {
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Use API_BASE_URL from environment variables
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -20,16 +20,13 @@ const LoginForm = ({ onClose }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ username, password }),
-        credentials: "include",
+        credentials: "include", // Make sure cookies are included
       });
 
       if (response.ok) {
         const data = await response.json();
-        document.cookie = `token=${data.token}; path=/; SameSite=None; ${
-  process.env.NODE_ENV === 'production' ? 'Secure' : ''
-}`;
 
-
+        // Do not manually set the cookie. Let the backend handle it.
         const userType = data.user.userType;
         if (userType === "Commuter") navigate("/ShutlLoggedIn");
         else if (userType === "Admin") navigate("/AdministratorMain");

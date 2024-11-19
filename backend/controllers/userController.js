@@ -45,32 +45,32 @@ export const loginUser = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-    // Generate JWT token (Make sure this is generating correctly)
+    // Generate JWT token
     const token = jwt.sign(
       { id: user._id, email: user.email, userType: user.userType },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    // Log the token to see if it's valid before setting it in the cookie
-    console.log("Generated token:", token); // This will show in your server logs
+    console.log("Generated token:", token); // Log token for debugging
 
+    // Ensure the token was generated correctly
     if (!token) {
       return res.status(500).json({ message: "Token generation failed" });
     }
 
-    // Clear any existing token cookies
-    res.clearCookie('token'); // Optional, in case there are any stale cookies
+    // Clear any existing token cookies (in case of stale cookies)
+    res.clearCookie('token');
 
     // Set the token cookie
     res.cookie('token', token, {
       httpOnly: true,           // Prevent access via JavaScript
-      secure: process.env.NODE_ENV === 'production',  // Ensure it’s only sent over HTTPS in production
-      sameSite: 'None',         // Needed for cross-origin requests
+      secure: process.env.NODE_ENV === 'production',  // Use only HTTPS in production
+      sameSite: 'None',         // Required for cross-origin requests
       maxAge: 3600000,          // Cookie expiration (1 hour)
     });
 
-    // Respond with user info, excluding the token from the response body
+    // Respond with user info (without the token)
     res.status(200).json({
       message: "Logged in successfully!",
       user: {
@@ -87,17 +87,15 @@ export const loginUser = async (req, res) => {
   }
 };
 
-// Get user count for admin dashboard
 export const getUserCount = async (req, res) => {
   try {
-    const userCount = await User.countDocuments(); // Fetch the user count
+    const userCount = await User.countDocuments();
     res.status(200).json({ count: userCount });
   } catch (error) {
     res.status(500).json({ message: "Error fetching user count", error });
   }
 };
 
-// Get all users
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find({}, "name"); // Only select the 'name' field
