@@ -45,12 +45,19 @@ export const loginUser = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-    // Generate JWT token (Include email in the token payload)
+    // Generate JWT token (Make sure this is generating correctly)
     const token = jwt.sign(
       { id: user._id, email: user.email, userType: user.userType },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
+
+    // Log the token to see if it's valid before setting it in the cookie
+    console.log("Generated token:", token); // This will show in your server logs
+
+    if (!token) {
+      return res.status(500).json({ message: "Token generation failed" });
+    }
 
     // Clear any existing token cookies
     res.clearCookie('token'); // Optional, in case there are any stale cookies
@@ -58,7 +65,7 @@ export const loginUser = async (req, res) => {
     // Set the token cookie
     res.cookie('token', token, {
       httpOnly: true,           // Prevent access via JavaScript
-      secure: process.env.NODE_ENV === 'production',  // Ensure it’s only sent over HTTPS
+      secure: process.env.NODE_ENV === 'production',  // Ensure it’s only sent over HTTPS in production
       sameSite: 'None',         // Needed for cross-origin requests
       maxAge: 3600000,          // Cookie expiration (1 hour)
     });
@@ -79,7 +86,6 @@ export const loginUser = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 // Get user count for admin dashboard
 export const getUserCount = async (req, res) => {
