@@ -1,19 +1,14 @@
 import jwt from "jsonwebtoken";
 
 export const authenticateToken = (req, res, next) => {
-  const token = req.cookies.token; // Retrieve the token from cookies
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(" ")[1];
 
-  if (!token) {
-    return res.status(401).json({ message: "No token provided" });
-  }
+  if (!token) return res.status(401).json({ message: "Unauthorized" });
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      console.error("Token verification failed:", err);
-      return res.status(403).json({ message: "Invalid or expired token" });
-    }
-
-    req.user = decoded; // Attach the decoded user data to the request object
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ message: "Forbidden" });
+    req.user = user; // Attach decoded user info to req object
     next();
   });
 };

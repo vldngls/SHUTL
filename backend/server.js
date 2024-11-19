@@ -50,7 +50,7 @@ connectDB();
 
 const io = new Server(server, {
   cors: {
-    origin: 'https://shutl.justbecause.ph',
+    origin: 'http://localhost:5173',
     credentials: true,
   },
 });

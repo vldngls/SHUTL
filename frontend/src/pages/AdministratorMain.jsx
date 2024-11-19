@@ -31,23 +31,26 @@ const AdministratorMain = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const fetchNotifications = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/notifications/user`, {
-        method: "GET",
-        credentials: "include", // Include cookies for authentication
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setNotifications(data);
-      } else {
-        console.error("Failed to fetch notifications");
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/notifications/user`, {
+          headers: {
+            Authorization: `Bearer ${getCookie("token")}`, // Replace with your token management
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setNotifications(data);
+        } else {
+          console.error("Error fetching notifications:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
       }
-    } catch (error) {
-      console.error("Error fetching notifications:", error);
-    }
-  };
-  
+    };
+    fetchNotifications();
+  }, []);
 
   useEffect(() => {
     socket.on("new_notification", (notification) => {
