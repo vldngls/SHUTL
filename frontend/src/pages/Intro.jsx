@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getTokenFromCookies } from "../utils/tokenUtils"; // Import token utility
-import "../css/Intro.css"; // Ensure this path is correct
+import { getTokenFromCookies } from "../utils/tokenUtils";
+import "../css/Intro.css";
 
 const ShutlIntro = () => {
   const navigate = useNavigate();
-  const [currentIntro, setCurrentIntro] = useState(1); // State to manage which intro is displayed
+  const [currentIntro, setCurrentIntro] = useState(1);
 
   useEffect(() => {
     const token = getTokenFromCookies();
@@ -14,22 +14,20 @@ const ShutlIntro = () => {
     if (token) {
       navigate("/ShutlLoggedIn");
     } else {
-      navigate("/ShutlLoggedOut"); // Add fallback here if token is not found
+      navigate("/ShutlLoggedOut");
     }
   }, [navigate]);
 
-  // Function to handle navigation between intros
   const handleNext = () => {
     const token = getTokenFromCookies();
-    console.log("Token on Next button click:", token); // Log token to check availability
 
     if (currentIntro < 3) {
-      setCurrentIntro(currentIntro + 1); // Move to the next intro
+      setCurrentIntro(currentIntro + 1);
     } else {
       if (token) {
-        navigate("/ShutlLoggedIn"); // Navigate to logged-in page if token is found
+        navigate("/ShutlLoggedIn");
       } else {
-        navigate("/ShutlLoggedOut"); // Otherwise, navigate to login page
+        navigate("/ShutlLoggedOut");
       }
     }
   };
@@ -63,7 +61,7 @@ const ShutlIntro = () => {
           </p>
           <p>
             <small>
-              Shuttle tracking to help you manage your time and schedule
+              Shuttle tracking to help you manage your time and schedule.
             </small>
           </p>
         </div>
