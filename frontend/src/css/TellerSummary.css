@@ -1,16 +1,53 @@
-/* TellerSummary.css */
+/* Summary header styling */
+.TellerSummary-header {
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  z-index: 5;
+  font-family: "Arial", sans-serif;
+}
+
+.TellerSummary-header h1 {
+  font-size: 36px;
+  margin: 0;
+  color: #0c0c0c; /* Set color to white */
+  font-weight: bold;
+}
+
+.TellerSummary-header p {
+  font-size: 18px;
+  margin: 5px 0 0;
+  color: #0c0c0c; /* Set color to white */
+}
 
 /* Modal overlay */
+.status-item {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+}
+.status-item button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+.status-item button:hover {
+  background-color: #0056b3;
+}
+
 .TellerSummary-modal {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6); /* Dark overlay */
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start; /* Align to the top of the screen */
+  justify-content: flex-start; /* Align to the left side */
   z-index: 1000;
   padding: 20px;
   overflow: hidden; /* Prevent overlay from scrolling */
@@ -18,18 +55,19 @@
 
 /* Summary container */
 .TellerSummary-container {
-  background-color: #ffffff;
-  padding: 30px 25px 25px; /* Extra padding to avoid overlapping with the close button */
+  background-color: #ffffff9a;
+  padding: 70px 25px 25px; /* Add more padding to push sections lower */
   border-radius: 12px;
   width: 100%;
-  max-width: 700px;
-  max-height: 90vh; /* Restrict height to viewport */
+  max-width: 750px; /* Adjust the width for left-side alignment */
+  max-height: 97vh; /* Restrict height to viewport */
   overflow-y: auto; /* Enable scrolling for content overflow */
-  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.15);
+  
   position: relative;
   font-family: "Arial", sans-serif;
   color: #333;
   box-sizing: border-box;
+  margin-left: 90px; /* Add space to move it slightly to the right */
 
   /* Hide scrollbar but keep scrolling */
   scrollbar-width: none; /* Firefox */
@@ -42,7 +80,7 @@
 
 /* Close button */
 .TellerSummary-close-btn {
-  position: fixed; /* Fixed positioning inside the container */
+  position: absolute; /* Positioned inside the container */
   top: 10px;
   right: 15px;
   background: none;
@@ -51,7 +89,6 @@
   cursor: pointer;
   color: #888;
   transition: color 0.2s ease;
-  z-index: 10; /* Ensure it appears above other elements */
 }
 
 .TellerSummary-close-btn:hover {
@@ -60,6 +97,7 @@
 
 /* Summary Section styling */
 .TellerSummary-section {
+  margin-top: 30px; /* Add margin to push sections lower */
   margin-bottom: 25px;
   padding: 25px;
   background-color: #f1f3f5;
@@ -68,7 +106,7 @@
 }
 
 /* Title and subtitle styling */
-.TellerSummary-section h3 {
+.TellerSummary-section h1 {
   font-size: 20px;
   color: #007bff;
   margin-bottom: 10px;
@@ -174,11 +212,13 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .TellerSummary-container {
+    margin-left: 30px; /* Shift container further for smaller screens */
     padding: 20px;
-    max-width: 100%;
+    max-width: 100%; /* Use full width */
   }
 
   .TellerSummary-section {
+    margin-top: 20px; /* Adjust margin for smaller screens */
     padding: 20px;
   }
 
@@ -186,45 +226,47 @@
     font-size: 18px;
   }
 
-  .TellerSummary-stats div,
-  .TellerSummary-route div,
-  .TellerSummary-fare div {
-    flex: 1 1 48%;
-    font-size: 15px;
+  .TellerSummary-stats {
+    grid-template-columns: repeat(1, 1fr); /* Single column on smaller screens */
+  }
+
+  .status-item strong {
+    font-size: 14px; /* Adjust font size */
+  }
+
+  .status-item p {
+    font-size: 13px;
+  }
+
+  .status-item button {
+    font-size: 13px; /* Smaller buttons */
   }
 }
 
 @media (max-width: 480px) {
   .TellerSummary-container {
+    margin-left: 10px; /* Further reduce margin for extra small screens */
     padding: 15px;
   }
 
   .TellerSummary-section {
+    margin-top: 15px; /* Adjust margin for extra small screens */
     padding: 15px;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
   }
 
   .TellerSummary-close-btn {
     font-size: 16px;
   }
 
-  .TellerSummary-stats div,
-  .TellerSummary-route div,
-  .TellerSummary-fare div {
-    flex: 1 1 100%;
-    font-size: 14px;
-    margin-bottom: 10px;
-  }
-
-  .TellerSummary-stats,
-  .TellerSummary-route,
-  .TellerSummary-fare {
-    flex-direction: column;
+  .TellerSummary-stats {
+    grid-template-columns: repeat(1, 1fr); /* Single column layout */
+    gap: 5px; /* Reduce spacing */
   }
 
   .status-item button,
   .transaction-btn {
-    font-size: 14px;
-    padding: 10px;
+    font-size: 12px;
+    padding: 8px; /* Smaller buttons */
   }
 }

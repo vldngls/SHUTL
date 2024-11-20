@@ -1,9 +1,8 @@
-// ShuttleTripTracking.jsx
-
 import React, { useState } from "react";
+import "../css/ShuttleTripTracking.css"; // Import the CSS file
 
 const ShuttleTripTracking = () => {
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Use API_BASE_URL from environment variables
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [tripData, setTripData] = useState({
     date: "",
     time: "",
@@ -49,11 +48,11 @@ const ShuttleTripTracking = () => {
   };
 
   return (
-    <div>
-      <h2>Shuttle Trip Tracking</h2>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Date:
+    <div className="shuttle-tracking-container">
+      <h2 className="form-title">Shuttle Trip Tracking</h2>
+      <form className="shuttle-form" onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label>Date:</label>
           <input
             type="date"
             name="date"
@@ -61,9 +60,9 @@ const ShuttleTripTracking = () => {
             onChange={handleChange}
             required
           />
-        </label>
-        <label>
-          Time:
+        </div>
+        <div className="form-group">
+          <label>Time:</label>
           <input
             type="time"
             name="time"
@@ -71,9 +70,9 @@ const ShuttleTripTracking = () => {
             onChange={handleChange}
             required
           />
-        </label>
-        <label>
-          Shuttle Number:
+        </div>
+        <div className="form-group">
+          <label>Shuttle Number:</label>
           <input
             type="text"
             name="shuttleNumber"
@@ -81,9 +80,9 @@ const ShuttleTripTracking = () => {
             onChange={handleChange}
             required
           />
-        </label>
-        <label>
-          Driver:
+        </div>
+        <div className="form-group">
+          <label>Driver:</label>
           <input
             type="text"
             name="driver"
@@ -91,16 +90,16 @@ const ShuttleTripTracking = () => {
             onChange={handleChange}
             required
           />
-        </label>
-        <label>
-          Status:
+        </div>
+        <div className="form-group">
+          <label>Status:</label>
           <select name="status" value={tripData.status} onChange={handleChange}>
             <option value="In">In</option>
             <option value="Out">Out</option>
           </select>
-        </label>
-        <label>
-          Passenger Count:
+        </div>
+        <div className="form-group">
+          <label>Passenger Count:</label>
           <input
             type="number"
             name="passengerCount"
@@ -108,8 +107,10 @@ const ShuttleTripTracking = () => {
             onChange={handleChange}
             required
           />
-        </label>
-        <button type="submit">Add Shuttle Trip</button>
+        </div>
+        <button className="submit-button" type="submit">
+          Add Shuttle Trip
+        </button>
       </form>
     </div>
   );
