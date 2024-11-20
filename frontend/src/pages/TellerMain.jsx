@@ -11,7 +11,6 @@ import TellerShuttleSummary from '../components/TellerShuttleSummary';
 import TellerProfile from '../components/TellerProfile';
 import ProfilePopup from "../components/ProfilePopup";
 import TellerSummary from '../components/TellerSummary';
-import TellerShuttleView from '../components/TellerShuttleView';
 import L from 'leaflet';
 
 // Leaflet icon settings
@@ -26,7 +25,6 @@ const TellerMain = () => {
   const navigate = useNavigate();
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
-  const [selectedShuttle, setSelectedShuttle] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
   const [isMessageBoxOpen, setIsMessageBoxOpen] = useState(false);
@@ -37,13 +35,6 @@ const TellerMain = () => {
   const [isTripFormOpen, setIsTripFormOpen] = useState(false);
   const settingsRef = useRef();
   const mapRef = useRef();
-
-  // Shuttle Data
-  const shuttles = [
-    { id: 1, name: 'Shuttle 1', roundTrip: 5, regularPassengers: 20, discountPassengers: 5 },
-    { id: 2, name: 'Shuttle 2', roundTrip: 3, regularPassengers: 15, discountPassengers: 8 },
-    { id: 3, name: 'Shuttle 3', roundTrip: 7, regularPassengers: 30, discountPassengers: 10 },
-  ];
 
   useEffect(() => {
     const timer = setInterval(() => setDateTime(new Date()), 1000);
@@ -75,13 +66,6 @@ const TellerMain = () => {
   const toggleSummary = () => setIsSummaryOpen(!isSummaryOpen);
   const openTripForm = () => setIsTripFormOpen(true);
   const closeTripForm = () => setIsTripFormOpen(false);
-
-  const openShuttleView = (shuttleId) => {
-    const shuttle = shuttles.find((shuttle) => shuttle.id === shuttleId);
-    setSelectedShuttle(shuttle);
-  };
-
-  const closeShuttleView = () => setSelectedShuttle(null);
 
   return (
     <>
@@ -153,27 +137,10 @@ const TellerMain = () => {
 
       {/* Right-side Shuttle Buttons */}
       <div className="TellerMain-right-buttons">
-        {shuttles.map((shuttle) => (
-          <button
-            key={shuttle.id}
-            className="TellerMain-right-btn"
-            onClick={() => openShuttleView(shuttle.id)}
-          >
-            {shuttle.name}
-          </button>
-        ))}
+        <button className="TellerMain-right-btn">Shuttle 1</button>
+        <button className="TellerMain-right-btn">Shuttle 2</button>
+        <button className="TellerMain-right-btn">Shuttle 3</button>
       </div>
-
-      {/* Shuttle View Popup */}
-      {selectedShuttle && (
-        <TellerShuttleView
-          shuttleName={selectedShuttle.name}
-          roundTrip={selectedShuttle.roundTrip}
-          regularPassengers={selectedShuttle.regularPassengers}
-          discountPassengers={selectedShuttle.discountPassengers}
-          onClose={closeShuttleView}
-        />
-      )}
 
       {/* Modals and Popups */}
       {isSummaryOpen && <TellerSummary onClose={() => setIsSummaryOpen(false)} />}
