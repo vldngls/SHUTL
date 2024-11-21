@@ -1,4 +1,4 @@
-/* ShutlIntro Component Styles */
+/* General container styles */
 .ShutlIntro-intro-container {
   display: flex;
   flex-direction: column;
@@ -7,22 +7,57 @@
   min-height: 100vh;
   position: relative;
   padding: 0 20px; /* Add padding to avoid content being too close to the edges */
+  overflow: hidden; /* Prevent content overflow during animation */
 }
 
-.ShutlIntro-intro-image {
-  width: 80%; /* Default width relative to container */
-  max-width: 600px; /* Max width to avoid being too large */
-  height: auto; /* Maintain aspect ratio */
-}
-
-/* Styling for content areas in intros */
+/* Fix the positioning for intro content */
 .ShutlIntro-intro-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  position: relative;
+  position: absolute; /* Stack slides on top of each other for animation */
+  top: 50%; /* Center vertically */
+  left: 50%; /* Center horizontally */
+  transform: translate(-50%, -50%); /* Adjust to truly center */
+  animation: fadeIn 0.5s ease forwards; /* Default animation for the next slide */
+}
+
+/* Intro image styles */
+.ShutlIntro-intro-image {
+  width: 80%; /* Default width relative to container */
+  max-width: 600px; /* Max width to avoid being too large */
+  height: auto; /* Maintain aspect ratio */
+  margin-bottom: 20px; /* Space below the image */
+}
+
+/* Add a fade-out animation */
+.ShutlIntro-intro-content.fade-out {
+  animation: fadeOut 0.5s ease forwards;
+}
+
+/* Keyframes for fade-in */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) translate(-50%, -50%); /* Adjust for smooth animation */
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) translate(-50%, -50%);
+  }
+}
+
+/* Keyframes for fade-out */
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) translate(-50%, -50%);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) translate(-50%, -50%);
+  }
 }
 
 /* Fixed button styling */
@@ -76,6 +111,8 @@
 }
 
 /* Media Queries */
+
+/* For medium-sized screens */
 @media (max-width: 768px) {
   .ShutlIntro-intro-image {
     width: 90%; /* Adjust width for smaller screens */
@@ -93,6 +130,7 @@
   }
 }
 
+/* For small screens */
 @media (max-width: 480px) {
   .ShutlIntro-intro-image {
     width: 100%; /* Full width for very small screens */

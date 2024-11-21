@@ -4,7 +4,7 @@ import { getTokenFromCookies } from "../utils/tokenUtils";
 import "../css/SplashScreen.css";
 
 const SplashScreen = () => {
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Use API_BASE_URL from environment variables
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,34 +22,39 @@ const SplashScreen = () => {
             const data = await response.json();
             const userType = data.userType;
 
-            // Navigate based on userType
-            if (userType === "Commuter") navigate("/ShutlLoggedIn");
-            else if (userType === "Driver") navigate("/DriverMain");
-            else if (userType === "Admin") navigate("/AdministratorMain");
-            else if (userType === "Teller") navigate("/TellerMain");
+            // Navigate based on user type
+            if (userType === "Commuter") {
+              navigate("/ShutlLoggedIn");
+            } else if (userType === "Driver") {
+              navigate("/DriverMain");
+            } else if (userType === "Admin") {
+              navigate("/AdministratorMain");
+            } else if (userType === "Teller") {
+              navigate("/TellerMain");
+            }
           } else {
-            navigate("/ShutlIntro"); // Navigate to intro if token is invalid
+            navigate("/ShutlIntro"); // Invalid token, navigate to Intro
           }
         } catch (error) {
-          console.error("Error fetching user type:", error);
-          navigate("/ShutlIntro"); // Navigate to intro on error
+          console.error("Error verifying user:", error);
+          navigate("/ShutlIntro"); // Error handling
         }
       } else {
-        navigate("/ShutlIntro"); // No token, go to intro
+        navigate("/ShutlIntro"); // No token, go to Intro
       }
     };
 
-    // Set a timer to display splash screen for a few seconds, then handle navigation
+    // Delay navigation to allow splash animation to finish
     const timer = setTimeout(() => {
       handleNavigation();
-    }, 3250); // Adjust time if needed
+    }, 3250); // Matches the animation duration
 
-    return () => clearTimeout(timer);
+    return () => clearTimeout(timer); // Cleanup timeout on unmount
   }, [navigate, API_BASE_URL]);
 
   return (
     <div className="splash-container">
-      <h1 className="splash-text">SHUTL</h1>
+      <h1 className="splash-text">SHUTL.</h1>
     </div>
   );
 };

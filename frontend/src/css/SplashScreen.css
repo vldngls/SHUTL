@@ -1,35 +1,27 @@
-/* Container styling */
 .splash-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background: #fff; /* Optional: Set background color */
+  height: 100vh;
+  background-color: #f5f5f5; /* Adjust as needed */
+  animation: fadeInOut 3.25s ease-in-out forwards;
 }
 
-/* Text styling */
 .splash-text {
-  font-size: 10rem; /* Use rem for a large font size, equivalent to 128px */
-  font-weight: bold; /* Optional: Make text bold */
-  color: #000; /* Optional: Set text color */
-  margin: 0;
-  text-align: center;
-  animation: fadeInOut 3s ease-in-out; /* Apply fade animation */
+  font-size: 3rem;
+  font-weight: bold;
+  color: #232323;
 }
 
-/* Keyframes for fade-in and fade-out animation */
 @keyframes fadeInOut {
   0% {
-    opacity: 0; /* Start fully transparent */
+    opacity: 0;
   }
-  25% {
-    opacity: 1; /* Fade in to fully visible */
+  10% {
+    opacity: 1;
   }
-  75% {
-    opacity: 1; /* Stay fully visible */
-  }
-  80% {
-    opacity: 0; /* Fade out to fully transparent */
+  90% {
+    opacity: 1;
   }
   100% {
     opacity: 0;
