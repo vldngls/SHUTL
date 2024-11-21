@@ -14,11 +14,13 @@ const ProtectedRoute = ({ element, allowedRoles }) => {
           credentials: "include", // Include cookies for HttpOnly token
         });
     
-        if (response.ok) {
+        const contentType = response.headers.get("Content-Type");
+    
+        if (response.ok && contentType.includes("application/json")) {
           const data = await response.json();
           setUserType(data.userType);
         } else {
-          const errorText = await response.text(); // Read the full response as text
+          const errorText = await response.text(); // Handle non-JSON response
           console.error("Failed to fetch user type:", errorText);
         }
       } catch (error) {
@@ -27,6 +29,7 @@ const ProtectedRoute = ({ element, allowedRoles }) => {
         setLoading(false);
       }
     };
+    
     
 
     fetchUserType(); // Call the function to fetch user type
