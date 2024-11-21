@@ -9,17 +9,17 @@ const ProtectedRoute = ({ element, allowedRoles }) => {
   useEffect(() => {
     const fetchUserType = async () => {
       try {
-        // Fetch user type from the backend
         const response = await fetch(`${API_BASE_URL}/users/me`, {
           method: "GET",
           credentials: "include", // Include cookies for HttpOnly token
         });
-
+    
         if (response.ok) {
           const data = await response.json();
           setUserType(data.userType);
         } else {
-          console.error("Failed to fetch user type:", await response.json());
+          const errorText = await response.text(); // Read the full response as text
+          console.error("Failed to fetch user type:", errorText);
         }
       } catch (error) {
         console.error("Error fetching user type:", error);
@@ -27,6 +27,7 @@ const ProtectedRoute = ({ element, allowedRoles }) => {
         setLoading(false);
       }
     };
+    
 
     fetchUserType(); // Call the function to fetch user type
   }, [API_BASE_URL]);
