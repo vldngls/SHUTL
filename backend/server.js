@@ -1,13 +1,13 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
-import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 import { Server } from 'socket.io';
 import http from 'http';
 
-import connectDB from './config/db.js';
+import mongoose from 'mongoose';
+
 import fareRoutes from './routes/fareRoutes.js';
 import userDataRoutes from './routes/userDataRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -19,12 +19,29 @@ import tellerRoutes from './routes/tellerRoutes.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+// MongoDB Connection String
+const MONGO_URI =
+  'mongodb+srv://xennn106:sOjnGGKmgkFIPncI@cluster0.v5y6z.mongodb.net/shutlUsers?retryWrites=true&w=majority';
 
-if (!process.env.MONGO_URI) {
-  console.error('MongoDB connection string (MONGO_URI) is missing in .env file');
-  process.exit(1);
-}
+// JWT Secret
+const JWT_SECRET = 'ThisisShutLBananaShuttleStronk04182002!@';
+
+// Frontend Origin
+const FRONTEND_ORIGIN = 'https://shutl.justbecause.ph';
+
+// MongoDB Connection
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error(`MongoDB Connection Error: ${error.message}`);
+    process.exit(1);
+  }
+};
 
 const app = express();
 const server = http.createServer(app);
@@ -34,7 +51,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: 'https://shutl.justbecause.ph', // Frontend domain
+    origin: FRONTEND_ORIGIN, // Frontend domain
     credentials: true, // Allow cookies to be sent
   })
 );
@@ -52,7 +69,7 @@ connectDB();
 
 const io = new Server(server, {
   cors: {
-    origin: 'https://shutl.justbecause.ph',
+    origin: FRONTEND_ORIGIN,
     credentials: true,
   },
 });
@@ -65,10 +82,7 @@ io.on('connection', (socket) => {
   });
 });
 
-export { io };
-
-const PORT = process.env.PORT || 5000;
+const PORT = 5000; // Hardcoded port
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
- //test
