@@ -1,17 +1,16 @@
 import TellerProfile from "../models/tellerProfile.model.js";
+import jwt from "jsonwebtoken";
 
-// POST - Create or Update Teller Profile
+// Create or Update Teller Profile
 export const createOrUpdateTellerProfile = async (req, res) => {
-  const { name, age, address, email, birthday, position, profileImage } =
-    req.body;
+  const { name, age, address, email, birthday, position, profileImage } = req.body;
 
-  // Simple validation check for required fields
   if (!name || !age || !address || !email || !birthday || !position) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
   try {
-    // Find an existing profile by email
+    // Find existing profile by email
     let profile = await TellerProfile.findOne({ email });
 
     if (profile) {
@@ -41,28 +40,34 @@ export const createOrUpdateTellerProfile = async (req, res) => {
       return res.status(201).json(profile);
     }
   } catch (error) {
-    // Updated error handling for specific duplicate key errors and other server errors
     if (error.code === 11000) {
-      // Mongoose duplicate key error
-      console.error("Duplicate email error:", error);
       return res.status(400).json({ message: "Email already exists" });
     }
-    console.error("Server error:", error);
+    console.error("Error creating/updating profile:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-// GET - Fetch Teller Profile by Email
+// Fetch Teller Profile by Email
 export const fetchTellerProfileByEmail = async (req, res) => {
-  const { email } = req.params;
+  const { email } = req.params; // Get email from the request params
 
   try {
+    // Validate email presence
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    // Find the profile by email
     const profile = await TellerProfile.findOne({ email });
-    if (profile) {
-      return res.status(200).json(profile);
-    } else {
+
+    // Check if profile exists
+    if (!profile) {
       return res.status(404).json({ message: "Profile not found" });
     }
+
+    // Return the profile
+    return res.status(200).json(profile);
   } catch (error) {
     console.error("Error fetching profile:", error);
     return res.status(500).json({ message: "Server error" });

@@ -2,13 +2,30 @@ import React, { useState, useEffect } from "react";
 import "../css/TellerProfile.css";
 
 const TellerProfile = ({ onClose, onImageChange }) => {
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Use API_BASE_URL for backend endpoints
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+    return null;
+  };
+
+  const token = getCookie("token");
+
+  let email = "";
+  try {
+    const decodedToken = JSON.parse(atob(token.split(".")[1]));
+    email = decodedToken.email;
+  } catch (error) {
+    console.error("Invalid token:", error);
+  }
 
   const initialProfileData = {
     name: "",
-    age: 0,
+    age: "",
     address: "",
-    email: "johndoe@example.com",
+    email: email || "",
     birthday: "",
     position: "",
     profileImage: "/teller-profile.png",
@@ -16,13 +33,17 @@ const TellerProfile = ({ onClose, onImageChange }) => {
 
   const [profileData, setProfileData] = useState(initialProfileData);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
+    if (!email) {
+      console.error("No valid email found in token.");
+      return;
+    }
+
     const fetchProfileData = async () => {
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/teller/${profileData.email}`
-        );
+        const response = await fetch(`${API_BASE_URL}/teller/${email}`);
         if (!response.ok) {
           if (response.status === 404) {
             console.error("Profile not found");
@@ -35,7 +56,7 @@ const TellerProfile = ({ onClose, onImageChange }) => {
             ...fetchedProfile,
             birthday: fetchedProfile.birthday
               ? new Date(fetchedProfile.birthday).toISOString().split("T")[0]
-              : "", // Ensure birthday is formatted correctly
+              : "",
           });
         }
       } catch (error) {
@@ -44,7 +65,7 @@ const TellerProfile = ({ onClose, onImageChange }) => {
     };
 
     fetchProfileData();
-  }, []);
+  }, [email]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -55,17 +76,55 @@ const TellerProfile = ({ onClose, onImageChange }) => {
     if (isEditMode) {
       const file = e.target.files[0];
       if (file) {
+        const img = new Image();
         const reader = new FileReader();
-        reader.onloadend = () => {
-          setProfileData({ ...profileData, profileImage: reader.result });
-          onImageChange(reader.result); // Update image in parent component
+
+        reader.onload = () => {
+          img.src = reader.result;
         };
+
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const context = canvas.getContext("2d");
+
+          const size = 150;
+          canvas.width = size;
+          canvas.height = size;
+
+          const minSize = Math.min(img.width, img.height);
+          const sx = (img.width - minSize) / 2;
+          const sy = (img.height - minSize) / 2;
+
+          context.drawImage(img, sx, sy, minSize, minSize, 0, 0, size, size);
+
+          const croppedImage = canvas.toDataURL("image/png");
+          setProfileData({ ...profileData, profileImage: croppedImage });
+          onImageChange(croppedImage);
+        };
+
         reader.readAsDataURL(file);
       }
     }
   };
 
+  const validateFields = () => {
+    const newErrors = {};
+    if (!profileData.name) newErrors.name = "Name is required.";
+    if (!profileData.age) newErrors.age = "Age is required.";
+    if (!profileData.address) newErrors.address = "Address is required.";
+    if (!profileData.email) newErrors.email = "Email is required.";
+    if (!profileData.birthday) newErrors.birthday = "Birthday is required.";
+    if (!profileData.position) newErrors.position = "Position is required.";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0; // Return true if no errors
+  };
+
   const handleSave = async () => {
+    if (!validateFields()) {
+      console.error("Validation failed. Please fill in all required fields.");
+      return;
+    }
+
     try {
       const response = await fetch(`${API_BASE_URL}/teller`, {
         method: "POST",
@@ -127,6 +186,7 @@ const TellerProfile = ({ onClose, onImageChange }) => {
               onChange={handleInputChange}
               readOnly={!isEditMode}
             />
+            {errors.name && <span className="TellerProfile-error">{errors.name}</span>}
           </label>
           <label>
             Age:
@@ -137,6 +197,7 @@ const TellerProfile = ({ onClose, onImageChange }) => {
               onChange={handleInputChange}
               readOnly={!isEditMode}
             />
+            {errors.age && <span className="TellerProfile-error">{errors.age}</span>}
           </label>
           <label>
             Address:
@@ -147,6 +208,7 @@ const TellerProfile = ({ onClose, onImageChange }) => {
               onChange={handleInputChange}
               readOnly={!isEditMode}
             />
+            {errors.address && <span className="TellerProfile-error">{errors.address}</span>}
           </label>
           <label>
             Email:
@@ -154,8 +216,7 @@ const TellerProfile = ({ onClose, onImageChange }) => {
               type="email"
               name="email"
               value={profileData.email}
-              onChange={handleInputChange}
-              readOnly={!isEditMode}
+              readOnly
             />
           </label>
           <label>
@@ -167,6 +228,9 @@ const TellerProfile = ({ onClose, onImageChange }) => {
               onChange={handleInputChange}
               readOnly={!isEditMode}
             />
+            {errors.birthday && (
+              <span className="TellerProfile-error">{errors.birthday}</span>
+            )}
           </label>
           <label>
             Position:
@@ -177,6 +241,9 @@ const TellerProfile = ({ onClose, onImageChange }) => {
               onChange={handleInputChange}
               readOnly={!isEditMode}
             />
+            {errors.position && (
+              <span className="TellerProfile-error">{errors.position}</span>
+            )}
           </label>
         </div>
 

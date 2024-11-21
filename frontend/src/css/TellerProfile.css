@@ -14,6 +14,11 @@
   z-index: 1000;
   padding: 10px; /* Padding to avoid edge clipping on small screens */
 }
+.TellerProfile-error {
+  color: red;
+  font-size: 12px;
+  margin-top: 5px;
+}
 
 /* Profile container */
 .TellerProfile-container {
@@ -172,3 +177,4 @@
     font-size: 13px;
   }
 }
+
