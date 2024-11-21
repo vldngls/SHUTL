@@ -5,7 +5,8 @@ import {
   getUserCount,
   getAllUsers,
 } from "../controllers/userController.js";
-import { authenticateToken } from "../middleware/authenticateToken.js";
+import authenticateToken from "../middleware/authenticateToken.js";
+
 
 const router = express.Router();
 
