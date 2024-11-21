@@ -1,50 +1,59 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getTokenFromCookies } from "../utils/tokenUtils";
 import "../css/SplashScreen.css";
 
 const SplashScreen = () => {
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Use API_BASE_URL from environment variables
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = getTokenFromCookies();
-
     const handleNavigation = async () => {
-      if (token) {
-        try {
-          const response = await fetch(`${API_BASE_URL}/users/me`, {
-            headers: { Authorization: `Bearer ${token}` },
-            credentials: "include",
-          });
+      try {
+        // Send request to backend to verify token and get user type
+        const response = await fetch(`${API_BASE_URL}/users/me`, {
+          method: "GET",
+          credentials: "include", // Include HttpOnly cookies in the request
+        });
 
-          if (response.ok) {
-            const data = await response.json();
-            const userType = data.userType;
+        if (response.ok) {
+          const data = await response.json();
+          console.log("User data:", data); // Debugging
+          const userType = data.userType;
 
-            // Navigate based on userType
-            if (userType === "Commuter") navigate("/ShutlLoggedIn");
-            else if (userType === "Driver") navigate("/DriverMain");
-            else if (userType === "Admin") navigate("/AdministratorMain");
-            else if (userType === "Teller") navigate("/TellerMain");
-          } else {
-            navigate("/ShutlIntro"); // Navigate to intro if token is invalid
+          // Navigate based on user type
+          switch (userType) {
+            case "Commuter":
+              navigate("/ShutlLoggedIn");
+              break;
+            case "Driver":
+              navigate("/DriverMain");
+              break;
+            case "Admin":
+              navigate("/AdministratorMain");
+              break;
+            case "Teller":
+              navigate("/TellerMain");
+              break;
+            default:
+              console.warn("Unknown userType:", userType);
+              navigate("/ShutlIntro");
           }
-        } catch (error) {
-          console.error("Error fetching user type:", error);
-          navigate("/ShutlIntro"); // Navigate to intro on error
+        } else {
+          console.warn("Token invalid or user not authenticated. Redirecting to intro...");
+          navigate("/ShutlIntro");
         }
-      } else {
-        navigate("/ShutlIntro"); // No token, go to intro
+      } catch (error) {
+        console.error("Error during navigation:", error);
+        navigate("/ShutlIntro"); // Redirect to intro on error
       }
     };
 
-    // Set a timer to display splash screen for a few seconds, then handle navigation
+    // Display splash screen for a short duration before handling navigation
     const timer = setTimeout(() => {
       handleNavigation();
-    }, 3250); // Adjust time if needed
+    }, 3250); // 3.25 seconds delay for splash screen
 
-    return () => clearTimeout(timer);
+    return () => clearTimeout(timer); // Cleanup timer on component unmount
   }, [navigate, API_BASE_URL]);
 
   return (

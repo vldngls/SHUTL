@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { getTokenFromCookies } from "../utils/tokenUtils";
 
 const ProtectedRoute = ({ element, allowedRoles }) => {
   const [userType, setUserType] = useState(null);
   const [loading, setLoading] = useState(true);
-  const token = getTokenFromCookies();
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     const fetchUserType = async () => {
       try {
+        // Fetch user type from the backend
         const response = await fetch(`${API_BASE_URL}/users/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-          credentials: "include",
+          method: "GET",
+          credentials: "include", // Include cookies for HttpOnly token
         });
 
         if (response.ok) {
@@ -29,16 +28,20 @@ const ProtectedRoute = ({ element, allowedRoles }) => {
       }
     };
 
-    if (token) fetchUserType();
-  }, [token]);
+    fetchUserType(); // Call the function to fetch user type
+  }, [API_BASE_URL]);
 
-  if (loading) return null; // Optional: Display a loading screen if needed
+  if (loading) {
+    // Optional: Display a loading spinner while fetching
+    return <div>Loading...</div>;
+  }
 
-  if (!token || !userType || !allowedRoles.includes(userType)) {
+  if (!userType || !allowedRoles.includes(userType)) {
+    // Redirect to the login or logged-out page if unauthorized
     return <Navigate to="/ShutlLoggedOut" />;
   }
 
-  return element;
+  return element; // Render the protected element if authorized
 };
 
 export default ProtectedRoute;
