@@ -9,7 +9,8 @@ const ShutlIntro = () => {
 
   useEffect(() => {
     const token = getTokenFromCookies();
-    console.log("Token found in cookies:", token);
+    console.log("All cookies:", document.cookie); // Log all cookies
+    console.log("Token found in cookies:", token); // Log the token
 
     if (token) {
       navigate("/ShutlLoggedIn");
@@ -20,6 +21,7 @@ const ShutlIntro = () => {
 
   const handleNext = () => {
     const token = getTokenFromCookies();
+    console.log("Token on Next button click:", token); // Log token on click
 
     if (currentIntro < 3) {
       setCurrentIntro(currentIntro + 1);
