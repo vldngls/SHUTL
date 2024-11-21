@@ -135,6 +135,13 @@ const TellerMain = () => {
         </div>
       </div>
 
+      {/* Right-side Shuttle Buttons */}
+      <div className="TellerMain-right-buttons">
+        <button className="TellerMain-right-btn">Shuttle 1</button>
+        <button className="TellerMain-right-btn">Shuttle 2</button>
+        <button className="TellerMain-right-btn">Shuttle 3</button>
+      </div>
+
       {/* Modals and Popups */}
       {isSummaryOpen && <TellerSummary onClose={() => setIsSummaryOpen(false)} />}
       {isProfileOpen && <TellerProfile onClose={toggleProfile} />}

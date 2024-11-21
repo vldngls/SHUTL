@@ -1,0 +1,184 @@
+.CollectFare-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Slightly darker backdrop for better contrast */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it appears above other elements */
+}
+
+.CollectFare-container {
+    background: #ffffff; /* Clean white background */
+    padding: 30px; /* Increase padding for better spacing */
+    border-radius: 12px; /* More rounded corners for a modern look */
+    width: 420px; /* Slightly wider container for content */
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3); /* Stronger shadow for depth */
+    display: flex;
+    flex-direction: column; /* Align content vertically */
+    align-items: stretch; /* Stretch child elements to fit container width */
+}
+
+.fare-calculator {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Increased spacing for clearer grouping */
+}
+
+.fare-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px; /* Slightly larger font for readability */
+    padding: 10px 0; /* Add spacing between rows */
+    border-bottom: 1px solid #e0e0e0; /* Light separator for visual grouping */
+}
+
+.fare-row > * {
+    flex: 1; /* Ensure equal spacing between items */
+    text-align: left; /* Align text to the left for readability */
+}
+
+.fare-row span:last-child {
+    text-align: right; /* Align right-hand content for consistency */
+}
+.fare-row button {
+    width: 32px; /* Set width for square shape */
+    height: 32px; /* Set height for square shape */
+    font-size: 16px; /* Adjust font size for better readability */
+    border-radius: 4px; /* Slightly rounded corners for a modern look */
+    background-color: #007bff; /* Blue color for buttons */
+    color: white; /* White text for contrast */
+    border: none; /* Remove default borders */
+    cursor: pointer; /* Pointer cursor for interaction */
+    display: flex; /* Center align text horizontally */
+    align-items: center; /* Center align text vertically */
+    justify-content: center; /* Ensure text is perfectly centered */
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth hover effect */
+    margin: 0 5px; /* Add horizontal space between buttons */
+}
+
+.fare-row button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+    transform: scale(1.05); /* Slight zoom effect on hover */
+}
+
+.button-group {
+    display: flex; /* Arrange buttons horizontally */
+    justify-content: center; /* Center-align buttons within the group */
+    gap: 10px; /* Add space between buttons */
+}
+
+.fare-row button:disabled {
+    background-color: #d6d6d6; /* Light gray when disabled */
+    color: #999; /* Muted text color */
+    cursor: not-allowed; /* Disable interaction */
+}
+
+.fare-tender input {
+    width: 100%; /* Make the input box take full width of its container */
+    height: 40px; /* Increase height for better usability */
+    font-size: 16px; /* Larger font size for readability */
+    padding: 5px 10px; /* Add inner padding for better spacing */
+    border: 1px solid #ccc; /* Add a light border for visibility */
+    border-radius: 6px; /* Rounded edges for a modern look */
+    box-sizing: border-box; /* Ensure padding doesn't affect the total width */
+}
+
+.fare-tender input:focus {
+    outline: none; /* Remove default outline on focus */
+    border-color: #007bff; /* Highlight border with blue color on focus */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Add a subtle glow effect */
+}
+.fare-total {
+    margin-bottom: 20px; /* Add space below the Total section */
+    font-weight: bold;
+    font-size: 18px;
+    text-align: left;
+    color: #333;
+    border-top: 1px solid #e0e0e0; /* Optional separator */
+    padding-top: 10px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.fare-tender {
+    margin-top: 20px; /* Add space above the Tender section */
+}
+
+.fare-tender input {
+    width: 100%; /* Make the input box take full width of its container */
+    height: 40px; /* Increase height for better usability */
+    font-size: 16px; /* Larger font size for readability */
+    padding: 5px 10px; /* Add inner padding for better spacing */
+    border: 1px solid #ccc; /* Add a light border for visibility */
+    border-radius: 6px; /* Rounded edges for a modern look */
+    box-sizing: border-box; /* Ensure padding doesn't affect the total width */
+}
+
+.fare-tender input:focus {
+    outline: none; /* Remove default outline on focus */
+    border-color: #007bff; /* Highlight border with blue color on focus */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Add a subtle glow effect */
+}
+
+.fare-change {
+    margin-top: 15px; /* Add consistent spacing between key sections */
+    font-weight: bold; /* Emphasize important fare details */
+    font-size: 18px; /* Larger font for better visibility */
+    text-align: left; /* Align text to the left */
+    color: #333; /* Darker text for better contrast */
+    border-top: 1px solid #e0e0e0; /* Add separator for clarity */
+    padding-top: 10px; /* Add padding above totals */
+    display: flex; /* Use flex for label and value alignment */
+    justify-content: space-between; /* Separate label and value */
+}
+
+.fare-total span,
+.fare-tender span,
+.fare-change span {
+    font-weight: normal; /* Lighter font for the value */
+}
+
+.fare-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px; /* Create space above buttons */
+    gap: 10px; /* Add space between buttons */
+}
+
+button {
+    padding: 12px 20px; /* Larger buttons for better usability */
+    cursor: pointer;
+    border: none; /* Remove default button borders */
+    border-radius: 6px; /* Slightly rounded button edges for modern design */
+    font-size: 16px; /* Larger font for better readability */
+    font-weight: bold; /* Emphasize action buttons */
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth hover effect */
+}
+
+button:hover {
+    opacity: 0.9; /* Slight transparency on hover */
+}
+
+button.primary {
+    background-color: #007bff; /* Primary blue color */
+    color: white; /* White text */
+}
+
+button.primary:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+button.secondary {
+    background-color: #f8f9fa; /* Light gray for secondary actions */
+    color: #333; /* Dark text for contrast */
+    border: 1px solid #e0e0e0; /* Add border for definition */
+}
+
+button.secondary:hover {
+    background-color: #e9ecef; /* Slightly darker gray on hover */
+}

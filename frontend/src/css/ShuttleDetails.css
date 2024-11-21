@@ -1,0 +1,108 @@
+.collect-fare-btn {
+    background-color: #232323; /* Green background for the button */
+    color: white; /* White text */
+    border: none;
+    padding: 10px 20px;
+    margin-top: 20px;
+    cursor: pointer;
+    width: 100%; /* Full-width button */
+    border-radius: 5px; /* Rounded corners */
+    font-size: 16px; /* Slightly larger text */
+    font-weight: regular; /* Bold text */
+  }
+  
+  .collect-fare-btn:hover {
+    background-color: #4e4e4e; /* Darker green on hover */
+  }
+  
+.ShuttleDetails-modal {
+    position: fixed;
+    top: 0;
+    right: 600px; /* Default position for larger screens */
+    width: calc(100% - 20px); /* Reduce the overlay width slightly */
+    height: 42%; /* Adjust modal height */
+    display: flex;
+    justify-content: flex-end; /* Keep content pushed to the right */
+    align-items: flex-start; /* Align content to the top */
+  }
+  
+  .ShuttleDetails-container {
+    background-color: #f1f3f5;
+    padding: 20px;
+    border-radius: 10px;
+    width: 400px; /* Maintain the modal width on larger screens */
+    height: 90%; /* Increase modal height */
+    margin-top: 10%; /* Add spacing from the top */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25); /* Add shadow for visual appeal */
+    overflow-y: auto; /* Enable scrolling for overflow content */
+  }
+  
+  .ShuttleDetails-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .ShuttleDetails-content {
+    margin-top: 20px;
+  }
+  
+  .ShuttleDetails-stats {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .ShuttleDetails-log ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .close-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin-top: 20px;
+    cursor: pointer;
+    width: 100%;
+    border-radius: 5px;
+  }
+  .close-btn:hover {
+    background-color: #0056b3;
+  }
+  /* Responsive Design for Smaller Screens */
+@media (max-width: 1200px) {
+    .ShuttleDetails-modal {
+      right: 400px; /* Shift the modal further left for smaller screens */
+    }
+  }
+  
+  @media (max-width: 992px) {
+    .ShuttleDetails-modal {
+      right: 200px; /* Adjust modal for medium-sized screens */
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .ShuttleDetails-modal {
+      right: 50px; /* Move modal closer to the edge */
+      justify-content: center; /* Center the modal for smaller screens */
+    }
+  
+    .ShuttleDetails-container {
+      width: 90%; /* Make the modal width dynamic for smaller screens */
+      height: 80%; /* Reduce height slightly for smaller screens */
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .ShuttleDetails-modal {
+      right: 0; /* Fully center modal on very small screens */
+      justify-content: center;
+    }
+  
+    .ShuttleDetails-container {
+      width: 95%; /* Take up almost the full width */
+      height: 75%; /* Adjust modal height for better fit */
+      margin-top: 5%; /* Reduce margin for smaller screens */
+    }
+  }
