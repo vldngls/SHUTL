@@ -10,8 +10,8 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
   const [discountedCount, setDiscountedCount] = useState(shuttle.discounted || 0);
 
   // Regular and discounted fare rates (adjust these as needed)
-  const REGULAR_FARE = 50;
-  const DISCOUNTED_FARE = 30;
+  const REGULAR_FARE = 30;
+  const DISCOUNTED_FARE = 28;
 
   // Calculate total fare
   const totalFare = regularCount * REGULAR_FARE + discountedCount * DISCOUNTED_FARE;
