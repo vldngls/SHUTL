@@ -5,9 +5,16 @@ import CollectFare from "./CollectFare";
 const ShuttleDetails = ({ shuttle, onClose }) => {
   const [showCollectFare, setShowCollectFare] = useState(false);
 
-  // Add state to track Regular and Discounted counts
+  // State to track Regular and Discounted counts
   const [regularCount, setRegularCount] = useState(shuttle.regular || 0);
   const [discountedCount, setDiscountedCount] = useState(shuttle.discounted || 0);
+
+  // Regular and discounted fare rates (adjust these as needed)
+  const REGULAR_FARE = 50;
+  const DISCOUNTED_FARE = 30;
+
+  // Calculate total fare
+  const totalFare = regularCount * REGULAR_FARE + discountedCount * DISCOUNTED_FARE;
 
   // Function to update counts from CollectFare
   const handleUpdateCounts = (newRegular, newDiscounted) => {
@@ -49,6 +56,11 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
               <strong>{shuttle.pickUpNotify}</strong>
               <br />
               Pick-up Notify
+            </div>
+            <div>
+              <strong>₱{totalFare}</strong>
+              <br />
+              Total Fare
             </div>
           </div>
 
