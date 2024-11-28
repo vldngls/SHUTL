@@ -6,11 +6,16 @@ const SettingsDropdown = ({ onClose }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Clear any authentication data (e.g., localStorage, session tokens)
+    // Delete the 'token' cookie
+    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    
+    // Clear other authentication data (e.g., localStorage, session tokens)
     localStorage.removeItem("user");
+  
     // Redirect to ShutlLoggedOut page
     navigate("/ShutlLoggedOut");
   };
+  
 
   const handleManageSchedule = () => {
     // Navigate to scheduling management page
