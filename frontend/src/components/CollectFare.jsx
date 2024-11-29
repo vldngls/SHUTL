@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import "../css/CollectFare.css";
 
 const CollectFare = ({ onClose, onSave }) => {
-  const [regularCount, setRegularCount] = useState(0);
-  const [discountedCount, setDiscountedCount] = useState(0);
+  const [regularCount, setRegularCount] = useState(0); // Start with 0
+  const [discountedCount, setDiscountedCount] = useState(0); // Start with 0
   const [tender, setTender] = useState("");
   const [change, setChange] = useState(0);
 
@@ -15,26 +15,26 @@ const CollectFare = ({ onClose, onSave }) => {
   };
 
   const handleTenderChange = (e) => {
-    const tenderAmount = parseInt(e.target.value, 10) || 0;
+    const tenderAmount = parseFloat(e.target.value) || 0; // Ensure valid number
     setTender(tenderAmount);
     setChange(tenderAmount - calculateTotal());
   };
 
   const handleSave = () => {
-    onSave(regularCount, discountedCount); // Pass the counts to the parent
+    onSave(regularCount, discountedCount, calculateTotal()); // Pass the counts and total to the parent
     resetCounts(); // Reset counts to 0
     onClose(); // Close the modal
   };
 
   const resetCounts = () => {
-    setRegularCount(0);
-    setDiscountedCount(0);
-    setTender("");
-    setChange(0);
+    setRegularCount(0); // Reset regular count
+    setDiscountedCount(0); // Reset discounted count
+    setTender(""); // Reset tender
+    setChange(0); // Reset change
   };
 
   const handleCancel = () => {
-    resetCounts(); // Reset counts to 0 on cancel
+    resetCounts(); // Reset counts on cancel
     onClose(); // Close the modal
   };
 
@@ -84,8 +84,8 @@ const CollectFare = ({ onClose, onSave }) => {
           </div>
         </div>
         <div className="fare-actions">
-          <button onClick={handleCancel}>Cancel</button> {/* Reset and Close */}
-          <button onClick={handleSave}>Save</button> {/* Save, Reset, and Close */}
+          <button onClick={handleCancel}>Cancel</button>
+          <button onClick={handleSave}>Save</button>
         </div>
       </div>
     </div>

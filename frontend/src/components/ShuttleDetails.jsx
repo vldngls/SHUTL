@@ -5,21 +5,20 @@ import CollectFare from "./CollectFare";
 const ShuttleDetails = ({ shuttle, onClose }) => {
   const [showCollectFare, setShowCollectFare] = useState(false);
 
-  // State to track Regular and Discounted counts
-  const [regularCount, setRegularCount] = useState(shuttle.regular || 0);
-  const [discountedCount, setDiscountedCount] = useState(shuttle.discounted || 0);
+  // Store transactions as a list
+  const [transactions, setTransactions] = useState([]);
 
-  // Regular and discounted fare rates (adjust these as needed)
+  // Regular and discounted fare rates
   const REGULAR_FARE = 30;
   const DISCOUNTED_FARE = 28;
 
-  // Calculate total fare
-  const totalFare = regularCount * REGULAR_FARE + discountedCount * DISCOUNTED_FARE;
+  // Total fare from all transactions
+  const totalFare = transactions.reduce((sum, transaction) => sum + transaction.total, 0);
 
-  // Function to update counts from CollectFare
-  const handleUpdateCounts = (newRegular, newDiscounted) => {
-    setRegularCount(regularCount + newRegular);
-    setDiscountedCount(discountedCount + newDiscounted);
+  // Function to handle saving a new transaction
+  const handleSaveTransaction = (regularCount, discountedCount, total) => {
+    const newTransaction = { regularCount, discountedCount, total };
+    setTransactions((prev) => [...prev, newTransaction]); // Add new transaction
   };
 
   const handleOverlayClick = (e) => {
@@ -43,19 +42,14 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
               Round Trips
             </div>
             <div>
-              <strong>{regularCount}</strong>
+              <strong>{transactions.reduce((sum, t) => sum + t.regularCount, 0)}</strong>
               <br />
               Regular
             </div>
             <div>
-              <strong>{discountedCount}</strong>
+              <strong>{transactions.reduce((sum, t) => sum + t.discountedCount, 0)}</strong>
               <br />
               Discounted
-            </div>
-            <div>
-              <strong>{shuttle.pickUpNotify}</strong>
-              <br />
-              Pick-up Notify
             </div>
             <div>
               <strong>₱{totalFare}</strong>
@@ -65,11 +59,11 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
           </div>
 
           <div className="ShuttleDetails-log">
-            <h3>Route Log</h3>
+            <h3>Transaction Log</h3>
             <ul>
-              {shuttle.routeLog.map((log, index) => (
+              {transactions.map((transaction, index) => (
                 <li key={index}>
-                  <strong>{log.time}</strong> - {log.description}
+                  Regular: {transaction.regularCount}, Discounted: {transaction.discountedCount}, Total: ₱{transaction.total}
                 </li>
               ))}
             </ul>
@@ -87,7 +81,7 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
       {showCollectFare && (
         <CollectFare
           onClose={() => setShowCollectFare(false)}
-          onSave={handleUpdateCounts} // Pass the update function
+          onSave={handleSaveTransaction} // Pass save function
         />
       )}
     </div>
