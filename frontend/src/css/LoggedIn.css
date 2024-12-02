@@ -1,3 +1,113 @@
+/* Suggestion Button */
+.ShutlLoggedIn-suggestion-btn {
+  position: fixed;
+  bottom: 20px; /* Place at the bottom */
+  right: 20px; /* Place on the right */
+  padding: 10px 20px;
+  font-size: 1rem;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 1000; /* Ensure it's above the map and below the suggestion form */
+  transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+}
+
+.ShutlLoggedIn-suggestion-btn:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px); /* Subtle lift effect */
+}
+
+/* Suggestion Form */
+.suggestion-form-container {
+  position: fixed;
+  bottom: 80px; /* Adjust to stay above the button */
+  right: 20px;
+  width: 320px; /* Set a fixed width */
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  z-index: 1010; /* Higher than the button */
+  animation: fadeInUp 0.3s ease; /* Smooth fade-in animation */
+}
+
+/* Close Button */
+.suggestion-form-container .close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 1.4em;
+  cursor: pointer;
+  z-index: 1020; /* Ensure it's on top of the form */
+}
+
+.suggestion-form-container .close-btn:hover {
+  color: #333; /* Darker color on hover */
+}
+
+/* Form Styling */
+.suggestion-form-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* More spacing between form elements */
+}
+
+/* Inputs */
+.suggestion-form-container input,
+.suggestion-form-container textarea {
+  width: 92%;
+  padding: 12px; /* Larger padding for inputs */
+  border-radius: 8px; /* Softer rounded inputs */
+  border: 1px solid #ddd; /* Lighter border for a cleaner look */
+  font-size: 1em; /* Bigger font size for readability */
+  background: #fafafa; /* Slight background color */
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05); /* Inner shadow for depth */
+  transition: border 0.2s ease;
+}
+
+/* Focus on Inputs */
+.suggestion-form-container input:focus,
+.suggestion-form-container textarea:focus {
+  outline: none;
+  border: 1px solid #3a3a3a; /* Highlight border on focus */
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); /* Glow effect on focus */
+}
+
+/* Send Button */
+.suggestion-form-container .send-btn {
+  background-color: #303030;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1.1em; /* Slightly bigger button text */
+  transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition */
+}
+
+.suggestion-form-container .send-btn:hover {
+  background-color: #575757;
+  transform: translateY(-3px); /* Subtle lift effect on hover */
+}
+
+/* Keyframes for Popup Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* General Reset for Body */
 html,
 body {
@@ -102,9 +212,7 @@ body {
   position: fixed;
   bottom: 0;
   left: 0;
-  width: calc(
-    100% + 80px
-  ); /* Expands to cover the entire width including the navbar */
+  width: calc(100% + 80px); /* Expands to cover the entire width including the navbar */
   background-color: #f5f5f5;
   color: #333;
   display: flex;
@@ -136,104 +244,4 @@ body {
 .ShutlLoggedIn-update-location-icon {
   width: 100%;
   height: auto;
-}
-
-/* Media Queries for Smaller Devices */
-@media (max-width: 768px) {
-  .ShutlLoggedIn-navbar {
-    width: 60px;
-    padding: 8px;
-  }
-
-  .ShutlLoggedIn-logo {
-    font-size: 1.2em;
-    margin-bottom: 10px;
-  }
-
-  .ShutlLoggedIn-nav-icon,
-  .ShutlLoggedIn-update-location-btn,
-  .ShutlLoggedIn-setting-btn,
-  .ShutlLoggedIn-notif-btn {
-    width: 40px;
-    height: 40px;
-  }
-
-  .ShutlLoggedIn-taskbar {
-    width: calc(100% + 60px);
-    margin-left: -60px;
-    font-size: 0.9em;
-  }
-}
-
-@media (max-width: 480px) {
-  .ShutlLoggedIn-navbar {
-    flex-direction: row;
-    justify-content: space-between;
-    width: 100%;
-    height: 48px;
-    border-radius: 0;
-    padding: 0 4px;
-    position: fixed;
-    z-index: 2;
-    align-items: center;
-  }
-
-  .ShutlLoggedIn-logo {
-    font-size: 1em;
-    margin-top: 12px;
-    margin-left: 4px;
-    align-self: center;
-  }
-
-  .ShutlLoggedIn-taskbar {
-    font-size: 0.9em;
-    padding: 8px 16px;
-    width: 100%;
-    margin-left: 0;
-    justify-content: center;
-  }
-
-  .ShutlLoggedIn-nav-icon,
-  .ShutlLoggedIn-update-location-icon,
-  .ShutlLoggedIn-setting-icon,
-  .ShutlLoggedIn-notif-icon {
-    margin-bottom: 18px;
-    width: 32px;
-    height: 32px;
-  }
-
-  /* Hide the line on mobile */
-  .ShutlLoggedIn-line {
-    display: none;
-  }
-
-  /* Adjust button positions */
-  .ShutlLoggedIn-update-location-btn {
-    right: 8px;
-    bottom: 50px;
-  }
-}
-
-/* Popup Overlay */
-.ShutlLoggedIn-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-}
-
-/* Popup Container */
-.ShutlLoggedIn-popup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1001;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  padding: 20px;
 }

@@ -1,21 +1,21 @@
-.suggestion-form-container {
+.ShutlLoggedIn-suggestion-btn {
   position: fixed;
-  bottom: 60px; /* Add margin from the bottom */
-  right: 80px; /* Add margin from the right */
-  width: 320px; /* Adjusted width for better layout */
-  z-index: 1000; /* Ensure it stays on top */
-  background: linear-gradient(
-    145deg,
-    #ffffff,
-    #f0f0f0
-  ); /* Soft gradient background */
-  border-radius: 16px; /* Softer, more rounded corners */
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* Stronger shadow for depth */
-  padding: 20px; /* More padding for a spacious look */
-  display: flex;
-  flex-direction: column;
-  animation: fadeInUp 0.3s ease-out; /* Animation to fade in */
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 1000; /* Ensure it's above the map */
 }
+
+.ShutlLoggedIn-suggestion-btn:hover {
+  background-color: #0056b3;
+}
+
 
 /* Close Button */
 .suggestion-form-container .close-btn {
