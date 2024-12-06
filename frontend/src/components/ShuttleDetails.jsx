@@ -5,22 +5,29 @@ import CollectFare from "./CollectFare";
 const ShuttleDetails = ({ shuttle, onClose }) => {
   const [showCollectFare, setShowCollectFare] = useState(false);
 
-  // Store transactions as a list
-  const [transactions, setTransactions] = useState([]);
+  // Store transactions as a shuttle-specific object
+  const [transactions, setTransactions] = useState({});
 
-  // Regular and discounted fare rates
   const REGULAR_FARE = 30;
   const DISCOUNTED_FARE = 28;
 
-  // Total fare from all transactions
-  const totalFare = transactions.reduce((sum, transaction) => sum + transaction.total, 0);
+  // Get transactions specific to this shuttle
+  const shuttleTransactions = transactions[shuttle.id] || [];
 
-  // Function to handle saving a new transaction
+  // Calculate total fare for the current shuttle
+  const totalFare = shuttleTransactions.reduce((sum, transaction) => sum + transaction.total, 0);
+
+  // Save a transaction specific to the current shuttle
   const handleSaveTransaction = (regularCount, discountedCount, total) => {
     const newTransaction = { regularCount, discountedCount, total };
-    setTransactions((prev) => [...prev, newTransaction]); // Add new transaction
+
+    setTransactions((prev) => ({
+      ...prev,
+      [shuttle.id]: [...(prev[shuttle.id] || []), newTransaction], // Append new transaction to the shuttle's log
+    }));
   };
 
+  // Close the modal when clicking outside the content area
   const handleOverlayClick = (e) => {
     if (e.target.className === "ShuttleDetails-modal") {
       onClose();
@@ -42,12 +49,12 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
               Round Trips
             </div>
             <div>
-              <strong>{transactions.reduce((sum, t) => sum + t.regularCount, 0)}</strong>
+              <strong>{shuttleTransactions.reduce((sum, t) => sum + t.regularCount, 0)}</strong>
               <br />
               Regular
             </div>
             <div>
-              <strong>{transactions.reduce((sum, t) => sum + t.discountedCount, 0)}</strong>
+              <strong>{shuttleTransactions.reduce((sum, t) => sum + t.discountedCount, 0)}</strong>
               <br />
               Discounted
             </div>
@@ -61,7 +68,7 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
           <div className="ShuttleDetails-log">
             <h3>Transaction Log</h3>
             <ul>
-              {transactions.map((transaction, index) => (
+              {shuttleTransactions.map((transaction, index) => (
                 <li key={index}>
                   Regular: {transaction.regularCount}, Discounted: {transaction.discountedCount}, Total: ₱{transaction.total}
                 </li>
