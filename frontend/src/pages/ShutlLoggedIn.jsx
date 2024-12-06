@@ -172,7 +172,11 @@ const ShutlLoggedIn = () => {
         className="ShutlLoggedIn-suggestion-btn"
         onClick={() => setShowSuggestionForm(true)}
       >
-        Suggestion Button
+        <img
+          src="/ask.png"
+          alt="Ask Button"
+          className="ShutlLoggedIn-suggestion-icon"
+        />
       </button>
 
       {/* Location Update Button */}
