@@ -11,6 +11,7 @@ import "../css/LoggedIn.css";
 import NotificationPop from "../components/NotificationPop";
 import SettingsDropdown from "../components/SettingsDropdown";
 import ProfilePopup from "../components/ProfilePopup";
+import SuggestionForm from "../components/SuggestionForm"; // Import SuggestionForm
 import L from "leaflet";
 import { io } from "socket.io-client";
 
@@ -34,6 +35,7 @@ const ShutlLoggedIn = () => {
   const [mapInstance, setMapInstance] = useState(null);
   const [notifications, setNotifications] = useState([]); // List of notifications
   const [profilePicture, setProfilePicture] = useState("/icon.png"); // Default profile icon
+  const [showSuggestionForm, setShowSuggestionForm] = useState(false); // State for SuggestionForm
   const popupRef = useRef(null);
 
   // Fetch user profile data, including the profile picture
@@ -61,59 +63,7 @@ const ShutlLoggedIn = () => {
     fetchUserProfile();
   }, []);
 
-  // Fetch past notifications for the "Commuter" type on load
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/notifications/user`, {
-          headers: {
-            Authorization: `Bearer ${getCookie("token")}`,
-          },
-        });
-        const data = await response.json();
-        setNotifications(data);
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-      }
-    };
-    fetchNotifications();
-  }, []);
-
-  // Real-time notifications listener
-  useEffect(() => {
-    socket.on("new_notification", (notification) => {
-      if (notification.recipientType === "Commuter") {
-        setNotifications((prevNotifications) => [
-          notification,
-          ...prevNotifications,
-        ]);
-        setActivePopup("notifications"); // Automatically open the notifications popup for new notification
-      }
-    });
-
-    return () => {
-      socket.off("new_notification");
-    };
-  }, []);
-
-  useEffect(() => {
-    const timer = setInterval(() => setDateTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (popupRef.current && !popupRef.current.contains(event.target)) {
-        setActivePopup(null);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
+  // Update user location
   const updateUserLocation = useCallback(() => {
     if (!navigator.geolocation) {
       console.error("Geolocation is not supported by this browser.");
@@ -134,10 +84,6 @@ const ShutlLoggedIn = () => {
       { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
   }, [mapInstance]);
-
-  const togglePopup = useCallback((popupName) => {
-    setActivePopup((prev) => (prev === popupName ? null : popupName));
-  }, []);
 
   const formattedDate = useMemo(() => {
     return dateTime.toLocaleDateString("en-PH", {
@@ -178,7 +124,7 @@ const ShutlLoggedIn = () => {
         <div className="ShutlLoggedIn-status">
           <button
             className="ShutlLoggedIn-notif-btn"
-            onClick={() => togglePopup("notifications")}
+            onClick={() => setActivePopup("notifications")}
           >
             <img
               src="/notif.png"
@@ -189,7 +135,7 @@ const ShutlLoggedIn = () => {
 
           <button
             className="ShutlLoggedIn-setting-btn"
-            onClick={() => togglePopup("settings")}
+            onClick={() => setActivePopup("settings")}
           >
             <img
               src="/settings.png"
@@ -202,10 +148,10 @@ const ShutlLoggedIn = () => {
         <div className="ShutlLoggedIn-icon-container">
           <div className="ShutlLoggedIn-line"></div>
           <img
-            src={profilePicture} // Dynamic profile picture
+            src={profilePicture}
             alt="Navigation Icon"
             className="ShutlLoggedIn-nav-icon"
-            onClick={() => togglePopup("profile")}
+            onClick={() => setActivePopup("profile")}
           />
         </div>
       </div>
@@ -214,6 +160,26 @@ const ShutlLoggedIn = () => {
         {formattedDate} - {formattedTime}
       </div>
 
+      {/* Suggestion Form */}
+      {showSuggestionForm && (
+        <div className="suggestion-form-overlay">
+          <SuggestionForm onClose={() => setShowSuggestionForm(false)} />
+        </div>
+      )}
+
+      {/* Suggestion Button */}
+      <button
+        className="ShutlLoggedIn-suggestion-btn"
+        onClick={() => setShowSuggestionForm(true)}
+      >
+        <img
+          src="/ask.png"
+          alt="Ask Button"
+          className="ShutlLoggedIn-suggestion-icon"
+        />
+      </button>
+
+      {/* Location Update Button */}
       <button
         className="ShutlLoggedIn-update-location-btn"
         onClick={updateUserLocation}
@@ -225,6 +191,7 @@ const ShutlLoggedIn = () => {
         />
       </button>
 
+      {/* Popups */}
       <div ref={popupRef}>
         {activePopup === "settings" && (
           <SettingsDropdown onClose={() => setActivePopup(null)} />
@@ -241,14 +208,6 @@ const ShutlLoggedIn = () => {
       </div>
     </>
   );
-};
-
-// Utility to get cookie by name
-const getCookie = (name) => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(";").shift();
-  return null;
 };
 
 export default ShutlLoggedIn;
