@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import { useNavigate } from "react-router-dom";
-import { io } from "socket.io-client";
 import "leaflet/dist/leaflet.css";
 import "../css/DriverMain.css";
 import SuggestionForm from "../components/SuggestionForm";
@@ -12,10 +11,11 @@ import SchedulePopup from "../components/SchedulePopup";
 import NotificationPop from "../components/NotificationPop";
 import DriverSummary from "../components/DriverSummary";
 import L from "leaflet";
+import { io } from "socket.io-client";
 import { getCookie } from "../utils/cookieUtils";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Dynamic API Base URL
-const socket = io(API_BASE_URL); // Dynamic WebSocket connection
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const SOCKET_URL = API_BASE_URL.replace('/api', '');
 
 const carIcon = new L.Icon({
   iconUrl: "/car.png",
@@ -27,14 +27,28 @@ const carIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
+// Add these socket.io connection options
+const socketOptions = {
+  transports: ['websocket'],
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  },
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000
+};
+
 const DriverMain = () => {
   const navigate = useNavigate();
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
-  const [notifications, setNotifications] = useState([]); // All notifications, including initial ones
+  const [notifications, setNotifications] = useState([]); // Notifications list
   const [activeModal, setActiveModal] = useState(null); // Track the active modal
-
+  const [isLocationSharing, setIsLocationSharing] = useState(false);
+  const socket = useRef(null); // Ref for socket instance
   const mapRef = useRef(null);
+  const locationUpdateInterval = useRef(null); // Add this ref for the interval
 
   const user = JSON.parse(localStorage.getItem("user")) || {
     identifier: "SHUTL001-1A",
@@ -46,6 +60,7 @@ const DriverMain = () => {
     dob: "07/15/1983",
   };
 
+  // Initialize the date and time
   useEffect(() => {
     const timer = setInterval(() => {
       setDateTime(new Date());
@@ -53,72 +68,144 @@ const DriverMain = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Handle map resizing
   useEffect(() => {
-    if (mapRef.current) {
-      const handleResize = () => {
+    const handleResize = () => {
+      if (mapRef.current) {
         mapRef.current.invalidateSize();
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Initialize socket and fetch notifications
+  useEffect(() => {
+    try {
+      socket.current = io(SOCKET_URL, socketOptions);
+
+      socket.current.on('connect', () => {
+        console.log('Socket connected successfully');
+      });
+
+      socket.current.on('connect_error', (error) => {
+        console.error('Socket connection error:', error);
+      });
+
+      socket.current.on("new_notification", (notification) => {
+        if (notification.recipientType === "Driver") {
+          setNotifications((prev) => [notification, ...prev]);
+          setActiveModal("isNotificationOpen");
+        }
+      });
+
+      // Fetch initial notifications
+      const fetchNotifications = async () => {
+        const token = getCookie("token");
+        try {
+          const response = await fetch(`${API_BASE_URL}/notifications/user`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+          setNotifications(data);
+        } catch (error) {
+          console.error("Error fetching notifications:", error);
+        }
       };
-      window.addEventListener("resize", handleResize);
-      return () => window.removeEventListener("resize", handleResize);
+
+      fetchNotifications();
+
+      // Cleanup on unmount
+      return () => {
+        if (socket.current) {
+          socket.current.disconnect();
+        }
+      };
+    } catch (error) {
+      console.error('Socket initialization error:', error);
     }
   }, []);
 
-  // Fetch notifications and set up Socket.io
+  // Add a useEffect to handle the interval
   useEffect(() => {
-    const fetchNotifications = async () => {
-      const token = getCookie("token");
+    if (isLocationSharing) {
+      // Initial update
+      updateUserLocation();
+      // Set up the interval
+      locationUpdateInterval.current = setInterval(updateUserLocation, 3000);
+    }
 
-      try {
-        const response = await fetch(`${API_BASE_URL}/notifications/user`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!response.ok)
-          throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        setNotifications(data); // Store fetched notifications
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-      }
-    };
-    fetchNotifications();
-
-    socket.on("new_notification", (notification) => {
-      if (notification.recipientType === "Driver") {
-        setNotifications((prevNotifications) => [
-          notification,
-          ...prevNotifications,
-        ]);
-        setActiveModal("isNotificationOpen"); // Open notification popout for new notifications
-      }
-    });
-
+    // Cleanup function
     return () => {
-      socket.off("new_notification");
+      if (locationUpdateInterval.current) {
+        clearInterval(locationUpdateInterval.current);
+        locationUpdateInterval.current = null;
+      }
     };
-  }, []);
+  }, [isLocationSharing]); // Depend on isLocationSharing state
 
+  // Update user location and share it if enabled
   const updateUserLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
           setUserLocation([latitude, longitude]);
+
+          // Emit location to server if sharing is enabled
+          if (isLocationSharing && socket.current) {
+            socket.current.emit("shuttle_location", {
+              coordinates: [latitude, longitude],
+              shuttleId: "SHUTL001", // This should come from driver's auth data
+            });
+          }
+
+          if (mapRef.current) {
+            mapRef.current.setView([latitude, longitude], 15.5);
+          }
         },
-        () => alert("Unable to retrieve your location. Please try again."),
+        (error) => {
+          console.error("Error accessing location:", error);
+          alert("Unable to retrieve your location. Please try again.");
+        },
         { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
       );
-    } else alert("Geolocation is not supported by this browser.");
+    } else {
+      alert("Geolocation is not supported by this browser.");
+    }
   };
 
-  // Toggle function to handle showing one modal at a time
+  const startLocationSharing = () => {
+    setIsLocationSharing(true);
+  };
+
+  const stopLocationSharing = () => {
+    setIsLocationSharing(false);
+    if (locationUpdateInterval.current) {
+      clearInterval(locationUpdateInterval.current);
+      locationUpdateInterval.current = null;
+    }
+  };
+
+  // Update the location sharing button click handler
+  const handleLocationButtonClick = () => {
+    if (!isLocationSharing) {
+      startLocationSharing();
+    } else {
+      stopLocationSharing();
+    }
+    updateUserLocation();
+  };
+
   const toggleModal = (modalName) => {
     if (activeModal === modalName) {
-      // If the same modal is clicked again, close it
       setActiveModal(null);
     } else {
-      // Open the selected modal and close others
       setActiveModal(modalName);
     }
   };
@@ -152,127 +239,64 @@ const DriverMain = () => {
 
       <div className="DriverMain-navbar">
         <div className="DriverMain-logo">SHU TL.</div>
-
         <div className="DriverMain-navbar-buttons">
           <button
             className="DriverMain-icon-btn"
             onClick={() => toggleModal("isMessageOpen")}
           >
-            <img
-              src="/message.png"
-              alt="Message Icon"
-              className="DriverMain-icon-image"
-            />
+            <img src="/message.png" alt="Message Icon" />
           </button>
-
           <button
             className="DriverMain-icon-btn"
             onClick={() => toggleModal("isScheduleOpen")}
           >
-            <img
-              src="/calendar.png"
-              alt="Schedule Icon"
-              className="DriverMain-icon-image"
-            />
+            <img src="/calendar.png" alt="Schedule Icon" />
           </button>
-
           <button
             className="DriverMain-icon-btn"
             onClick={() => toggleModal("isSummaryOpen")}
           >
-            <img
-              src="/summary.png"
-              alt="Summary Icon"
-              className="DriverMain-icon-image"
-            />
+            <img src="/summary.png" alt="Summary Icon" />
           </button>
-
-          <div className="DriverMain-notification-container">
-            <button
-              className="DriverMain-icon-btn DriverMain-notification-btn"
-              onClick={() => toggleModal("isNotificationOpen")}
-            >
-              <img src="/notif.png" className="DriverMain-icon-image" />
-            </button>
-          </div>
-
-          <div className="DriverMain-settings-container">
-            <button
-              className="DriverMain-icon-btn DriverMain-settings-btn"
-              onClick={() => toggleModal("isSettingsOpen")}
-            >
-              <img
-                src="/settings.png"
-                alt="Settings Icon"
-                className="DriverMain-icon-image"
-              />
-            </button>
-          </div>
-        </div>
-
-        <div className="DriverMain-profile-container">
           <button
             className="DriverMain-icon-btn"
-            onClick={() => toggleModal("isProfileIDOpen")}
+            onClick={() => toggleModal("isNotificationOpen")}
           >
-            <img
-              src="/profile.png"
-              alt="Profile Icon"
-              className="DriverMain-icon-image"
-            />
+            <img src="/notif.png" alt="Notification Icon" />
+          </button>
+          <button
+            className="DriverMain-icon-btn"
+            onClick={() => toggleModal("isSettingsOpen")}
+          >
+            <img src="/settings.png" alt="Settings Icon" />
           </button>
         </div>
       </div>
 
       <div className="DriverMain-taskbar">
-        {dateTime.toLocaleDateString("en-PH", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })}{" "}
-        - {dateTime.toLocaleTimeString("en-PH")}
+        {dateTime.toLocaleDateString()} - {dateTime.toLocaleTimeString()}
       </div>
 
       <button
         className="DriverMain-update-location-btn"
-        onClick={updateUserLocation}
+        onClick={handleLocationButtonClick}
       >
-        <img
-          src="/locup.png"
-          alt="Update Location"
-          className="DriverMain-update-location-icon"
-        />
+        <img src="/locup.png" alt="Update Location" />
       </button>
 
-      {/* Pop-outs for different components, only show if activeModal matches */}
-      {activeModal === "isMessageOpen" && (
-        <DriverMessage
-          messages={notifications}
-          onClose={() => setActiveModal(null)}
-        />
+      {isLocationSharing && (
+        <div className="DriverMain-sharing-status">Live Location Active</div>
       )}
-      {activeModal === "isScheduleOpen" && (
-        <SchedulePopup onClose={() => setActiveModal(null)} />
-      )}
-      {activeModal === "isSummaryOpen" && (
-        <DriverSummary onClose={() => setActiveModal(null)} />
-      )}
+
+      {/* Conditional modals */}
+      {activeModal === "isMessageOpen" && <DriverMessage />}
+      {activeModal === "isScheduleOpen" && <SchedulePopup />}
+      {activeModal === "isSummaryOpen" && <DriverSummary />}
       {activeModal === "isNotificationOpen" && (
-        <NotificationPop
-          notifications={notifications}
-          onClose={() => setActiveModal(null)}
-        />
+        <NotificationPop notifications={notifications} />
       )}
-      {activeModal === "isSettingsOpen" && (
-        <SettingsDropdown onClose={() => setActiveModal(null)} />
-      )}
-      {activeModal === "isProfileIDOpen" && (
-        <ProfileIDCard user={user} onClose={() => setActiveModal(null)} />
-      )}
-      {activeModal === "isSuggestionOpen" && (
-        <SuggestionForm onClose={() => setActiveModal(null)} />
-      )}
+      {activeModal === "isSettingsOpen" && <SettingsDropdown />}
+      {activeModal === "isProfileIDOpen" && <ProfileIDCard user={user} />}
     </>
   );
 };

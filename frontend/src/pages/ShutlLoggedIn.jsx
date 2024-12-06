@@ -26,7 +26,17 @@ L.Icon.Default.mergeOptions({
 });
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Dynamic API Base URL
-const socket = io(API_BASE_URL); // Dynamic WebSocket connection
+const SOCKET_URL = API_BASE_URL.replace('/api', ''); // Socket URL without /api
+
+const carIcon = new L.Icon({
+  iconUrl: "/car.png",
+  iconRetinaUrl: "/car.png",
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  iconSize: [29, 59],
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  shadowSize: [41, 41],
+});
 
 const ShutlLoggedIn = () => {
   const [dateTime, setDateTime] = useState(new Date());
@@ -37,6 +47,67 @@ const ShutlLoggedIn = () => {
   const [profilePicture, setProfilePicture] = useState("/icon.png"); // Default profile icon
   const [showSuggestionForm, setShowSuggestionForm] = useState(false); // State for SuggestionForm
   const popupRef = useRef(null);
+  const [shuttleLocations, setShuttleLocations] = useState({});
+  const socket = useRef(null);
+
+  useEffect(() => {
+    // Initialize socket connection
+    socket.current = io(SOCKET_URL, {
+      transports: ['websocket'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000
+    });
+
+    // Update the event name to match what the driver is sending
+    socket.current.on('shuttle_location', (data) => {
+      console.log('Received shuttle location:', data);
+      setShuttleLocations(prev => ({
+        ...prev,
+        [data.shuttleId]: {
+          coordinates: data.coordinates,
+          lastUpdate: new Date()
+        }
+      }));
+    });
+
+    // Clean up old shuttle locations every 5 seconds
+    const cleanupInterval = setInterval(() => {
+      setShuttleLocations(prev => {
+        const now = new Date();
+        const filtered = Object.entries(prev).reduce((acc, [id, data]) => {
+          // Keep only locations updated in the last 10 seconds
+          if (now - data.lastUpdate < 10000) {
+            acc[id] = data;
+          }
+          return acc;
+        }, {});
+        return filtered;
+      });
+    }, 3000);
+
+    // Add connection status logging
+    socket.current.on('connect', () => {
+      console.log('Socket connected in ShutlLoggedIn');
+    });
+
+    socket.current.on('connect_error', (error) => {
+      console.error('Socket connection error in ShutlLoggedIn:', error);
+    });
+
+    // Cleanup on unmount
+    return () => {
+      if (socket.current) {
+        socket.current.disconnect();
+      }
+      clearInterval(cleanupInterval);
+    };
+  }, []);
+
+  // Add this console.log to verify state updates
+  useEffect(() => {
+    console.log('Current shuttle locations:', shuttleLocations);
+  }, [shuttleLocations]);
 
   // Fetch user profile data, including the profile picture
   useEffect(() => {
@@ -102,20 +173,43 @@ const ShutlLoggedIn = () => {
     <>
       <div className="ShutlLoggedIn-map-container">
         <MapContainer
-          style={{ height: "100%", width: "100%" }}
-          center={[14.377, 120.983]}
+          style={{ height: "100vh", width: "100vw" }}
+          center={userLocation || [14.377, 120.983]}
           zoom={15.5}
+          zoomControl={false}
           whenCreated={setMapInstance}
         >
-          <TileLayer
+          <TileLayer 
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
+          
+          {/* User location marker */}
           {userLocation && (
             <Marker position={userLocation}>
-              <Popup>You are here.</Popup>
+              <Popup>Your Location</Popup>
             </Marker>
           )}
+
+          {/* Shuttle markers */}
+          {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
+            const isRecent = (new Date() - data.lastUpdate) < 120000;
+            if (!isRecent) return null;
+            return (
+              <Marker
+                key={shuttleId}
+                position={data.coordinates}
+                icon={carIcon}
+              >
+                <Popup>
+                  <div className="ShutlLoggedIn-shuttle-info">
+                    <h3>{shuttleId}</h3>
+                    <p>Last updated: {data.lastUpdate.toLocaleTimeString()}</p>
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
         </MapContainer>
       </div>
 
