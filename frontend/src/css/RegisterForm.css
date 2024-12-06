@@ -1,3 +1,4 @@
+/* General Overlay */
 .overlay {
   position: fixed;
   top: 0;
@@ -11,22 +12,25 @@
   z-index: 1000;
 }
 
+/* Register Container Styles */
 .register-container {
   background-color: #f5f5f5; /* Light background */
   padding: 30px 15px;
   border-radius: 20px;
   width: 320px;
-  box-shadow: 0 4px 8px rgba(35, 35, 35, 0.1); /* Slight shadow with darkest color */
+  box-shadow: 0 4px 8px rgba(35, 35, 35, 0.1); /* Slight shadow */
   text-align: center;
 }
 
+/* Title Styles */
 .register-title {
   font-size: 24px;
   font-weight: bold;
   margin-bottom: 10px;
-  color: #232323; /* Darkest color for title */
+  color: #232323; /* Dark color for title */
 }
 
+/* Input Styles */
 .register-input-group {
   margin-bottom: 15px;
 }
@@ -34,7 +38,7 @@
 .register-label {
   display: block;
   margin-bottom: 5px;
-  color: #232323; /* Darkest color for label */
+  color: #232323; /* Dark color for label */
   font-size: 14px;
 }
 
@@ -49,10 +53,11 @@
   color: #232323; /* Dark text color */
 }
 
+/* Register Button Styles */
 .register-button {
   width: 100%;
   padding: 10px;
-  background-color: #232323; /* Darkest color for button */
+  background-color: #232323; /* Dark background for button */
   color: #ffffff; /* Light text color */
   border: none;
   border-radius: 8px;
@@ -65,10 +70,61 @@
   background-color: #3a3a3a; /* Slightly lighter on hover */
 }
 
+/* Error Styles */
 .register-error {
   color: #d9534f; /* Red color for errors */
   margin-top: 10px;
   text-align: center;
+}
+
+/* Terms Checkbox Section */
+.terms-checkbox {
+  font-size: 14px;
+  text-align: left;
+  margin-top: 10px;
+}
+
+.terms-link {
+  color: #007bff;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.terms-link:hover {
+  color: #0056b3;
+}
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Dark overlay for modal */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 80%;
+  max-width: 600px;
+  max-height: 80%;
+  overflow-y: auto;
+}
+
+/* Close Button Styles */
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  cursor: pointer;
 }
 
 /* Responsive design adjustments */
@@ -91,4 +147,25 @@
     font-size: 13px;
     padding: 8px;
   }
+
+  /* Adjust terms checkbox section */
+  .terms-checkbox {
+    font-size: 12px;
+  }
+
+  .terms-link {
+    font-size: 12px;
+  }
+}
+
+/* Disable button styles when terms aren't checked */
+.register-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.register-error {
+  color: red;
+  font-size: 14px;
+  margin-top: 10px;
 }
