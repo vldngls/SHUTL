@@ -38,6 +38,17 @@ const carIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
+const userIcon = new L.Icon({
+  iconUrl: "/pick.png",
+  iconRetinaUrl: "/pick.png",
+  iconAnchor: [25, 50],
+  popupAnchor: [0, -50],
+  iconSize: [50, 50],
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  shadowSize: [41, 41],
+  shadowAnchor: [12, 41]
+});
+
 const ShutlLoggedIn = () => {
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
@@ -186,7 +197,7 @@ const ShutlLoggedIn = () => {
           
           {/* User location marker */}
           {userLocation && (
-            <Marker position={userLocation}>
+            <Marker position={userLocation} icon={userIcon}>
               <Popup>Your Location</Popup>
             </Marker>
           )}
