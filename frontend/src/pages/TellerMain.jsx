@@ -13,7 +13,7 @@ import ProfilePopup from "../components/ProfilePopup";
 import TellerSummary from '../components/TellerSummary';
 import L from 'leaflet';
 
-// Leaflet icon settings
+// Leaflet icon configuration
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -23,8 +23,12 @@ L.Icon.Default.mergeOptions({
 
 const TellerMain = () => {
   const navigate = useNavigate();
+  
+  // State Management
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
+  
+  // Modal/Popup States
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
   const [isMessageBoxOpen, setIsMessageBoxOpen] = useState(false);
@@ -33,14 +37,20 @@ const TellerMain = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [isTripFormOpen, setIsTripFormOpen] = useState(false);
+
+  // Refs
   const settingsRef = useRef();
   const mapRef = useRef();
 
+  // Effects
+  
+  // Update datetime every second
   useEffect(() => {
     const timer = setInterval(() => setDateTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
+  // Handle clicks outside settings dropdown
   useEffect(() => {
     const handleOutsideClick = (event) => {
       if (settingsRef.current && !settingsRef.current.contains(event.target)) {
@@ -57,6 +67,7 @@ const TellerMain = () => {
     return () => document.removeEventListener('click', handleOutsideClick);
   }, [isSettingsOpen]);
 
+  // Toggle Handlers
   const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
   const toggleProfilePopup = () => setIsProfilePopupOpen(!isProfilePopupOpen);
   const toggleMessageBox = () => setIsMessageBoxOpen(!isMessageBoxOpen);
@@ -98,7 +109,7 @@ const TellerMain = () => {
         </MapContainer>
       </div>
 
-      {/* Navbar and Buttons */}
+      {/* Navigation Bar */}
       <div className="TellerMain-navbar">
         <div className="TellerMain-logo">SHU TL.</div>
         <div className="TellerMain-navbar-buttons">
@@ -135,14 +146,14 @@ const TellerMain = () => {
         </div>
       </div>
 
-      {/* Right-side Shuttle Buttons */}
+      {/* Shuttle Selection Buttons */}
       <div className="TellerMain-right-buttons">
         <button className="TellerMain-right-btn">Shuttle 1</button>
         <button className="TellerMain-right-btn">Shuttle 2</button>
         <button className="TellerMain-right-btn">Shuttle 3</button>
       </div>
 
-      {/* Modals and Popups */}
+      {/* Conditional Renders - Modals and Popups */}
       {isSummaryOpen && <TellerSummary onClose={() => setIsSummaryOpen(false)} />}
       {isProfileOpen && <TellerProfile onClose={toggleProfile} />}
       {isProfilePopupOpen && <ProfilePopup onClose={toggleProfilePopup} />}
@@ -155,7 +166,7 @@ const TellerMain = () => {
         </div>
       )}
 
-      {/* Taskbar displaying Date and Time */}
+      {/* DateTime Taskbar */}
       <div className="TellerMain-taskbar">
         {dateTime.toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} -{' '}
         {dateTime.toLocaleTimeString('en-PH')}
