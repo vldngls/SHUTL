@@ -8,11 +8,11 @@ const DISCOUNT_TYPES = {
   SENIOR: { label: 'Senior Citizen', value: 20 }
 };
 
-const ShutlProfilePopup = ({ onClose }) => {
+const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Use API_BASE_URL from environment variables
   const popupRef = useRef(null);
   const [userData, setUserData] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(initialEditMode);
   const [editedData, setEditedData] = useState({});
   const [profileImage, setProfileImage] = useState(null);
 
