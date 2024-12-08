@@ -1,23 +1,27 @@
 /* Suggestion Button */
+/* Suggestion Button */
 .ShutlLoggedIn-suggestion-btn {
   position: fixed;
   bottom: 20px; /* Place at the bottom */
   right: 20px; /* Place on the right */
-  padding: 10px 20px;
-  font-size: 1rem;
-  color: white;
-  background-color: #007bff;
+  padding: 12px; /* Slightly larger padding for better interaction */
   border: none;
-  border-radius: 4px;
+  border-radius: 50%; /* Circular button */
   cursor: pointer;
-  z-index: 1000; /* Ensure it's above the map and below the suggestion form */
-  transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+  z-index: 1000; /* Ensure it stays on top of most elements */
 }
 
 .ShutlLoggedIn-suggestion-btn:hover {
-  background-color: #0056b3;
-  transform: translateY(-2px); /* Subtle lift effect */
+  transform: scale(1.1); /* Slightly enlarge for visual feedback */
 }
+
+/* Icon inside the button */
+.ShutlLoggedIn-suggestion-icon {
+  width: 32px; /* Maintain a consistent size */
+  height: 32px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4)); /* Add a subtle shadow to the icon */
+}
+
 
 /* Suggestion Form */
 .suggestion-form-container {
