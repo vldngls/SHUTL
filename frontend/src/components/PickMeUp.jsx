@@ -58,16 +58,47 @@ const styles = {
     backgroundColor: '#f8f9fa',
     borderRadius: '4px',
     fontSize: '14px'
+  },
+  select: {
+    width: '100%',
+    padding: '0.5rem',
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+    marginBottom: '0.5rem'
+  },
+  customInput: {
+    marginTop: '0.5rem',
+    width: '100%',
+    padding: '0.5rem',
+    border: '1px solid #ccc',
+    borderRadius: '4px',
+    display: 'none'
   }
 };
 
+const COMMON_LOCATIONS = [
+  { id: 'select', label: '-- Select Destination --' },
+  { id: 'clubhouse', label: 'Camella Clubhouse' },
+  { id: 'gate1', label: 'Main Gate (Gate 1)' },
+  { id: 'gate2', label: 'Back Gate (Gate 2)' },
+  { id: 'basketball', label: 'Basketball Court' },
+  { id: 'playground', label: 'Children\'s Playground' },
+  { id: 'chapel', label: 'Community Chapel' },
+  { id: 'pool', label: 'Swimming Pool' },
+  { id: 'park', label: 'Central Park' },
+  { id: 'minimart', label: 'Mini Mart' },
+  { id: 'custom', label: 'Other Location (Specify)' }
+];
+
 const PickMeUp = ({ onClose, userLocation }) => {
   const [pickupDetails, setPickupDetails] = useState({
-    destination: '',
+    destination: 'select',
+    customDestination: '',
     passengers: 1,
-    notes: ''
+    notes: '',
   });
   const [locationAddress, setLocationAddress] = useState('Fetching location...');
+  const [showCustomInput, setShowCustomInput] = useState(false);
 
   useEffect(() => {
     const fetchAddress = async () => {
@@ -97,10 +128,24 @@ const PickMeUp = ({ onClose, userLocation }) => {
     fetchAddress();
   }, [userLocation]);
 
+  const handleDestinationChange = (e) => {
+    const value = e.target.value;
+    setPickupDetails({
+      ...pickupDetails,
+      destination: value
+    });
+    setShowCustomInput(value === 'custom');
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    const finalDestination = pickupDetails.destination === 'custom' 
+      ? pickupDetails.customDestination 
+      : COMMON_LOCATIONS.find(loc => loc.id === pickupDetails.destination)?.label;
+
     console.log('Pickup request:', {
       ...pickupDetails,
+      destination: finalDestination,
       pickupLocation: userLocation,
       pickupAddress: locationAddress
     });
@@ -121,13 +166,32 @@ const PickMeUp = ({ onClose, userLocation }) => {
         <form onSubmit={handleSubmit}>
           <div style={styles.formGroup}>
             <label style={styles.label}>Destination:</label>
-            <input
-              style={styles.input}
-              type="text"
+            <select
+              style={styles.select}
               value={pickupDetails.destination}
-              onChange={(e) => setPickupDetails({...pickupDetails, destination: e.target.value})}
+              onChange={handleDestinationChange}
               required
-            />
+            >
+              {COMMON_LOCATIONS.map(location => (
+                <option key={location.id} value={location.id}>
+                  {location.label}
+                </option>
+              ))}
+            </select>
+            
+            {showCustomInput && (
+              <input
+                style={{...styles.input, marginTop: '0.5rem'}}
+                type="text"
+                value={pickupDetails.customDestination}
+                onChange={(e) => setPickupDetails({
+                  ...pickupDetails,
+                  customDestination: e.target.value
+                })}
+                placeholder="Enter your destination"
+                required={showCustomInput}
+              />
+            )}
           </div>
           
           <div style={styles.formGroup}>
@@ -138,7 +202,10 @@ const PickMeUp = ({ onClose, userLocation }) => {
               min="1"
               max="4"
               value={pickupDetails.passengers}
-              onChange={(e) => setPickupDetails({...pickupDetails, passengers: e.target.value})}
+              onChange={(e) => setPickupDetails({
+                ...pickupDetails,
+                passengers: parseInt(e.target.value)
+              })}
               required
             />
           </div>
@@ -148,7 +215,10 @@ const PickMeUp = ({ onClose, userLocation }) => {
             <textarea
               style={styles.input}
               value={pickupDetails.notes}
-              onChange={(e) => setPickupDetails({...pickupDetails, notes: e.target.value})}
+              onChange={(e) => setPickupDetails({
+                ...pickupDetails,
+                notes: e.target.value
+              })}
               placeholder="Any special instructions..."
             />
           </div>

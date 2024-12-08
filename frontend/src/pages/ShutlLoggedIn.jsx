@@ -62,6 +62,7 @@ const ShutlLoggedIn = () => {
   const [shuttleLocations, setShuttleLocations] = useState({});
   const socket = useRef(null);
   const [showPickMeUp, setShowPickMeUp] = useState(false);
+  const watchIdRef = useRef(null);
 
   useEffect(() => {
     // Initialize socket connection
@@ -154,16 +155,21 @@ const ShutlLoggedIn = () => {
       return;
     }
 
-    console.log("Getting user location..."); // Debug log
+    console.log("Starting location tracking...");
 
-    navigator.geolocation.getCurrentPosition(
+    // Clear any existing watch
+    if (watchIdRef.current) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+    }
+
+    watchIdRef.current = navigator.geolocation.watchPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         const userCoords = [latitude, longitude];
-        console.log("User location obtained:", {
+        console.log("User location updated:", {
           latitude,
           longitude,
-          accuracy: position.coords.accuracy, // in meters
+          accuracy: position.coords.accuracy,
           timestamp: new Date(position.timestamp).toLocaleString(),
           method: position.coords.altitude ? "GPS" : "Network/IP"
         });
@@ -180,12 +186,21 @@ const ShutlLoggedIn = () => {
         });
       },
       { 
-        enableHighAccuracy: true,  // Prefer GPS over network location
-        timeout: 5000,            // Wait up to 5 seconds
-        maximumAge: 0             // Don't use cached location
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
       }
     );
   }, [mapInstance]);
+
+  // Clean up the watch when component unmounts
+  useEffect(() => {
+    return () => {
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+    };
+  }, []);
 
   const formattedDate = useMemo(() => {
     return dateTime.toLocaleDateString("en-PH", {
