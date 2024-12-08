@@ -15,6 +15,7 @@ import SuggestionForm from "../components/SuggestionForm"; // Import SuggestionF
 import L from "leaflet";
 import { io } from "socket.io-client";
 import PickMeUp from "../components/PickMeUp";
+import { calculateDistance } from '../utils/locationUtils'; // Add this new import
 
 // Fix for default Leaflet icons issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -49,6 +50,14 @@ const userIcon = new L.Icon({
   shadowSize: [41, 41],
   shadowAnchor: [12, 41]
 });
+
+const calculateETA = (distance) => {
+  // Assuming average speed of 20 km/h in a subdivision
+  const speedKmH = 20;
+  const timeHours = distance / speedKmH;
+  const timeMinutes = Math.round(timeHours * 60);
+  return timeMinutes;
+};
 
 const ShutlLoggedIn = () => {
   const [dateTime, setDateTime] = useState(new Date());
@@ -250,6 +259,20 @@ const ShutlLoggedIn = () => {
           {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
             const isRecent = (new Date() - data.lastUpdate) < 120000;
             if (!isRecent) return null;
+
+            // Calculate distance and ETA if user location is available
+            let distance = null;
+            let eta = null;
+            if (userLocation) {
+              distance = calculateDistance(
+                userLocation[0],
+                userLocation[1],
+                data.coordinates[0],
+                data.coordinates[1]
+              );
+              eta = calculateETA(distance);
+            }
+
             return (
               <Marker
                 key={shuttleId}
@@ -260,6 +283,12 @@ const ShutlLoggedIn = () => {
                   <div className="ShutlLoggedIn-shuttle-info">
                     <h3>{shuttleId}</h3>
                     <p>Last updated: {data.lastUpdate.toLocaleTimeString()}</p>
+                    {distance !== null && (
+                      <>
+                        <p>Distance: {distance.toFixed(2)} km</p>
+                        <p>Estimated arrival: {eta} minutes</p>
+                      </>
+                    )}
                   </div>
                 </Popup>
               </Marker>

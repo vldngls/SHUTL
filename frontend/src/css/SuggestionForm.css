@@ -1,18 +1,27 @@
-
-
 /* Close Button */
 .suggestion-form-container .close-btn {
   position: absolute;
-  top: 10px;
+  top: 2px;
   right: 10px;
-  background: none;
+  width: 30px;
+  height: 30px;
+  background: transparent;
   border: none;
-  color: #666;
+  color: #303030;
+  font-size: 15px;
+  font-weight: bold;
   cursor: pointer;
-  z-index: 1020; /* Ensure it is above other elements within the form */
-  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1020;
+  transition: all 0.2s ease;
 }
 
+.suggestion-form-container .close-btn:hover {
+  color: #575757;
+  transform: scale(1.1);
+}
 
 /* Form Styling */
 .suggestion-form-container form {
@@ -70,4 +79,21 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.suggestion-form-container {
+  position: fixed;
+  top: 30px;
+  right: 70px;
+  width: 320px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 40px 20px 20px 20px;
+  z-index: 1010;
+  animation: fadeInUp 0.3s ease;
+}
+
+.suggestion-form {
+  margin-top: 10px; /* Add some space between the top and the content */
 }
