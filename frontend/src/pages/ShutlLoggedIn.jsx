@@ -160,7 +160,13 @@ const ShutlLoggedIn = () => {
       (position) => {
         const { latitude, longitude } = position.coords;
         const userCoords = [latitude, longitude];
-        console.log("User location updated:", userCoords); // Debug log
+        console.log("User location obtained:", {
+          latitude,
+          longitude,
+          accuracy: position.coords.accuracy, // in meters
+          timestamp: new Date(position.timestamp).toLocaleString(),
+          method: position.coords.altitude ? "GPS" : "Network/IP"
+        });
         setUserLocation(userCoords);
 
         if (mapInstance) {
@@ -168,13 +174,15 @@ const ShutlLoggedIn = () => {
         }
       },
       (error) => {
-        console.error("Error accessing location:", error);
-        // You might want to show this error to the user
+        console.error("Location error:", {
+          code: error.code,
+          message: error.message
+        });
       },
       { 
-        enableHighAccuracy: true, 
-        timeout: 5000, 
-        maximumAge: 0 
+        enableHighAccuracy: true,  // Prefer GPS over network location
+        timeout: 5000,            // Wait up to 5 seconds
+        maximumAge: 0             // Don't use cached location
       }
     );
   }, [mapInstance]);
@@ -213,7 +221,10 @@ const ShutlLoggedIn = () => {
               position={userLocation} 
               icon={userIcon}
               eventHandlers={{
-                click: () => setShowPickMeUp(true)
+                click: () => {
+                  updateUserLocation(); // Get fresh location
+                  setShowPickMeUp(true);
+                }
               }}
             >
               <Popup>Your Location</Popup>
