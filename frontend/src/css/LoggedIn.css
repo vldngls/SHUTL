@@ -1,33 +1,29 @@
 /* Suggestion Button */
-/* Suggestion Button */
 .ShutlLoggedIn-suggestion-btn {
   position: fixed;
-  bottom: 20px; /* Place at the bottom */
-  right: 20px; /* Place on the right */
-  padding: 12px; /* Slightly larger padding for better interaction */
+  top: 20px; /* Adjusted to move the button higher */
+  right: 10px;
+  padding: 12px;
   border: none;
   border-radius: 50%; /* Circular button */
+  background: transparent; /* Ensure no background */
   cursor: pointer;
   z-index: 1000; /* Ensure it stays on top of most elements */
-}
-
-.ShutlLoggedIn-suggestion-btn:hover {
-  transform: scale(1.1); /* Slightly enlarge for visual feedback */
+  transition: transform 0.2s ease; /* Smooth hover effect */
 }
 
 /* Icon inside the button */
 .ShutlLoggedIn-suggestion-icon {
-  width: 32px; /* Maintain a consistent size */
-  height: 32px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4)); /* Add a subtle shadow to the icon */
+  width: 40px; /* Maintain consistent size */
+  height: 40px;
+  display: block; /* Ensure image is treated as a block-level element */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4)); /* Subtle shadow */
 }
 
 
-/* Suggestion Form */
 .suggestion-form-container {
   position: fixed;
-  bottom: 80px; /* Adjust to stay above the button */
-  right: 20px;
+  top: 30px; /* Increased from 80px to move higher */
   width: 320px; /* Set a fixed width */
   background-color: white;
   border-radius: 8px;
@@ -35,25 +31,8 @@
   padding: 20px;
   z-index: 1010; /* Higher than the button */
   animation: fadeInUp 0.3s ease; /* Smooth fade-in animation */
+  position: relative; /* Ensure child elements position relative to the form */
 }
-
-/* Close Button */
-.suggestion-form-container .close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  color: #666;
-  font-size: 1.4em;
-  cursor: pointer;
-  z-index: 1020; /* Ensure it's on top of the form */
-}
-
-.suggestion-form-container .close-btn:hover {
-  color: #333; /* Darker color on hover */
-}
-
 /* Form Styling */
 .suggestion-form-container form {
   display: flex;
