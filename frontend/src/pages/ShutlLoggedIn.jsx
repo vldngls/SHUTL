@@ -14,6 +14,7 @@ import ProfilePopup from "../components/ProfilePopup";
 import SuggestionForm from "../components/SuggestionForm"; // Import SuggestionForm
 import L from "leaflet";
 import { io } from "socket.io-client";
+import PickMeUp from "../components/PickMeUp";
 
 // Fix for default Leaflet icons issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -60,6 +61,7 @@ const ShutlLoggedIn = () => {
   const popupRef = useRef(null);
   const [shuttleLocations, setShuttleLocations] = useState({});
   const socket = useRef(null);
+  const [showPickMeUp, setShowPickMeUp] = useState(false);
 
   useEffect(() => {
     // Initialize socket connection
@@ -152,18 +154,28 @@ const ShutlLoggedIn = () => {
       return;
     }
 
+    console.log("Getting user location..."); // Debug log
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         const userCoords = [latitude, longitude];
+        console.log("User location updated:", userCoords); // Debug log
         setUserLocation(userCoords);
 
         if (mapInstance) {
           mapInstance.setView(userCoords, 15.5, { animate: true });
         }
       },
-      (error) => console.error("Error accessing location", error),
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      (error) => {
+        console.error("Error accessing location:", error);
+        // You might want to show this error to the user
+      },
+      { 
+        enableHighAccuracy: true, 
+        timeout: 5000, 
+        maximumAge: 0 
+      }
     );
   }, [mapInstance]);
 
@@ -197,7 +209,13 @@ const ShutlLoggedIn = () => {
           
           {/* User location marker */}
           {userLocation && (
-            <Marker position={userLocation} icon={userIcon}>
+            <Marker 
+              position={userLocation} 
+              icon={userIcon}
+              eventHandlers={{
+                click: () => setShowPickMeUp(true)
+              }}
+            >
               <Popup>Your Location</Popup>
             </Marker>
           )}
@@ -311,6 +329,14 @@ const ShutlLoggedIn = () => {
           <ProfilePopup onClose={() => setActivePopup(null)} />
         )}
       </div>
+
+      {/* Add PickMeUp component */}
+      {showPickMeUp && (
+        <PickMeUp
+          onClose={() => setShowPickMeUp(false)}
+          userLocation={userLocation}
+        />
+      )}
     </>
   );
 };
