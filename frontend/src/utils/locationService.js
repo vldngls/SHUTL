@@ -6,9 +6,32 @@ const SOCKET_URL = API_BASE_URL.replace('/api', '');
 
 let socket = null;
 
-export const initializeSocket = (options) => {
-  socket = io(SOCKET_URL, options);
+export const initializeSocket = () => {
+  if (!socket) {
+    socket = io(SOCKET_URL, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      withCredentials: true
+    });
+
+    socket.on('connect', () => {
+      console.log('Socket connected successfully');
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+    });
+  }
   return socket;
+};
+
+export const closeSocket = () => {
+  if (socket) {
+    socket.disconnect();
+    socket = null;
+  }
 };
 
 export const updateUserLocation = (setUserLocation, isLocationSharing) => {

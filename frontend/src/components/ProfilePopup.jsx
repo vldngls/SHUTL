@@ -101,18 +101,27 @@ const ShutlProfilePopup = ({ onClose }) => {
 
   const handleUpdateProfile = async () => {
     try {
-      // Use profileImage for the profile picture field
+      if (!userData || !userData.email) {
+        console.error('No user data or email available');
+        return;
+      }
+
       const updatedData = {
-        email: userData.email, // Include email for identification
-        profilePicture: profileImage, // Use the state holding the updated profile image
-        ...editedData, // Include other fields being edited (like name, etc.)
+        email: userData.email,
+        ...Object.fromEntries(
+          Object.entries(editedData).filter(([_, value]) => value !== undefined && value !== null)
+        ),
+        profilePicture: profileImage || userData.profilePicture
       };
+      
+      console.log('Sending update request with data:', updatedData);
 
       const response = await fetch(`${API_BASE_URL}/userdata/update`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(updatedData),
       });
 
@@ -123,13 +132,12 @@ const ShutlProfilePopup = ({ onClose }) => {
       }
 
       const updatedUser = await response.json();
-
-      // Update state immediately to reflect the new data
-      setUserData((prevData) => ({
+      setUserData(prevData => ({
         ...prevData,
-        ...updatedUser, // Merge updated user data into current state
+        ...updatedUser
       }));
-      setIsEditing(false); // Exit edit mode
+      setIsEditing(false);
+
     } catch (error) {
       console.error("Error updating user data:", error);
     }

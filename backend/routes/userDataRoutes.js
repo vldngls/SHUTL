@@ -6,6 +6,7 @@ import {
   updateUserDataByEmail,
   getUserDataFromToken,
 } from "../controllers/userDataController.js";
+import { authMiddleware } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -19,9 +20,9 @@ router.get("/all", getAllUserData);
 router.get("/find", getUserDataByEmail);
 
 // Route to update user data
-router.put("/update", updateUserDataByEmail);
+router.put("/update", authMiddleware, updateUserDataByEmail);
 
 // Route to get user data based on JWT token
-router.get("/me", getUserDataFromToken);
+router.get("/me", authMiddleware, getUserDataFromToken);
 
 export default router;

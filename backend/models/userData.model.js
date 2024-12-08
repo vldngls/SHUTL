@@ -7,30 +7,38 @@ const userDataSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    name: {
+      type: String,
+      default: ''
+    },
     birthday: {
       type: Date,
-      required: true,
+      default: null,
+      required: false
     },
     address: {
       type: String,
-      required: true,
+      default: '',
+      required: false
     },
     discount: {
       type: Number,
-      default: 0, // Discount value
+      default: 0
     },
     paymentMethod: {
       type: String,
-      required: true, // Payment method
+      default: '',
+      required: false
     },
     contactNumber: {
       type: String,
-      required: true,
+      default: '',
+      required: false
     },
     profilePicture: {
       type: String,
-      default: "https://via.placeholder.com/150", // Default profile picture URL
-    },
+      default: ''
+    }
   },
   {
     timestamps: true,
