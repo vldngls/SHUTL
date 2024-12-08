@@ -1,6 +1,13 @@
 import React, { useRef, useEffect, useState } from "react";
 import "../css/ProfilePopup.css";
 
+const DISCOUNT_TYPES = {
+  REGULAR: { label: 'Regular', value: 0 },
+  PWD: { label: 'PWD', value: 20 },
+  STUDENT: { label: 'Student', value: 20 },
+  SENIOR: { label: 'Senior Citizen', value: 20 }
+};
+
 const ShutlProfilePopup = ({ onClose }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Use API_BASE_URL from environment variables
   const popupRef = useRef(null);
@@ -91,8 +98,8 @@ const ShutlProfilePopup = ({ onClose }) => {
     if (file) {
       try {
         const resizedImage = await resizeAndCropImage(file);
-        setProfileImage(resizedImage); // Update the profile image preview
-        setEditedData({ ...editedData, profilePicture: resizedImage }); // Save to edited data
+        setProfileImage(resizedImage);
+        setEditedData({ ...editedData, profilePicture: resizedImage });
       } catch (error) {
         console.error("Error resizing and cropping image:", error);
       }
@@ -157,21 +164,28 @@ const ShutlProfilePopup = ({ onClose }) => {
               className="ShutlProfilePopup-picture"
             />
             {isEditing && (
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="ShutlProfilePopup-upload"
-              />
+              <>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="ShutlProfilePopup-upload"
+                />
+                <div className="ShutlProfilePopup-picture-overlay">
+                  Change Photo
+                </div>
+              </>
             )}
           </div>
           <h2>{userData.name || "User Name"}</h2>
-          <button
-            className="ShutlProfilePopup-edit-btn"
-            onClick={() => setIsEditing(true)}
-          >
-            Edit Profile
-          </button>
+          {!isEditing && (
+            <button
+              className="ShutlProfilePopup-edit-btn"
+              onClick={() => setIsEditing(true)}
+            >
+              Edit Profile
+            </button>
+          )}
         </div>
 
         {/* Profile Details Section */}
@@ -188,6 +202,9 @@ const ShutlProfilePopup = ({ onClose }) => {
             </p>
             <p>
               <strong>Address:</strong> {userData.address || "N/A"}
+            </p>
+            <p>
+              <strong>Discount Type:</strong> {DISCOUNT_TYPES[userData.discountType || 'REGULAR'].label}
             </p>
             <p>
               <strong>Discount:</strong> {userData.discount || 0}%
@@ -227,13 +244,24 @@ const ShutlProfilePopup = ({ onClose }) => {
               onChange={handleInputChange}
               placeholder="Address"
             />
-            <input
-              name="discount"
-              type="number"
-              value={editedData.discount || userData.discount || 0}
-              onChange={handleInputChange}
-              placeholder="Discount (%)"
-            />
+            <select
+              name="discountType"
+              value={editedData.discountType || userData.discountType || 'REGULAR'}
+              onChange={(e) => {
+                const selectedType = e.target.value;
+                setEditedData({
+                  ...editedData,
+                  discountType: selectedType,
+                  discount: DISCOUNT_TYPES[selectedType].value
+                });
+              }}
+            >
+              {Object.entries(DISCOUNT_TYPES).map(([key, { label }]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </select>
             <input
               name="paymentMethod"
               type="text"
