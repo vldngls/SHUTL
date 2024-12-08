@@ -224,6 +224,24 @@ const ShutlLoggedIn = () => {
     return dateTime.toLocaleTimeString("en-PH");
   }, [dateTime]);
 
+  // Add this after the socket connection setup in useEffect
+  useEffect(() => {
+    // Simulate a shuttle for testing
+    const testShuttle = {
+      shuttleId: 'Shuttle-Test-001',
+      coordinates: [14.377, 120.983], // Adjust these coordinates as needed
+      lastUpdate: new Date()
+    };
+    
+    setShuttleLocations(prev => ({
+      ...prev,
+      [testShuttle.shuttleId]: {
+        coordinates: testShuttle.coordinates,
+        lastUpdate: testShuttle.lastUpdate
+      }
+    }));
+  }, []);
+
   return (
     <>
       <div className="ShutlLoggedIn-map-container">
