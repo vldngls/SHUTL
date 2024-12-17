@@ -14,6 +14,8 @@ import ProfilePopup from "../components/ProfilePopup";
 import SuggestionForm from "../components/SuggestionForm"; // Import SuggestionForm
 import L from "leaflet";
 import { io } from "socket.io-client";
+import PickMeUp from "../components/PickMeUp";
+import { calculateDistance } from '../utils/locationUtils'; // Add this new import
 
 // Fix for default Leaflet icons issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -26,7 +28,36 @@ L.Icon.Default.mergeOptions({
 });
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Dynamic API Base URL
-const socket = io(API_BASE_URL); // Dynamic WebSocket connection
+const SOCKET_URL = API_BASE_URL.replace('/api', ''); // Socket URL without /api
+
+const carIcon = new L.Icon({
+  iconUrl: "/car.png",
+  iconRetinaUrl: "/car.png",
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  iconSize: [29, 59],
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  shadowSize: [41, 41],
+});
+
+const userIcon = new L.Icon({
+  iconUrl: "/pick.png",
+  iconRetinaUrl: "/pick.png",
+  iconAnchor: [25, 50],
+  popupAnchor: [0, -50],
+  iconSize: [50, 50],
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  shadowSize: [41, 41],
+  shadowAnchor: [12, 41]
+});
+
+const calculateETA = (distance) => {
+  // Assuming average speed of 20 km/h in a subdivision
+  const speedKmH = 20;
+  const timeHours = distance / speedKmH;
+  const timeMinutes = Math.round(timeHours * 60);
+  return timeMinutes;
+};
 
 const ShutlLoggedIn = () => {
   const [dateTime, setDateTime] = useState(new Date());
@@ -37,6 +68,69 @@ const ShutlLoggedIn = () => {
   const [profilePicture, setProfilePicture] = useState("/icon.png"); // Default profile icon
   const [showSuggestionForm, setShowSuggestionForm] = useState(false); // State for SuggestionForm
   const popupRef = useRef(null);
+  const [shuttleLocations, setShuttleLocations] = useState({});
+  const socket = useRef(null);
+  const [showPickMeUp, setShowPickMeUp] = useState(false);
+  const watchIdRef = useRef(null);
+
+  useEffect(() => {
+    // Initialize socket connection
+    socket.current = io(SOCKET_URL, {
+      transports: ['websocket'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000
+    });
+
+    // Update the event name to match what the driver is sending
+    socket.current.on('shuttle_location', (data) => {
+      console.log('Received shuttle location:', data);
+      setShuttleLocations(prev => ({
+        ...prev,
+        [data.shuttleId]: {
+          coordinates: data.coordinates,
+          lastUpdate: new Date()
+        }
+      }));
+    });
+
+    // Clean up old shuttle locations every 5 seconds
+    const cleanupInterval = setInterval(() => {
+      setShuttleLocations(prev => {
+        const now = new Date();
+        const filtered = Object.entries(prev).reduce((acc, [id, data]) => {
+          // Keep only locations updated in the last 10 seconds
+          if (now - data.lastUpdate < 10000) {
+            acc[id] = data;
+          }
+          return acc;
+        }, {});
+        return filtered;
+      });
+    }, 3000);
+
+    // Add connection status logging
+    socket.current.on('connect', () => {
+      console.log('Socket connected in ShutlLoggedIn');
+    });
+
+    socket.current.on('connect_error', (error) => {
+      console.error('Socket connection error in ShutlLoggedIn:', error);
+    });
+
+    // Cleanup on unmount
+    return () => {
+      if (socket.current) {
+        socket.current.disconnect();
+      }
+      clearInterval(cleanupInterval);
+    };
+  }, []);
+
+  // Add this console.log to verify state updates
+  useEffect(() => {
+    console.log('Current shuttle locations:', shuttleLocations);
+  }, [shuttleLocations]);
 
   // Fetch user profile data, including the profile picture
   useEffect(() => {
@@ -70,20 +164,52 @@ const ShutlLoggedIn = () => {
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
+    console.log("Starting location tracking...");
+
+    // Clear any existing watch
+    if (watchIdRef.current) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+    }
+
+    watchIdRef.current = navigator.geolocation.watchPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         const userCoords = [latitude, longitude];
+        console.log("User location updated:", {
+          latitude,
+          longitude,
+          accuracy: position.coords.accuracy,
+          timestamp: new Date(position.timestamp).toLocaleString(),
+          method: position.coords.altitude ? "GPS" : "Network/IP"
+        });
         setUserLocation(userCoords);
 
         if (mapInstance) {
           mapInstance.setView(userCoords, 15.5, { animate: true });
         }
       },
-      (error) => console.error("Error accessing location", error),
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      (error) => {
+        console.error("Location error:", {
+          code: error.code,
+          message: error.message
+        });
+      },
+      { 
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
+      }
     );
   }, [mapInstance]);
+
+  // Clean up the watch when component unmounts
+  useEffect(() => {
+    return () => {
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+    };
+  }, []);
 
   const formattedDate = useMemo(() => {
     return dateTime.toLocaleDateString("en-PH", {
@@ -98,24 +224,94 @@ const ShutlLoggedIn = () => {
     return dateTime.toLocaleTimeString("en-PH");
   }, [dateTime]);
 
+  // Add this after the socket connection setup in useEffect
+  useEffect(() => {
+    // Simulate a shuttle for testing
+    const testShuttle = {
+      shuttleId: 'Shuttle-Test-001',
+      coordinates: [14.377, 120.983], // Adjust these coordinates as needed
+      lastUpdate: new Date()
+    };
+    
+    setShuttleLocations(prev => ({
+      ...prev,
+      [testShuttle.shuttleId]: {
+        coordinates: testShuttle.coordinates,
+        lastUpdate: testShuttle.lastUpdate
+      }
+    }));
+  }, []);
+
   return (
     <>
       <div className="ShutlLoggedIn-map-container">
         <MapContainer
-          style={{ height: "100%", width: "100%" }}
-          center={[14.377, 120.983]}
+          style={{ height: "100vh", width: "100vw" }}
+          center={userLocation || [14.377, 120.983]}
           zoom={15.5}
+          zoomControl={false}
           whenCreated={setMapInstance}
         >
-          <TileLayer
+          <TileLayer 
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
+          
+          {/* User location marker */}
           {userLocation && (
-            <Marker position={userLocation}>
-              <Popup>You are here.</Popup>
+            <Marker 
+              position={userLocation} 
+              icon={userIcon}
+              eventHandlers={{
+                click: () => {
+                  updateUserLocation(); // Get fresh location
+                  setShowPickMeUp(true);
+                }
+              }}
+            >
+              <Popup>Your Location</Popup>
             </Marker>
           )}
+
+          {/* Shuttle markers */}
+          {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
+            const isRecent = (new Date() - data.lastUpdate) < 120000;
+            if (!isRecent) return null;
+
+            // Calculate distance and ETA if user location is available
+            let distance = null;
+            let eta = null;
+            if (userLocation) {
+              distance = calculateDistance(
+                userLocation[0],
+                userLocation[1],
+                data.coordinates[0],
+                data.coordinates[1]
+              );
+              eta = calculateETA(distance);
+            }
+
+            return (
+              <Marker
+                key={shuttleId}
+                position={data.coordinates}
+                icon={carIcon}
+              >
+                <Popup>
+                  <div className="ShutlLoggedIn-shuttle-info">
+                    <h3>{shuttleId}</h3>
+                    <p>Last updated: {data.lastUpdate.toLocaleTimeString()}</p>
+                    {distance !== null && (
+                      <>
+                        <p>Distance: {distance.toFixed(2)} km</p>
+                        <p>Estimated arrival: {eta} minutes</p>
+                      </>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
         </MapContainer>
       </div>
 
@@ -206,6 +402,14 @@ const ShutlLoggedIn = () => {
           <ProfilePopup onClose={() => setActivePopup(null)} />
         )}
       </div>
+
+      {/* Add PickMeUp component */}
+      {showPickMeUp && (
+        <PickMeUp
+          onClose={() => setShowPickMeUp(false)}
+          userLocation={userLocation}
+        />
+      )}
     </>
   );
 };

@@ -16,29 +16,35 @@
 .ShutlProfilePopup-content {
   background-color: white;
   padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
-  max-width: 500px;
-  width: 90%;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 500px;
+  height: auto;
   max-height: 80vh;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
   position: relative;
+  animation: slideIn 0.3s ease-out;
+  box-sizing: border-box;
+  overflow: hidden; /* Prevent scrolling */
 }
 
 /* Profile header */
 .ShutlProfilePopup-header {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding-bottom: 12px;
 }
 
 /* Profile picture styling */
 .ShutlProfilePopup-picture {
-  width: 100px;
-  height: 100px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #ddd;
@@ -53,18 +59,18 @@
 
 .ShutlProfilePopup-info h2 {
   margin: 0;
-  font-size: 1.5em;
+  font-size: 1.2em;
   color: #333;
 }
 
 /* Edit button */
 .ShutlProfilePopup-edit-btn {
-  padding: 8px 16px;
+  padding: 6px 12px;
   background-color: #ccc;
   border: none;
   border-radius: 20px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
   transition: background-color 0.3s ease;
 }
 
@@ -75,16 +81,19 @@
 /* User details section */
 .ShutlProfilePopup-details {
   background-color: #f9f9f9;
-  padding: 16px;
+  padding: 12px;
   border-radius: 8px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
 }
 
 .ShutlProfilePopup-details p,
 .ShutlProfilePopup-details input {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   color: #555;
 }
 
@@ -93,6 +102,10 @@
   border: 1px solid #ddd;
   border-radius: 5px;
   font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  max-width: none;
 }
 
 /* Save button styling */
@@ -105,6 +118,9 @@
   cursor: pointer;
   font-size: 16px;
   transition: background-color 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
 }
 
 .ShutlProfilePopup-details button:hover {
@@ -114,21 +130,26 @@
 /* Transaction history section */
 .ShutlProfilePopup-transaction-history {
   background-color: #f9f9f9;
-  padding: 16px;
+  padding: 12px;
   border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
 }
 
 .ShutlProfilePopup-transaction-history h3 {
   margin-top: 0;
-  font-size: 1.2em;
+  font-size: 1em;
   color: #333;
+  margin: 0 0 8px 0;
 }
 
 /* Mobile-friendly adjustments */
 @media (max-width: 600px) {
   .ShutlProfilePopup-content {
-    width: 95%;
+    width: 90%;
     padding: 15px;
+    gap: 10px;
   }
 
   .ShutlProfilePopup-header {
@@ -138,8 +159,8 @@
   }
 
   .ShutlProfilePopup-picture {
-    width: 80px;
-    height: 80px;
+    width: 70px;
+    height: 70px;
   }
 
   .ShutlProfilePopup-info h2 {
@@ -153,5 +174,139 @@
   .ShutlProfilePopup-edit-btn {
     font-size: 12px;
     padding: 6px 12px;
+  }
+
+  .ShutlProfilePopup-details,
+  .ShutlProfilePopup-edit-details,
+  .ShutlProfilePopup-transaction-history {
+    padding: 15px;
+  }
+}
+
+/* Edit mode specific styles */
+.ShutlProfilePopup-picture-container {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.ShutlProfilePopup-upload {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.ShutlProfilePopup-picture-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 12px;
+  padding: 4px;
+  text-align: center;
+  border-bottom-left-radius: 40px;
+  border-bottom-right-radius: 40px;
+  pointer-events: none;
+}
+
+/* Edit mode enhancements */
+.ShutlProfilePopup-edit-details {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ShutlProfilePopup-edit-details input,
+.ShutlProfilePopup-edit-details select {
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  background-color: white;
+}
+
+.ShutlProfilePopup-edit-details input:focus,
+.ShutlProfilePopup-edit-details select:focus {
+  outline: none;
+  border-color: #4caf50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.ShutlProfilePopup-edit-details input:hover,
+.ShutlProfilePopup-edit-details select:hover {
+  border-color: #4caf50;
+}
+
+.ShutlProfilePopup-edit-details button {
+  background-color: #4caf50;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s ease;
+  margin-top: 8px;
+}
+
+.ShutlProfilePopup-edit-details button:hover {
+  background-color: #45a049;
+  transform: translateY(-1px);
+}
+
+.ShutlProfilePopup-edit-details button:active {
+  transform: translateY(0);
+}
+
+/* Label styling for form fields */
+.ShutlProfilePopup-edit-details label {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: -12px;
+}
+
+/* Placeholder styling */
+.ShutlProfilePopup-edit-details input::placeholder {
+  color: #999;
+}
+
+/* Select dropdown styling */
+.ShutlProfilePopup-edit-details select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+/* Mobile responsiveness for edit mode */
+@media (max-width: 600px) {
+  .ShutlProfilePopup-edit-details {
+    padding: 15px;
+    gap: 12px;
+  }
+
+  .ShutlProfilePopup-edit-details input,
+  .ShutlProfilePopup-edit-details select {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .ShutlProfilePopup-edit-details button {
+    padding: 10px;
+    font-size: 14px;
   }
 }

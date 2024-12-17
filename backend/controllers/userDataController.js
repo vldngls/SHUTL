@@ -87,73 +87,63 @@ export const updateUserDataByEmail = async (req, res) => {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    // Find user by email
-    const userData = await UserData.findOne({ email });
-
+    let userData = await UserData.findOne({ email });
+    
     if (!userData) {
-      return res.status(404).json({ message: "User not found" });
+      userData = new UserData({
+        email,
+        ...updates
+      });
+    } else {
+      // Update only the fields that are provided
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          userData[key] = value;
+        }
+      });
     }
 
-    // Update only the fields provided in the request body
-    for (const [key, value] of Object.entries(updates)) {
-      if (value !== undefined) {
-        userData[key] = value;
-      }
-    }
-
-    await userData.save(); // Save updated data
-
+    await userData.save();
     res.status(200).json(userData);
   } catch (error) {
     console.error("Error updating user data:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ 
+      message: "Error updating user data",
+      error: error.message 
+    });
+  }
+};
+
+export const ensureUserData = async (email) => {
+  try {
+    let userData = await UserData.findOne({ email });
+    
+    if (!userData) {
+      console.log('Creating new user data for:', email);
+      userData = new UserData({
+        email,
+        // All other fields will use their default values
+      });
+      await userData.save();
+    }
+    
+    return userData;
+  } catch (error) {
+    console.error('Error in ensureUserData:', error);
+    throw error;
   }
 };
 
 // Get user data based on JWT token from cookies
 export const getUserDataFromToken = async (req, res) => {
   try {
-    const token = req.cookies.token;
-    if (!token) {
-      return res.status(401).json({ message: "No token provided" });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const email = decoded.email;
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    let userData = await UserData.findOne({ email });
-
-    if (!userData) {
-      userData = {
-        email: user.email,
-        birthday: "",
-        address: "",
-        discount: "",
-        paymentMethod: "",
-        contactNumber: "",
-        profilePicture: "",
-      };
-    }
-
-    const mergedData = {
-      name: user.name,
-      email: user.email,
-      birthday: userData.birthday,
-      address: userData.address,
-      discount: userData.discount,
-      paymentMethod: userData.paymentMethod,
-      contactNumber: userData.contactNumber,
-      profilePicture: userData.profilePicture, // Add profile picture
-    };
-
-    res.status(200).json(mergedData);
+    const userData = await ensureUserData(req.user.email);
+    res.status(200).json(userData);
   } catch (error) {
-    console.error("Error fetching user data:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error in getUserDataFromToken:", error);
+    res.status(500).json({ 
+      message: "Error fetching user data",
+      error: error.message 
+    });
   }
 };

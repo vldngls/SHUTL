@@ -1,11 +1,18 @@
 import React, { useRef, useEffect, useState } from "react";
 import "../css/ProfilePopup.css";
 
-const ShutlProfilePopup = ({ onClose }) => {
+const DISCOUNT_TYPES = {
+  REGULAR: { label: 'Regular', value: 0 },
+  PWD: { label: 'PWD', value: 20 },
+  STUDENT: { label: 'Student', value: 20 },
+  SENIOR: { label: 'Senior Citizen', value: 20 }
+};
+
+const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Use API_BASE_URL from environment variables
   const popupRef = useRef(null);
   const [userData, setUserData] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(initialEditMode);
   const [editedData, setEditedData] = useState({});
   const [profileImage, setProfileImage] = useState(null);
 
@@ -91,8 +98,8 @@ const ShutlProfilePopup = ({ onClose }) => {
     if (file) {
       try {
         const resizedImage = await resizeAndCropImage(file);
-        setProfileImage(resizedImage); // Update the profile image preview
-        setEditedData({ ...editedData, profilePicture: resizedImage }); // Save to edited data
+        setProfileImage(resizedImage);
+        setEditedData({ ...editedData, profilePicture: resizedImage });
       } catch (error) {
         console.error("Error resizing and cropping image:", error);
       }
@@ -101,18 +108,27 @@ const ShutlProfilePopup = ({ onClose }) => {
 
   const handleUpdateProfile = async () => {
     try {
-      // Use profileImage for the profile picture field
+      if (!userData || !userData.email) {
+        console.error('No user data or email available');
+        return;
+      }
+
       const updatedData = {
-        email: userData.email, // Include email for identification
-        profilePicture: profileImage, // Use the state holding the updated profile image
-        ...editedData, // Include other fields being edited (like name, etc.)
+        email: userData.email,
+        ...Object.fromEntries(
+          Object.entries(editedData).filter(([_, value]) => value !== undefined && value !== null)
+        ),
+        profilePicture: profileImage || userData.profilePicture
       };
+      
+      console.log('Sending update request with data:', updatedData);
 
       const response = await fetch(`${API_BASE_URL}/userdata/update`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(updatedData),
       });
 
@@ -123,13 +139,12 @@ const ShutlProfilePopup = ({ onClose }) => {
       }
 
       const updatedUser = await response.json();
-
-      // Update state immediately to reflect the new data
-      setUserData((prevData) => ({
+      setUserData(prevData => ({
         ...prevData,
-        ...updatedUser, // Merge updated user data into current state
+        ...updatedUser
       }));
-      setIsEditing(false); // Exit edit mode
+      setIsEditing(false);
+
     } catch (error) {
       console.error("Error updating user data:", error);
     }
@@ -149,21 +164,28 @@ const ShutlProfilePopup = ({ onClose }) => {
               className="ShutlProfilePopup-picture"
             />
             {isEditing && (
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="ShutlProfilePopup-upload"
-              />
+              <>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="ShutlProfilePopup-upload"
+                />
+                <div className="ShutlProfilePopup-picture-overlay">
+                  Change Photo
+                </div>
+              </>
             )}
           </div>
           <h2>{userData.name || "User Name"}</h2>
-          <button
-            className="ShutlProfilePopup-edit-btn"
-            onClick={() => setIsEditing(true)}
-          >
-            Edit Profile
-          </button>
+          {!isEditing && (
+            <button
+              className="ShutlProfilePopup-edit-btn"
+              onClick={() => setIsEditing(true)}
+            >
+              Edit Profile
+            </button>
+          )}
         </div>
 
         {/* Profile Details Section */}
@@ -180,6 +202,9 @@ const ShutlProfilePopup = ({ onClose }) => {
             </p>
             <p>
               <strong>Address:</strong> {userData.address || "N/A"}
+            </p>
+            <p>
+              <strong>Discount Type:</strong> {DISCOUNT_TYPES[userData.discountType || 'REGULAR'].label}
             </p>
             <p>
               <strong>Discount:</strong> {userData.discount || 0}%
@@ -219,13 +244,24 @@ const ShutlProfilePopup = ({ onClose }) => {
               onChange={handleInputChange}
               placeholder="Address"
             />
-            <input
-              name="discount"
-              type="number"
-              value={editedData.discount || userData.discount || 0}
-              onChange={handleInputChange}
-              placeholder="Discount (%)"
-            />
+            <select
+              name="discountType"
+              value={editedData.discountType || userData.discountType || 'REGULAR'}
+              onChange={(e) => {
+                const selectedType = e.target.value;
+                setEditedData({
+                  ...editedData,
+                  discountType: selectedType,
+                  discount: DISCOUNT_TYPES[selectedType].value
+                });
+              }}
+            >
+              {Object.entries(DISCOUNT_TYPES).map(([key, { label }]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </select>
             <input
               name="paymentMethod"
               type="text"
