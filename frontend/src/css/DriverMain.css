@@ -122,21 +122,26 @@
   margin-left: -80px; /* Shift taskbar left to align with the navbar's edge */
 }
 
-/* Update location button styling */
 .DriverMain-update-location-btn {
   position: fixed;
-  right: 20px;
-  bottom: 60px; /* Adjust this value to position it above the taskbar */
-  background: none; /* Remove default button styles */
-  border: none; /* Remove default button border */
-  padding: 0; /* Remove default padding */
+  right: 20px; /* Keep this consistent with your design */
+  bottom: 60px; /* Adjust if needed to bring it back into view */
+  background: none;
+  border: none;
+  padding: 0;
   cursor: pointer;
-  z-index: 3; /* Ensure it stays above the map and taskbar */
+  z-index: 1000; /* Ensure it's above the map */
+}
+
+.DriverMain-update-location-btn img {
+  width: 40px; /* Smaller size */
+  height: 40px;
 }
 
 .DriverMain-update-location-btn:hover {
-  background-color: #cacaca21;
+  background-color: #cacaca21; /* Highlight effect */
 }
+
 
 .DriverMain-update-location-icon {
   width: 40px;
