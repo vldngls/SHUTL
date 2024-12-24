@@ -67,6 +67,13 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('shuttle_location', data);
   });
 
+  // New: Real-time messaging
+  socket.on('message', (msg) => {
+    console.log('Message received:', msg);
+    // Broadcast message to all connected clients
+    io.emit('message', msg);
+  });
+
   socket.on('disconnect', () => {
     console.log('A user disconnected:', socket.id);
   });
@@ -78,5 +85,3 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
-//test
