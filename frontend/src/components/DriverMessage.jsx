@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../css/DriverMessage.css";
 import { FaPhoneAlt } from "react-icons/fa"; // Import only the call icon
 
@@ -11,13 +11,13 @@ const DriverMessage = ({ messages, onSendMessage }) => {
 
   const handleSendClick = () => {
     if (newMessage.trim() !== "") {
-      onSendMessage(newMessage);
-      setNewMessage("");
+      onSendMessage(newMessage); // Call the parent-provided handler to send the message
+      setNewMessage(""); // Clear the input field after sending
     }
   };
 
   const handleQuickReplyClick = (reply) => {
-    onSendMessage(reply);
+    onSendMessage(reply); // Call the handler with the quick reply text
   };
 
   return (
@@ -33,7 +33,7 @@ const DriverMessage = ({ messages, onSendMessage }) => {
       <div className="DriverMessage-message-list">
         {messages.map((message, index) => (
           <div key={index} className="DriverMessage-message-item">
-            <strong>{message.driver}:</strong> {message.text}
+            <strong>{message.sender}:</strong> {message.text}
           </div>
         ))}
       </div>

@@ -1,33 +1,39 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { useNavigate } from 'react-router-dom';
-import 'leaflet/dist/leaflet.css';
-import '../css/TellerMain.css';
-import SettingsDropdown from '../components/SettingsDropdown';
-import NotificationPop from '../components/NotificationPop';
-import SuggestionForm from '../components/SuggestionForm';
-import ShuttleTripTracking from '../components/ShuttleTripTracking';
-import TellerShuttleSummary from '../components/TellerShuttleSummary';
-import TellerProfile from '../components/TellerProfile';
+import React, { useState, useEffect, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { useNavigate } from "react-router-dom";
+import "leaflet/dist/leaflet.css";
+import "../css/TellerMain.css";
+import SettingsDropdown from "../components/SettingsDropdown";
+import NotificationPop from "../components/NotificationPop";
+import SuggestionForm from "../components/SuggestionForm";
+import ShuttleTripTracking from "../components/ShuttleTripTracking";
+import TellerShuttleSummary from "../components/TellerShuttleSummary";
+import TellerProfile from "../components/TellerProfile";
 import ProfilePopup from "../components/ProfilePopup";
-import TellerSummary from '../components/TellerSummary';
-import L from 'leaflet';
+import TellerSummary from "../components/TellerSummary";
+import DriverMessage from "../components/DriverMessage"; // Import DriverMessage component
+import {
+  connectSocket,
+  sendMessage,
+  subscribeToMessages,
+} from "../utils/websocketService";
+import L from "leaflet";
 
-// Leaflet icon configuration
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
 const TellerMain = () => {
   const navigate = useNavigate();
-  
+
   // State Management
   const [dateTime, setDateTime] = useState(new Date());
-  const [userLocation, setUserLocation] = useState(null);
-  
+  const [userLocation, setUserLocation] = useState([14.377, 120.983]);
+  const [messages, setMessages] = useState([]); // State to manage messages
+
   // Modal/Popup States
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
@@ -42,8 +48,19 @@ const TellerMain = () => {
   const settingsRef = useRef();
   const mapRef = useRef();
 
-  // Effects
-  
+  // Initialize socket and set up message subscription
+  useEffect(() => {
+    const connectedSocket = connectSocket();
+
+    subscribeToMessages((incomingMessage) => {
+      setMessages((prev) => [...prev, incomingMessage]);
+    });
+
+    return () => {
+      connectedSocket.disconnect();
+    };
+  }, []);
+
   // Update datetime every second
   useEffect(() => {
     const timer = setInterval(() => setDateTime(new Date()), 1000);
@@ -59,12 +76,12 @@ const TellerMain = () => {
     };
 
     if (isSettingsOpen) {
-      document.addEventListener('click', handleOutsideClick);
+      document.addEventListener("click", handleOutsideClick);
     } else {
-      document.removeEventListener('click', handleOutsideClick);
+      document.removeEventListener("click", handleOutsideClick);
     }
 
-    return () => document.removeEventListener('click', handleOutsideClick);
+    return () => document.removeEventListener("click", handleOutsideClick);
   }, [isSettingsOpen]);
 
   // Toggle Handlers
@@ -78,34 +95,31 @@ const TellerMain = () => {
   const openTripForm = () => setIsTripFormOpen(true);
   const closeTripForm = () => setIsTripFormOpen(false);
 
+  const handleSendMessage = (newMessage) => {
+    const tellerMessage = { sender: "Teller", text: newMessage };
+    sendMessage(tellerMessage); // Send message via WebSocket
+    setMessages((prev) => [...prev, tellerMessage]); // Add message to local state
+  };
+
   return (
     <>
       {/* Map Component */}
       <div className="TellerMain-map-container">
         <MapContainer
-          style={{ height: '100%', width: '100%' }}
-          center={[14.377, 120.983]}
+          style={{ height: "100%", width: "100%" }}
+          center={userLocation}
           zoom={15.5}
-          whenCreated={(mapInstance) => { mapRef.current = mapInstance; }}
+          whenCreated={(mapInstance) => {
+            mapRef.current = mapInstance;
+          }}
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           />
-          {userLocation && (
-            <Marker position={userLocation}>
-              <Popup>You are here.</Popup>
-            </Marker>
-          )}
-          <Marker 
-            position={[14.377, 120.983]} 
-            icon={L.icon({ iconUrl: '/car.png', iconSize: [25, 41] })}
-            eventHandlers={{
-              click: () => {
-                setIsSummaryOpen(true);
-              },
-            }}
-          />
+          <Marker position={userLocation}>
+            <Popup>You are here.</Popup>
+          </Marker>
         </MapContainer>
       </div>
 
@@ -146,14 +160,10 @@ const TellerMain = () => {
         </div>
       </div>
 
-      {/* Shuttle Selection Buttons */}
-      <div className="TellerMain-right-buttons">
-        <button className="TellerMain-right-btn">Shuttle 1</button>
-        <button className="TellerMain-right-btn">Shuttle 2</button>
-        <button className="TellerMain-right-btn">Shuttle 3</button>
-      </div>
-
-      {/* Conditional Renders - Modals and Popups */}
+      {/* Conditional Modals */}
+      {isMessageBoxOpen && (
+        <DriverMessage messages={messages} onSendMessage={handleSendMessage} />
+      )}
       {isSummaryOpen && <TellerSummary onClose={() => setIsSummaryOpen(false)} />}
       {isProfileOpen && <TellerProfile onClose={toggleProfile} />}
       {isProfilePopupOpen && <ProfilePopup onClose={toggleProfilePopup} />}
@@ -168,8 +178,13 @@ const TellerMain = () => {
 
       {/* DateTime Taskbar */}
       <div className="TellerMain-taskbar">
-        {dateTime.toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} -{' '}
-        {dateTime.toLocaleTimeString('en-PH')}
+        {dateTime.toLocaleDateString("en-PH", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })}{" "}
+        - {dateTime.toLocaleTimeString("en-PH")}
       </div>
     </>
   );

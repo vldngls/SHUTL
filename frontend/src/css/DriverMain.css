@@ -1,4 +1,4 @@
-/* Layout and positioning for the map container */
+/* Map container layout */
 .DriverMain-map-container {
   height: 100vh;
   width: 100%;
@@ -6,7 +6,7 @@
   z-index: 1;
 }
 
-/* Styles for the navbar on the left */
+/* Navbar styling */
 .DriverMain-navbar {
   display: flex;
   flex-direction: column;
@@ -34,81 +34,48 @@
   color: #ecf0f1;
 }
 
-/* Styling for the navbar buttons */
+/* Navbar buttons container */
+/* Navbar buttons container */
 .DriverMain-navbar-buttons {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  margin-top: auto;
-  margin-bottom: auto;
+  width: 100%;
+  margin-top: 240px; /* Push buttons towards the bottom */
 }
 
-/* Icon buttons used in the navbar */
-.DriverMain-icon-btn {
+
+/* Navbar buttons styling */
+.DriverMain-navbar-buttons button {
+  display: block;
   background: none;
   border: none;
   cursor: pointer;
   outline: none;
   transition: transform 0.2s;
+  margin-bottom: 0; /* Default spacing */
+  padding: 0;
 }
 
-/* Icon images used in the buttons */
-.DriverMain-icon-image,
-.DriverMain-icon-btn img {
+/* Add 1px spacing between buttons */
+.DriverMain-navbar-buttons button + button {
+  margin-top: 15px;
+}
+
+/* Button icon images */
+.DriverMain-navbar-buttons button img {
   width: 48px;
   height: 48px;
 }
 
-.DriverMain-icon-btn:hover img {
+/* Hover effect for buttons */
+.DriverMain-navbar-buttons button:hover img {
   transform: scale(1.1);
 }
 
-/* Container for the settings dropdown */
-.DriverMain-settings-container {
-  position: relative;
-}
-
-.DriverMain-settings-dropdown {
-  position: absolute;
-  z-index: 1000;
-}
-.DriverMain-notification-container {
-  position: relative;
-}
-
-/* Profile icon styling and container positioning */
-.DriverMain-icon-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  margin-top: 24px;
-  margin-bottom: 16px;
-}
-
-/* Horizontal line above the profile icon */
-.DriverMain-line {
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 58px;
-  height: 1px;
-  background-color: white;
-}
-
-.DriverMain-nav-icon {
-  width: 48px;
-  height: 48px;
-}
-
-/* Taskbar with date and time display */
+/* Taskbar styling */
 .DriverMain-taskbar {
   position: fixed;
   bottom: 0;
   left: 0;
-  width: calc(100% + 80px); /* Expand width to cover entire screen width */
+  width: calc(100% + 80px);
   background-color: #f5f5f5;
   color: #333;
   display: flex;
@@ -116,34 +83,33 @@
   align-items: center;
   padding: 10px 20px;
   border-top: 2px solid #e0e0e0;
-  font-size: 1em; /* Adjusted to relative units */
-  z-index: 2; /* Ensure it is behind the navbar */
+  font-size: 1em;
+  z-index: 2;
   box-sizing: border-box;
-  margin-left: -80px; /* Shift taskbar left to align with the navbar's edge */
+  margin-left: -80px;
 }
 
-/* Update location button styling */
+/* Update location button */
 .DriverMain-update-location-btn {
   position: fixed;
   right: 20px;
-  bottom: 60px; /* Adjust this value to position it above the taskbar */
-  background: none; /* Remove default button styles */
-  border: none; /* Remove default button border */
-  padding: 0; /* Remove default padding */
+  bottom: 60px;
+  background: none;
+  border: none;
   cursor: pointer;
-  z-index: 3; /* Ensure it stays above the map and taskbar */
+  z-index: 1000;
+}
+
+.DriverMain-update-location-btn img {
+  width: 40px;
+  height: 40px;
 }
 
 .DriverMain-update-location-btn:hover {
   background-color: #cacaca21;
 }
 
-.DriverMain-update-location-icon {
-  width: 40px;
-  height: 40px;
-}
-
-/* Request assistance button styling */
+/* Request assistance button */
 .DriverMain-request-assistance-btn {
   background-color: #232323;
   color: white;
@@ -166,7 +132,7 @@
   background-color: #424242;
 }
 
-/* Styling for operational hours display */
+/* Operational hours display */
 .DriverMain-operational-hours {
   position: fixed;
   right: 20px;
@@ -193,7 +159,7 @@
     margin-bottom: 10px;
   }
 
-  .DriverMain-nav-icon {
+  .DriverMain-navbar-buttons button img {
     width: 36px;
     height: 36px;
   }
@@ -202,11 +168,6 @@
     width: calc(100% + 60px);
     margin-left: -60px;
     font-size: 0.9em;
-  }
-
-  .DriverMain-icon-btn img {
-    width: 36px;
-    height: 36px;
   }
 }
 
@@ -230,52 +191,16 @@
     align-self: center;
   }
 
-  .DriverMain-nav-icon,
-  .DriverMain-icon-image {
+  .DriverMain-navbar-buttons button img {
     width: 28px;
     height: 28px;
-  }
-
-  .DriverMain-icon-container {
-    margin: 0;
-  }
-
-  .DriverMain-line {
-    display: none;
   }
 
   .DriverMain-taskbar {
     font-size: 0.9em;
     padding: 8px 16px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    justify-content: center;
     width: 100%;
     margin-left: 0;
-    justify-content: center;
   }
-}
-
-/* Adjusted Notification Dropdown Positioning */
-.DriverMain-notification-dropdown {
-  position: fixed; /* Use fixed to keep it in a specific place relative to the viewport */
-  top: 60px; /* Adjust based on the button location */
-  right: 100px; /* Adjust to align with the notification button */
-  width: 250px;
-  border-radius: 8px;
-  z-index: 1001;
-  padding: 10px;
-}
-
-.DriverMain-sharing-status {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #28a745;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  z-index: 1000;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }

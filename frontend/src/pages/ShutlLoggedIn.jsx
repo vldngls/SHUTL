@@ -11,11 +11,11 @@ import "../css/LoggedIn.css";
 import NotificationPop from "../components/NotificationPop";
 import SettingsDropdown from "../components/SettingsDropdown";
 import ProfilePopup from "../components/ProfilePopup";
-import SuggestionForm from "../components/SuggestionForm"; // Import SuggestionForm
+import SuggestionForm from "../components/SuggestionForm";
 import L from "leaflet";
 import { io } from "socket.io-client";
 import PickMeUp from "../components/PickMeUp";
-import { calculateDistance } from '../utils/locationUtils'; // Add this new import
+import { calculateDistance } from '../utils/locationUtils';
 
 // Fix for default Leaflet icons issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -72,6 +72,8 @@ const ShutlLoggedIn = () => {
   const socket = useRef(null);
   const [showPickMeUp, setShowPickMeUp] = useState(false);
   const watchIdRef = useRef(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isProfileEditMode, setIsProfileEditMode] = useState(false);
 
   useEffect(() => {
     // Initialize socket connection
@@ -242,6 +244,17 @@ const ShutlLoggedIn = () => {
     }));
   }, []);
 
+  const handleSettingsClick = (e) => {
+    e.stopPropagation();
+    setIsSettingsOpen(!isSettingsOpen);
+  };
+
+  const handleProfileSettings = () => {
+    setIsProfileEditMode(true);
+    setActivePopup("profile");
+    setIsSettingsOpen(false);
+  };
+
   return (
     <>
       <div className="ShutlLoggedIn-map-container">
@@ -331,7 +344,7 @@ const ShutlLoggedIn = () => {
 
           <button
             className="ShutlLoggedIn-setting-btn"
-            onClick={() => setActivePopup("settings")}
+            onClick={handleSettingsClick}
           >
             <img
               src="/settings.png"
@@ -347,7 +360,10 @@ const ShutlLoggedIn = () => {
             src={profilePicture}
             alt="Navigation Icon"
             className="ShutlLoggedIn-nav-icon"
-            onClick={() => setActivePopup("profile")}
+            onClick={() => {
+              setIsProfileEditMode(false);
+              setActivePopup("profile");
+            }}
           />
         </div>
       </div>
@@ -389,17 +405,31 @@ const ShutlLoggedIn = () => {
 
       {/* Popups */}
       <div ref={popupRef}>
-        {activePopup === "settings" && (
-          <SettingsDropdown onClose={() => setActivePopup(null)} />
+        {/* Settings Dropdown */}
+        {isSettingsOpen && (
+          <SettingsDropdown 
+            onClose={() => setIsSettingsOpen(false)}
+            onProfileSettings={handleProfileSettings}
+          />
         )}
+
+        {/* Profile Popup */}
+        {activePopup === "profile" && (
+          <ProfilePopup 
+            onClose={() => {
+              setActivePopup(null);
+              setIsProfileEditMode(false);
+            }}
+            initialEditMode={isProfileEditMode}
+          />
+        )}
+
+        {/* Notifications Popup */}
         {activePopup === "notifications" && (
           <NotificationPop
             notifications={notifications}
             onClose={() => setActivePopup(null)}
           />
-        )}
-        {activePopup === "profile" && (
-          <ProfilePopup onClose={() => setActivePopup(null)} />
         )}
       </div>
 
