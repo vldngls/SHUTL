@@ -61,6 +61,7 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
+  // Restoring shuttle location broadcasting functionality
   socket.on('shuttle_location', (data) => {
     console.log('Received shuttle location:', data);
     // Broadcast to all connected clients except sender

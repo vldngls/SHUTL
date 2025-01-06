@@ -12,10 +12,10 @@ import NotificationPop from "../components/NotificationPop";
 import SettingsDropdown from "../components/SettingsDropdown";
 import ProfilePopup from "../components/ProfilePopup";
 import SuggestionForm from "../components/SuggestionForm";
+import PickMeUp from "../components/PickMeUp";
 import L from "leaflet";
 import { io } from "socket.io-client";
-import PickMeUp from "../components/PickMeUp";
-import { calculateDistance } from '../utils/locationUtils';
+import { calculateDistance } from "../utils/locationUtils";
 
 // Fix for default Leaflet icons issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -28,7 +28,7 @@ L.Icon.Default.mergeOptions({
 });
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Dynamic API Base URL
-const SOCKET_URL = API_BASE_URL.replace('/api', ''); // Socket URL without /api
+const SOCKET_URL = API_BASE_URL.replace("/api", ""); // Socket URL without /api
 
 const carIcon = new L.Icon({
   iconUrl: "/car.png",
@@ -48,12 +48,11 @@ const userIcon = new L.Icon({
   iconSize: [50, 50],
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
   shadowSize: [41, 41],
-  shadowAnchor: [12, 41]
+  shadowAnchor: [12, 41],
 });
 
 const calculateETA = (distance) => {
-  // Assuming average speed of 20 km/h in a subdivision
-  const speedKmH = 20;
+  const speedKmH = 20; // Assuming average speed of 20 km/h in a subdivision
   const timeHours = distance / speedKmH;
   const timeMinutes = Math.round(timeHours * 60);
   return timeMinutes;
@@ -64,44 +63,41 @@ const ShutlLoggedIn = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [activePopup, setActivePopup] = useState(null);
   const [mapInstance, setMapInstance] = useState(null);
-  const [notifications, setNotifications] = useState([]); // List of notifications
-  const [profilePicture, setProfilePicture] = useState("/icon.png"); // Default profile icon
-  const [showSuggestionForm, setShowSuggestionForm] = useState(false); // State for SuggestionForm
-  const popupRef = useRef(null);
+  const [notifications, setNotifications] = useState([]);
+  const [profilePicture, setProfilePicture] = useState("/icon.png");
+  const [showSuggestionForm, setShowSuggestionForm] = useState(false);
   const [shuttleLocations, setShuttleLocations] = useState({});
-  const socket = useRef(null);
   const [showPickMeUp, setShowPickMeUp] = useState(false);
-  const watchIdRef = useRef(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileEditMode, setIsProfileEditMode] = useState(false);
+  const socket = useRef(null);
+  const watchIdRef = useRef(null);
+  const popupRef = useRef(null);
 
   useEffect(() => {
     // Initialize socket connection
     socket.current = io(SOCKET_URL, {
-      transports: ['websocket'],
+      transports: ["websocket"],
       reconnection: true,
       reconnectionAttempts: 5,
-      reconnectionDelay: 1000
+      reconnectionDelay: 1000,
     });
 
-    // Update the event name to match what the driver is sending
-    socket.current.on('shuttle_location', (data) => {
-      console.log('Received shuttle location:', data);
-      setShuttleLocations(prev => ({
+    socket.current.on("shuttle_location", (data) => {
+      console.log("Received shuttle location:", data);
+      setShuttleLocations((prev) => ({
         ...prev,
         [data.shuttleId]: {
           coordinates: data.coordinates,
-          lastUpdate: new Date()
-        }
+          lastUpdate: new Date(),
+        },
       }));
     });
 
-    // Clean up old shuttle locations every 5 seconds
     const cleanupInterval = setInterval(() => {
-      setShuttleLocations(prev => {
+      setShuttleLocations((prev) => {
         const now = new Date();
         const filtered = Object.entries(prev).reduce((acc, [id, data]) => {
-          // Keep only locations updated in the last 10 seconds
           if (now - data.lastUpdate < 10000) {
             acc[id] = data;
           }
@@ -111,16 +107,14 @@ const ShutlLoggedIn = () => {
       });
     }, 3000);
 
-    // Add connection status logging
-    socket.current.on('connect', () => {
-      console.log('Socket connected in ShutlLoggedIn');
+    socket.current.on("connect", () => {
+      console.log("Socket connected in ShutlLoggedIn");
     });
 
-    socket.current.on('connect_error', (error) => {
-      console.error('Socket connection error in ShutlLoggedIn:', error);
+    socket.current.on("connect_error", (error) => {
+      console.error("Socket connection error in ShutlLoggedIn:", error);
     });
 
-    // Cleanup on unmount
     return () => {
       if (socket.current) {
         socket.current.disconnect();
@@ -129,24 +123,22 @@ const ShutlLoggedIn = () => {
     };
   }, []);
 
-  // Add this console.log to verify state updates
   useEffect(() => {
-    console.log('Current shuttle locations:', shuttleLocations);
+    console.log("Current shuttle locations:", shuttleLocations);
   }, [shuttleLocations]);
 
-  // Fetch user profile data, including the profile picture
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/userdata/me`, {
           method: "GET",
-          credentials: "include", // Include cookies for authentication
+          credentials: "include",
         });
 
         if (response.ok) {
           const data = await response.json();
           if (data.profilePicture) {
-            setProfilePicture(data.profilePicture); // Set the profile picture URL
+            setProfilePicture(data.profilePicture);
           }
         } else {
           console.error("Failed to fetch user profile data");
@@ -159,16 +151,12 @@ const ShutlLoggedIn = () => {
     fetchUserProfile();
   }, []);
 
-  // Update user location
   const updateUserLocation = useCallback(() => {
     if (!navigator.geolocation) {
       console.error("Geolocation is not supported by this browser.");
       return;
     }
 
-    console.log("Starting location tracking...");
-
-    // Clear any existing watch
     if (watchIdRef.current) {
       navigator.geolocation.clearWatch(watchIdRef.current);
     }
@@ -177,13 +165,7 @@ const ShutlLoggedIn = () => {
       (position) => {
         const { latitude, longitude } = position.coords;
         const userCoords = [latitude, longitude];
-        console.log("User location updated:", {
-          latitude,
-          longitude,
-          accuracy: position.coords.accuracy,
-          timestamp: new Date(position.timestamp).toLocaleString(),
-          method: position.coords.altitude ? "GPS" : "Network/IP"
-        });
+        console.log("User location updated:", userCoords);
         setUserLocation(userCoords);
 
         if (mapInstance) {
@@ -191,20 +173,16 @@ const ShutlLoggedIn = () => {
         }
       },
       (error) => {
-        console.error("Location error:", {
-          code: error.code,
-          message: error.message
-        });
+        console.error("Location error:", error);
       },
-      { 
+      {
         enableHighAccuracy: true,
         timeout: 5000,
-        maximumAge: 0
+        maximumAge: 0,
       }
     );
   }, [mapInstance]);
 
-  // Clean up the watch when component unmounts
   useEffect(() => {
     return () => {
       if (watchIdRef.current) {
@@ -225,24 +203,6 @@ const ShutlLoggedIn = () => {
   const formattedTime = useMemo(() => {
     return dateTime.toLocaleTimeString("en-PH");
   }, [dateTime]);
-
-  // Add this after the socket connection setup in useEffect
-  useEffect(() => {
-    // Simulate a shuttle for testing
-    const testShuttle = {
-      shuttleId: 'Shuttle-Test-001',
-      coordinates: [14.377, 120.983], // Adjust these coordinates as needed
-      lastUpdate: new Date()
-    };
-    
-    setShuttleLocations(prev => ({
-      ...prev,
-      [testShuttle.shuttleId]: {
-        coordinates: testShuttle.coordinates,
-        lastUpdate: testShuttle.lastUpdate
-      }
-    }));
-  }, []);
 
   const handleSettingsClick = (e) => {
     e.stopPropagation();
@@ -265,33 +225,30 @@ const ShutlLoggedIn = () => {
           zoomControl={false}
           whenCreated={setMapInstance}
         >
-          <TileLayer 
+          <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
-          
-          {/* User location marker */}
+
           {userLocation && (
-            <Marker 
-              position={userLocation} 
+            <Marker
+              position={userLocation}
               icon={userIcon}
               eventHandlers={{
                 click: () => {
-                  updateUserLocation(); // Get fresh location
+                  updateUserLocation();
                   setShowPickMeUp(true);
-                }
+                },
               }}
             >
               <Popup>Your Location</Popup>
             </Marker>
           )}
 
-          {/* Shuttle markers */}
           {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
-            const isRecent = (new Date() - data.lastUpdate) < 120000;
+            const isRecent = new Date() - data.lastUpdate < 120000;
             if (!isRecent) return null;
 
-            // Calculate distance and ETA if user location is available
             let distance = null;
             let eta = null;
             if (userLocation) {
@@ -305,11 +262,7 @@ const ShutlLoggedIn = () => {
             }
 
             return (
-              <Marker
-                key={shuttleId}
-                position={data.coordinates}
-                icon={carIcon}
-              >
+              <Marker key={shuttleId} position={data.coordinates} icon={carIcon}>
                 <Popup>
                   <div className="ShutlLoggedIn-shuttle-info">
                     <h3>{shuttleId}</h3>
@@ -317,7 +270,7 @@ const ShutlLoggedIn = () => {
                     {distance !== null && (
                       <>
                         <p>Distance: {distance.toFixed(2)} km</p>
-                        <p>Estimated arrival: {eta} minutes</p>
+                        <p>ETA: {eta} minutes</p>
                       </>
                     )}
                   </div>
@@ -335,22 +288,14 @@ const ShutlLoggedIn = () => {
             className="ShutlLoggedIn-notif-btn"
             onClick={() => setActivePopup("notifications")}
           >
-            <img
-              src="/notif.png"
-              alt="Notification"
-              className="ShutlLoggedIn-notif-icon"
-            />
+            <img src="/notif.png" alt="Notification" className="ShutlLoggedIn-notif-icon" />
           </button>
 
           <button
             className="ShutlLoggedIn-setting-btn"
             onClick={handleSettingsClick}
           >
-            <img
-              src="/settings.png"
-              alt="Settings"
-              className="ShutlLoggedIn-setting-icon"
-            />
+            <img src="/settings.png" alt="Settings" className="ShutlLoggedIn-setting-icon" />
           </button>
         </div>
 
@@ -372,50 +317,36 @@ const ShutlLoggedIn = () => {
         {formattedDate} - {formattedTime}
       </div>
 
-      {/* Suggestion Form */}
       {showSuggestionForm && (
         <div className="suggestion-form-overlay">
           <SuggestionForm onClose={() => setShowSuggestionForm(false)} />
         </div>
       )}
 
-      {/* Suggestion Button */}
       <button
         className="ShutlLoggedIn-suggestion-btn"
         onClick={() => setShowSuggestionForm(true)}
       >
-        <img
-          src="/ask.png"
-          alt="Ask Button"
-          className="ShutlLoggedIn-suggestion-icon"
-        />
+        <img src="/ask.png" alt="Ask Button" className="ShutlLoggedIn-suggestion-icon" />
       </button>
 
-      {/* Location Update Button */}
       <button
         className="ShutlLoggedIn-update-location-btn"
         onClick={updateUserLocation}
       >
-        <img
-          src="/locup.png"
-          alt="Update Location"
-          className="ShutlLoggedIn-update-location-icon"
-        />
+        <img src="/locup.png" alt="Update Location" className="ShutlLoggedIn-update-location-icon" />
       </button>
 
-      {/* Popups */}
       <div ref={popupRef}>
-        {/* Settings Dropdown */}
         {isSettingsOpen && (
-          <SettingsDropdown 
+          <SettingsDropdown
             onClose={() => setIsSettingsOpen(false)}
             onProfileSettings={handleProfileSettings}
           />
         )}
 
-        {/* Profile Popup */}
         {activePopup === "profile" && (
-          <ProfilePopup 
+          <ProfilePopup
             onClose={() => {
               setActivePopup(null);
               setIsProfileEditMode(false);
@@ -424,7 +355,6 @@ const ShutlLoggedIn = () => {
           />
         )}
 
-        {/* Notifications Popup */}
         {activePopup === "notifications" && (
           <NotificationPop
             notifications={notifications}
@@ -433,12 +363,8 @@ const ShutlLoggedIn = () => {
         )}
       </div>
 
-      {/* Add PickMeUp component */}
       {showPickMeUp && (
-        <PickMeUp
-          onClose={() => setShowPickMeUp(false)}
-          userLocation={userLocation}
-        />
+        <PickMeUp onClose={() => setShowPickMeUp(false)} userLocation={userLocation} />
       )}
     </>
   );

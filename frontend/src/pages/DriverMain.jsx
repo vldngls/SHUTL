@@ -8,18 +8,11 @@ import SettingsDropdown from "../components/SettingsDropdown";
 import SchedulePopup from "../components/SchedulePopup";
 import NotificationPop from "../components/NotificationPop";
 import DriverSummary from "../components/DriverSummary";
-import {
-  initializeSocket,
-  updateUserLocation,
-  startLocationSharing,
-  stopLocationSharing,
-} from "../utils/locationService";
-import {
-  connectSocket,
-  sendMessage,
-  subscribeToMessages,
-} from "../utils/websocketService";
+import { io } from "socket.io-client";
 import L from "leaflet";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const SOCKET_URL = API_BASE_URL.replace("/api", "");
 
 const carIcon = new L.Icon({
   iconUrl: "/car.png",
@@ -39,25 +32,42 @@ const DriverMain = () => {
   const [activeModal, setActiveModal] = useState(null);
   const [isLocationSharing, setIsLocationSharing] = useState(false);
   const [messages, setMessages] = useState([]);
-
   const socket = useRef(null);
   const mapRef = useRef(null);
   const locationUpdateInterval = useRef(null);
 
-  // Initialize socket and set up message subscription
+  // Initialize socket and handle events
   useEffect(() => {
-    const connectedSocket = connectSocket();
+    socket.current = io(SOCKET_URL, {
+      transports: ["websocket"],
+      cors: {
+        origin: "*",
+        methods: ["GET", "POST"],
+      },
+    });
 
-    subscribeToMessages((incomingMessage) => {
+    socket.current.on("connect", () => {
+      console.log("Socket connected:", socket.current.id);
+    });
+
+    socket.current.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
+
+    socket.current.on("shuttle_location", (locationData) => {
+      console.log("Received shuttle location:", locationData);
+    });
+
+    socket.current.on("message", (incomingMessage) => {
       setMessages((prev) => [...prev, incomingMessage]);
     });
 
     return () => {
-      connectedSocket.disconnect();
+      socket.current.disconnect();
     };
   }, []);
 
-  // Update date and time every second
+  // Update date and time
   useEffect(() => {
     const timer = setInterval(() => {
       setDateTime(new Date());
@@ -68,11 +78,8 @@ const DriverMain = () => {
   // Handle location sharing
   useEffect(() => {
     if (isLocationSharing) {
-      updateUserLocation(setUserLocation, isLocationSharing);
-      locationUpdateInterval.current = setInterval(
-        () => updateUserLocation(setUserLocation, isLocationSharing),
-        3000
-      );
+      updateLocation();
+      locationUpdateInterval.current = setInterval(updateLocation, 3000);
     }
 
     return () => {
@@ -83,13 +90,33 @@ const DriverMain = () => {
     };
   }, [isLocationSharing]);
 
-  const handleLocationButtonClick = () => {
-    if (!isLocationSharing) {
-      startLocationSharing(setIsLocationSharing);
-    } else {
-      stopLocationSharing(setIsLocationSharing, locationUpdateInterval);
+  const updateLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation([latitude, longitude]);
+
+          if (socket.current) {
+            socket.current.emit("shuttle_location", {
+              coordinates: [latitude, longitude],
+              shuttleId: "SHUTL001",
+            });
+          }
+
+          if (mapRef.current) {
+            mapRef.current.setView([latitude, longitude], 15.5);
+          }
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+        }
+      );
     }
-    updateUserLocation(setUserLocation, isLocationSharing);
+  };
+
+  const handleLocationButtonClick = () => {
+    setIsLocationSharing((prev) => !prev);
   };
 
   const toggleModal = (modalName) => {
@@ -98,7 +125,9 @@ const DriverMain = () => {
 
   const handleSendMessage = (newMessage) => {
     const driverMessage = { sender: "Driver", text: newMessage };
-    sendMessage(driverMessage);
+    if (socket.current) {
+      socket.current.emit("message", driverMessage);
+    }
     setMessages((prev) => [...prev, driverMessage]);
   };
 
