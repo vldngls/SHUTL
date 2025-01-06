@@ -1,23 +1,38 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "../css/DriverMessage.css";
 import { FaPhoneAlt } from "react-icons/fa"; // Import only the call icon
 
 const DriverMessage = ({ messages, onSendMessage }) => {
   const [newMessage, setNewMessage] = useState("");
+  const [isSending, setIsSending] = useState(false); // Prevent duplicate sends
 
   const handleInputChange = (e) => {
     setNewMessage(e.target.value);
   };
 
   const handleSendClick = () => {
+    if (isSending) return; // Prevent duplicate sends
+
     if (newMessage.trim() !== "") {
+      setIsSending(true);
+      console.log("Sending message:", newMessage);
       onSendMessage(newMessage); // Call the parent-provided handler to send the message
       setNewMessage(""); // Clear the input field after sending
+
+      // Reset the isSending flag after a short delay
+      setTimeout(() => setIsSending(false), 300);
     }
   };
 
   const handleQuickReplyClick = (reply) => {
+    if (isSending) return; // Prevent duplicate sends
+
+    setIsSending(true);
+    console.log("Quick reply sent:", reply);
     onSendMessage(reply); // Call the handler with the quick reply text
+
+    // Reset the isSending flag after a short delay
+    setTimeout(() => setIsSending(false), 300);
   };
 
   return (
