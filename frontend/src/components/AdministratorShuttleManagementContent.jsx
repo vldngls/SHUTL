@@ -1,132 +1,121 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "../css/AdministratorShuttleManagementContent.css";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const AdministratorShuttleManagementContent = () => {
-  const drivers = [
-    {
-      name: "Juan A",
-      shuttleId: "Shuttle 001",
-      username: "shuttle123",
-      password: "*****",
-      status: "green",
-    },
-    {
-      name: "John B",
-      shuttleId: "Shuttle 002",
-      username: "shuttle234",
-      password: "*****",
-      status: "green",
-    },
-    {
-      name: "Mark C",
-      shuttleId: "Shuttle 003",
-      username: "shuttle345",
-      password: "*****",
-      status: "yellow",
-    },
-  ];
+  const [drivers, setDrivers] = useState([]);
+  const [shuttleId, setShuttleId] = useState("");
+  const [selectedDriver, setSelectedDriver] = useState(null);
+
+  const fetchDrivers = async () => {
+    try {
+      const driversResponse = await fetch(`${API_BASE_URL}/users/drivers`);
+      const driversData = await driversResponse.json();
+
+      const assignmentsResponse = await fetch(
+        `${API_BASE_URL}/shuttle-assignments/assignments`
+      );
+      const assignmentsData = await assignmentsResponse.json();
+
+      const driversWithShuttles = driversData.map((driver) => {
+        const assignment = assignmentsData.find(
+          (a) => a.driverId._id === driver._id
+        );
+        return {
+          ...driver,
+          shuttleId: assignment ? assignment.shuttleId : "Unassigned",
+        };
+      });
+
+      setDrivers(driversWithShuttles);
+    } catch (error) {
+      console.error("Error fetching drivers:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDrivers();
+  }, []);
+
+  const handleAssignShuttle = async (driverId) => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/shuttle-assignments/assign`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ driverId, shuttleId }),
+        }
+      );
+
+      if (response.ok) {
+        alert("Shuttle assigned successfully");
+        setShuttleId("");
+
+        setDrivers((prevDrivers) =>
+          prevDrivers.map((driver) =>
+            driver._id === driverId ? { ...driver, shuttleId } : driver
+          )
+        );
+
+        setSelectedDriver(null);
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || "Failed to assign shuttle");
+      }
+    } catch (error) {
+      console.error("Error assigning shuttle:", error);
+      alert("An error occurred while assigning the shuttle");
+    }
+  };
 
   return (
     <div className="AdministratorShuttleManagement-shuttle-management-content">
-      {/* Assigned Drivers Table */}
-      <div className="AdministratorShuttleManagement-assigned-drivers-table">
-        <h3>Assigned drivers</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Driver</th>
-              <th>Shuttle ID</th>
-              <th>Login username</th>
-              <th>Login password</th>
-              <th>
-                <button className="AdministratorShuttleManagement-action-btn AdministratorShuttleManagement-edit-btn">
-                  ✏️
+      <h3>Driver Management</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Username</th>
+            <th>Shuttle ID</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {drivers.map((driver) => (
+            <tr key={driver._id}>
+              <td>{driver.name}</td>
+              <td>{driver.username}</td>
+              <td>{driver.shuttleId || "Unassigned"}</td>
+              <td>
+                <button onClick={() => setSelectedDriver(driver)}>Edit</button>
+                <button onClick={() => handleAssignShuttle(driver._id)}>
+                  Assign Shuttle
                 </button>
-                <button className="AdministratorShuttleManagement-action-btn AdministratorShuttleManagement-delete-btn">
-                  🗑️
-                </button>
-                <button className="AdministratorShuttleManagement-action-btn AdministratorShuttleManagement-add-btn">
-                  ➕
-                </button>
-              </th>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {drivers.map((driver, index) => (
-              <tr key={index}>
-                <td>{driver.name}</td>
-                <td>{driver.shuttleId}</td>
-                <td>{driver.username}</td>
-                <td>{driver.password}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
 
-      {/* Driver Status Section */}
-      <div className="AdministratorShuttleManagement-assigned-drivers-status">
-        <h3>Assigned drivers</h3>
-        {drivers.map((driver, index) => (
-          <div
-            key={index}
-            className="AdministratorShuttleManagement-driver-status"
-          >
-            <span
-              className={`AdministratorShuttleManagement-status-circle ${driver.status}`}
-            ></span>
-            <span>{driver.name}</span>
-            <div className="AdministratorShuttleManagement-status-buttons">
-              <button className="AdministratorShuttleManagement-status-btn">
-                Dispatch
-              </button>
-              <button className="AdministratorShuttleManagement-status-btn">
-                Idle
-              </button>
-              <button className="AdministratorShuttleManagement-status-btn">
-                Pull out
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Automated Messages Section */}
-      <div className="AdministratorShuttleManagement-automated-messages">
-        <h3>Automated messages</h3>
-        <div className="AdministratorShuttleManagement-message-box">
-          <select className="AdministratorShuttleManagement-message-select">
-            <option value="driver">Driver</option>
-            {/* Add more options if needed */}
-          </select>
-          <div className="AdministratorShuttleManagement-message-list">
-            <div className="AdministratorShuttleManagement-message-row">
-              <span>Emergency</span>
-              <button className="AdministratorShuttleManagement-message-action-btn">
-                Call
-              </button>
-            </div>
-            <div className="AdministratorShuttleManagement-message-row">
-              <span>Full passenger</span>
-              <button className="AdministratorShuttleManagement-message-action-btn">
-                Dispatch alert
-              </button>
-            </div>
-            <div className="AdministratorShuttleManagement-message-row">
-              <span>Action</span>
-              <button className="AdministratorShuttleManagement-message-action-btn">
-                Action
-              </button>
-            </div>
-            <div className="AdministratorShuttleManagement-message-row">
-              <span>Action</span>
-              <button className="AdministratorShuttleManagement-message-action-btn">
-                Action
-              </button>
-            </div>
-          </div>
+      {selectedDriver && (
+        <div>
+          <h4>Assign Shuttle to {selectedDriver.name}</h4>
+          <input
+            type="text"
+            value={shuttleId}
+            onChange={(e) => setShuttleId(e.target.value)}
+            placeholder="Enter Shuttle ID"
+          />
+          <button onClick={() => handleAssignShuttle(selectedDriver._id)}>
+            Assign
+          </button>
+          <button onClick={() => setSelectedDriver(null)}>Cancel</button>
         </div>
-      </div>
+      )}
     </div>
   );
 };

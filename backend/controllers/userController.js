@@ -86,3 +86,12 @@ export const getAllUsers = async (req, res) => {
     res.status(500).json({ message: "Error fetching users", error });
   }
 };
+
+export const getAllDrivers = async (req, res) => {
+  try {
+    const drivers = await User.find({ userType: "Driver" });
+    res.status(200).json(drivers);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
