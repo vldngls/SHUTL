@@ -33,6 +33,7 @@ const TellerMain = () => {
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState([14.377, 120.983]);
   const [messages, setMessages] = useState([]); // State to manage messages
+  const [profileImage, setProfileImage] = useState("/teller-profile.png"); // Add state for profile image
 
   // Modal/Popup States
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -154,7 +155,7 @@ const TellerMain = () => {
           </div>
           <div className="TellerMain-navbar-bottom">
             <button className="TellerMain-icon-btn" onClick={toggleProfile}>
-              <img src="/teller-profile.png" alt="Profile Icon" className="TellerMain-icon-image" />
+              <img src={profileImage} alt="Profile Icon" className="TellerMain-icon-image" />
             </button>
           </div>
         </div>
@@ -165,7 +166,7 @@ const TellerMain = () => {
         <DriverMessage messages={messages} onSendMessage={handleSendMessage} />
       )}
       {isSummaryOpen && <TellerSummary onClose={() => setIsSummaryOpen(false)} />}
-      {isProfileOpen && <TellerProfile onClose={toggleProfile} />}
+      {isProfileOpen && <TellerProfile onClose={toggleProfile} onImageChange={setProfileImage} />}
       {isProfilePopupOpen && <ProfilePopup onClose={toggleProfilePopup} />}
       {isTripFormOpen && (
         <div className="TellerMain-TripTracking-popup">
