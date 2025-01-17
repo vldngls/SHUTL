@@ -4,7 +4,7 @@ Welcome to the **Integrated Smart Shuttle System** project! This project, develo
 
 ## 📜 Abstract
 
-Camella Daang Hari's dynamic shuttle system, operated by MEx, a nation-wide transportation company established in 2008, has quirks that lead to inefficiencies and unpredictability affecting commuters. This study proposes developing an Integrated Smart Shuttle System to tackle these issues and enhance both efficiency and reliability. By incorporating real-time GPS tracking and advanced communication platforms, the system will improve communication between shuttles and passengers, provide timely and accurate notifications, and streamline commutes and shuttle operations. These upgrades will not only reduce unpredictability and increase accessibility for commuters but also support MEx employees by optimizing operational workflows. Ultimately, the goal is to enhance the overall commuter experience and optimize Camella’s transportation network.
+Camella Daang Hari's dynamic shuttle system, operated by MEx, a nation-wide transportation company established in 2008, has quirks that lead to inefficiencies and unpredictability affecting commuters. This study proposes developing an Integrated Smart Shuttle System to tackle these issues and enhance both efficiency and reliability. By incorporating real-time GPS tracking and advanced communication platforms, the system will improve communication between shuttles and passengers, provide timely and accurate notifications, and streamline commutes and shuttle operations. These upgrades will not only reduce unpredictability and increase accessibility for commuters but also support MEx employees by optimizing operational workflows. Ultimately, the goal is to enhance the overall commuter experience and optimize Camella's transportation network.
 
 ## 🚀 Features
 
@@ -15,35 +15,88 @@ Camella Daang Hari's dynamic shuttle system, operated by MEx, a nation-wide tran
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: React.js
-- **Backend**: Node.js, Express.js
-- **Database**: MongoDB
-- **Other Tools**: npm, GPS Integration, WebSockets for real-time communication
+- **Frontend**: 
+  - React.js with Vite
+  - OpenStreetMap with Leaflet for maps
+  - Socket.io-client for real-time updates
+  - React Router for navigation
+
+- **Backend**: 
+  - Node.js & Express.js
+  - Socket.io for WebSocket connections
+  - JWT for authentication
+  - Bcrypt for password hashing
+
+- **Database**: 
+  - MongoDB with Mongoose ODM
+
+- **Development Tools**:
+  - Concurrently for running multiple scripts
+  - Nodemon for hot reloading
+  - ESLint for code linting
+  - Environment variables management with dotenv
+
+## 🚀 Setup Instructions
+
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/yourusername/shutl.git
+   cd shutl
+   ```
+
+2. **Install Dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Environment Setup**
+   Create a `.env` file in the root directory with the following variables:
+   ```
+   MONGO_URI=your_mongodb_connection_string
+   PORT=5000
+   FRONTEND_URL=http://localhost:5173
+   ```
+
+4. **Build the Project**
+   ```bash
+   npm run build
+   ```
+
+5. **Start the Application**
+   ```bash
+   npm run start
+   ```
+
+   This will concurrently start:
+   - Frontend at: http://localhost:5173
+   - Backend at: http://localhost:5000
+
+6. **Development Mode**
+   For development with hot reloading:
+   ```bash
+   npm run dev
+   ```
+
+> **Note**: Make sure you have MongoDB installed and running locally, or use a MongoDB Atlas connection string.
 
 ## 🤝 Contributing
 
 Contributions are welcome! Please follow these steps:
 
-**Fork the repository.**
-Create a new branch
-
+1. **Fork the repository.**
+2. Create a new branch:
    ```bash
    git checkout -b feature-branch
    ```
-
-Commit your changes
-
+3. Commit your changes:
    ```bash
    git commit -m 'Add a new feature'
    ```
-
-Push to the branch
-
+4. Push to the branch:
    ```bash
-   git push origin feature-branch.
+   git push origin feature-branch
    ```
-
-Open a Pull Request.
+5. Open a Pull Request.
 
 ## 📧 Contact
 
