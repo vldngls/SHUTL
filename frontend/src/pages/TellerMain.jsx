@@ -125,7 +125,6 @@ const TellerMain = () => {
           console.log("Fetched user data:", data);
 
           if (data.profileImage) {
-            console.log("Profile image found:", data.profileImage);
             setProfileImage(data.profileImage);
           } else {
             console.warn("Profile image not found in the response");

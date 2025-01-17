@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
+import { Html5QrcodeScanner } from "html5-qrcode";
 import "../css/CollectFare.css";
 
 const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
@@ -9,10 +10,13 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
   const [change, setChange] = useState(0);
   const [commuterEmail, setCommuterEmail] = useState("");
   const [commuterEmails, setCommuterEmails] = useState([]);
+  const [showQrScanner, setShowQrScanner] = useState(false);
+  const [qrResult, setQrResult] = useState("");
+  const [qrError, setQrError] = useState("");
+  const [scanner, setScanner] = useState(null);
 
   const regularFare = 30;
   const discountedFare = 28;
-
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
@@ -30,6 +34,56 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
 
     fetchCommuterEmails();
   }, [API_BASE_URL]);
+
+  useEffect(() => {
+    if (showQrScanner && !scanner) {
+      const qrScanner = new Html5QrcodeScanner("reader", {
+        qrbox: { width: 250, height: 250 },
+        fps: 10,
+        rememberLastUsedCamera: true,
+      });
+
+      qrScanner.render(
+        (decodedText) => {
+          // Success callback
+          setQrResult(decodedText);
+          setCommuterEmail(decodedText);
+          setShowQrScanner(false);
+          qrScanner.clear();
+        },
+        (error) => {
+          // Error callback
+          if (
+            error?.includes("Camera access is only supported in secure context")
+          ) {
+            setQrError("Please use HTTPS or localhost for camera access.");
+          } else if (error?.includes("Permission denied")) {
+            setQrError(
+              "Camera permission was denied. Please allow camera access."
+            );
+          } else if (error?.includes("requested device not found")) {
+            setQrError("No camera found on this device.");
+          } else if (error?.includes("starting video failed")) {
+            // Ignore initialization messages
+            return;
+          } else {
+            // Don't show error during normal initialization
+            console.log("Scanner status:", error);
+            setQrError(null);
+          }
+        }
+      );
+
+      setScanner(qrScanner);
+    }
+
+    // Cleanup
+    return () => {
+      if (scanner) {
+        scanner.clear();
+      }
+    };
+  }, [showQrScanner]);
 
   const calculateTotal = () => {
     return regularCount * regularFare + discountedCount * discountedFare;
@@ -64,6 +118,7 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
 
       alert("Transaction saved successfully");
       resetCounts();
+      setShowQrScanner(false);
       onTransactionSaved();
       onClose();
     } catch (error) {
@@ -78,11 +133,33 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
     setTender("");
     setChange(0);
     setCommuterEmail("");
+    setShowQrScanner(false);
   };
 
   const handleCancel = () => {
     resetCounts();
     onClose();
+  };
+
+  const handleQrScannerToggle = () => {
+    setQrResult("");
+    setQrError("");
+    setShowQrScanner((prev) => !prev);
+  };
+
+  const handleQrScanResult = (result) => {
+    if (result) {
+      setQrResult(result);
+      setCommuterEmail(result);
+      setShowQrScanner(false);
+    }
+  };
+
+  const handleQrError = (error) => {
+    console.error("QR Scanner Error:", error);
+    setQrError(
+      "Failed to access camera. Please ensure camera permissions are granted."
+    );
   };
 
   return (
@@ -152,8 +229,26 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
               }
               isClearable
               placeholder="Select or type an email"
+              value={commuterEmails.find(
+                (option) => option.value === commuterEmail
+              )}
             />
+            <button onClick={handleQrScannerToggle}>
+              {showQrScanner ? "Close QR Scanner" : "Scan QR Code"}
+            </button>
           </div>
+          {showQrScanner && (
+            <div className="qr-scanner">
+              <div id="reader"></div>
+              <p>Scanning for QR code...</p>
+            </div>
+          )}
+          {qrResult && (
+            <div className="qr-confirmation">
+              <p>Detected QR Code: {qrResult}</p>
+            </div>
+          )}
+          {qrError && <p style={{ color: "red" }}>{qrError}</p>}
         </div>
         <div className="fare-actions">
           <button onClick={handleCancel}>Cancel</button>
