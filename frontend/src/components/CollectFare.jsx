@@ -1,41 +1,88 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import Select from "react-select";
 import "../css/CollectFare.css";
 
-const CollectFare = ({ onClose, onSave }) => {
-  const [regularCount, setRegularCount] = useState(0); // Start with 0
-  const [discountedCount, setDiscountedCount] = useState(0); // Start with 0
+const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
+  const [regularCount, setRegularCount] = useState(0);
+  const [discountedCount, setDiscountedCount] = useState(0);
   const [tender, setTender] = useState("");
   const [change, setChange] = useState(0);
+  const [commuterEmail, setCommuterEmail] = useState("");
+  const [commuterEmails, setCommuterEmails] = useState([]);
 
-  const regularFare = 30; // Example fare for regular passengers
-  const discountedFare = 28; // Example fare for discounted passengers
+  const regularFare = 30;
+  const discountedFare = 28;
+
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+  useEffect(() => {
+    const fetchCommuterEmails = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/users?userType=Commuter`);
+        const data = await response.json();
+        setCommuterEmails(
+          data.map((user) => ({ value: user.email, label: user.email }))
+        );
+      } catch (error) {
+        console.error("Error fetching commuter emails:", error);
+      }
+    };
+
+    fetchCommuterEmails();
+  }, [API_BASE_URL]);
 
   const calculateTotal = () => {
     return regularCount * regularFare + discountedCount * discountedFare;
   };
 
   const handleTenderChange = (e) => {
-    const tenderAmount = parseFloat(e.target.value) || 0; // Ensure valid number
+    const tenderAmount = parseFloat(e.target.value) || 0;
     setTender(tenderAmount);
     setChange(tenderAmount - calculateTotal());
   };
 
-  const handleSave = () => {
-    onSave(regularCount, discountedCount, calculateTotal()); // Pass the counts and total to the parent
-    resetCounts(); // Reset counts to 0
-    onClose(); // Close the modal
+  const handleSaveTransaction = async () => {
+    const totalFare = calculateTotal();
+    const newTransaction = {
+      commuterEmail,
+      regularCount,
+      discountedCount,
+      totalFare,
+      tender,
+      change,
+      shuttleID,
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/fare-transactions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newTransaction),
+      });
+
+      if (!response.ok) throw new Error("Failed to save transaction");
+
+      alert("Transaction saved successfully");
+      resetCounts();
+      onTransactionSaved();
+      onClose();
+    } catch (error) {
+      console.error("Error saving transaction:", error);
+      alert("Error saving transaction");
+    }
   };
 
   const resetCounts = () => {
-    setRegularCount(0); // Reset regular count
-    setDiscountedCount(0); // Reset discounted count
-    setTender(""); // Reset tender
-    setChange(0); // Reset change
+    setRegularCount(0);
+    setDiscountedCount(0);
+    setTender("");
+    setChange(0);
+    setCommuterEmail("");
   };
 
   const handleCancel = () => {
-    resetCounts(); // Reset counts on cancel
-    onClose(); // Close the modal
+    resetCounts();
+    onClose();
   };
 
   return (
@@ -51,16 +98,30 @@ const CollectFare = ({ onClose, onSave }) => {
           <div className="fare-row">
             <span>Regular</span>
             <div className="button-group">
-              <button onClick={() => setRegularCount(regularCount + 1)}>+</button>
-              <button onClick={() => setRegularCount(Math.max(0, regularCount - 1))}>-</button>
+              <button onClick={() => setRegularCount(regularCount + 1)}>
+                +
+              </button>
+              <button
+                onClick={() => setRegularCount(Math.max(0, regularCount - 1))}
+              >
+                -
+              </button>
             </div>
             <span>{regularCount}</span>
           </div>
           <div className="fare-row">
             <span>Discounted</span>
             <div className="button-group">
-              <button onClick={() => setDiscountedCount(discountedCount + 1)}>+</button>
-              <button onClick={() => setDiscountedCount(Math.max(0, discountedCount - 1))}>-</button>
+              <button onClick={() => setDiscountedCount(discountedCount + 1)}>
+                +
+              </button>
+              <button
+                onClick={() =>
+                  setDiscountedCount(Math.max(0, discountedCount - 1))
+                }
+              >
+                -
+              </button>
             </div>
             <span>{discountedCount}</span>
           </div>
@@ -82,10 +143,21 @@ const CollectFare = ({ onClose, onSave }) => {
             <span>Change:</span>
             <strong>{change}</strong>
           </div>
+          <div className="fare-commuter">
+            <label htmlFor="commuterEmail">Commuter Email:</label>
+            <Select
+              options={commuterEmails}
+              onChange={(selectedOption) =>
+                setCommuterEmail(selectedOption.value)
+              }
+              isClearable
+              placeholder="Select or type an email"
+            />
+          </div>
         </div>
         <div className="fare-actions">
           <button onClick={handleCancel}>Cancel</button>
-          <button onClick={handleSave}>Save</button>
+          <button onClick={handleSaveTransaction}>Save</button>
         </div>
       </div>
     </div>

@@ -5,6 +5,7 @@ import {
   getUserCount,
   getAllUsers,
   getAllDrivers,
+  getUsers,
 } from "../controllers/userController.js";
 import { authenticateToken } from "../middleware/authenticateToken.js";
 
@@ -15,6 +16,7 @@ router.post("/login", loginUser);
 router.get("/admin/user-count", getUserCount);
 router.get("/admin/users", getAllUsers);
 router.get("/drivers", getAllDrivers);
+router.get("/", getUsers);
 
 // New route to get current user's userType based on JWT
 router.get("/me", authenticateToken, (req, res) => {

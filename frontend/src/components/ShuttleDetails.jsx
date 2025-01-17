@@ -1,33 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../css/ShuttleDetails.css";
 import CollectFare from "./CollectFare";
 
 const ShuttleDetails = ({ shuttle, onClose }) => {
   const [showCollectFare, setShowCollectFare] = useState(false);
+  const [transactions, setTransactions] = useState([]);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  // Store transactions as a shuttle-specific object
-  const [transactions, setTransactions] = useState({});
-
-  const REGULAR_FARE = 30;
-  const DISCOUNTED_FARE = 28;
-
-  // Get transactions specific to this shuttle
-  const shuttleTransactions = transactions[shuttle.id] || [];
-
-  // Calculate total fare for the current shuttle
-  const totalFare = shuttleTransactions.reduce((sum, transaction) => sum + transaction.total, 0);
-
-  // Save a transaction specific to the current shuttle
-  const handleSaveTransaction = (regularCount, discountedCount, total) => {
-    const newTransaction = { regularCount, discountedCount, total };
-
-    setTransactions((prev) => ({
-      ...prev,
-      [shuttle.id]: [...(prev[shuttle.id] || []), newTransaction], // Append new transaction to the shuttle's log
-    }));
+  const fetchTransactions = async () => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/fare-transactions?shuttleID=${shuttle.id}`
+      );
+      const data = await response.json();
+      setTransactions(data);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    }
   };
 
-  // Close the modal when clicking outside the content area
+  useEffect(() => {
+    fetchTransactions();
+  }, [API_BASE_URL, shuttle.id]);
+
+  const totalRegular = transactions.reduce((sum, t) => sum + t.regularCount, 0);
+  const totalDiscounted = transactions.reduce(
+    (sum, t) => sum + t.discountedCount,
+    0
+  );
+  const totalFare = transactions.reduce((sum, t) => sum + t.totalFare, 0);
+
   const handleOverlayClick = (e) => {
     if (e.target.className === "ShuttleDetails-modal") {
       onClose();
@@ -49,12 +51,12 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
               Round Trips
             </div>
             <div>
-              <strong>{shuttleTransactions.reduce((sum, t) => sum + t.regularCount, 0)}</strong>
+              <strong>{totalRegular}</strong>
               <br />
               Regular
             </div>
             <div>
-              <strong>{shuttleTransactions.reduce((sum, t) => sum + t.discountedCount, 0)}</strong>
+              <strong>{totalDiscounted}</strong>
               <br />
               Discounted
             </div>
@@ -68,9 +70,10 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
           <div className="ShuttleDetails-log">
             <h3>Transaction Log</h3>
             <ul>
-              {shuttleTransactions.map((transaction, index) => (
+              {transactions.map((transaction, index) => (
                 <li key={index}>
-                  Regular: {transaction.regularCount}, Discounted: {transaction.discountedCount}, Total: ₱{transaction.total}
+                  Regular: {transaction.regularCount}, Discounted:{" "}
+                  {transaction.discountedCount}, Total: ₱{transaction.totalFare}
                 </li>
               ))}
             </ul>
@@ -88,7 +91,8 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
       {showCollectFare && (
         <CollectFare
           onClose={() => setShowCollectFare(false)}
-          onSave={handleSaveTransaction} // Pass save function
+          shuttleID={shuttle.id}
+          onTransactionSaved={fetchTransactions}
         />
       )}
     </div>

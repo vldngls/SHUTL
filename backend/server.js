@@ -17,6 +17,7 @@ import scheduleRoutes from "./routes/scheduleRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import tellerRoutes from "./routes/tellerRoutes.js";
 import shuttleAssignmentRoutes from "./routes/shuttleAssignmentRoutes.js";
+import fareTransactionRoutes from "./routes/fareTransactionRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -52,6 +53,7 @@ app.use("/api/schedule", scheduleRoutes);
 app.use("/api/notifications", notificationRoutes); // Include notification routes
 app.use("/api/teller", tellerRoutes); // Include teller profile routes
 app.use("/api/shuttle-assignments", shuttleAssignmentRoutes);
+app.use("/api/fare-transactions", fareTransactionRoutes);
 
 connectDB();
 
