@@ -1,5 +1,6 @@
 /* Base Layout */
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -175,13 +176,14 @@ html, body {
   bottom: 0;
   left: 0;
   width: 100%;
-  background-color: #333;
-  color: white;
+  background-color: #f5f5f5;
+  color: #333;
   text-align: center;
   padding: 10px 0;
   font-size: 14px;
   font-family: Arial, sans-serif;
   box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 2; /* Ensure it is above the map but below modals */
 }
 
 /* Media Queries */
@@ -214,7 +216,7 @@ html, body {
   }
 
   .TellerMain-taskbar {
-    display: none; /* Hide taskbar for smaller screens */
+    display: block; /* Ensure taskbar is visible on smaller screens */
   }
 
   .TellerMain-icon-btn {

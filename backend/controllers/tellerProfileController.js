@@ -25,7 +25,6 @@ export const createOrUpdateTellerProfile = async (req, res) => {
       await profile.save();
       return res.status(200).json(profile);
     } else {
-      // Create a new profile
       profile = new TellerProfile({
         name,
         age,
@@ -50,23 +49,19 @@ export const createOrUpdateTellerProfile = async (req, res) => {
 
 // Fetch Teller Profile by Email
 export const fetchTellerProfileByEmail = async (req, res) => {
-  const { email } = req.params; // Get email from the request params
+  const { email } = req.params;
 
   try {
-    // Validate email presence
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    // Find the profile by email
     const profile = await TellerProfile.findOne({ email });
 
-    // Check if profile exists
     if (!profile) {
       return res.status(404).json({ message: "Profile not found" });
     }
 
-    // Return the profile
     return res.status(200).json(profile);
   } catch (error) {
     console.error("Error fetching profile:", error);

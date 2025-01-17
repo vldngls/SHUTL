@@ -9,9 +9,8 @@ import SuggestionForm from "../components/SuggestionForm";
 import ShuttleTripTracking from "../components/ShuttleTripTracking";
 import TellerShuttleSummary from "../components/TellerShuttleSummary";
 import TellerProfile from "../components/TellerProfile";
-import ProfilePopup from "../components/ProfilePopup";
 import TellerSummary from "../components/TellerSummary";
-import DriverMessage from "../components/DriverMessage"; // Import DriverMessage component
+import DriverMessage from "../components/DriverMessage";
 import {
   connectSocket,
   sendMessage,
@@ -22,7 +21,8 @@ import L from "leaflet";
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
@@ -32,8 +32,8 @@ const TellerMain = () => {
   // State Management
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState([14.377, 120.983]);
-  const [messages, setMessages] = useState([]); // State to manage messages
-  const [profileImage, setProfileImage] = useState("/teller-profile.png"); // Add state for profile image
+  const [messages, setMessages] = useState([]);
+  const [profileImage, setProfileImage] = useState("/teller-profile.png");
 
   // Modal/Popup States
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -48,6 +48,24 @@ const TellerMain = () => {
   // Refs
   const settingsRef = useRef();
   const mapRef = useRef();
+
+  // Extract email from token
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+    return null;
+  };
+
+  const token = getCookie("token");
+
+  let email = "";
+  try {
+    const decodedToken = JSON.parse(atob(token.split(".")[1]));
+    email = decodedToken.email;
+  } catch (error) {
+    console.error("Invalid token:", error);
+  }
 
   // Initialize socket and set up message subscription
   useEffect(() => {
@@ -85,6 +103,44 @@ const TellerMain = () => {
     return () => document.removeEventListener("click", handleOutsideClick);
   }, [isSettingsOpen]);
 
+  // Fetch user profile data on mount
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!email) {
+        console.error("No valid email found in token.");
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/teller/${email}`,
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Fetched user data:", data);
+
+          if (data.profileImage) {
+            console.log("Profile image found:", data.profileImage);
+            setProfileImage(data.profileImage);
+          } else {
+            console.warn("Profile image not found in the response");
+          }
+        } else {
+          console.error("Failed to fetch user profile data");
+        }
+      } catch (error) {
+        console.error("Error fetching user profile data:", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, [email]);
+
   // Toggle Handlers
   const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
   const toggleProfilePopup = () => setIsProfilePopupOpen(!isProfilePopupOpen);
@@ -98,8 +154,8 @@ const TellerMain = () => {
 
   const handleSendMessage = (newMessage) => {
     const tellerMessage = { sender: "Teller", text: newMessage };
-    sendMessage(tellerMessage); // Send message via WebSocket
-    setMessages((prev) => [...prev, tellerMessage]); // Add message to local state
+    sendMessage(tellerMessage);
+    setMessages((prev) => [...prev, tellerMessage]);
   };
 
   return (
@@ -129,23 +185,50 @@ const TellerMain = () => {
         <div className="TellerMain-logo">SHU TL.</div>
         <div className="TellerMain-navbar-buttons">
           <button className="TellerMain-icon-btn" onClick={toggleSummary}>
-            <img src="/summary.png" alt="Summary Icon" className="TellerMain-icon-image" />
+            <img
+              src="/summary.png"
+              alt="Summary Icon"
+              className="TellerMain-icon-image"
+            />
           </button>
           <button className="TellerMain-icon-btn" onClick={toggleMessageBox}>
-            <img src="/message.png" alt="Message Icon" className="TellerMain-icon-image" />
+            <img
+              src="/message.png"
+              alt="Message Icon"
+              className="TellerMain-icon-image"
+            />
           </button>
           <button className="TellerMain-icon-btn" onClick={toggleSchedule}>
-            <img src="/calendar.png" alt="Schedule Icon" className="TellerMain-icon-image" />
+            <img
+              src="/calendar.png"
+              alt="Schedule Icon"
+              className="TellerMain-icon-image"
+            />
           </button>
           <button className="TellerMain-icon-btn" onClick={toggleNotification}>
-            <img src="/notif.png" alt="Notification Icon" className="TellerMain-icon-image" />
+            <img
+              src="/notif.png"
+              alt="Notification Icon"
+              className="TellerMain-icon-image"
+            />
           </button>
           <button className="TellerMain-icon-btn" onClick={openTripForm}>
-            <img src="/trip.png" alt="Trip Icon" className="TellerMain-icon-image" />
+            <img
+              src="/trip.png"
+              alt="Trip Icon"
+              className="TellerMain-icon-image"
+            />
           </button>
           <div className="TellerMain-settings-container" ref={settingsRef}>
-            <button className="TellerMain-icon-btn TellerMain-settings-btn" onClick={toggleSettings}>
-              <img src="/settings.png" alt="Settings Icon" className="TellerMain-icon-image" />
+            <button
+              className="TellerMain-icon-btn TellerMain-settings-btn"
+              onClick={toggleSettings}
+            >
+              <img
+                src="/settings.png"
+                alt="Settings Icon"
+                className="TellerMain-icon-image"
+              />
             </button>
             {isSettingsOpen && (
               <div className="TellerMain-settings-dropdown">
@@ -155,7 +238,11 @@ const TellerMain = () => {
           </div>
           <div className="TellerMain-navbar-bottom">
             <button className="TellerMain-icon-btn" onClick={toggleProfile}>
-              <img src={profileImage} alt="Profile Icon" className="TellerMain-icon-image" />
+              <img
+                src={profileImage}
+                alt="Profile Icon"
+                className="TellerMain-icon-image"
+              />
             </button>
           </div>
         </div>
@@ -165,19 +252,29 @@ const TellerMain = () => {
       {isMessageBoxOpen && (
         <DriverMessage messages={messages} onSendMessage={handleSendMessage} />
       )}
-      {isSummaryOpen && <TellerSummary onClose={() => setIsSummaryOpen(false)} />}
-      {isProfileOpen && <TellerProfile onClose={toggleProfile} onImageChange={setProfileImage} />}
+      {isSummaryOpen && (
+        <TellerSummary onClose={() => setIsSummaryOpen(false)} />
+      )}
+      {isProfileOpen && (
+        <TellerProfile
+          onClose={toggleProfile}
+          onImageChange={setProfileImage}
+        />
+      )}
       {isProfilePopupOpen && <ProfilePopup onClose={toggleProfilePopup} />}
       {isTripFormOpen && (
         <div className="TellerMain-TripTracking-popup">
           <ShuttleTripTracking />
-          <button onClick={closeTripForm} className="TellerMain-close-popup-btn">
+          <button
+            onClick={closeTripForm}
+            className="TellerMain-close-popup-btn"
+          >
             Close
           </button>
         </div>
       )}
 
-      {/* DateTime Taskbar */}
+      {/* Taskbar */}
       <div className="TellerMain-taskbar">
         {dateTime.toLocaleDateString("en-PH", {
           weekday: "long",
