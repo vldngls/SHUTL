@@ -49,20 +49,12 @@ Camella Daang Hari's dynamic shuttle system, operated by MEx, a nation-wide tran
    npm install
    ```
 
-3. **Environment Setup**
-   Create a `.env` file in the root directory with the following variables:
-   ```
-   MONGO_URI=your_mongodb_connection_string
-   PORT=5000
-   FRONTEND_URL=http://localhost:5173
-   ```
-
-4. **Build the Project**
+3. **Build the Project**
    ```bash
    npm run build
    ```
 
-5. **Start the Application**
+4. **Start the Application**
    ```bash
    npm run start
    ```
@@ -70,14 +62,6 @@ Camella Daang Hari's dynamic shuttle system, operated by MEx, a nation-wide tran
    This will concurrently start:
    - Frontend at: http://localhost:5173
    - Backend at: http://localhost:5000
-
-6. **Development Mode**
-   For development with hot reloading:
-   ```bash
-   npm run dev
-   ```
-
-> **Note**: Make sure you have MongoDB installed and running locally, or use a MongoDB Atlas connection string.
 
 ## 🤝 Contributing
 
