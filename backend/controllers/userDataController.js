@@ -147,3 +147,50 @@ export const getUserDataFromToken = async (req, res) => {
     });
   }
 };
+
+export const getUserData = async (req, res) => {
+  try {
+    const { userId, email } = req.query;
+    const userData = await UserData.findOne({ 
+      $or: [
+        { userId: userId },
+        { email: email }
+      ]
+    });
+    
+    if (!userData) {
+      return res.status(404).json({ message: "User data not found" });
+    }
+    
+    res.json(userData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const createUserData = async (req, res) => {
+  try {
+    const userData = new UserData(req.body);
+    await userData.save();
+    res.status(201).json(userData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const updateUserData = async (req, res) => {
+  try {
+    const { userId, email } = req.query;
+    const userData = await UserData.findOneAndUpdate(
+      { $or: [{ userId }, { email }] },
+      req.body,
+      { new: true }
+    );
+    if (!userData) {
+      return res.status(404).json({ message: "User data not found" });
+    }
+    res.json(userData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

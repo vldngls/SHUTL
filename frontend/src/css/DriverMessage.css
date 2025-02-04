@@ -1,34 +1,28 @@
 /* Layout and positioning for the driver message container */
 .DriverMessage-driver-message-container {
   position: fixed;
-  top: 420px; /* Adjusted to appear at the top right corner */
-  right: 80px; /* Full alignment to the right side */
-  width: 400px; /* Increased width for better readability */
-  background: rgba(
-    255,
-    255,
-    255,
-    0.95
-  ); /* Dark background with slight transparency for a glassy effect */
-  border-radius: 16px; /* Softer rounded corners */
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4); /* Deeper shadow for a more pronounced elevation */
-  padding: 12px;
-  z-index: 1000; /* Ensure it appears above other elements */
+  bottom: 20px;
+  right: 20px;
+  width: 380px;
+  height: 600px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
-  backdrop-filter: blur(6px); /* Blur effect for a modern glass look */
+  overflow: hidden;
+  z-index: 1000;
 }
 
 /* Header styling for the driver message container */
 .DriverMessage-driver-message-header {
+  padding: 16px;
+  background: #3498db;
+  color: white;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
-  padding: 10px;
-  border-radius: 12px;
-  color: #000000;
-  font-weight: bold;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .DriverMessage-header-title {
@@ -72,44 +66,80 @@
 
 /* Styling for the list of messages */
 .DriverMessage-message-list {
-  max-height: 250px; /* Increased height for more messages */
+  flex: 1;
   overflow-y: auto;
-  margin-bottom: 15px;
-  padding-right: 5px; /* Added padding for better scroll visibility */
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #f5f7f9;
 }
 
 /* Individual message styling */
 .DriverMessage-message-item {
-  padding: 10px 15px;
-  background: #444444; /* Lighter shade to distinguish from container */
-  color: #f1f1f1;
-  border-radius: 12px; /* Softer corners for messages */
-  margin-bottom: 8px; /* More space between messages */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow for message elevation */
+  max-width: 80%;
+  padding: 12px;
+  border-radius: 12px;
+  position: relative;
 }
 
-/* Alternate background for messages */
-.DriverMessage-message-item:nth-child(odd) {
-  background: #8d8d8d; /* Alternate background for better visual distinction */
+/* Driver's messages (sent by current user) */
+.driver-message {
+  align-self: flex-end;
+  background: #3498db;
+  color: white;
+  margin-left: auto;
+}
+
+/* Teller's messages (received) */
+.teller-message {
+  align-self: flex-start;
+  background: white;
+  color: #333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Message header styling */
+.message-header {
+  font-size: 0.8em;
+  margin-bottom: 4px;
+  opacity: 0.8;
+}
+
+.sender-info {
+  font-weight: bold;
+}
+
+.timestamp {
+  opacity: 0.8;
+}
+
+/* Message content styling */
+.message-content {
+  word-break: break-word;
 }
 
 /* Container for the message input area */
 .DriverMessage-message-input-container {
+  padding: 16px;
+  background: white;
+  border-top: 1px solid #e0e0e0;
   display: flex;
-  align-items: center;
-  background: #ffffff;
+  gap: 8px;
 }
 
 /* Styling for the message input */
 .DriverMessage-message-input {
   flex: 1;
   padding: 12px;
-  border: none;
-  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 24px;
   outline: none;
-  margin-right: 10px;
-  background: #ffffff;
-  color: #000000;
+  font-size: 14px;
+}
+
+.DriverMessage-message-input:focus {
+  border-color: #3498db;
 }
 
 .DriverMessage-message-input::placeholder {
@@ -144,9 +174,12 @@
 
 /* Quick replies section styling */
 .DriverMessage-quick-replies {
+  padding: 12px;
   display: flex;
-  justify-content: space-around;
-  margin-bottom: 15px;
+  gap: 8px;
+  overflow-x: auto;
+  background: white;
+  border-top: 1px solid #e0e0e0;
 }
 
 /* Quick reply button styling */
@@ -170,23 +203,81 @@
 
 /* Scroll button styling */
 .DriverMessage-scroll-button {
-  background: #42a1ec; /* Color for the scroll button */
-  color: #fff;
+  position: absolute;
+  right: 16px;
+  bottom: 80px;
+  background: white;
   border: none;
-  padding: 5px; /* Reduced padding for a smaller button */
-  border-radius: 15px; /* Slightly smaller border radius */
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   cursor: pointer;
-  position: fixed; /* Fixed positioning */
-  bottom: 120px; /* Adjusted to be higher on the screen */
-  left: 50%; /* Center horizontally */
-  transform: translateX(-50%); /* Adjust to center the button */
-  z-index: 1001; /* Ensure it appears above other elements */
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2em; /* Adjusted font size for the icon */
+  transition: transform 0.2s;
 }
 
 .DriverMessage-scroll-button:hover {
-  background: #3498db; /* Darker color on hover */
+  transform: translateY(-2px);
+}
+
+/* Custom scrollbar */
+.DriverMessage-message-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.DriverMessage-message-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.DriverMessage-message-list::-webkit-scrollbar-thumb {
+  background: #bdc3c7;
+  border-radius: 3px;
+}
+
+.message-list {
+  height: calc(100vh - 200px);
+  overflow-y: auto;
+  padding: 1rem;
+  scroll-behavior: smooth;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.message-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.message-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.message-list::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.message-list::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.message-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: calc(100vh - 100px);
+}
+
+.message-input-container {
+  padding: 1rem;
+  background: white;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  gap: 0.5rem;
+  position: sticky;
+  bottom: 0;
 }

@@ -18,6 +18,8 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import tellerRoutes from "./routes/tellerRoutes.js";
 import shuttleAssignmentRoutes from "./routes/shuttleAssignmentRoutes.js";
 import fareTransactionRoutes from "./routes/fareTransactionRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js";
+import onfieldShuttleRoutes from "./routes/onfieldShuttleRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -54,6 +56,10 @@ app.use("/api/notifications", notificationRoutes); // Include notification route
 app.use("/api/teller", tellerRoutes); // Include teller profile routes
 app.use("/api/shuttle-assignments", shuttleAssignmentRoutes);
 app.use("/api/fare-transactions", fareTransactionRoutes);
+app.use("/api/chat", chatRoutes);
+app.use("/api/userdatas", userDataRoutes);
+app.use("/api/shuttleassignments", shuttleAssignmentRoutes);
+app.use("/api/onfieldshuttles", onfieldShuttleRoutes);
 
 connectDB();
 
@@ -67,7 +73,7 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("Client connected:", socket.id);
+  console.log("Socket connected:", socket.id);
 
   socket.on("shuttle_location", (data) => {
     console.log("Received shuttle location:", data);
@@ -89,8 +95,22 @@ io.on("connection", (socket) => {
     io.emit("pickup_accepted", request);
   });
 
+  socket.on("join_room", (roomId) => {
+    socket.join(roomId);
+    console.log(`Socket ${socket.id} joined room ${roomId}`);
+  });
+
+  socket.on("leave_room", (roomId) => {
+    socket.leave(roomId);
+    console.log(`Socket ${socket.id} left room ${roomId}`);
+  });
+
+  socket.on("chat_message", ({ roomId, message }) => {
+    io.to(roomId).emit("chat_message", message);
+  });
+
   socket.on("disconnect", () => {
-    console.log("Client disconnected:", socket.id);
+    console.log("Socket disconnected:", socket.id);
   });
 });
 

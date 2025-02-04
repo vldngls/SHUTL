@@ -69,14 +69,16 @@ const TellerMain = () => {
 
   // Initialize socket and set up message subscription
   useEffect(() => {
-    const connectedSocket = connectSocket();
-
-    subscribeToMessages((incomingMessage) => {
-      setMessages((prev) => [...prev, incomingMessage]);
+    const socket = connectSocket();
+    
+    subscribeToMessages((message) => {
+      setMessages(prev => [...prev, message]);
     });
 
     return () => {
-      connectedSocket.disconnect();
+      if (socket) {
+        socket.disconnect();
+      }
     };
   }, []);
 

@@ -8,7 +8,7 @@ import SettingsDropdown from "../components/SettingsDropdown";
 import SchedulePopup from "../components/SchedulePopup";
 import NotificationPop from "../components/NotificationPop";
 import DriverSummary from "../components/DriverSummary";
-import { io } from "socket.io-client";
+import { connectSocket, subscribeToMessages, subscribeToLocation, sendLocation } from "../utils/websocketService";
 import L from "leaflet";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -38,32 +38,20 @@ const DriverMain = () => {
 
   // Initialize socket and handle events
   useEffect(() => {
-    socket.current = io(SOCKET_URL, {
-      transports: ["websocket"],
-      cors: {
-        origin: "*",
-        methods: ["GET", "POST"],
-      },
-    });
-
-    socket.current.on("connect", () => {
-      console.log("Socket connected:", socket.current.id);
-    });
-
-    socket.current.on("disconnect", () => {
-      console.log("Socket disconnected");
-    });
-
-    socket.current.on("shuttle_location", (locationData) => {
-      console.log("Received shuttle location:", locationData);
-    });
-
-    socket.current.on("message", (incomingMessage) => {
+    const socket = connectSocket();
+    
+    subscribeToMessages((incomingMessage) => {
       setMessages((prev) => [...prev, incomingMessage]);
     });
 
+    subscribeToLocation((locationData) => {
+      console.log("Received shuttle location:", locationData);
+    });
+
     return () => {
-      socket.current.disconnect();
+      if (socket) {
+        socket.disconnect();
+      }
     };
   }, []);
 
@@ -97,12 +85,10 @@ const DriverMain = () => {
           const { latitude, longitude } = position.coords;
           setUserLocation([latitude, longitude]);
 
-          if (socket.current) {
-            socket.current.emit("shuttle_location", {
-              coordinates: [latitude, longitude],
-              shuttleId: "SHUTL001",
-            });
-          }
+          sendLocation({
+            coordinates: [latitude, longitude],
+            shuttleId: "SHUTL001",
+          });
 
           if (mapRef.current) {
             mapRef.current.setView([latitude, longitude], 15.5);

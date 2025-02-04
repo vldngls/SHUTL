@@ -1,19 +1,19 @@
 import express from "express";
 import {
-  assignShuttle,
   getAllAssignments,
+  getDriverAssignment,
+  createAssignment,
   updateAssignment,
   deleteAssignment,
-  getDriverAssignment,
 } from "../controllers/shuttleAssignmentController.js";
-import { authMiddleware } from '../middleware/authMiddleware.js';
+import { authenticateToken } from '../middleware/authenticateToken.js';
 
 const router = express.Router();
 
-router.post("/assign", assignShuttle);
-router.get("/assignments", getAllAssignments);
-router.put("/assign/:id", updateAssignment);
-router.delete("/assign/:id", deleteAssignment);
-router.get('/driver', authMiddleware, getDriverAssignment);
+router.get("/", authenticateToken, getAllAssignments);
+router.get("/driver", authenticateToken, getDriverAssignment);
+router.post("/", authenticateToken, createAssignment);
+router.put("/:id", authenticateToken, updateAssignment);
+router.delete("/:id", authenticateToken, deleteAssignment);
 
 export default router;

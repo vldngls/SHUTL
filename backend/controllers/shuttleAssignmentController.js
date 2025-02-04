@@ -23,10 +23,9 @@ export const assignShuttle = async (req, res) => {
 // Get all shuttle assignments
 export const getAllAssignments = async (req, res) => {
   try {
-    const assignments = await ShuttleAssignment.find().populate(
-      "driverId",
-      "name username"
-    );
+    const assignments = await ShuttleAssignment.find()
+      .populate("driverId", "name username")
+      .populate("shuttleId");
     res.status(200).json(assignments);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -36,16 +35,15 @@ export const getAllAssignments = async (req, res) => {
 // Update a shuttle assignment
 export const updateAssignment = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { shuttleId } = req.body;
-    const updatedAssignment = await ShuttleAssignment.findByIdAndUpdate(
-      id,
-      { shuttleId },
+    const assignment = await ShuttleAssignment.findByIdAndUpdate(
+      req.params.id,
+      req.body,
       { new: true }
     );
-    if (!updatedAssignment)
+    if (!assignment) {
       return res.status(404).json({ message: "Assignment not found" });
-    res.status(200).json(updatedAssignment);
+    }
+    res.json(assignment);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -66,9 +64,7 @@ export const deleteAssignment = async (req, res) => {
 
 export const getDriverAssignment = async (req, res) => {
   try {
-    const driverEmail = req.user.email; // Email from decoded token
-    console.log('Looking for assignment for driver:', driverEmail);
-    
+    const driverEmail = req.user.email;
     const assignment = await ShuttleAssignment.findOne({ 
       driverEmail: driverEmail 
     }).populate('shuttleId');
@@ -77,10 +73,19 @@ export const getDriverAssignment = async (req, res) => {
       return res.status(404).json({ message: "No shuttle assigned" });
     }
     
-    console.log('Found assignment:', assignment);
     res.status(200).json(assignment);
   } catch (error) {
-    console.error('Error in getDriverAssignment:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Add the missing exports
+export const createAssignment = async (req, res) => {
+  try {
+    const assignment = new ShuttleAssignment(req.body);
+    await assignment.save();
+    res.status(201).json(assignment);
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };

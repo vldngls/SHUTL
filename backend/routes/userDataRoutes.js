@@ -5,8 +5,12 @@ import {
   getUserDataByEmail,
   updateUserDataByEmail,
   getUserDataFromToken,
+  getUserData,
+  createUserData,
+  updateUserData,
 } from "../controllers/userDataController.js";
 import { authMiddleware } from '../middleware/authMiddleware.js';
+import { authenticateToken } from '../middleware/authenticateToken.js';
 
 const router = express.Router();
 
@@ -24,5 +28,9 @@ router.put("/update", authMiddleware, updateUserDataByEmail);
 
 // Route to get user data based on JWT token
 router.get("/me", authMiddleware, getUserDataFromToken);
+
+router.get('/', authenticateToken, getUserData);
+router.post('/', authenticateToken, createUserData);
+router.put('/', authenticateToken, updateUserData);
 
 export default router;

@@ -28,7 +28,7 @@ const LoginForm = ({ onClose }) => {
         document.cookie = `token=${data.token}; path=/; SameSite=None; Secure`;
 
         const userType = data.user.userType;
-        const userId = data.user.id;
+        const userId = data.user._id;
         const userEmail = data.user.email;
         let userData = {};
 
@@ -58,12 +58,16 @@ const LoginForm = ({ onClose }) => {
   };
 
   const fetchUserData = async (collections, userId, userEmail) => {
+    console.log('Fetching user data with:', { userId, userEmail });
     const userData = {};
+    
     for (const collection of collections) {
       try {
         const response = await fetch(`${API_BASE_URL}/${collection}?userId=${userId}&email=${userEmail}`);
         if (response.ok) {
           userData[collection] = await response.json();
+        } else {
+          console.warn(`Failed to fetch ${collection} data:`, response.status);
         }
       } catch (error) {
         console.error(`Error fetching data from ${collection}:`, error);
