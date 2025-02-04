@@ -10,7 +10,6 @@ import NotificationPop from "../components/NotificationPop";
 import DriverSummary from "../components/DriverSummary";
 import { io } from "socket.io-client";
 import L from "leaflet";
-import ProfileIDCard from "../components/ProfileIDCard"; // Import ProfileIDCard component
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const SOCKET_URL = API_BASE_URL.replace("/api", "");
@@ -36,7 +35,6 @@ const DriverMain = () => {
   const socket = useRef(null);
   const mapRef = useRef(null);
   const locationUpdateInterval = useRef(null);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // Initialize socket and handle events
   useEffect(() => {
@@ -133,10 +131,6 @@ const DriverMain = () => {
     setMessages((prev) => [...prev, driverMessage]);
   };
 
-  const toggleProfileCard = () => {
-    setIsProfileOpen((prev) => !prev);
-  };
-
   return (
     <>
       <div className="DriverMain-map-container">
@@ -194,12 +188,6 @@ const DriverMain = () => {
           >
             <img src="/settings.png" alt="Settings Icon" />
           </button>
-          <button
-            className="DriverMain-icon-btn"
-            onClick={toggleProfileCard}
-          >
-            <img src="/profile.png" alt="Profile Icon" />
-          </button>
         </div>
       </div>
 
@@ -227,10 +215,6 @@ const DriverMain = () => {
         <NotificationPop notifications={notifications} />
       )}
       {activeModal === "isSettingsOpen" && <SettingsDropdown />}
-
-      {isProfileOpen && (
-        <ProfileIDCard user={{}} onClose={toggleProfileCard} />
-      )}
     </>
   );
 };

@@ -39,12 +39,16 @@
 }
 
 .DriverSummary {
+  position: fixed;
+  top: 0;
+  left: 80px; /* Adjust this value based on your sidebar width */
+  height: 100vh;
+  width: 600px; /* Reduced from 800px to 600px */
   background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  max-width: 400px;
   padding: 20px;
-  position: relative;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+  overflow-y: auto;
 }
 
 .DriverSummary-header {
@@ -108,4 +112,57 @@
 .DriverSummary-time-input {
   flex: 2;
   text-align: center;
+}
+
+.DriverSummary-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  text-align: center;
+  padding: 10px;
+  margin: 20px auto;
+}
+
+.DriverSummary-stats div {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  min-width: 80px;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  aspect-ratio: 1;
+}
+
+.DriverSummary-stats strong {
+  font-size: 24px;
+  color: #333;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.DriverSummary-stats br {
+  display: none;
+}
+
+/* Make it responsive */
+@media (max-width: 1024px) {
+  .DriverSummary {
+    width: calc(100vw - 80px); /* Full width minus sidebar */
+  }
+  
+  .DriverSummary-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .DriverSummary {
+    left: 0;
+    width: 100%;
+  }
 }

@@ -63,3 +63,24 @@ export const deleteAssignment = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getDriverAssignment = async (req, res) => {
+  try {
+    const driverEmail = req.user.email; // Email from decoded token
+    console.log('Looking for assignment for driver:', driverEmail);
+    
+    const assignment = await ShuttleAssignment.findOne({ 
+      driverEmail: driverEmail 
+    }).populate('shuttleId');
+    
+    if (!assignment) {
+      return res.status(404).json({ message: "No shuttle assigned" });
+    }
+    
+    console.log('Found assignment:', assignment);
+    res.status(200).json(assignment);
+  } catch (error) {
+    console.error('Error in getDriverAssignment:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
