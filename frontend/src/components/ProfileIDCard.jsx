@@ -1,7 +1,74 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "../css/ProfileIDCard.css";
 
-const ShutlProfileIDCard = ({ user, onClose }) => {
+const ShutlProfileIDCard = ({ userId, onClose }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editableUser, setEditableUser] = useState({
+    identifier: "SHUTLE1 Driver",
+    name: "John Doe",
+    address: "Molino",
+    sex: "M",
+    eyeColor: "blue",
+    dob: "das",
+    email: "N/A",
+  });
+
+  useEffect(() => {
+    // Fetch user data from the server
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch(`/api/users/${userId}`);
+        const data = await response.json();
+        setEditableUser(data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, [userId]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditableUser((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = (e, field) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditableUser((prev) => ({ ...prev, [field]: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const toggleEdit = () => {
+    setIsEditing((prev) => !prev);
+  };
+
+  const handleSave = async () => {
+    try {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(editableUser),
+      });
+
+      if (response.ok) {
+        console.log("User data saved successfully");
+        setIsEditing(false);
+      } else {
+        console.error("Failed to save user data");
+      }
+    } catch (error) {
+      console.error("Error saving user data:", error);
+    }
+  };
+
   return (
     <div className="ShutlProfileIDCard-overlay">
       <div className="ShutlProfileIDCard">
@@ -13,67 +80,87 @@ const ShutlProfileIDCard = ({ user, onClose }) => {
         </div>
         <div className="ShutlProfileIDCard-content">
           <div className="ShutlProfileIDCard-left">
+            <input
+              type="file"
+              accept="image/*"
+              style={{ display: isEditing ? "block" : "none" }}
+              onChange={(e) => handleImageChange(e, "profilePic")}
+            />
             <img
-              src="/profile.png"
+              src={editableUser.profilePic || "/profile.png"}
               alt="Driver Profile"
               className="ShutlProfileIDCard-img"
             />
             <div className="ShutlProfileIDCard-signature">
-              <img src="/signature.png" alt="Signature" />
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: isEditing ? "block" : "none" }}
+                onChange={(e) => handleImageChange(e, "signature")}
+              />
+              <img
+                src={editableUser.signature || "/signature.png"}
+                alt="Signature"
+              />
             </div>
           </div>
           <div className="ShutlProfileIDCard-info">
-            <div className="ShutlProfileIDCard-field">
-              <span className="ShutlProfileIDCard-label">
-                Teller's Identifier
-              </span>
-              <p className="ShutlProfileIDCard-value">
-                {user.identifier || "SHUTL001-1A"}
-              </p>
+            <div className="ShutlProfileIDCard-section">
+              {["identifier", "name", "address"].map((field) => (
+                <div className="ShutlProfileIDCard-field" key={field}>
+                  <span className="ShutlProfileIDCard-label">
+                    {field.charAt(0).toUpperCase() + field.slice(1)}
+                  </span>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      name={field}
+                      value={editableUser[field] || ""}
+                      onChange={handleInputChange}
+                      className="ShutlProfileIDCard-value"
+                    />
+                  ) : (
+                    <p className="ShutlProfileIDCard-value">
+                      {editableUser[field] || "N/A"}
+                    </p>
+                  )}
+                </div>
+              ))}
             </div>
-            <div className="ShutlProfileIDCard-field">
-              <span className="ShutlProfileIDCard-label">Name</span>
-              <p className="ShutlProfileIDCard-value">
-                {user.name || "John Doe"}
-              </p>
-            </div>
-            <div className="ShutlProfileIDCard-field">
-              <span className="ShutlProfileIDCard-label">Address</span>
-              <p className="ShutlProfileIDCard-value">
-                {user.address || "412 Sta Fe Tomas Morato"}
-              </p>
-            </div>
-            <div className="ShutlProfileIDCard-row">
-              <div className="ShutlProfileIDCard-field">
-                <span className="ShutlProfileIDCard-label">Sex</span>
-                <p className="ShutlProfileIDCard-value">{user.sex || "M"}</p>
-              </div>
-              <div className="ShutlProfileIDCard-field">
-                <span className="ShutlProfileIDCard-label">Email</span>
-                <p className="ShutlProfileIDCard-value">
-                  {user.email || "jam.teller@gmail.com"}
-                </p>
-              </div>
-            </div>
-            <div className="ShutlProfileIDCard-row">
-              <div className="ShutlProfileIDCard-field">
-                <span className="ShutlProfileIDCard-label">Eye Color</span>
-                <p className="ShutlProfileIDCard-value">
-                  {user.eyeColor || "Brown"}
-                </p>
-              </div>
-              <div className="ShutlProfileIDCard-field">
-                <span className="ShutlProfileIDCard-label">Date of Birth</span>
-                <p className="ShutlProfileIDCard-value">
-                  {user.dob || "07/15/1983"}
-                </p>
-              </div>
+            <div className="ShutlProfileIDCard-section">
+              {["sex", "eyeColor", "dob", "email"].map((field) => (
+                <div className="ShutlProfileIDCard-field" key={field}>
+                  <span className="ShutlProfileIDCard-label">
+                    {field.charAt(0).toUpperCase() + field.slice(1)}
+                  </span>
+                  {isEditing && field !== "email" ? (
+                    <input
+                      type="text"
+                      name={field}
+                      value={editableUser[field] || ""}
+                      onChange={handleInputChange}
+                      className="ShutlProfileIDCard-value"
+                    />
+                  ) : (
+                    <p className="ShutlProfileIDCard-value">
+                      {editableUser[field] || "N/A"}
+                    </p>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
-        <button className="ShutlProfileIDCard-edit-btn">
-          Edit User Profile
-        </button>
+        {isEditing ? (
+          <button className="ShutlProfileIDCard-edit-btn" onClick={handleSave}>
+            Save Changes
+          </button>
+        ) : (
+          <button className="ShutlProfileIDCard-edit-btn" onClick={toggleEdit}>
+            Edit User Profile
+          </button>
+        )}
+        <button className="ShutlProfileIDCard-view-id-btn">View ID</button>
       </div>
     </div>
   );

@@ -28,11 +28,24 @@ const LoginForm = ({ onClose }) => {
         document.cookie = `token=${data.token}; path=/; SameSite=None; Secure`;
 
         const userType = data.user.userType;
-        if (userType === "Commuter") navigate("/ShutlLoggedIn");
-        else if (userType === "Admin") navigate("/AdministratorMain");
-        else if (userType === "Teller") navigate("/TellerMain");
-        else if (userType === "Driver") navigate("/DriverMain");
+        const userId = data.user.id;
+        const userEmail = data.user.email;
+        let userData = {};
 
+        if (userType === "Commuter") {
+          userData = await fetchUserData(["users", "userdatas"], userId, userEmail);
+          navigate("/ShutlLoggedIn");
+        } else if (userType === "Admin") {
+          navigate("/AdministratorMain");
+        } else if (userType === "Teller") {
+          userData = await fetchUserData(["users", "userdatas", "tellerprofiles", "onfieldshuttles", "shuttleassignments"], userId, userEmail);
+          navigate("/TellerMain");
+        } else if (userType === "Driver") {
+          userData = await fetchUserData(["users", "userdatas", "shuttleassignments", "onfieldshuttles"], userId, userEmail);
+          navigate("/DriverMain");
+        }
+
+        localStorage.setItem("userData", JSON.stringify(userData));
         onClose();
       } else {
         const errorData = await response.json();
@@ -42,6 +55,21 @@ const LoginForm = ({ onClose }) => {
       console.error("Error:", error);
       setError("An error occurred");
     }
+  };
+
+  const fetchUserData = async (collections, userId, userEmail) => {
+    const userData = {};
+    for (const collection of collections) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/${collection}?userId=${userId}&email=${userEmail}`);
+        if (response.ok) {
+          userData[collection] = await response.json();
+        }
+      } catch (error) {
+        console.error(`Error fetching data from ${collection}:`, error);
+      }
+    }
+    return userData;
   };
 
   return (

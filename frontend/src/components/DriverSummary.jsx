@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../css/DriverSummary.css";
 
-const DriverSummary = ({ onClose }) => {
+const DriverSummary = ({ onClose, shuttleNumber }) => {
   // Static data for pickup locations and counts
   const pickupSummary = [
     { location: "Ruby St.", count: 5 },
@@ -16,6 +16,24 @@ const DriverSummary = ({ onClose }) => {
   const [personCount, setPersonCount] = useState(5); // Editable current count
   const [departureTime, setDepartureTime] = useState("8:00 AM");
   const [arrivalTime, setArrivalTime] = useState("10:00 AM");
+  const [shuttleDetails, setShuttleDetails] = useState(null);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+  useEffect(() => {
+    const fetchShuttleDetails = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/shuttles/${shuttleNumber}`);
+        const data = await response.json();
+        setShuttleDetails(data);
+      } catch (error) {
+        console.error("Error fetching shuttle details:", error);
+      }
+    };
+
+    if (shuttleNumber) {
+      fetchShuttleDetails();
+    }
+  }, [shuttleNumber, API_BASE_URL]);
 
   const handlePersonCountChange = (e) => {
     const newCount = parseInt(e.target.value, 10);
@@ -77,6 +95,24 @@ const DriverSummary = ({ onClose }) => {
           />
         </div>
       </div>
+
+      {shuttleDetails && (
+        <div className="DriverSummary-section">
+          <h3>Shuttle Trip Summary</h3>
+          <div>
+            <strong>{shuttleDetails.roundTrips}</strong> Round Trips
+          </div>
+          <div>
+            <strong>{shuttleDetails.totalRegular}</strong> Regular
+          </div>
+          <div>
+            <strong>{shuttleDetails.totalDiscounted}</strong> Discounted
+          </div>
+          <div>
+            <strong>₱{shuttleDetails.totalFare}</strong> Total Fare
+          </div>
+        </div>
+      )}
     </div>
   );
 };
