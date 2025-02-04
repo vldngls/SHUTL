@@ -305,3 +305,19 @@ hr {
   border: none;
   border-top: 1px solid #eee;
 }
+
+.pickup-request-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+  width: 100%;
+  font-size: 14px;
+}
+
+.pickup-request-btn:hover {
+  background-color: #0056b3;
+}

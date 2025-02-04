@@ -166,3 +166,30 @@
     width: 100%;
   }
 }
+
+.pickup-requests-list {
+  margin-top: 20px;
+  padding: 10px;
+}
+
+.pickup-request-item {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.pickup-request-item button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.pickup-request-item button:hover {
+  background-color: #218838;
+}

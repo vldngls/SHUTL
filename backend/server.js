@@ -67,24 +67,30 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
+  console.log("Client connected:", socket.id);
 
-  // Restoring shuttle location broadcasting functionality
   socket.on("shuttle_location", (data) => {
     console.log("Received shuttle location:", data);
-    // Broadcast to all connected clients except sender
     socket.broadcast.emit("shuttle_location", data);
   });
 
-  // New: Real-time messaging
   socket.on("message", (msg) => {
     console.log("Message received:", msg);
-    // Broadcast message to all connected clients
     io.emit("message", msg);
   });
 
+  socket.on("pickup_request", (request) => {
+    console.log("Received pickup request:", request);
+    socket.broadcast.emit("pickup_request", request);
+  });
+
+  socket.on("pickup_accepted", (request) => {
+    console.log("Pickup request accepted:", request);
+    io.emit("pickup_accepted", request);
+  });
+
   socket.on("disconnect", () => {
-    console.log("A user disconnected:", socket.id);
+    console.log("Client disconnected:", socket.id);
   });
 });
 

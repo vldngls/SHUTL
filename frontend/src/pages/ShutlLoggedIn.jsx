@@ -271,6 +271,25 @@ const ShutlLoggedIn = () => {
                       <>
                         <p>Distance: {distance.toFixed(2)} km</p>
                         <p>ETA: {eta} minutes</p>
+                        <button 
+                          className="pickup-request-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (socket.current) {
+                              const request = {
+                                shuttleId,
+                                location: userLocation,
+                                timestamp: new Date().toISOString(),
+                                eta: eta
+                              };
+                              console.log("Sending pickup request:", request);
+                              socket.current.emit("pickup_request", request);
+                              alert("Pickup request sent!");
+                            }
+                          }}
+                        >
+                          Pick Me Up
+                        </button>
                       </>
                     )}
                   </div>
