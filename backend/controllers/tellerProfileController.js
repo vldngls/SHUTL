@@ -68,3 +68,29 @@ export const fetchTellerProfileByEmail = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+// Fetch All Teller Profiles
+export const fetchAllTellers = async (req, res) => {
+  try {
+    const tellers = await TellerProfile.find(); // Fetch all teller records
+    res.status(200).json(tellers);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching tellers", error });
+  }
+};
+
+// Delete Teller Profile by ID
+export const deleteTellerProfile = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedTeller = await TellerProfile.findByIdAndDelete(id);
+    if (!deletedTeller) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+    res.status(200).json({ message: "Profile deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting profile:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

@@ -1,0 +1,80 @@
+.account-management-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+  }
+  
+  .form-container,
+  .list-container {
+    flex: 1;
+    min-width: 300px;
+    max-width: 600px;
+    background: #fff;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  
+  h2 {
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    color: #333;
+  }
+  
+  .teller-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .teller-table th,
+  .teller-table td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd;
+  }
+  
+  .teller-table th {
+    background-color: #f4f4f4;
+  }
+  
+  .teller-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .edit-btn {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin-right: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .edit-btn:hover {
+    background-color: #45a049;
+  }
+  
+  .delete-button {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin-left: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .delete-button:hover {
+    background-color: #c82333;
+  }
+  
+  
+  
+  @media (max-width: 768px) {
+    .account-management-container {
+      flex-direction: column;
+    }
+  }
+  

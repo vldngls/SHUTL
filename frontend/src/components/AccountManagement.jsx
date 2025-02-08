@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import TellerForm from "./TellerForm";
 import TellerList from "./TellerList";
-import { fetchTellers, saveTeller } from "../utils/tellerservice";
+import { fetchTellers, saveTeller, deleteTeller } from "../utils/tellerservice";
+import "../css/AccountManagement.css";
 
 const AccountManagement = () => {
   const [tellers, setTellers] = useState([]);
@@ -36,12 +37,21 @@ const AccountManagement = () => {
     }
   };
 
+  const handleDeleteTeller = async (tellerId) => {
+    try {
+      await deleteTeller(tellerId);
+      setTellers((prev) => prev.filter((teller) => teller._id !== tellerId));
+    } catch (error) {
+      console.error("Error deleting teller:", error);
+    }
+  };
+
   const handleEdit = (teller) => {
     setEditingTeller(teller); // Pre-fill the form with teller data for editing
   };
 
   const handleCancelEdit = () => {
-    setEditingTeller(null);
+    setEditingTeller(null); // Reset the editing state
   };
 
   return (
@@ -51,9 +61,13 @@ const AccountManagement = () => {
         <TellerForm
           onTellerSaved={handleSaveTeller}
           editingTeller={editingTeller}
-          onCancelEdit={handleCancelEdit}
+          onCancelEdit={handleCancelEdit} // Pass cancel handler
         />
-        <TellerList tellers={tellers} onEditTeller={handleEdit} />
+        <TellerList
+          tellers={tellers}
+          onEditTeller={handleEdit}
+          onDeleteTeller={handleDeleteTeller}
+        />
       </div>
     </div>
   );
