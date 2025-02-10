@@ -175,15 +175,18 @@ body {
   position: fixed;
   bottom: 0;
   left: 0;
-  width: 100%;
+  width: calc(100% + 80px); /* Expand width to cover entire screen width */
   background-color: #f5f5f5;
   color: #333;
-  text-align: center;
-  padding: 10px 0;
-  font-size: 14px;
-  font-family: Arial, sans-serif;
-  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 10px 20px;
+  border-top: 2px solid #e0e0e0;
+  font-size: 1em; /* Adjusted to relative units */
   z-index: 2; /* Ensure it is above the map but below modals */
+  box-sizing: border-box;
+  margin-left: -80px; /* Shift taskbar left to align with the navbar's edge */
 }
 
 /* Media Queries */
@@ -200,6 +203,11 @@ body {
   .TellerMain-icon-btn {
     width: 40px;
     height: 40px;
+  }
+
+  .TellerMain-right-btn {
+    padding: 8px 16px; /* Adjust padding for smaller screens */
+    font-size: 14px; /* Adjust font size for smaller screens */
   }
 }
 
@@ -222,5 +230,10 @@ body {
   .TellerMain-icon-btn {
     width: 36px;
     height: 36px;
+  }
+
+  .TellerMain-right-btn {
+    padding: 6px 12px; /* Further adjust padding for very small screens */
+    font-size: 12px; /* Further adjust font size for very small screens */
   }
 }
