@@ -131,6 +131,11 @@ body {
     ); /* Adjust to full viewport width on smaller screens */
     margin-left: -48px; /* Adjust to align with navbar width */
   }
+
+  /* Ensure zoom out button is hidden on mobile */
+  .leaflet-control-zoom-out {
+    display: none !important;
+  }
 }
 
 @media (max-width: 480px) {
@@ -186,6 +191,11 @@ body {
 
   .ShutlLoggedOut-line {
     display: none; /* Hide the line on smaller portrait devices */
+  }
+
+  /* Ensure zoom out button is hidden on smaller mobile screens */
+  .leaflet-control-zoom-out {
+    display: none !important;
   }
 }
 
@@ -252,4 +262,9 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 1001; /* Ensure it's above the overlay */
+}
+
+/* Hide zoom out button */
+.leaflet-control-zoom-out {
+  display: none !important;
 }
