@@ -88,11 +88,11 @@ export const updateUserDataByEmail = async (req, res) => {
     }
 
     let userData = await UserData.findOne({ email });
-    
+
     if (!userData) {
       userData = new UserData({
         email,
-        ...updates
+        ...updates,
       });
     } else {
       // Update only the fields that are provided
@@ -107,9 +107,9 @@ export const updateUserDataByEmail = async (req, res) => {
     res.status(200).json(userData);
   } catch (error) {
     console.error("Error updating user data:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "Error updating user data",
-      error: error.message 
+      error: error.message,
     });
   }
 };
@@ -117,19 +117,19 @@ export const updateUserDataByEmail = async (req, res) => {
 export const ensureUserData = async (email) => {
   try {
     let userData = await UserData.findOne({ email });
-    
+
     if (!userData) {
-      console.log('Creating new user data for:', email);
+      console.log("Creating new user data for:", email);
       userData = new UserData({
         email,
         // All other fields will use their default values
       });
       await userData.save();
     }
-    
+
     return userData;
   } catch (error) {
-    console.error('Error in ensureUserData:', error);
+    console.error("Error in ensureUserData:", error);
     throw error;
   }
 };
@@ -141,9 +141,9 @@ export const getUserDataFromToken = async (req, res) => {
     res.status(200).json(userData);
   } catch (error) {
     console.error("Error in getUserDataFromToken:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "Error fetching user data",
-      error: error.message 
+      error: error.message,
     });
   }
 };
@@ -151,17 +151,14 @@ export const getUserDataFromToken = async (req, res) => {
 export const getUserData = async (req, res) => {
   try {
     const { userId, email } = req.query;
-    const userData = await UserData.findOne({ 
-      $or: [
-        { userId: userId },
-        { email: email }
-      ]
+    const userData = await UserData.findOne({
+      $or: [{ userId: userId }, { email: email }],
     });
-    
+
     if (!userData) {
       return res.status(404).json({ message: "User data not found" });
     }
-    
+
     res.json(userData);
   } catch (error) {
     res.status(500).json({ error: error.message });
