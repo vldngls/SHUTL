@@ -2,10 +2,10 @@ import React, { useRef, useEffect, useState } from "react";
 import "../css/ProfilePopup.css";
 
 const DISCOUNT_TYPES = {
-  REGULAR: { label: 'Regular', value: 0 },
-  PWD: { label: 'PWD', value: 20 },
-  STUDENT: { label: 'Student', value: 20 },
-  SENIOR: { label: 'Senior Citizen', value: 20 }
+  REGULAR: { label: "Regular", value: 0 },
+  PWD: { label: "PWD", value: 20 },
+  STUDENT: { label: "Student", value: 20 },
+  SENIOR: { label: "Senior Citizen", value: 20 },
 };
 
 const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
@@ -109,42 +109,63 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
   const handleUpdateProfile = async () => {
     try {
       if (!userData || !userData.email) {
-        console.error('No user data or email available');
+        console.error("No user data or email available");
         return;
       }
 
       const updatedData = {
         email: userData.email,
         ...Object.fromEntries(
-          Object.entries(editedData).filter(([_, value]) => value !== undefined && value !== null)
+          Object.entries(editedData).filter(
+            ([_, value]) => value !== undefined && value !== null
+          )
         ),
-        profilePicture: profileImage || userData.profilePicture
+        profilePicture: profileImage || userData.profilePicture,
       };
-      
-      console.log('Sending update request with data:', updatedData);
+
+      console.log("Sending update request with data:", updatedData);
+
+      // Get the JWT token from cookies
+      const token = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("token="))
+        ?.split("=")[1];
+
+      if (!token) {
+        console.error("No authentication token found");
+        return;
+      }
+
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      };
 
       const response = await fetch(`${API_BASE_URL}/userdata/update`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         credentials: "include",
         body: JSON.stringify(updatedData),
       });
 
+      console.log("Response status:", response.status);
+      const responseData = await response.json();
+      console.log("Response data:", responseData);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Failed to update user data:", errorData);
+        console.error("Failed to update user data:", responseData);
         return;
       }
 
-      const updatedUser = await response.json();
-      setUserData(prevData => ({
-        ...prevData,
-        ...updatedUser
-      }));
+      setUserData(responseData);
+      setEditedData({});
       setIsEditing(false);
 
+      if (responseData.profilePicture) {
+        setProfileImage(responseData.profilePicture);
+      }
+
+      console.log("Profile updated successfully!");
     } catch (error) {
       console.error("Error updating user data:", error);
     }
@@ -204,7 +225,8 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
               <strong>Address:</strong> {userData.address || "N/A"}
             </p>
             <p>
-              <strong>Discount Type:</strong> {DISCOUNT_TYPES[userData.discountType || 'REGULAR'].label}
+              <strong>Discount Type:</strong>{" "}
+              {DISCOUNT_TYPES[userData.discountType || "REGULAR"].label}
             </p>
             <p>
               <strong>Discount:</strong> {userData.discount || 0}%
@@ -246,13 +268,15 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
             />
             <select
               name="discountType"
-              value={editedData.discountType || userData.discountType || 'REGULAR'}
+              value={
+                editedData.discountType || userData.discountType || "REGULAR"
+              }
               onChange={(e) => {
                 const selectedType = e.target.value;
                 setEditedData({
                   ...editedData,
                   discountType: selectedType,
-                  discount: DISCOUNT_TYPES[selectedType].value
+                  discount: DISCOUNT_TYPES[selectedType].value,
                 });
               }}
             >
