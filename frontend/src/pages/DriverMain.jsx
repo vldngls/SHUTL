@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import { useNavigate } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
@@ -8,11 +8,11 @@ import SettingsDropdown from "../components/SettingsDropdown";
 import SchedulePopup from "../components/SchedulePopup";
 import NotificationPop from "../components/NotificationPop";
 import DriverSummary from "../components/DriverSummary";
+import ProfileIDCard from "../components/ProfileIDCard"; // Add this import
 import { connectSocket, subscribeToMessages, subscribeToLocation, sendLocation } from "../utils/websocketService";
 import L from "leaflet";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const SOCKET_URL = API_BASE_URL.replace("/api", "");
 
 const carIcon = new L.Icon({
   iconUrl: "/car.png",
@@ -117,6 +117,17 @@ const DriverMain = () => {
     setMessages((prev) => [...prev, driverMessage]);
   };
 
+  const handleNotification = (notification) => {
+    setNotifications(prev => [...prev, notification]);
+  };
+
+  const handleClickOutside = (e) => {
+    // Check if click is outside modal container
+    if (e.target.classList.contains('modal-overlay')) {
+      setActiveModal(null);  // Directly set activeModal to null instead of using closeModal
+    }
+  };
+
   return (
     <>
       <div className="DriverMain-map-container">
@@ -174,6 +185,12 @@ const DriverMain = () => {
           >
             <img src="/settings.png" alt="Settings Icon" />
           </button>
+          <button
+            className="DriverMain-icon-btn"
+            onClick={() => toggleModal("isProfileOpen")}
+          >
+            <img src="/profile.png" alt="Profile Icon" />
+          </button>
         </div>
       </div>
 
@@ -193,14 +210,47 @@ const DriverMain = () => {
       )}
 
       {activeModal === "isMessageOpen" && (
-        <DriverMessage messages={messages} onSendMessage={handleSendMessage} />
+        <div className="modal-overlay" onClick={handleClickOutside}>
+          <div className="modal-container">
+            <DriverMessage messages={messages} onSendMessage={handleSendMessage} />
+          </div>
+        </div>
       )}
-      {activeModal === "isScheduleOpen" && <SchedulePopup />}
-      {activeModal === "isSummaryOpen" && <DriverSummary />}
+      {activeModal === "isScheduleOpen" && (
+        <div className="modal-overlay" onClick={handleClickOutside}>
+          <div className="modal-container">
+            <SchedulePopup />
+          </div>
+        </div>
+      )}
+      {activeModal === "isSummaryOpen" && (
+        <div className="modal-overlay" onClick={handleClickOutside}>
+          <div className="modal-container">
+            <DriverSummary />
+          </div>
+        </div>
+      )}
       {activeModal === "isNotificationOpen" && (
-        <NotificationPop notifications={notifications} />
+        <div className="modal-overlay" onClick={handleClickOutside}>
+          <div className="modal-container">
+            <NotificationPop notifications={notifications} />
+          </div>
+        </div>
       )}
-      {activeModal === "isSettingsOpen" && <SettingsDropdown />}
+      {activeModal === "isSettingsOpen" && (
+        <div className="modal-overlay" onClick={handleClickOutside}>
+          <div className="modal-container">
+            <SettingsDropdown />
+          </div>
+        </div>
+      )}
+      {activeModal === "isProfileOpen" && (
+        <div className="modal-overlay" onClick={handleClickOutside}>
+          <div className="modal-container">
+            <ProfileIDCard />
+          </div>
+        </div>
+      )}
     </>
   );
 };

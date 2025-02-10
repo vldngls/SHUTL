@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../css/ProfileIDCard.css";
 
-const ShutlProfileIDCard = ({ userId, onClose }) => {
+const ProfileIDCard = ({ userId, onClose }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editableUser, setEditableUser] = useState({
     identifier: "SHUTLE1 Driver",
@@ -70,11 +70,26 @@ const ShutlProfileIDCard = ({ userId, onClose }) => {
   };
 
   return (
-    <div className="ShutlProfileIDCard-overlay">
-      <div className="ShutlProfileIDCard">
+    <div 
+      className="ShutlProfileIDCard-overlay" 
+      onClick={(e) => {
+        // Only close if clicking directly on the overlay
+        if (e.currentTarget === e.target) {
+          onClose();
+        }
+      }}
+    >
+      <div className="ShutlProfileIDCard" onClick={(e) => e.stopPropagation()}>
         <div className="ShutlProfileIDCard-header">
           <h2>Camella - Shuttle ID</h2>
-          <button className="ShutlProfileIDCard-close-btn" onClick={onClose}>
+          <button 
+            className="ShutlProfileIDCard-close-btn" 
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            aria-label="Close"
+          >
             ✕
           </button>
         </div>
@@ -166,4 +181,4 @@ const ShutlProfileIDCard = ({ userId, onClose }) => {
   );
 };
 
-export default ShutlProfileIDCard;
+export default ProfileIDCard;
