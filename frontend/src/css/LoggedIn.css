@@ -23,15 +23,15 @@
 
 .suggestion-form-container {
   position: fixed;
-  top: 30px; /* Increased from 80px to move higher */
-  width: 320px; /* Set a fixed width */
+  top: 30px; /* Keep it higher on the screen */
+  width: 320px; /* Fixed width */
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   padding: 20px;
-  z-index: 1010; /* Higher than the button */
-  animation: fadeInUp 0.3s ease; /* Smooth fade-in animation */
   position: relative; /* Ensure child elements position relative to the form */
+  left: 50%;
+  transform: translateX(-50%);
 }
 /* Form Styling */
 .suggestion-form-container form {
@@ -79,17 +79,6 @@
   transform: translateY(-3px); /* Subtle lift effect on hover */
 }
 
-/* Keyframes for Popup Animation */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 /* General Reset for Body */
 html,
@@ -320,4 +309,13 @@ hr {
 
 .pickup-request-btn:hover {
   background-color: #0056b3;
+}
+
+/* Responsive styling for smaller screens */
+@media (max-width: 600px) {
+  .suggestion-form-container {
+    width: 90%; /* Adjust width for smaller screens */
+    left: 50%;
+    transform: translateX(-50%);
+  }
 }
