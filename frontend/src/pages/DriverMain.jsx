@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
-import { useNavigate } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 import "../css/DriverMain.css";
 import DriverMessage from "../components/DriverMessage"; // Import DriverMessage component
@@ -11,8 +10,6 @@ import DriverSummary from "../components/DriverSummary";
 import ProfileIDCard from "../components/ProfileIDCard"; // Add this import
 import { connectSocket, subscribeToMessages, subscribeToLocation, sendLocation } from "../utils/websocketService";
 import L from "leaflet";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const carIcon = new L.Icon({
   iconUrl: "/car.png",
@@ -25,7 +22,6 @@ const carIcon = new L.Icon({
 });
 
 const DriverMain = () => {
-  const navigate = useNavigate();
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState([14.377, 120.983]);
   const [notifications, setNotifications] = useState([]);
@@ -115,10 +111,6 @@ const DriverMain = () => {
       socket.current.emit("message", driverMessage);
     }
     setMessages((prev) => [...prev, driverMessage]);
-  };
-
-  const handleNotification = (notification) => {
-    setNotifications(prev => [...prev, notification]);
   };
 
   const handleClickOutside = (e) => {
