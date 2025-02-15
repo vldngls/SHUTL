@@ -11,6 +11,9 @@
   box-shadow: 0 4px 8px rgba(35, 35, 35, 0.1); /* Slight shadow with darkest color */
   z-index: 1000;
   text-align: center;
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
 }
 
 .ShutlLoginForm-title {
@@ -145,4 +148,35 @@
   .ShutlLoginForm-signup-button {
     font-size: 11px;
   }
+}
+
+.google-login-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 15px 0;
+}
+
+.google-login-container > div {
+  width: 300px !important; /* Fixed width */
+  height: 48px !important; /* Fixed height */
+}
+
+.google-login-container > div > div,
+.google-login-container > div > iframe {
+  width: 300px !important;
+  height: 48px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Style for both initial and one-tap states */
+.google-login-container div[role="button"],
+.google-login-container iframe {
+  width: 300px !important;
+  height: 48px !important;
+  min-width: 300px !important;
+  max-width: 300px !important;
 }

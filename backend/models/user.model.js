@@ -24,6 +24,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "Commuter",
     },
+    googleId: {
+      type: String,
+      sparse: true,
+    },
+    profilePicture: {
+      type: String,
+    },
   },
   {
     timestamps: true,
