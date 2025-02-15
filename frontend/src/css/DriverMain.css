@@ -6,7 +6,7 @@
   z-index: 1;
 }
 
-/* Navbar styling */
+/* Navbar Styling */
 .DriverMain-navbar {
   display: flex;
   flex-direction: column;
@@ -25,52 +25,64 @@
   box-sizing: border-box;
 }
 
-/* Logo styling */
+/* Navbar Logo */
 .DriverMain-logo {
-  font-size: 1.4em;
+  font-size: 1.6em;
   font-weight: bold;
-  margin-bottom: 10px;
-  text-align: center;
   color: #ecf0f1;
+  text-align: center;
+  margin-top: 20px;
 }
 
-/* Navbar buttons container */
-/* Navbar buttons container */
+/* Navbar Buttons - Centered */
 .DriverMain-navbar-buttons {
-  width: 100%;
-  margin-top: 240px; /* Push buttons towards the bottom */
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+  flex-grow: 1;
+  justify-content: center;
 }
 
-
-/* Navbar buttons styling */
+/* Navbar Button Styling */
 .DriverMain-navbar-buttons button {
-  display: block;
   background: none;
   border: none;
   cursor: pointer;
-  outline: none;
   transition: transform 0.2s;
-  margin-bottom: 0; /* Default spacing */
   padding: 0;
 }
 
-/* Add 1px spacing between buttons */
-.DriverMain-navbar-buttons button + button {
-  margin-top: 15px;
-}
-
-/* Button icon images */
 .DriverMain-navbar-buttons button img {
   width: 48px;
   height: 48px;
 }
 
-/* Hover effect for buttons */
 .DriverMain-navbar-buttons button:hover img {
   transform: scale(1.1);
 }
 
-/* Taskbar styling */
+/* Profile Icon - Fixed at Bottom */
+.DriverMain-profile-btn {
+  margin-top: auto;
+  margin-bottom: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.DriverMain-profile-btn img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+
+.DriverMain-profile-btn:hover img {
+  transform: scale(1.1);
+}
+
+/* Taskbar */
 .DriverMain-taskbar {
   position: fixed;
   bottom: 0;
@@ -89,7 +101,7 @@
   margin-left: -80px;
 }
 
-/* Update location button */
+/* Update Location Button */
 .DriverMain-update-location-btn {
   position: fixed;
   right: 20px;
@@ -109,7 +121,7 @@
   background-color: #cacaca21;
 }
 
-/* Request assistance button */
+/* Request Assistance Button */
 .DriverMain-request-assistance-btn {
   background-color: #232323;
   color: white;
@@ -132,7 +144,7 @@
   background-color: #424242;
 }
 
-/* Operational hours display */
+/* Operational Hours Display */
 .DriverMain-operational-hours {
   position: fixed;
   right: 20px;
@@ -147,7 +159,7 @@
   z-index: 1000;
 }
 
-/* Responsive adjustments for smaller devices */
+/* Responsive Adjustments */
 @media (max-width: 768px) {
   .DriverMain-navbar {
     width: 60px;
@@ -191,9 +203,26 @@
     align-self: center;
   }
 
+  .DriverMain-navbar-buttons {
+    flex-direction: row;
+    gap: 10px;
+  }
+
   .DriverMain-navbar-buttons button img {
     width: 28px;
     height: 28px;
+  }
+
+  /* Profile Button in Mobile - Aligned to the Right */
+  .DriverMain-profile-btn {
+    position: absolute;
+    right: 10px;
+    bottom: 5px;
+  }
+
+  .DriverMain-profile-btn img {
+    width: 36px;
+    height: 36px;
   }
 
   .DriverMain-taskbar {

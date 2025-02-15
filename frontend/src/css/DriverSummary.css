@@ -1,33 +1,33 @@
 /* Modal overlay styling for DriverSummary */
 .DriverMain-summary-popup {
   position: fixed;
-  top: 50%;
+  bottom: 0; /* Move to the bottom of the screen */
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   width: 90%;
   max-width: 400px;
   background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  border-radius: 12px 12px 0 0; /* Rounded corners on top */
+  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.3); /* Shadow effect for lift */
   z-index: 1001;
   overflow-y: auto;
-  max-height: 80%;
+  max-height: 50vh; /* Limit height for visibility */
+  transition: transform 0.3s ease-in-out;
 }
 
-.DriverMain-summary-popup h2 {
-  margin-top: 0;
+/* Ensure full width in mobile view */
+@media (max-width: 480px) {
+  .DriverMain-summary-popup {
+    width: 100vw;
+    max-width: 100%;
+    height: 60vh; /* Take up 60% of the screen */
+    max-height: 60vh;
+    left: 0;
+    transform: none;
+  }
 }
 
-.DriverMain-summary-popup-close {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  font-size: 18px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-}
-
+/* Overlay Styling */
 .DriverMain-summary-overlay {
   position: fixed;
   top: 0;
@@ -38,19 +38,42 @@
   z-index: 1000;
 }
 
+/* Sidebar-aligned Driver Summary for Desktops */
 .DriverSummary {
   position: fixed;
-  top: 0;
-  left: 80px; /* Adjust this value based on your sidebar width */
-  height: 100vh;
-  width: 600px; /* Reduced from 800px to 600px */
+  top: 0; /* Align to the top */
+  left: 80px; /* Offset by the navbar's width */
+  height: 100vh; /* Full height */
+  width: calc(100% - 80px); /* Full width minus navbar */
   background-color: #fff;
   padding: 20px;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
   z-index: 1001;
   overflow-y: auto;
+  border-radius: 0; /* Remove rounded corners for full height */
 }
 
+/* Make it Full-Width on Small Screens */
+@media (max-width: 1024px) {
+  .DriverSummary {
+    width: calc(100vw - 80px); /* Take full width minus sidebar */
+  }
+}
+
+@media (max-width: 480px) {
+  .DriverSummary {
+    position: fixed;
+    bottom: 0; /* Positioned at bottom */
+    left: 0;
+    width: 100vw;
+    height: 50vh; /* Set to cover 50% of screen */
+    z-index: 1001;
+    transform: none;
+    overflow-y: auto;
+  }
+}
+
+/* Header */
 .DriverSummary-header {
   display: flex;
   justify-content: space-between;
@@ -60,22 +83,7 @@
   margin-bottom: 20px;
 }
 
-.DriverSummary-header h2 {
-  margin: 0;
-  font-size: 20px;
-}
-
-.DriverSummary-close-btn {
-  background: transparent;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.DriverSummary-section {
-  margin-bottom: 20px;
-}
-
+/* Pickup List */
 .DriverSummary-pickup-list {
   list-style: none;
   padding: 0;
@@ -88,32 +96,7 @@
   margin: 5px 0;
 }
 
-.DriverSummary-input,
-.DriverSummary-time-input {
-  width: 100%;
-  padding: 8px;
-  margin-top: 5px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.DriverSummary-time {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
-}
-
-.DriverSummary-time label {
-  flex: 1;
-}
-
-.DriverSummary-time-input {
-  flex: 2;
-  text-align: center;
-}
-
+/* Statistics Grid */
 .DriverSummary-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -137,36 +120,15 @@
   aspect-ratio: 1;
 }
 
-.DriverSummary-stats strong {
-  font-size: 24px;
-  color: #333;
-  display: block;
-  margin-bottom: 5px;
-}
-
-.DriverSummary-stats br {
-  display: none;
-}
-
-/* Make it responsive */
-@media (max-width: 1024px) {
-  .DriverSummary {
-    width: calc(100vw - 80px); /* Full width minus sidebar */
-  }
-  
+/* Responsive Grid Adjustments */
+@media (max-width: 768px) {
   .DriverSummary-stats {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
 }
 
-@media (max-width: 480px) {
-  .DriverSummary {
-    left: 0;
-    width: 100%;
-  }
-}
-
+/* Pickup Request Items */
 .pickup-requests-list {
   margin-top: 20px;
   padding: 10px;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/shared/AuthForms.css";
 import RegisterForm from "./RegisterForm";
@@ -12,6 +12,21 @@ const LoginForm = ({ onClose }) => {
   const [error, setError] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const navigate = useNavigate();
+
+  const formRef = useRef();
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (formRef.current && !formRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [onClose]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -102,7 +117,7 @@ const LoginForm = ({ onClose }) => {
 
   return (
     <div className="auth-form-overlay">
-      <div className="auth-form-container">
+      <div className="auth-form-container" ref={formRef}>
         <h2 className="auth-form-title">SHUTL</h2>
         <p className="auth-form-subtitle">Welcome to SHUTL</p>
 

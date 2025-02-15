@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
-import { useNavigate } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 import "../css/DriverMain.css";
 import DriverMessage from "../components/DriverMessage"; // Import DriverMessage component
@@ -16,8 +15,6 @@ import {
   sendLocation,
 } from "../utils/websocketService";
 import L from "leaflet";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const carIcon = new L.Icon({
   iconUrl: "/car.png",
@@ -37,10 +34,8 @@ const getCookie = (name) => {
 };
 
 const DriverMain = () => {
-  const navigate = useNavigate();
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState([14.377, 120.983]);
-  const [notifications, setNotifications] = useState([]);
   const [activeModal, setActiveModal] = useState(null);
   const [isLocationSharing, setIsLocationSharing] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -140,7 +135,7 @@ const DriverMain = () => {
   };
 
   const handleNotification = (notification) => {
-    setNotifications((prev) => [...prev, notification]);
+    setNotifications(prev => [...prev, notification]);
   };
 
   const handleClickOutside = (e) => {
@@ -181,6 +176,7 @@ const DriverMain = () => {
           style={{ height: "100%", width: "100%" }}
           center={userLocation}
           zoom={15.5}
+          zoomControl={false}
           whenCreated={(mapInstance) => {
             mapRef.current = mapInstance;
           }}
@@ -279,11 +275,12 @@ const DriverMain = () => {
           </div>
         </div>
       )}
-      {activePopup === "notifications" && (
-        <NotificationPop
-          notifications={notifications}
-          onClose={() => setActivePopup(null)}
-        />
+      {activeModal === "isNotificationOpen" && (
+        <div className="modal-overlay" onClick={handleClickOutside}>
+          <div className="modal-container">
+            <NotificationPop notifications={notifications} />
+          </div>
+        </div>
       )}
       {activeModal === "isSettingsOpen" && (
         <div className="modal-overlay" onClick={handleClickOutside}>
