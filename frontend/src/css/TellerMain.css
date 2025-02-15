@@ -73,40 +73,54 @@ body {
   top: 0;
   z-index: 3;
   box-sizing: border-box;
+  justify-content: space-between;
+}
+
+.TellerMain-logo {
+  font-size: 1.6em;
+  font-weight: bold;
+  color: #ecf0f1;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.TellerMain-navbar-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Center the buttons vertically */
+  height: 100%;
 }
 
 .TellerMain-navbar-buttons {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  flex-grow: 1; /* Pushes buttons apart evenly */
-  justify-content: center; /* Centers buttons vertically */
-  padding-top: 225px; /* Adjust to move buttons lower */
+  gap: 15px;
+  align-items: center;
+  justify-content: center; /* Center the buttons vertically */
+  flex-grow: 1;
 }
 
-.TellerMain-profile-btn,
-.TellerMain-navbar-bottom {
-  margin-top: auto; /* Push these to the bottom */
-  padding-bottom: 16px; /* Adds space from the edge */
-}
-
-/* Buttons */
 .TellerMain-icon-btn {
   background: none;
   border: none;
   cursor: pointer;
   padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transition: transform 0.2s;
+}
+
+.TellerMain-icon-btn img {
   width: 48px;
   height: 48px;
 }
 
-.TellerMain-icon-image {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+.TellerMain-icon-btn:hover img {
+  transform: scale(1.1);
+}
+
+.TellerMain-navbar-profile {
+  margin-top: auto;
+  margin-bottom: 20px;
 }
 
 /* Popup Modals */
@@ -236,4 +250,8 @@ body {
     padding: 6px 12px; /* Further adjust padding for very small screens */
     font-size: 12px; /* Further adjust font size for very small screens */
   }
+}
+
+.TellerMain-icon-image {
+  border-radius: 50%;
 }

@@ -28,6 +28,17 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
+// Add carIcon definition after the L.Icon.Default.mergeOptions
+const carIcon = new L.Icon({
+  iconUrl: "/car.png",
+  iconRetinaUrl: "/car.png",
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  iconSize: [29, 59],
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  shadowSize: [41, 41],
+});
+
 const TellerMain = () => {
   const navigate = useNavigate();
 
@@ -39,6 +50,7 @@ const TellerMain = () => {
   const [notifications, setNotifications] = useState([]);
   const [activePopup, setActivePopup] = useState(null);
   const socket = useRef(null);
+  const [shuttleLocations, setShuttleLocations] = useState({});
 
   // Modal/Popup States
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -80,6 +92,31 @@ const TellerMain = () => {
       setMessages((prev) => [...prev, message]);
     });
 
+    socket.current.on("shuttle_location", (data) => {
+      console.log("Received shuttle location:", data);
+      setShuttleLocations((prev) => ({
+        ...prev,
+        [data.shuttleId]: {
+          coordinates: data.coordinates,
+          lastUpdate: new Date(),
+        },
+      }));
+    });
+
+    // Add cleanup interval for stale shuttle locations
+    const cleanupInterval = setInterval(() => {
+      setShuttleLocations((prev) => {
+        const now = new Date();
+        const filtered = Object.entries(prev).reduce((acc, [id, data]) => {
+          if (now - data.lastUpdate < 10000) {
+            acc[id] = data;
+          }
+          return acc;
+        }, {});
+        return filtered;
+      });
+    }, 3000);
+
     socket.current.on("new_notification", (notification) => {
       setNotifications((prev) => {
         const updatedNotifications = [notification, ...prev];
@@ -92,6 +129,8 @@ const TellerMain = () => {
       if (socket.current) {
         socket.current.disconnect();
       }
+      clearInterval(cleanupInterval);
+      socket.current.off("new_notification");
     };
   }, []);
 
@@ -179,6 +218,11 @@ const TellerMain = () => {
     fetchUserProfile();
   }, [email]);
 
+  // Add debug useEffect to monitor shuttle locations
+  useEffect(() => {
+    console.log("Current shuttle locations:", shuttleLocations);
+  }, [shuttleLocations]);
+
   // Toggle Handlers
   const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
   const toggleProfilePopup = () => setIsProfilePopupOpen(!isProfilePopupOpen);
@@ -220,72 +264,82 @@ const TellerMain = () => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           />
-          <Marker position={userLocation}>
-            <Popup>You are here.</Popup>
-          </Marker>
+
+          {/* Add shuttle markers */}
+          {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
+            const isRecent = new Date() - data.lastUpdate < 120000;
+            if (!isRecent) return null;
+
+            return (
+              <Marker
+                key={shuttleId}
+                position={data.coordinates}
+                icon={carIcon}
+              >
+                <Popup>
+                  <div className="TellerMain-shuttle-info">
+                    <h3>{shuttleId}</h3>
+                    <p>Last updated: {data.lastUpdate.toLocaleTimeString()}</p>
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
         </MapContainer>
       </div>
 
       {/* Navigation Bar */}
       <div className="TellerMain-navbar">
         <div className="TellerMain-logo">SHU TL.</div>
-        <div className="TellerMain-navbar-buttons">
-          <button className="TellerMain-icon-btn" onClick={toggleSummary}>
-            <img
-              src="/summary.png"
-              alt="Summary Icon"
-              className="TellerMain-icon-image"
-            />
-          </button>
-          <button className="TellerMain-icon-btn" onClick={toggleMessageBox}>
-            <img
-              src="/message.png"
-              alt="Message Icon"
-              className="TellerMain-icon-image"
-            />
-          </button>
-          <button className="TellerMain-icon-btn" onClick={toggleSchedule}>
-            <img
-              src="/calendar.png"
-              alt="Schedule Icon"
-              className="TellerMain-icon-image"
-            />
-          </button>
-          <button
-            className="TellerMain-notif-btn"
-            onClick={handleNotificationClick}
-          >
-            <img
-              src="/notif.png"
-              alt="Notification Icon"
-              className="TellerMain-icon-image"
-            />
-          </button>
-          <button className="TellerMain-icon-btn" onClick={openTripForm}>
-            <img
-              src="/trip.png"
-              alt="Trip Icon"
-              className="TellerMain-icon-image"
-            />
-          </button>
-          <div className="TellerMain-settings-container" ref={settingsRef}>
+        <div className="TellerMain-navbar-content">
+          <div className="TellerMain-navbar-buttons">
+            <button className="TellerMain-icon-btn" onClick={toggleSummary}>
+              <img
+                src="/summary.png"
+                alt="Summary Icon"
+                className="TellerMain-icon-image"
+              />
+            </button>
+            <button className="TellerMain-icon-btn" onClick={toggleMessageBox}>
+              <img
+                src="/message.png"
+                alt="Message Icon"
+                className="TellerMain-icon-image"
+              />
+            </button>
+            <button className="TellerMain-icon-btn" onClick={toggleSchedule}>
+              <img
+                src="/calendar.png"
+                alt="Schedule Icon"
+                className="TellerMain-icon-image"
+              />
+            </button>
             <button
-              className="TellerMain-icon-btn TellerMain-settings-btn"
-              onClick={toggleSettings}
+              className="TellerMain-icon-btn"
+              onClick={handleNotificationClick}
             >
+              <img
+                src="/notif.png"
+                alt="Notification Icon"
+                className="TellerMain-icon-image"
+              />
+            </button>
+            <button className="TellerMain-icon-btn" onClick={openTripForm}>
+              <img
+                src="/trip.png"
+                alt="Trip Icon"
+                className="TellerMain-icon-image"
+              />
+            </button>
+            <button className="TellerMain-icon-btn" onClick={toggleSettings}>
               <img
                 src="/settings.png"
                 alt="Settings Icon"
                 className="TellerMain-icon-image"
               />
             </button>
-            {isSettingsOpen && (
-              <div className="TellerMain-settings-dropdown">
-                <SettingsDropdown onClose={toggleSettings} />
-              </div>
-            )}
           </div>
-          <div className="TellerMain-navbar-bottom">
+          <div className="TellerMain-navbar-profile">
             <button className="TellerMain-icon-btn" onClick={toggleProfile}>
               <img
                 src={profileImage}
@@ -295,6 +349,11 @@ const TellerMain = () => {
             </button>
           </div>
         </div>
+        {isSettingsOpen && (
+          <div className="TellerMain-settings-dropdown">
+            <SettingsDropdown onClose={toggleSettings} />
+          </div>
+        )}
       </div>
 
       {/* Conditional Modals */}
