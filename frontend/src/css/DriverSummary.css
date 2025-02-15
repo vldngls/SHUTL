@@ -41,16 +41,16 @@
 /* Sidebar-aligned Driver Summary for Desktops */
 .DriverSummary {
   position: fixed;
-  bottom: 0; /* Fixed at bottom */
-  left: 80px; /* Adjusted for sidebar */
-  height: auto;
-  width: 600px;
+  top: 0; /* Align to the top */
+  left: 80px; /* Offset by the navbar's width */
+  height: 100vh; /* Full height */
+  width: calc(100% - 80px); /* Full width minus navbar */
   background-color: #fff;
   padding: 20px;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
   z-index: 1001;
   overflow-y: auto;
-  border-radius: 12px 12px 0 0;
+  border-radius: 0; /* Remove rounded corners for full height */
 }
 
 /* Make it Full-Width on Small Screens */

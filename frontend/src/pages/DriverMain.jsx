@@ -24,7 +24,6 @@ const carIcon = new L.Icon({
 const DriverMain = () => {
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState([14.377, 120.983]);
-  const [notifications, setNotifications] = useState([]);
   const [activeModal, setActiveModal] = useState(null);
   const [isLocationSharing, setIsLocationSharing] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -226,7 +225,7 @@ const DriverMain = () => {
       {activeModal === "isNotificationOpen" && (
         <div className="modal-overlay" onClick={handleClickOutside}>
           <div className="modal-container">
-            <NotificationPop notifications={notifications} />
+            <NotificationPop />
           </div>
         </div>
       )}
