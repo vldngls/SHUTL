@@ -343,7 +343,11 @@ const ShutlLoggedIn = () => {
         <div className="ShutlLoggedIn-status">
           <button
             className="ShutlLoggedIn-notif-btn"
-            onClick={() => setActivePopup("notifications")}
+            onClick={() =>
+              setActivePopup((prev) =>
+                prev === "notifications" ? null : "notifications"
+              )
+            }
           >
             <img
               src="/notif.png"

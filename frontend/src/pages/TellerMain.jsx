@@ -198,6 +198,12 @@ const TellerMain = () => {
     setMessages((prev) => [...prev, tellerMessage]);
   };
 
+  const handleNotificationClick = () => {
+    setActivePopup((prev) =>
+      prev === "notifications" ? null : "notifications"
+    );
+  };
+
   return (
     <>
       {/* Map Component */}
@@ -245,7 +251,10 @@ const TellerMain = () => {
               className="TellerMain-icon-image"
             />
           </button>
-          <button className="TellerMain-icon-btn" onClick={toggleNotification}>
+          <button
+            className="TellerMain-notif-btn"
+            onClick={handleNotificationClick}
+          >
             <img
               src="/notif.png"
               alt="Notification Icon"

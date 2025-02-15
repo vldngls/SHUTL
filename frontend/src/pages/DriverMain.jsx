@@ -16,6 +16,8 @@ import {
 } from "../utils/websocketService";
 import L from "leaflet";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const carIcon = new L.Icon({
   iconUrl: "/car.png",
   iconRetinaUrl: "/car.png",
@@ -43,6 +45,7 @@ const DriverMain = () => {
   const mapRef = useRef(null);
   const locationUpdateInterval = useRef(null);
   const [activePopup, setActivePopup] = useState(null);
+  const [notifications, setNotifications] = useState([]);
 
   // Initialize socket and handle events
   useEffect(() => {
@@ -135,7 +138,7 @@ const DriverMain = () => {
   };
 
   const handleNotification = (notification) => {
-    setNotifications(prev => [...prev, notification]);
+    setNotifications((prev) => [...prev, notification]);
   };
 
   const handleClickOutside = (e) => {
@@ -157,7 +160,7 @@ const DriverMain = () => {
 
         if (response.ok) {
           const data = await response.json();
-          setNotifications(data.slice(0, 5)); // Keep only 5 most recent notifications
+          setNotifications(data.slice(0, 5));
         } else {
           console.error("Failed to fetch notifications:", response.statusText);
         }
@@ -168,6 +171,12 @@ const DriverMain = () => {
 
     fetchInitialNotifications();
   }, []);
+
+  const handleNotificationClick = () => {
+    setActivePopup((prev) =>
+      prev === "notifications" ? null : "notifications"
+    );
+  };
 
   return (
     <>
@@ -216,8 +225,8 @@ const DriverMain = () => {
             <img src="/summary.png" alt="Summary Icon" />
           </button>
           <button
-            className="DriverMain-icon-btn"
-            onClick={() => setActivePopup("notifications")}
+            className="DriverMain-notif-btn"
+            onClick={handleNotificationClick}
           >
             <img src="/notif.png" alt="Notification Icon" />
           </button>
@@ -275,12 +284,11 @@ const DriverMain = () => {
           </div>
         </div>
       )}
-      {activeModal === "isNotificationOpen" && (
-        <div className="modal-overlay" onClick={handleClickOutside}>
-          <div className="modal-container">
-            <NotificationPop notifications={notifications} />
-          </div>
-        </div>
+      {activePopup === "notifications" && (
+        <NotificationPop
+          notifications={notifications}
+          onClose={() => setActivePopup(null)}
+        />
       )}
       {activeModal === "isSettingsOpen" && (
         <div className="modal-overlay" onClick={handleClickOutside}>
