@@ -135,6 +135,7 @@ const DriverMain = () => {
           style={{ height: "100%", width: "100%" }}
           center={userLocation}
           zoom={15.5}
+          zoomControl={false}
           whenCreated={(mapInstance) => {
             mapRef.current = mapInstance;
           }}
