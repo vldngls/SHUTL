@@ -1,6 +1,6 @@
 /* NotificationPop.css */
 .ShutlNotificationPop-popup {
-  position: absolute;
+  position: fixed; /* Use fixed positioning to keep it on top */
   top: 20px; /* Space from the top */
   right: 20px; /* Space from the right */
   background: rgba(50, 50, 50, 0.9); /* Dark, translucent background */

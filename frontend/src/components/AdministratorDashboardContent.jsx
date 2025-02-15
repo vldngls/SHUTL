@@ -141,7 +141,7 @@ const AdministratorDashboardContent = () => {
           <option value="Commuter">Commuter</option>
           <option value="Driver">Driver</option>
           <option value="Administrator">Administrator</option>
-          {/* Add more user types as needed */}
+          <option value="Teller">Teller</option>
         </select>
         <button onClick={handleSendNotification}>Post</button>
 
@@ -163,6 +163,5 @@ const AdministratorDashboardContent = () => {
     </div>
   );
 };
-
 
 export default AdministratorDashboardContent;

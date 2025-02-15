@@ -18,6 +18,8 @@ import {
 } from "../utils/websocketService";
 import L from "leaflet";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -34,6 +36,9 @@ const TellerMain = () => {
   const [userLocation, setUserLocation] = useState([14.377, 120.983]);
   const [messages, setMessages] = useState([]);
   const [profileImage, setProfileImage] = useState("/teller-profile.png");
+  const [notifications, setNotifications] = useState([]);
+  const [activePopup, setActivePopup] = useState(null);
+  const socket = useRef(null);
 
   // Modal/Popup States
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -69,17 +74,49 @@ const TellerMain = () => {
 
   // Initialize socket and set up message subscription
   useEffect(() => {
-    const socket = connectSocket();
-    
+    socket.current = connectSocket();
+
     subscribeToMessages((message) => {
-      setMessages(prev => [...prev, message]);
+      setMessages((prev) => [...prev, message]);
+    });
+
+    socket.current.on("new_notification", (notification) => {
+      setNotifications((prev) => {
+        const updatedNotifications = [notification, ...prev];
+        return updatedNotifications.slice(0, 5); // Keep only the 5 most recent notifications
+      });
+      setActivePopup("notifications");
     });
 
     return () => {
-      if (socket) {
-        socket.disconnect();
+      if (socket.current) {
+        socket.current.disconnect();
       }
     };
+  }, []);
+
+  // Add this useEffect after the socket initialization useEffect
+  useEffect(() => {
+    const fetchInitialNotifications = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/notifications/user`, {
+          headers: {
+            Authorization: `Bearer ${getCookie("token")}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setNotifications(data.slice(0, 5)); // Keep only 5 most recent notifications
+        } else {
+          console.error("Failed to fetch notifications:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    fetchInitialNotifications();
   }, []);
 
   // Update datetime every second
@@ -147,7 +184,9 @@ const TellerMain = () => {
   const toggleProfilePopup = () => setIsProfilePopupOpen(!isProfilePopupOpen);
   const toggleMessageBox = () => setIsMessageBoxOpen(!isMessageBoxOpen);
   const toggleSchedule = () => setIsScheduleOpen(!isScheduleOpen);
-  const toggleNotification = () => setIsNotificationOpen(!isNotificationOpen);
+  const toggleNotification = () => {
+    setActivePopup(activePopup === "notifications" ? null : "notifications");
+  };
   const toggleSettings = () => setIsSettingsOpen((prev) => !prev);
   const toggleSummary = () => setIsSummaryOpen(!isSummaryOpen);
   const openTripForm = () => setIsTripFormOpen(true);
@@ -285,6 +324,13 @@ const TellerMain = () => {
         })}{" "}
         - {dateTime.toLocaleTimeString("en-PH")}
       </div>
+
+      {activePopup === "notifications" && (
+        <NotificationPop
+          notifications={notifications}
+          onClose={() => setActivePopup(null)}
+        />
+      )}
     </>
   );
 };

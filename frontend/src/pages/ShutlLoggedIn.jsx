@@ -16,6 +16,7 @@ import PickMeUp from "../components/PickMeUp";
 import L from "leaflet";
 import { io } from "socket.io-client";
 import { calculateDistance } from "../utils/locationUtils";
+import { getCookie } from "../utils/cookieUtils";
 
 // Fix for default Leaflet icons issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -81,6 +82,7 @@ const ShutlLoggedIn = () => {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+      path: "/socket.io",
     });
 
     socket.current.on("shuttle_location", (data) => {
@@ -92,6 +94,14 @@ const ShutlLoggedIn = () => {
           lastUpdate: new Date(),
         },
       }));
+    });
+
+    socket.current.on("new_notification", (notification) => {
+      setNotifications((prev) => {
+        const updatedNotifications = [notification, ...prev];
+        return updatedNotifications.slice(0, 5); // Keep only the 5 most recent notifications
+      });
+      setActivePopup("notifications");
     });
 
     const cleanupInterval = setInterval(() => {
@@ -120,6 +130,7 @@ const ShutlLoggedIn = () => {
         socket.current.disconnect();
       }
       clearInterval(cleanupInterval);
+      socket.current.off("new_notification");
     };
   }, []);
 
@@ -215,6 +226,29 @@ const ShutlLoggedIn = () => {
     setIsSettingsOpen(false);
   };
 
+  useEffect(() => {
+    const fetchInitialNotifications = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/notifications/user`, {
+          headers: {
+            Authorization: `Bearer ${getCookie("token")}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setNotifications(data.slice(0, 5)); // Keep only 5 most recent notifications
+        } else {
+          console.error("Failed to fetch notifications:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    fetchInitialNotifications();
+  }, []);
+
   return (
     <>
       <div className="ShutlLoggedIn-map-container">
@@ -262,7 +296,11 @@ const ShutlLoggedIn = () => {
             }
 
             return (
-              <Marker key={shuttleId} position={data.coordinates} icon={carIcon}>
+              <Marker
+                key={shuttleId}
+                position={data.coordinates}
+                icon={carIcon}
+              >
                 <Popup>
                   <div className="ShutlLoggedIn-shuttle-info">
                     <h3>{shuttleId}</h3>
@@ -271,7 +309,7 @@ const ShutlLoggedIn = () => {
                       <>
                         <p>Distance: {distance.toFixed(2)} km</p>
                         <p>ETA: {eta} minutes</p>
-                        <button 
+                        <button
                           className="pickup-request-btn"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -280,7 +318,7 @@ const ShutlLoggedIn = () => {
                                 shuttleId,
                                 location: userLocation,
                                 timestamp: new Date().toISOString(),
-                                eta: eta
+                                eta: eta,
                               };
                               console.log("Sending pickup request:", request);
                               socket.current.emit("pickup_request", request);
@@ -307,14 +345,22 @@ const ShutlLoggedIn = () => {
             className="ShutlLoggedIn-notif-btn"
             onClick={() => setActivePopup("notifications")}
           >
-            <img src="/notif.png" alt="Notification" className="ShutlLoggedIn-notif-icon" />
+            <img
+              src="/notif.png"
+              alt="Notification"
+              className="ShutlLoggedIn-notif-icon"
+            />
           </button>
 
           <button
             className="ShutlLoggedIn-setting-btn"
             onClick={handleSettingsClick}
           >
-            <img src="/settings.png" alt="Settings" className="ShutlLoggedIn-setting-icon" />
+            <img
+              src="/settings.png"
+              alt="Settings"
+              className="ShutlLoggedIn-setting-icon"
+            />
           </button>
         </div>
 
@@ -346,14 +392,22 @@ const ShutlLoggedIn = () => {
         className="ShutlLoggedIn-suggestion-btn"
         onClick={() => setShowSuggestionForm(true)}
       >
-        <img src="/ask.png" alt="Ask Button" className="ShutlLoggedIn-suggestion-icon" />
+        <img
+          src="/ask.png"
+          alt="Ask Button"
+          className="ShutlLoggedIn-suggestion-icon"
+        />
       </button>
 
       <button
         className="ShutlLoggedIn-update-location-btn"
         onClick={updateUserLocation}
       >
-        <img src="/locup.png" alt="Update Location" className="ShutlLoggedIn-update-location-icon" />
+        <img
+          src="/locup.png"
+          alt="Update Location"
+          className="ShutlLoggedIn-update-location-icon"
+        />
       </button>
 
       <div ref={popupRef}>
@@ -383,7 +437,10 @@ const ShutlLoggedIn = () => {
       </div>
 
       {showPickMeUp && (
-        <PickMeUp onClose={() => setShowPickMeUp(false)} userLocation={userLocation} />
+        <PickMeUp
+          onClose={() => setShowPickMeUp(false)}
+          userLocation={userLocation}
+        />
       )}
     </>
   );

@@ -26,6 +26,7 @@ export const sendNotification = async (req, res) => {
 
     res.status(201).json({ message: "Notification sent successfully" });
   } catch (error) {
+    console.error("Failed to send notification:", error);
     res.status(500).json({ error: "Failed to send notification" });
   }
 };
@@ -40,6 +41,7 @@ export const getNotifications = async (req, res) => {
 
     res.status(200).json(notifications);
   } catch (error) {
+    console.error("Failed to fetch notifications:", error);
     res.status(500).json({ error: "Failed to fetch notifications" });
   }
 };

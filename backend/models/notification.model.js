@@ -9,5 +9,7 @@ const notificationSchema = new mongoose.Schema({
   readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // IDs of users who have read it
 });
 
+notificationSchema.index({ recipientType: 1, createdAt: -1 });
+
 const Notification = mongoose.model("Notification", notificationSchema);
 export default Notification;

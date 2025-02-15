@@ -9,7 +9,10 @@ import AdministratorFareContent from "@components/AdministratorFareContent.jsx";
 import AdministratorShuttlesRoutesContent from "@components/AdministratorShuttlesRoutesContent.jsx";
 import AdministratorShuttleManagementContent from "@components/AdministratorShuttleManagementContent.jsx";
 import AdministratorTransactionsContent from "@components/AdministratorTransactionsContent.jsx";
-import AccountManagement from "@components/AccountManagement.jsx"; 
+import AccountManagement from "@components/AccountManagement.jsx";
+import NotificationPop from "../components/NotificationPop";
+import { getCookie } from "../utils/cookieUtils"; // Adjust the path as necessary
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Use API_BASE_URL for the backend API
 const socket = io(API_BASE_URL); // Dynamic WebSocket connection to the backend
 
@@ -67,25 +70,25 @@ const AdministratorMain = () => {
   }, []);
 
   const renderContent = () => {
-  switch (activeTab) {
-    case "Dashboard":
-      return <AdministratorDashboardContent />;
-    case "Maintenance":
-      return <AdministratorMaintenanceContent />;
-    case "Fare":
-      return <AdministratorFareContent />;
-    case "ShuttlesRoutes":
-      return <AdministratorShuttlesRoutesContent />;
-    case "ShuttleManagement":
-      return <AdministratorShuttleManagementContent />;
-    case "Transactions":
-      return <AdministratorTransactionsContent />;
-    case "AccountManagement":
-      return <AccountManagement />;
-    default:
-      return <AdministratorDashboardContent />;
-  }
-};
+    switch (activeTab) {
+      case "Dashboard":
+        return <AdministratorDashboardContent />;
+      case "Maintenance":
+        return <AdministratorMaintenanceContent />;
+      case "Fare":
+        return <AdministratorFareContent />;
+      case "ShuttlesRoutes":
+        return <AdministratorShuttlesRoutesContent />;
+      case "ShuttleManagement":
+        return <AdministratorShuttleManagementContent />;
+      case "Transactions":
+        return <AdministratorTransactionsContent />;
+      case "AccountManagement":
+        return <AccountManagement />;
+      default:
+        return <AdministratorDashboardContent />;
+    }
+  };
 
   return (
     <div className="AdministratorMain-admin-container">
@@ -132,7 +135,7 @@ const AdministratorMain = () => {
             className={activeTab === "AccountManagement" ? "active" : ""}
             onClick={() => setActiveTab("AccountManagement")}
           >
-           Account Management
+            Account Management
           </button>
         </nav>
         <div className="AdministratorMain-footer-menu">
@@ -159,8 +162,8 @@ const AdministratorMain = () => {
 
         {/* Notification popup for new notifications */}
         {showPopup && notifications[0] && (
-          <ShutlNotificationPop
-            message={notifications[0].message}
+          <NotificationPop
+            notifications={notifications}
             onClose={() => setShowPopup(false)}
           />
         )}

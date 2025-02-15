@@ -9,7 +9,12 @@ import SchedulePopup from "../components/SchedulePopup";
 import NotificationPop from "../components/NotificationPop";
 import DriverSummary from "../components/DriverSummary";
 import ProfileIDCard from "../components/ProfileIDCard"; // Add this import
-import { connectSocket, subscribeToMessages, subscribeToLocation, sendLocation } from "../utils/websocketService";
+import {
+  connectSocket,
+  subscribeToMessages,
+  subscribeToLocation,
+  sendLocation,
+} from "../utils/websocketService";
 import L from "leaflet";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -24,6 +29,13 @@ const carIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
+};
+
 const DriverMain = () => {
   const navigate = useNavigate();
   const [dateTime, setDateTime] = useState(new Date());
@@ -35,11 +47,12 @@ const DriverMain = () => {
   const socket = useRef(null);
   const mapRef = useRef(null);
   const locationUpdateInterval = useRef(null);
+  const [activePopup, setActivePopup] = useState(null);
 
   // Initialize socket and handle events
   useEffect(() => {
-    const socket = connectSocket();
-    
+    socket.current = connectSocket();
+
     subscribeToMessages((incomingMessage) => {
       setMessages((prev) => [...prev, incomingMessage]);
     });
@@ -48,10 +61,19 @@ const DriverMain = () => {
       console.log("Received shuttle location:", locationData);
     });
 
+    socket.current.on("new_notification", (notification) => {
+      setNotifications((prev) => {
+        const updatedNotifications = [notification, ...prev];
+        return updatedNotifications.slice(0, 5); // Keep only the 5 most recent notifications
+      });
+      setActivePopup("notifications");
+    });
+
     return () => {
-      if (socket) {
-        socket.disconnect();
+      if (socket.current) {
+        socket.current.disconnect();
       }
+      socket.current.off("new_notification");
     };
   }, []);
 
@@ -118,15 +140,39 @@ const DriverMain = () => {
   };
 
   const handleNotification = (notification) => {
-    setNotifications(prev => [...prev, notification]);
+    setNotifications((prev) => [...prev, notification]);
   };
 
   const handleClickOutside = (e) => {
     // Check if click is outside modal container
-    if (e.target.classList.contains('modal-overlay')) {
-      setActiveModal(null);  // Directly set activeModal to null instead of using closeModal
+    if (e.target.classList.contains("modal-overlay")) {
+      setActiveModal(null); // Directly set activeModal to null instead of using closeModal
     }
   };
+
+  // Add this after the socket initialization useEffect (around line 78)
+  useEffect(() => {
+    const fetchInitialNotifications = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/notifications/user`, {
+          headers: {
+            Authorization: `Bearer ${getCookie("token")}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setNotifications(data.slice(0, 5)); // Keep only 5 most recent notifications
+        } else {
+          console.error("Failed to fetch notifications:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    fetchInitialNotifications();
+  }, []);
 
   return (
     <>
@@ -175,7 +221,7 @@ const DriverMain = () => {
           </button>
           <button
             className="DriverMain-icon-btn"
-            onClick={() => toggleModal("isNotificationOpen")}
+            onClick={() => setActivePopup("notifications")}
           >
             <img src="/notif.png" alt="Notification Icon" />
           </button>
@@ -212,7 +258,10 @@ const DriverMain = () => {
       {activeModal === "isMessageOpen" && (
         <div className="modal-overlay" onClick={handleClickOutside}>
           <div className="modal-container">
-            <DriverMessage messages={messages} onSendMessage={handleSendMessage} />
+            <DriverMessage
+              messages={messages}
+              onSendMessage={handleSendMessage}
+            />
           </div>
         </div>
       )}
@@ -230,12 +279,11 @@ const DriverMain = () => {
           </div>
         </div>
       )}
-      {activeModal === "isNotificationOpen" && (
-        <div className="modal-overlay" onClick={handleClickOutside}>
-          <div className="modal-container">
-            <NotificationPop notifications={notifications} />
-          </div>
-        </div>
+      {activePopup === "notifications" && (
+        <NotificationPop
+          notifications={notifications}
+          onClose={() => setActivePopup(null)}
+        />
       )}
       {activeModal === "isSettingsOpen" && (
         <div className="modal-overlay" onClick={handleClickOutside}>
