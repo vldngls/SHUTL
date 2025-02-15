@@ -141,7 +141,7 @@ const LoginForm = ({ onClose }) => {
         </div>
 
         <div className="google-login-container">
-          <GoogleOAuthProvider clientId="559191136386-4v6085e03lrsc2ukqeq0rhmvo2ggh03c.apps.googleusercontent.com">
+          <GoogleOAuthProvider clientId="213011039300-02odo46u0rflq0go5sqe1njkvqc0rtf3.apps.googleusercontent.com">
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
               onError={() => setError("Google login failed")}
