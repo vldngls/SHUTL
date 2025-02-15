@@ -86,7 +86,6 @@ const DriverSummary = ({ onClose }) => {
     <div className="DriverSummary">
       <div className="DriverSummary-header">
         <h2>Shuttle Summary</h2>
-        <button onClick={onClose} className="DriverSummary-close-btn">X</button>
       </div>
 
       {shuttleDetails && (
