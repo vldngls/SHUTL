@@ -70,6 +70,7 @@ const ShutlLoggedOut = () => {
           style={{ height: "100%", width: "100%" }}
           center={[14.377, 120.983]}
           zoom={15.5}
+          zoomControl={false}
           whenCreated={(mapInstance) => {
             mapRef.current = mapInstance;
           }}
