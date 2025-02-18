@@ -2,26 +2,26 @@ import { io } from "socket.io-client";
 import { getCookie } from "../utils/cookieUtils";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const SOCKET_URL = API_BASE_URL.replace('/api', '');
+const SOCKET_URL = API_BASE_URL.replace("/api", "");
 
 let socket = null;
 
 export const initializeSocket = () => {
   if (!socket) {
     socket = io(SOCKET_URL, {
-      transports: ['websocket', 'polling'],
+      transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
-      withCredentials: true
+      withCredentials: true,
     });
 
-    socket.on('connect', () => {
-      console.log('Socket connected successfully');
+    socket.on("connect", () => {
+      console.log("Socket connected successfully");
     });
 
-    socket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
+    socket.on("connect_error", (error) => {
+      console.error("Socket connection error:", error);
     });
   }
   return socket;
@@ -34,7 +34,11 @@ export const closeSocket = () => {
   }
 };
 
-export const updateUserLocation = (setUserLocation, isLocationSharing) => {
+export const updateUserLocation = (
+  setUserLocation,
+  isLocationSharing,
+  shuttleId
+) => {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -45,7 +49,8 @@ export const updateUserLocation = (setUserLocation, isLocationSharing) => {
         if (isLocationSharing && socket) {
           socket.emit("shuttle_location", {
             coordinates: [latitude, longitude],
-            shuttleId: "SHUTL001", // This should come from driver's auth data
+            shuttleId: shuttleId, // Use the assigned shuttle ID
+            timestamp: new Date().toISOString(),
           });
         }
       },
@@ -64,10 +69,13 @@ export const startLocationSharing = (setIsLocationSharing) => {
   setIsLocationSharing(true);
 };
 
-export const stopLocationSharing = (setIsLocationSharing, locationUpdateInterval) => {
+export const stopLocationSharing = (
+  setIsLocationSharing,
+  locationUpdateInterval
+) => {
   setIsLocationSharing(false);
   if (locationUpdateInterval.current) {
     clearInterval(locationUpdateInterval.current);
     locationUpdateInterval.current = null;
   }
-}; 
+};

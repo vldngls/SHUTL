@@ -47,6 +47,7 @@ const DriverMain = () => {
   const [activePopup, setActivePopup] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const settingsRef = useRef(null);
+  const [shuttleId, setShuttleId] = useState(null);
 
   // Initialize socket and handle events
   useEffect(() => {
@@ -99,17 +100,44 @@ const DriverMain = () => {
     };
   }, [isLocationSharing]);
 
+  // Add this useEffect to fetch shuttle assignment
+  useEffect(() => {
+    const fetchAssignment = async () => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/shuttle-assignments/driver`,
+          {
+            headers: {
+              Authorization: `Bearer ${getCookie("token")}`,
+            },
+          }
+        );
+        const data = await response.json();
+        if (data.shuttleId) {
+          setShuttleId(data.shuttleId);
+        }
+      } catch (error) {
+        console.error("Error fetching shuttle assignment:", error);
+      }
+    };
+    fetchAssignment();
+  }, []);
+
+  // Modify the updateLocation function
   const updateLocation = () => {
-    if (navigator.geolocation) {
+    if (navigator.geolocation && shuttleId) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
           setUserLocation([latitude, longitude]);
 
-          sendLocation({
-            coordinates: [latitude, longitude],
-            shuttleId: "SHUTL001",
-          });
+          if (socket.current) {
+            socket.current.emit("shuttle_location", {
+              coordinates: [latitude, longitude],
+              shuttleId: shuttleId,
+              timestamp: new Date().toISOString(),
+            });
+          }
 
           if (mapRef.current) {
             mapRef.current.setView([latitude, longitude], 15.5);
@@ -121,6 +149,13 @@ const DriverMain = () => {
       );
     }
   };
+
+  // Add this useEffect for socket connection
+  useEffect(() => {
+    if (socket.current && shuttleId) {
+      socket.current.emit("join_shuttle_tracking", shuttleId);
+    }
+  }, [shuttleId]);
 
   const handleLocationButtonClick = () => {
     setIsLocationSharing((prev) => !prev);
@@ -241,7 +276,11 @@ const DriverMain = () => {
           </button>
           <button
             className="DriverMain-notif-btn"
-            onClick={() => setActivePopup(activePopup === "notifications" ? null : "notifications")}
+            onClick={() =>
+              setActivePopup(
+                activePopup === "notifications" ? null : "notifications"
+              )
+            }
           >
             <img src="/notif.png" alt="Notification Icon" />
           </button>

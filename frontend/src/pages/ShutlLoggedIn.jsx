@@ -76,25 +76,51 @@ const ShutlLoggedIn = () => {
   const popupRef = useRef(null);
 
   useEffect(() => {
-    // Initialize socket connection
     socket.current = io(SOCKET_URL, {
       transports: ["websocket"],
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
-      path: "/socket.io",
+    });
+
+    // Join tracking for all shuttles
+    ["SHUTL001", "SHUTL002", "SHUTL003"].forEach((shuttleId) => {
+      socket.current.emit("join_shuttle_tracking", shuttleId);
     });
 
     socket.current.on("shuttle_location", (data) => {
-      console.log("Received shuttle location:", data);
       setShuttleLocations((prev) => ({
         ...prev,
         [data.shuttleId]: {
           coordinates: data.coordinates,
           lastUpdate: new Date(),
+          shuttleId: data.shuttleId,
         },
       }));
     });
+
+    socket.current.on("shuttle_disconnected", (data) => {
+      setShuttleLocations((prev) => {
+        const updated = { ...prev };
+        delete updated[data.shuttleId];
+        return updated;
+      });
+    });
+
+    // Cleanup stale locations
+    const cleanupInterval = setInterval(() => {
+      const now = new Date();
+      setShuttleLocations((prev) => {
+        const filtered = Object.entries(prev).reduce((acc, [id, data]) => {
+          if (now - new Date(data.lastUpdate) < 10000) {
+            // 10 seconds threshold
+            acc[id] = data;
+          }
+          return acc;
+        }, {});
+        return filtered;
+      });
+    }, 5000);
 
     socket.current.on("new_notification", (notification) => {
       setNotifications((prev) => {
@@ -103,19 +129,6 @@ const ShutlLoggedIn = () => {
       });
       setActivePopup("notifications");
     });
-
-    const cleanupInterval = setInterval(() => {
-      setShuttleLocations((prev) => {
-        const now = new Date();
-        const filtered = Object.entries(prev).reduce((acc, [id, data]) => {
-          if (now - data.lastUpdate < 10000) {
-            acc[id] = data;
-          }
-          return acc;
-        }, {});
-        return filtered;
-      });
-    }, 3000);
 
     socket.current.on("connect", () => {
       console.log("Socket connected in ShutlLoggedIn");
@@ -126,10 +139,10 @@ const ShutlLoggedIn = () => {
     });
 
     return () => {
+      clearInterval(cleanupInterval);
       if (socket.current) {
         socket.current.disconnect();
       }
-      clearInterval(cleanupInterval);
       socket.current.off("new_notification");
     };
   }, []);
