@@ -46,6 +46,7 @@ const DriverMain = () => {
   const locationUpdateInterval = useRef(null);
   const [activePopup, setActivePopup] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  const settingsRef = useRef(null);
 
   // Initialize socket and handle events
   useEffect(() => {
@@ -172,11 +173,25 @@ const DriverMain = () => {
     fetchInitialNotifications();
   }, []);
 
-  const handleNotificationClick = () => {
-    setActivePopup((prev) =>
-      prev === "notifications" ? null : "notifications"
-    );
-  };
+  // Handle clicking outside the settings dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        settingsRef.current &&
+        !settingsRef.current.contains(event.target) &&
+        !event.target.closest(".DriverMain-icon-btn")
+      ) {
+        setActiveModal(null);
+      }
+    };
+
+    if (activeModal === "isSettingsOpen") {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [activeModal]);
 
   return (
     <>
@@ -226,16 +241,19 @@ const DriverMain = () => {
           </button>
           <button
             className="DriverMain-notif-btn"
-            onClick={handleNotificationClick}
+            onClick={() => setActivePopup(activePopup === "notifications" ? null : "notifications")}
           >
             <img src="/notif.png" alt="Notification Icon" />
           </button>
-          <button
-            className="DriverMain-icon-btn"
-            onClick={() => toggleModal("isSettingsOpen")}
-          >
-            <img src="/settings.png" alt="Settings Icon" />
-          </button>
+          <div className="settings-wrapper" ref={settingsRef}>
+            <button
+              className="DriverMain-icon-btn"
+              onClick={() => toggleModal("isSettingsOpen")}
+            >
+              <img src="/settings.png" alt="Settings Icon" />
+            </button>
+            {activeModal === "isSettingsOpen" && <SettingsDropdown />}
+          </div>
           <button
             className="DriverMain-icon-btn"
             onClick={() => toggleModal("isProfileOpen")}
@@ -289,13 +307,6 @@ const DriverMain = () => {
           notifications={notifications}
           onClose={() => setActivePopup(null)}
         />
-      )}
-      {activeModal === "isSettingsOpen" && (
-        <div className="modal-overlay" onClick={handleClickOutside}>
-          <div className="modal-container">
-            <SettingsDropdown />
-          </div>
-        </div>
       )}
       {activeModal === "isProfileOpen" && (
         <div className="modal-overlay" onClick={handleClickOutside}>

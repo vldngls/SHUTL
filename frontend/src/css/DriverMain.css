@@ -256,3 +256,96 @@
   max-height: 90%;
   overflow-y: auto;
 }
+
+.modal-container.half-screen {
+  max-width: 50%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Settings Dropdown */
+.DriverMain-settings-dropdown {
+  position: absolute;
+  left: 90px; /* Position relative to navbar */
+  top: 50%;
+  transform: translateY(-50%); /* Center it relative to the button */
+  background: white;
+  padding: 10px 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+/* Hide dropdown when not active */
+.DriverMain-settings-dropdown.hidden {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-60%);
+}
+
+/* Dropdown Content */
+.DriverMain-settings-dropdown-content {
+  display: flex;
+  flex-direction: column;
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 10px 0;
+  width: 100%;
+}
+
+/* Dropdown Options */
+.DriverMain-settings-option {
+  background: none;
+  border: none;
+  color: black;
+  text-align: left;
+  cursor: pointer;
+  font-size: 1em;
+  padding: 12px 20px;
+  width: 100%;
+  transition: background 0.3s;
+}
+
+.DriverMain-settings-option:hover {
+  background-color: #e0e0e0;
+}
+
+/* Separator */
+.DriverMain-settings-divider {
+  border: none;
+  border-top: 1px solid #d1d1d1;
+  margin: 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .DriverMain-settings-dropdown {
+    left: 75px;
+    top: 55%;
+    width: 180px;
+  }
+
+  .DriverMain-settings-option {
+    padding: 10px 15px;
+    font-size: 0.9em;
+  }
+}
+
+@media (max-width: 480px) {
+  .DriverMain-settings-dropdown {
+    left: 50px;
+    top: 60%;
+    width: 160px;
+  }
+
+  .DriverMain-settings-option {
+    padding: 8px 12px;
+    font-size: 0.85em;
+  }
+}
