@@ -1,37 +1,40 @@
 import React, { useEffect, useState } from "react";
 import "../css/AdministratorDashboardContent.css";
-import { getCookie } from "../utils/cookieUtils"; // Utility function to get the cookie
+import { getCookie } from "../utils/cookieUtils";
 
 const AdministratorDashboardContent = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Base URL from environment variables
-  const [userCount, setUserCount] = useState(0); // State to hold the user count
+  const [totalUsers, setTotalUsers] = useState(0); // State for total registered users
+  const [activeUsers, setActiveUsers] = useState(0); // State for active (online) users
   const [notificationMessage, setNotificationMessage] = useState(""); // State for notification message
   const [recipientType, setRecipientType] = useState("Commuter"); // Default recipient type
   const [notificationStatus, setNotificationStatus] = useState(null); // Status message for feedback
 
   useEffect(() => {
-    // Function to fetch the user count from the backend API
-    const fetchUserCount = async () => {
+    // Function to fetch user counts (total & active)
+    const fetchUserCounts = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/users/admin/user-count`); // Use template literal for URL
-
+        const response = await fetch(`${API_BASE_URL}/users/active-users`);
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
         const data = await response.json();
-        setUserCount(data.count); // Update user count state
+        setTotalUsers(data.totalUsers); // Update total user count
+        setActiveUsers(data.activeUsers); // Update active user count
       } catch (error) {
-        console.error("Error fetching user count:", error);
+        console.error("Error fetching user counts:", error);
       }
     };
 
-    fetchUserCount();
-  }, []); // Empty dependency array ensures this effect runs only once
+    fetchUserCounts();
+    const interval = setInterval(fetchUserCounts, 10000); // Refresh every 10 seconds
+    return () => clearInterval(interval);
+  }, []);
 
-  // Function to handle sending the notification
+  // Function to handle sending notifications
   const handleSendNotification = async () => {
-    const token = getCookie("token"); // Retrieve token from cookies
+    const token = getCookie("token");
 
     try {
       const response = await fetch(`${API_BASE_URL}/notifications/send`, {
@@ -45,7 +48,7 @@ const AdministratorDashboardContent = () => {
 
       if (response.ok) {
         setNotificationStatus("Notification sent successfully!");
-        setNotificationMessage(""); // Clear message after sending
+        setNotificationMessage("");
       } else {
         setNotificationStatus("Failed to send notification.");
       }
@@ -96,11 +99,12 @@ const AdministratorDashboardContent = () => {
         </div>
       </div>
 
-      {/* Current Users */}
-      <div className="AdministratorDashboard-current-users">
-        <h3>Current Users</h3>
+      {/* User Statistics */}
+      <div className="AdministratorDashboard-user-stats">
+        <h3>User Statistics</h3>
         <div className="AdministratorDashboard-users-number">
-          <h2>{userCount}</h2> {/* Display the dynamic user count here */}
+          <p><strong>Current Users:</strong> {totalUsers}</p>
+          <p><strong>Active Users:</strong> <span style={{ color: "green" }}>{activeUsers}</span></p>
         </div>
       </div>
 
@@ -163,6 +167,5 @@ const AdministratorDashboardContent = () => {
     </div>
   );
 };
-
 
 export default AdministratorDashboardContent;

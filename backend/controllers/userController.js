@@ -106,3 +106,19 @@ export const getUsers = async (req, res) => {
     res.status(500).json({ message: "Error fetching users", error });
   }
 };
+
+
+
+export const getActiveUsers = async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const activeUsers = await User.countDocuments({ status: "active" });
+
+    console.log(`Total Users: ${totalUsers}, Active Users: ${activeUsers}`); // ✅ Debugging
+
+    res.json({ totalUsers, activeUsers });
+  } catch (error) {
+    console.error("Error fetching active users:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

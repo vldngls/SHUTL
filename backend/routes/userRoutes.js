@@ -6,24 +6,28 @@ import {
   getAllUsers,
   getAllDrivers,
   getUsers,
+  getActiveUsers, // ✅ Import active users function
 } from "../controllers/userController.js";
 import { authenticateToken } from "../middleware/authenticateToken.js";
 import User from "../models/user.model.js";
 
 const router = express.Router();
 
-// Existing routes
+// User Authentication
 router.post("/register", registerUser); // Register a new user
 router.post("/login", loginUser); // Login a user
-router.get("/admin/user-count", getUserCount); // Get the count of admin users
+
+// Admin-Specific Routes
+router.get("/admin/user-count", getUserCount); // Get count of admin users
 router.get("/admin/users", getAllUsers); // Fetch all admin users
+
+// Driver Management
 router.get("/drivers", getAllDrivers); // Fetch all driver users
-router.get("/", getUsers); // Get paginated or filtered users
 
 // Fetch all users (for account management)
+router.get("/", getUsers); // Get paginated or filtered users
 router.get("/all", async (req, res) => {
   try {
-    // Fetch all users with specific fields: name, email, username, and userType
     const users = await User.find({}, "name email username userType");
     res.status(200).json(users);
   } catch (error) {
@@ -31,6 +35,9 @@ router.get("/all", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+// Fetch active users for Admin Dashboard
+router.get("/active-users", getActiveUsers); // ✅ New Route for Active Users
 
 // Add a new user (handled via register)
 router.post("/add", async (req, res) => {
@@ -41,13 +48,11 @@ router.post("/add", async (req, res) => {
   }
 
   try {
-    // Check if the email is already registered
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    // Create a new user document
     const user = new User({ name, email, username, password, userType });
     await user.save();
 
@@ -64,11 +69,10 @@ router.put("/update/:id", async (req, res) => {
   const { name, email, username, userType } = req.body;
 
   try {
-    // Update the user by ID
     const updatedUser = await User.findByIdAndUpdate(
       id,
       { name, email, username, userType },
-      { new: true } // Return the updated document
+      { new: true }
     );
 
     if (!updatedUser) {
@@ -87,7 +91,6 @@ router.delete("/delete/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Find and delete the user by ID
     const deletedUser = await User.findByIdAndDelete(id);
 
     if (!deletedUser) {
