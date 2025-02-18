@@ -59,6 +59,19 @@ const calculateETA = (distance) => {
   return timeMinutes;
 };
 
+const getStreetName = async (lat, lng) => {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+    );
+    const data = await response.json();
+    return data.address.road || "Unknown location";
+  } catch (error) {
+    console.error("Error getting street name:", error);
+    return "Unknown location";
+  }
+};
+
 const ShutlLoggedIn = () => {
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
@@ -262,6 +275,33 @@ const ShutlLoggedIn = () => {
     fetchInitialNotifications();
   }, []);
 
+  // Add this function to handle the pickup request
+  const handlePickupRequest = async (e, shuttleId) => {
+    e.stopPropagation();
+    if (socket.current) {
+      try {
+        const streetName = await getStreetName(
+          userLocation[0],
+          userLocation[1]
+        );
+        const request = {
+          shuttleId,
+          location: {
+            coordinates: userLocation,
+            streetName,
+          },
+          timestamp: new Date().toISOString(),
+        };
+        console.log("Sending pickup request:", request);
+        socket.current.emit("pickup_request", request);
+        alert("Pickup request sent!");
+      } catch (error) {
+        console.error("Error sending pickup request:", error);
+        alert("Error sending pickup request. Please try again.");
+      }
+    }
+  };
+
   return (
     <>
       <div className="ShutlLoggedIn-map-container">
@@ -324,20 +364,7 @@ const ShutlLoggedIn = () => {
                         <p>ETA: {eta} minutes</p>
                         <button
                           className="pickup-request-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (socket.current) {
-                              const request = {
-                                shuttleId,
-                                location: userLocation,
-                                timestamp: new Date().toISOString(),
-                                eta: eta,
-                              };
-                              console.log("Sending pickup request:", request);
-                              socket.current.emit("pickup_request", request);
-                              alert("Pickup request sent!");
-                            }
-                          }}
+                          onClick={(e) => handlePickupRequest(e, shuttleId)}
                         >
                           Pick Me Up
                         </button>

@@ -51,6 +51,7 @@
   z-index: 1001;
   overflow-y: auto;
   border-radius: 0; /* Remove rounded corners for full height */
+  max-height: 80vh;
 }
 
 /* Make it Full-Width on Small Screens */
@@ -78,9 +79,22 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 10px;
   margin-bottom: 20px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.no-requests,
+.no-pickups {
+  color: #666;
+  text-align: center;
+  padding: 10px;
 }
 
 /* Pickup List */

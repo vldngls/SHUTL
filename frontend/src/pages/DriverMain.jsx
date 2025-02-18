@@ -15,6 +15,8 @@ import {
   sendLocation,
 } from "../utils/websocketService";
 import L from "leaflet";
+import PickupRequestsPanel from "../components/PickupRequestsPanel";
+import { getTokenFromCookies } from "../utils/tokenUtils";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -35,6 +37,26 @@ const getCookie = (name) => {
   return null;
 };
 
+const createNotification = (type, message) => ({
+  id: Date.now(), // Add unique ID for each notification
+  type,
+  message,
+  timestamp: new Date().toISOString(),
+});
+
+const getStreetName = async (lat, lng) => {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+    );
+    const data = await response.json();
+    return data.address.road || "Unknown location";
+  } catch (error) {
+    console.error("Error getting street name:", error);
+    return "Unknown location";
+  }
+};
+
 const DriverMain = () => {
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState([14.377, 120.983]);
@@ -48,6 +70,10 @@ const DriverMain = () => {
   const [notifications, setNotifications] = useState([]);
   const settingsRef = useRef(null);
   const [shuttleId, setShuttleId] = useState(null);
+  const [pickupRequests, setPickupRequests] = useState([]);
+  const [activePickups, setActivePickups] = useState([]);
+  const [profileImage, setProfileImage] = useState("/profile.png"); // Default image
+  const [showProfileCard, setShowProfileCard] = useState(false);
 
   // Initialize socket and handle events
   useEffect(() => {
@@ -69,11 +95,44 @@ const DriverMain = () => {
       setActivePopup("notifications");
     });
 
+    // Load active pickups from localStorage
+    const savedPickups = JSON.parse(
+      localStorage.getItem("activePickups") || "[]"
+    );
+    setActivePickups(savedPickups);
+
+    socket.current.on("pickup_request", (request) => {
+      console.log("Received pickup request:", request);
+      setPickupRequests((prev) => [...prev, request]);
+
+      // Create notification with ID
+      const notification = createNotification(
+        "pickup_request",
+        `New pickup request received at ${request.location.streetName}!`
+      );
+
+      setNotifications((prev) => [notification, ...prev].slice(0, 5));
+      setActivePopup("notifications");
+
+      // Auto close notification after 3 seconds
+      setTimeout(() => {
+        setActivePopup(null);
+      }, 3000);
+    });
+
+    socket.current.on("pickup_request_taken", (requestId) => {
+      setPickupRequests((prev) =>
+        prev.filter((req) => req.requestId !== requestId)
+      );
+    });
+
     return () => {
       if (socket.current) {
         socket.current.disconnect();
       }
       socket.current.off("new_notification");
+      socket.current.off("pickup_request");
+      socket.current.off("pickup_request_taken");
     };
   }, []);
 
@@ -132,11 +191,12 @@ const DriverMain = () => {
           setUserLocation([latitude, longitude]);
 
           if (socket.current) {
-            socket.current.emit("shuttle_location", {
+            const locationData = {
               coordinates: [latitude, longitude],
               shuttleId: shuttleId,
               timestamp: new Date().toISOString(),
-            });
+            };
+            socket.current.emit("shuttle_location", locationData);
           }
 
           if (mapRef.current) {
@@ -162,7 +222,7 @@ const DriverMain = () => {
   };
 
   const toggleModal = (modalName) => {
-    setActiveModal((prev) => (prev === modalName ? null : modalName));
+    setActiveModal(modalName);
   };
 
   const handleSendMessage = (newMessage) => {
@@ -228,8 +288,161 @@ const DriverMain = () => {
     };
   }, [activeModal]);
 
+  const handleAcceptPickup = (request) => {
+    setPickupRequests((prev) =>
+      prev.filter((req) => req.requestId !== request.requestId)
+    );
+    setActivePickups((prev) => [...prev, request]);
+    localStorage.setItem(
+      "activePickups",
+      JSON.stringify([...activePickups, request])
+    );
+    socket.current.emit("pickup_accepted", request);
+
+    // Remove the pickup request notification
+    setNotifications((prev) =>
+      prev.filter(
+        (notif) =>
+          !(
+            notif.type === "pickup_request" &&
+            notif.message.includes(`${request.eta} minutes`)
+          )
+      )
+    );
+
+    // Add acceptance notification
+    const notification = createNotification(
+      "pickup_accepted",
+      "Pickup request accepted successfully!"
+    );
+    setNotifications((prev) => [notification, ...prev].slice(0, 5));
+    setActivePopup("notifications");
+
+    // Auto close after 3 seconds
+    setTimeout(() => {
+      setActivePopup(null);
+    }, 3000);
+  };
+
+  const handleCompletePickup = (request) => {
+    setActivePickups((prev) =>
+      prev.filter((pickup) => pickup.requestId !== request.requestId)
+    );
+    localStorage.setItem(
+      "activePickups",
+      JSON.stringify(
+        activePickups.filter((pickup) => pickup.requestId !== request.requestId)
+      )
+    );
+    socket.current.emit("pickup_completed", request.requestId);
+
+    // Remove any related notifications
+    setNotifications((prev) =>
+      prev.filter(
+        (notif) =>
+          !(
+            notif.type === "pickup_request" &&
+            notif.message.includes(`${request.eta} minutes`)
+          )
+      )
+    );
+
+    // Add completion notification
+    const notification = createNotification(
+      "pickup_completed",
+      "Pickup completed successfully!"
+    );
+    setNotifications((prev) => [notification, ...prev].slice(0, 5));
+    setActivePopup("notifications");
+
+    // Auto close after 3 seconds
+    setTimeout(() => {
+      setActivePopup(null);
+    }, 3000);
+  };
+
+  const handleCancelPickup = (request) => {
+    setActivePickups((prev) =>
+      prev.filter((pickup) => pickup.requestId !== request.requestId)
+    );
+    localStorage.setItem(
+      "activePickups",
+      JSON.stringify(
+        activePickups.filter((pickup) => pickup.requestId !== request.requestId)
+      )
+    );
+    socket.current.emit("pickup_cancelled", request.requestId);
+
+    // Remove any related notifications
+    setNotifications((prev) =>
+      prev.filter(
+        (notif) =>
+          !(
+            notif.type === "pickup_request" &&
+            notif.message.includes(`${request.eta} minutes`)
+          )
+      )
+    );
+
+    // Add cancellation notification
+    const notification = createNotification(
+      "pickup_cancelled",
+      "Pickup request cancelled"
+    );
+    setNotifications((prev) => [notification, ...prev].slice(0, 5));
+    setActivePopup("notifications");
+
+    // Auto close after 3 seconds
+    setTimeout(() => {
+      setActivePopup(null);
+    }, 3000);
+  };
+
+  useEffect(() => {
+    const fetchDriverProfile = async () => {
+      try {
+        const token = getTokenFromCookies();
+        const response = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/driver-profiles/me`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            credentials: "include",
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.profilePic) {
+            setProfileImage(data.profilePic);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
+    };
+
+    fetchDriverProfile();
+  }, []);
+
   return (
-    <>
+    <div className="DriverMain-container">
+      <div className="DriverMain-header">
+        <img
+          src={profileImage}
+          alt="Profile"
+          className="DriverMain-profile-pic"
+          style={{
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            objectFit: "cover",
+            border: "2px solid #fff",
+          }}
+        />
+        {/* Rest of your header content */}
+      </div>
       <div className="DriverMain-map-container">
         <MapContainer
           style={{ height: "100%", width: "100%" }}
@@ -247,10 +460,39 @@ const DriverMain = () => {
           <Marker position={userLocation} icon={carIcon}>
             <Popup>You are here.</Popup>
             <Tooltip direction="right" offset={[12, 0]} permanent>
-              Shuttle 001
+              {shuttleId}
             </Tooltip>
           </Marker>
+
+          {/* Add markers for active pickups */}
+          {activePickups.map((pickup) => (
+            <Marker
+              key={pickup.requestId}
+              position={pickup.location.coordinates}
+              icon={
+                new L.DivIcon({
+                  className: "pickup-location-marker",
+                  html: '<div style="background-color: #4CAF50; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>',
+                })
+              }
+            >
+              <Popup>
+                <div>
+                  <p>Pickup Location</p>
+                  <p>{pickup.location.streetName}</p>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
         </MapContainer>
+
+        <PickupRequestsPanel
+          pickupRequests={pickupRequests}
+          activePickups={activePickups}
+          onAccept={handleAcceptPickup}
+          onComplete={handleCompletePickup}
+          onCancel={handleCancelPickup}
+        />
       </div>
 
       <div className="DriverMain-navbar">
@@ -296,8 +538,13 @@ const DriverMain = () => {
           <button
             className="DriverMain-icon-btn"
             onClick={() => toggleModal("isProfileOpen")}
+            style={{ borderRadius: "50%", overflow: "hidden" }}
           >
-            <img src="/profile.png" alt="Profile Icon" />
+            <img
+              src={profileImage}
+              alt="Profile Icon"
+              className="DriverMain-profile-icon"
+            />
           </button>
         </div>
       </div>
@@ -337,7 +584,14 @@ const DriverMain = () => {
       {activeModal === "isSummaryOpen" && (
         <div className="modal-overlay" onClick={handleClickOutside}>
           <div className="modal-container">
-            <DriverSummary />
+            <DriverSummary
+              onClose={() => toggleModal(null)}
+              pickupRequests={pickupRequests}
+              activePickups={activePickups}
+              onAcceptPickup={handleAcceptPickup}
+              onCompletePickup={handleCompletePickup}
+              onCancelPickup={handleCancelPickup}
+            />
           </div>
         </div>
       )}
@@ -350,11 +604,21 @@ const DriverMain = () => {
       {activeModal === "isProfileOpen" && (
         <div className="modal-overlay" onClick={handleClickOutside}>
           <div className="modal-container">
-            <ProfileIDCard />
+            <ProfileIDCard onClose={() => toggleModal(null)} />
           </div>
         </div>
       )}
-    </>
+
+      <div className="DriverMain-sidebar">
+        <img
+          src={profileImage}
+          alt="Profile"
+          className="DriverMain-sidebar-profile"
+          onClick={() => setShowProfileCard(true)}
+        />
+        {/* Rest of your sidebar icons */}
+      </div>
+    </div>
   );
 };
 

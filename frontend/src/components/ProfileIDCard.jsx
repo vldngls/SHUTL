@@ -1,46 +1,124 @@
 import React, { useState, useEffect } from "react";
 import "../css/ProfileIDCard.css";
+import { getTokenFromCookies } from "../utils/tokenUtils";
+import * as jwt_decode from "jwt-decode";
 
-const ProfileIDCard = ({ userId, onClose }) => {
+const ProfileIDCard = ({ onClose }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editableUser, setEditableUser] = useState({
-    identifier: "SHUTLE1 Driver",
-    name: "John Doe",
-    address: "Molino",
-    sex: "M",
-    eyeColor: "blue",
-    dob: "das",
-    email: "N/A",
+    identifier: "",
+    name: "",
+    address: "",
+    sex: "",
+    eyeColor: "",
+    dob: "",
+    email: "",
   });
 
   useEffect(() => {
-    // Fetch user data from the server
     const fetchUserData = async () => {
       try {
-        const response = await fetch(`/api/users/${userId}`);
+        const token = getTokenFromCookies();
+        const decodedToken = jwt_decode.jwtDecode(token);
+        const userEmail = decodedToken.email;
+
+        const response = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/driver-profiles/me`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            credentials: "include",
+          }
+        );
         const data = await response.json();
-        setEditableUser(data);
+        setEditableUser({
+          ...data,
+          identifier: userEmail,
+          email: userEmail,
+        });
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
     };
 
     fetchUserData();
-  }, [userId]);
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setEditableUser((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleImageChange = (e, field) => {
+  const resizeAndCropImage = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          // Set canvas dimensions to 150x150
+          canvas.width = 150;
+          canvas.height = 150;
+
+          // Calculate the square cropping area
+          const minDim = Math.min(img.width, img.height);
+          const cropX = (img.width - minDim) / 2;
+          const cropY = (img.height - minDim) / 2;
+
+          // Draw the cropped and resized image on the canvas
+          ctx.drawImage(img, cropX, cropY, minDim, minDim, 0, 0, 150, 150);
+
+          // Convert canvas to base64 image
+          resolve(canvas.toDataURL("image/jpeg", 0.8));
+        };
+        img.onerror = reject;
+        img.src = event.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageChange = async (e, field) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditableUser((prev) => ({ ...prev, [field]: reader.result }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        const resizedImage = await resizeAndCropImage(file);
+
+        const token = getTokenFromCookies();
+        const response = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/driver-profiles/upload-image`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            credentials: "include",
+            body: JSON.stringify({
+              imageType: field,
+              imageData: resizedImage,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Failed to upload ${field}`);
+        }
+
+        const updatedProfile = await response.json();
+
+        setEditableUser((prev) => ({
+          ...prev,
+          [field]: updatedProfile[field],
+        }));
+      } catch (error) {
+        console.error(`Error uploading ${field}:`, error);
+        alert(`Failed to upload ${field}. Please try again.`);
+      }
     }
   };
 
@@ -50,13 +128,19 @@ const ProfileIDCard = ({ userId, onClose }) => {
 
   const handleSave = async () => {
     try {
-      const response = await fetch(`/api/users/${userId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(editableUser),
-      });
+      const token = getTokenFromCookies();
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/driver-profiles/me`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include",
+          body: JSON.stringify(editableUser),
+        }
+      );
 
       if (response.ok) {
         console.log("User data saved successfully");
@@ -70,8 +154,8 @@ const ProfileIDCard = ({ userId, onClose }) => {
   };
 
   return (
-    <div 
-      className="ShutlProfileIDCard-overlay" 
+    <div
+      className="ShutlProfileIDCard-overlay"
       onClick={(e) => {
         // Only close if clicking directly on the overlay
         if (e.currentTarget === e.target) {
@@ -82,8 +166,8 @@ const ProfileIDCard = ({ userId, onClose }) => {
       <div className="ShutlProfileIDCard" onClick={(e) => e.stopPropagation()}>
         <div className="ShutlProfileIDCard-header">
           <h2>Camella - Shuttle ID</h2>
-          <button 
-            className="ShutlProfileIDCard-close-btn" 
+          <button
+            className="ShutlProfileIDCard-close-btn"
             onClick={(e) => {
               e.stopPropagation();
               onClose();

@@ -349,3 +349,34 @@
     font-size: 0.85em;
   }
 }
+
+.DriverMain-profile-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.DriverMain-profile-icon:hover {
+  transform: scale(1.1);
+}
+
+.DriverMain-sidebar-profile {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: #fff;
+  margin: 10px auto;
+  display: block;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.DriverMain-sidebar-profile:hover {
+  transform: scale(1.1);
+}

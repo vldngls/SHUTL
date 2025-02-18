@@ -20,7 +20,8 @@ import shuttleAssignmentRoutes from "./routes/shuttleAssignmentRoutes.js";
 import fareTransactionRoutes from "./routes/fareTransactionRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import onfieldShuttleRoutes from "./routes/onfieldShuttleRoutes.js";
-import setupSocket from './socketHandler.js';
+import setupSocket from "./socketHandler.js";
+import driverProfileRoutes from "./routes/driverProfileRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -62,6 +63,7 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/userdatas", userDataRoutes);
 app.use("/api/shuttleassignments", shuttleAssignmentRoutes);
 app.use("/api/onfieldshuttles", onfieldShuttleRoutes);
+app.use("/api/driver-profiles", driverProfileRoutes);
 
 connectDB();
 

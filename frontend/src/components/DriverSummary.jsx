@@ -3,41 +3,17 @@ import { io } from "socket.io-client";
 import "../css/DriverSummary.css";
 import { getTokenFromCookies } from '../utils/tokenUtils';
 
-const DriverSummary = ({ onClose }) => {
+const DriverSummary = ({ 
+  onClose, 
+  pickupRequests, 
+  activePickups, 
+  onAcceptPickup, 
+  onCompletePickup, 
+  onCancelPickup 
+}) => {
   const [shuttleDetails, setShuttleDetails] = useState(null);
-  const [trips, setTrips] = useState([]);
-  const [pickupRequests, setPickupRequests] = useState([]);
   const socket = useRef(null);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  const SOCKET_URL = API_BASE_URL.replace("/api", "");
-
-  useEffect(() => {
-    socket.current = io(SOCKET_URL, {
-      transports: ["websocket"],
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
-
-    socket.current.on("connect", () => {
-      console.log("Socket connected in DriverSummary");
-    });
-
-    socket.current.on("pickup_request", (request) => {
-      console.log("Received pickup request:", request);
-      setPickupRequests(prev => [...prev, request]);
-    });
-
-    socket.current.on("connect_error", (error) => {
-      console.error("Socket connection error:", error);
-    });
-
-    return () => {
-      if (socket.current) {
-        socket.current.disconnect();
-      }
-    };
-  }, [SOCKET_URL]);
 
   useEffect(() => {
     const fetchAssignedShuttle = async () => {
@@ -62,17 +38,12 @@ const DriverSummary = ({ onClose }) => {
           });
           
           const tripsData = await tripsResponse.json();
-          setTrips(tripsData);
-
-          // Calculate summary
-          const summary = {
+          setShuttleDetails({
             roundTrips: tripsData.length,
             totalPassengers: tripsData.reduce((sum, trip) => sum + (trip.passengerCount || 0), 0),
             inTrips: tripsData.filter(trip => trip.status === "In").length,
             outTrips: tripsData.filter(trip => trip.status === "Out").length
-          };
-          
-          setShuttleDetails(summary);
+          });
         }
       } catch (error) {
         console.error("Error fetching assigned shuttle:", error);
@@ -86,6 +57,7 @@ const DriverSummary = ({ onClose }) => {
     <div className="DriverSummary">
       <div className="DriverSummary-header">
         <h2>Shuttle Summary</h2>
+        <button className="close-button" onClick={onClose}>×</button>
       </div>
 
       {shuttleDetails && (
@@ -116,24 +88,33 @@ const DriverSummary = ({ onClose }) => {
       )}
 
       <div className="DriverSummary-pickup-requests">
-        <h3>Pickup Requests</h3>
+        <h3>Pending Pickup Requests</h3>
         {pickupRequests.length > 0 ? (
-          <div className="pickup-requests-list">
-            {pickupRequests.map((request, index) => (
-              <div key={index} className="pickup-request-item">
-                <p>Pickup Request at {new Date(request.timestamp).toLocaleTimeString()}</p>
-                <p>ETA: {request.eta} minutes</p>
-                <button onClick={() => {
-                  setPickupRequests(prev => prev.filter((_, i) => i !== index));
-                  socket.current.emit("pickup_accepted", request);
-                }}>
-                  Accept
-                </button>
-              </div>
-            ))}
-          </div>
+          pickupRequests.map((request) => (
+            <div key={request.requestId} className="pickup-request-item">
+              <p>Location: {request.location.streetName}</p>
+              <button onClick={() => onAcceptPickup(request)}>Accept</button>
+            </div>
+          ))
         ) : (
-          <p>No pickup requests</p>
+          <p className="no-requests">No pending pickup requests</p>
+        )}
+      </div>
+
+      <div className="DriverSummary-active-pickups">
+        <h3>Active Pickups</h3>
+        {activePickups.length > 0 ? (
+          activePickups.map((pickup) => (
+            <div key={pickup.requestId} className="active-pickup-item">
+              <p>Location: {pickup.location.streetName}</p>
+              <div className="pickup-buttons">
+                <button onClick={() => onCompletePickup(pickup)}>Complete</button>
+                <button onClick={() => onCancelPickup(pickup)}>Cancel</button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="no-pickups">No active pickups</p>
         )}
       </div>
     </div>

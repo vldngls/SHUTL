@@ -1,5 +1,6 @@
 const setupSocket = (io) => {
   const shuttleLocations = new Map();
+  const activePickupRequests = new Map(); // Store active pickup requests
 
   io.on("connection", (socket) => {
     console.log("Socket connected:", socket.id);
@@ -47,12 +48,41 @@ const setupSocket = (io) => {
 
     socket.on("pickup_request", (request) => {
       console.log("Received pickup request:", request);
-      socket.broadcast.emit("pickup_request", request);
+      const requestId = Date.now().toString(); // Generate unique ID
+      activePickupRequests.set(requestId, {
+        ...request,
+        requestId,
+        status: 'pending'
+      });
+      // Broadcast to all drivers
+      io.emit("pickup_request", {
+        ...request,
+        requestId
+      });
     });
 
     socket.on("pickup_accepted", (request) => {
       console.log("Pickup request accepted:", request);
-      io.emit("pickup_accepted", request);
+      const pickupRequest = activePickupRequests.get(request.requestId);
+      if (pickupRequest) {
+        activePickupRequests.set(request.requestId, {
+          ...pickupRequest,
+          status: 'accepted',
+          driverId: socket.id
+        });
+        // Notify all clients that this request is taken
+        io.emit("pickup_request_taken", request.requestId);
+      }
+    });
+
+    socket.on("pickup_completed", (requestId) => {
+      activePickupRequests.delete(requestId);
+      io.emit("pickup_completed", requestId);
+    });
+
+    socket.on("pickup_cancelled", (requestId) => {
+      activePickupRequests.delete(requestId);
+      io.emit("pickup_cancelled", requestId);
     });
 
     socket.on("join_room", (roomId) => {
