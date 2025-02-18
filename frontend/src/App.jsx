@@ -9,6 +9,7 @@ import DriverMain from "./pages/DriverMain";
 import AdministratorMain from "./pages/AdministratorMain";
 import TellerMain from "./pages/TellerMain";
 import ProtectedRoute from "./components/ProtectedRoute";
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
@@ -56,6 +57,7 @@ function App() {
             />
           }
         />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
   );
