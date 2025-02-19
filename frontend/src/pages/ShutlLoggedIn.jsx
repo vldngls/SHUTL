@@ -17,6 +17,7 @@ import L from "leaflet";
 import { io } from "socket.io-client";
 import { calculateDistance } from "../utils/locationUtils";
 import { getCookie } from "../utils/cookieUtils";
+import PaymentQR from "../components/PaymentQR";
 
 // Fix for default Leaflet icons issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -84,6 +85,7 @@ const ShutlLoggedIn = () => {
   const [showPickMeUp, setShowPickMeUp] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileEditMode, setIsProfileEditMode] = useState(false);
+  const [showPaymentQR, setShowPaymentQR] = useState(false);
   const socket = useRef(null);
   const watchIdRef = useRef(null);
   const popupRef = useRef(null);
@@ -380,29 +382,38 @@ const ShutlLoggedIn = () => {
 
       <div className="ShutlLoggedIn-navbar">
         <div className="ShutlLoggedIn-logo">SHU TL.</div>
-        <div className="ShutlLoggedIn-status">
+        <div className="ShutlLoggedIn-navbar-buttons">
           <button
             className="ShutlLoggedIn-notif-btn"
             onClick={() =>
-              setActivePopup((prev) =>
-                prev === "notifications" ? null : "notifications"
+              setActivePopup(
+                activePopup === "notifications" ? null : "notifications"
               )
             }
           >
             <img
               src="/notif.png"
-              alt="Notification"
+              alt="Notification Icon"
               className="ShutlLoggedIn-notif-icon"
             />
           </button>
-
+          <button
+            className="ShutlLoggedIn-money-btn"
+            onClick={() => setShowPaymentQR(true)}
+          >
+            <img
+              src="/money.png"
+              alt="Money Icon"
+              className="ShutlLoggedIn-money-icon"
+            />
+          </button>
           <button
             className="ShutlLoggedIn-setting-btn"
-            onClick={handleSettingsClick}
+            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
           >
             <img
               src="/settings.png"
-              alt="Settings"
+              alt="Settings Icon"
               className="ShutlLoggedIn-setting-icon"
             />
           </button>
@@ -486,6 +497,8 @@ const ShutlLoggedIn = () => {
           userLocation={userLocation}
         />
       )}
+
+      {showPaymentQR && <PaymentQR onClose={() => setShowPaymentQR(false)} />}
     </>
   );
 };

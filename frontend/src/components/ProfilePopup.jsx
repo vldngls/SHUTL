@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
 import "../css/ProfilePopup.css";
 
 const DISCOUNT_TYPES = {
@@ -15,32 +16,89 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
   const [isEditing, setIsEditing] = useState(initialEditMode);
   const [editedData, setEditedData] = useState({});
   const [profileImage, setProfileImage] = useState(null);
+  const [transactions, setTransactions] = useState([]);
 
-  // Fetch user data from the backend
-  const fetchUserData = async () => {
+  // Get email from JWT token
+  const getEmailFromToken = () => {
+    const token = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("token="))
+      ?.split("=")[1];
+
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        return decoded.email;
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        return null;
+      }
+    }
+    return null;
+  };
+
+  const fetchTransactions = async (email) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/userdata/me`, {
+      if (!email) {
+        console.error("No email available");
+        return;
+      }
+
+      console.log("Fetching transactions for email:", email);
+      const url = `${API_BASE_URL}/fare-transactions/commuter?commuterEmail=${encodeURIComponent(
+        email
+      )}`;
+      console.log("Request URL:", url); // Debug log
+
+      const response = await fetch(url, {
         method: "GET",
-        credentials: "include", // Include cookies for JWT
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
       });
 
       if (response.ok) {
         const data = await response.json();
-        setUserData(data);
-        setProfileImage(
-          data.profilePicture || "https://via.placeholder.com/150"
-        ); // Default image if none exists
+        console.log("Raw response data:", data); // Debug log
+        setTransactions(data);
       } else {
-        console.error("Failed to fetch user data");
+        const errorText = await response.text();
+        console.error("Failed to fetch transactions:", errorText);
       }
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      console.error("Error fetching transactions:", error);
     }
   };
 
   useEffect(() => {
-    fetchUserData();
-  }, []);
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/userdata/me`, {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUserData(data);
+          setProfileImage(
+            data.profilePicture || "https://via.placeholder.com/150"
+          );
+
+          // Get email from token and fetch transactions
+          const email = getEmailFromToken();
+          if (email) {
+            await fetchTransactions(email);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchData();
+  }, [API_BASE_URL]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -307,7 +365,47 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
         {/* Transaction History Section */}
         <div className="ShutlProfilePopup-transaction-history">
           <h3>Transaction History</h3>
-          <p>Transaction history feature coming soon!</p>
+          {transactions && transactions.length > 0 ? (
+            <div className="transaction-list">
+              {transactions.map((transaction, index) => (
+                <div key={transaction._id} className="transaction-item">
+                  <h4>Transaction {index + 1}</h4>
+                  <div className="transaction-details">
+                    <div className="transaction-row">
+                      <span className="transaction-counts">
+                        Regular: {transaction.regularCount} | Discounted:{" "}
+                        {transaction.discountedCount}
+                      </span>
+                    </div>
+                    <div className="transaction-row">
+                      <span className="transaction-amounts">
+                        Total Fare: ₱{transaction.totalFare} | Tender: ₱
+                        {transaction.tender} | Change: ₱{transaction.change}
+                      </span>
+                    </div>
+                    <div className="transaction-row">
+                      <span className="transaction-shuttle">
+                        Shuttle ID: {transaction.shuttleID}
+                      </span>
+                    </div>
+                    <div className="transaction-date">
+                      Date:{" "}
+                      {new Date(transaction.createdAt).toLocaleString("en-US", {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p>No transactions found.</p>
+          )}
         </div>
       </div>
     </div>

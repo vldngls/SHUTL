@@ -1,7 +1,7 @@
 .settings-dropdown {
-  position: absolute; /* Changed from fixed to absolute */
-  top: 650px; /* Adjusted so it appears just below the button */
-  left: 89px; /* Align to the left of the container */
+  position: absolute;
+  top: 50px; /* Consistent base positioning */
+  left: 89px;
   z-index: 101;
 }
 
@@ -39,32 +39,32 @@ hr {
 /* Responsive Styles */
 @media (max-width: 768px) {
   .settings-dropdown {
-    top: 50px; /* Adjust for smaller screens */
-    left: -10px; /* Slightly offset to keep it aligned */
+    top: 50px;
+    left: 60px;
   }
 
   .settings-dropdown-content {
-    width: 180px; /* Adjust width for smaller screens */
+    width: 180px;
   }
 
   .settings-option {
-    padding: 8px 15px; /* Reduced padding for smaller screens */
-    font-size: 0.9em; /* Adjust font size */
+    padding: 8px 15px;
+    font-size: 0.9em;
   }
 }
 
 @media (max-width: 480px) {
   .settings-dropdown {
-    top: 40px; /* Adjust for mobile */
-    left: -5px; /* Keep aligned with button */
+    top: 50px;
+    left: -160px; /* Adjusted to appear on the left side of the button */
   }
 
   .settings-dropdown-content {
-    width: 150px; /* Further reduce width for mobile */
+    width: 150px;
   }
 
   .settings-option {
-    padding: 8px 10px; /* Reduced padding */
-    font-size: 0.85em; /* Smaller font size for mobile */
+    padding: 8px 10px;
+    font-size: 0.85em;
   }
 }

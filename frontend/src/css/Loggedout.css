@@ -25,21 +25,20 @@ body {
   height: 100vh;
   background-color: #232323;
   color: white;
-  border-top-right-radius: 38.5px;
-  border-bottom-right-radius: 38.5px;
+  border-radius: 0 20px 20px 0; /* Smaller border radius */
   padding: 16px;
   position: fixed;
   left: 0;
   top: 0;
   z-index: 3;
   box-sizing: border-box;
+  justify-content: flex-start; /* Align items to top */
 }
 
 .ShutlLoggedOut-logo {
-  font-size: 1.6em; /* Adjusted to relative units */
-  font-weight: bold;
-  margin-bottom: 20px;
-  margin-top: 8px;
+  font-size: 1.2em;
+  margin-bottom: 15px;
+  margin-top: 10px;
 }
 
 .ShutlLoggedOut-status {
@@ -126,24 +125,23 @@ body {
   }
 
   .ShutlLoggedOut-taskbar {
-    width: calc(
-      100% + 48px
-    ); /* Adjust to full viewport width on smaller screens */
-    margin-left: -48px; /* Adjust to align with navbar width */
+    width: calc(100% + 48px);
+    margin-left: -48px;
   }
 }
 
 @media (max-width: 480px) {
   .ShutlLoggedOut-navbar {
-    flex-direction: row;
-    justify-content: space-between;
-    width: 100%;
-    height: 50px;
-    border-radius: 0;
-    padding: 0 10px;
-    bottom: 0;
+    width: 48px;
+    padding: 8px;
+    height: 100vh;
+    border-radius: 0 20px 20px 0; /* Keep consistent border radius */
+    flex-direction: column;
+    justify-content: flex-start;
     position: fixed;
-    z-index: 2;
+    left: 0;
+    top: 0;
+    z-index: 3;
   }
 
   .ShutlLoggedOut-logo {

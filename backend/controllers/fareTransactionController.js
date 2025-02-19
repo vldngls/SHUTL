@@ -38,3 +38,20 @@ export const getTransactionsByShuttleID = async (req, res) => {
     res.status(500).json({ message: "Error fetching transactions", error });
   }
 };
+
+export const getTransactionsByCommuterEmail = async (req, res) => {
+  const { commuterEmail } = req.query;
+  try {
+    console.log("Searching for transactions with email:", commuterEmail); // Debug log
+    
+    const transactions = await FareTransaction.find({ commuterEmail })
+      .sort({ createdAt: -1 });
+    
+    console.log("Found transactions:", transactions); // Debug log
+    
+    res.status(200).json(transactions);
+  } catch (error) {
+    console.error("Error fetching transactions:", error);
+    res.status(500).json({ message: "Error fetching transactions", error });
+  }
+};
