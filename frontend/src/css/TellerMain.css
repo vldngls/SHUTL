@@ -61,7 +61,7 @@ body {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
-  width: 80px !important;
+  width: 64px !important;
   height: 100vh !important;
   background-color: #232323 !important;
   color: white !important;
@@ -78,11 +78,10 @@ body {
 
 /* Navbar Elements */
 .TellerMain-logo {
-  font-size: 1.6em;
+  font-size: 1.4em;
   font-weight: bold;
-  color: #ecf0f1;
-  text-align: center;
-  margin-top: 20px;
+  margin-bottom: 20px;
+  margin-top: 8px;
 }
 
 /* Default styles for larger screens */
@@ -112,17 +111,12 @@ body {
 }
 
 .TellerMain-icon-btn img {
-  width: 48px;
-  height: 48px;
+  width: 42px;
+  height: 42px;
 }
 
 .TellerMain-icon-btn:hover img {
   transform: scale(1.1);
-}
-
-.TellerMain-navbar-profile {
-  margin-top: auto;
-  margin-bottom: 20px;
 }
 
 /* Popup Modals */
@@ -229,14 +223,16 @@ body {
 
 @media (max-width: 480px) {
   .TellerMain-navbar {
-    flex-direction: row;
-    justify-content: space-between;
-    width: 100%;
-    height: 50px;
-    border-radius: 0;
-    padding: 0 10px;
+    width: 48px;
+    padding: 8px;
+    height: 100vh;
+    border-radius: 0 20px 20px 0;
+    flex-direction: column;
+    justify-content: flex-start;
     position: fixed;
-    bottom: 0; /* Keep navbar at the bottom on very small screens */
+    left: 0;
+    top: 0;
+    z-index: 3; /* Keep navbar at the bottom on very small screens */
   }
 
   .TellerMain-taskbar {
@@ -369,4 +365,25 @@ body {
     left: 50%;
     transform: translateX(-50%);
   }
+}
+
+.TellerMain-chat-container {
+  position: fixed;
+  right: 100px;
+  top: 80px;
+  width: 300px;
+  max-height: 500px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+/* Ensure the DriverMessage component is visible */
+.TellerMain-chat-container .driver-message {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }

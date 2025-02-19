@@ -65,6 +65,7 @@ const TellerMain = () => {
   // Refs
   const settingsRef = useRef();
   const mapRef = useRef();
+  const chatRef = useRef();
 
   // Extract email from token
   const getCookie = (name) => {
@@ -248,6 +249,23 @@ const TellerMain = () => {
     );
   };
 
+  // Add this useEffect for chat click outside handling
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (chatRef.current && !chatRef.current.contains(event.target)) {
+        setIsMessageBoxOpen(false);
+      }
+    };
+
+    if (isMessageBoxOpen) {
+      document.addEventListener("click", handleOutsideClick);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleOutsideClick);
+    };
+  }, [isMessageBoxOpen]);
+
   return (
     <>
       {/* Map Component */}
@@ -359,7 +377,11 @@ const TellerMain = () => {
 
       {/* Conditional Modals */}
       {isMessageBoxOpen && (
-        <DriverMessage messages={messages} onSendMessage={handleSendMessage} />
+        <DriverMessage
+          messages={messages}
+          onSendMessage={handleSendMessage}
+          onClose={toggleMessageBox}
+        />
       )}
       {isSummaryOpen && (
         <TellerSummary onClose={() => setIsSummaryOpen(false)} />

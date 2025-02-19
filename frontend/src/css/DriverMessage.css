@@ -17,12 +17,12 @@
 /* Header styling for the driver message container */
 .DriverMessage-driver-message-header {
   padding: 16px;
-  background: #3498db;
-  color: white;
+  background: #232323;
+  color: #f5f5f5;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #d9d9d9;
 }
 
 .DriverMessage-header-title {
@@ -37,31 +37,23 @@
 
 /* Call button styling */
 .DriverMessage-call-button {
-  background: linear-gradient(
-    145deg,
-    #42a1ec,
-    #3498db
-  ); /* Gradient for a vibrant button look */
-  color: #fff;
+  background: linear-gradient(145deg, #2b2b2b, #232323);
+  color: #f5f5f5;
   border: none;
   padding: 10px;
-  border-radius: 50%; /* Circular button for call icon */
+  border-radius: 50%;
   cursor: pointer;
-  transition: background 0.3s, transform 0.2s; /* Smooth transition for background and slight scale */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Subtle shadow for elevation */
+  transition: background 0.3s, transform 0.2s;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .DriverMessage-call-button:hover {
-  background: linear-gradient(
-    145deg,
-    #3498db,
-    #2980b9
-  ); /* Darker gradient on hover */
-  transform: translateY(-2px); /* Slight lift effect on hover */
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4); /* Increased shadow on hover */
+  background: linear-gradient(145deg, #232323, #1a1a1a);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
 }
 
 /* Styling for the list of messages */
@@ -86,15 +78,15 @@
 /* Driver's messages (sent by current user) */
 .driver-message {
   align-self: flex-end;
-  background: #3498db;
-  color: white;
+  background: #232323;
+  color: #f5f5f5;
   margin-left: auto;
 }
 
 /* Teller's messages (received) */
 .teller-message {
   align-self: flex-start;
-  background: white;
+  background: #f5f5f5;
   color: #333;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -122,8 +114,8 @@
 /* Container for the message input area */
 .DriverMessage-message-input-container {
   padding: 16px;
-  background: white;
-  border-top: 1px solid #e0e0e0;
+  background: #f5f5f5;
+  border-top: 1px solid #d9d9d9;
   display: flex;
   gap: 8px;
 }
@@ -132,44 +124,36 @@
 .DriverMessage-message-input {
   flex: 1;
   padding: 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #d9d9d9;
   border-radius: 24px;
   outline: none;
   font-size: 14px;
 }
 
 .DriverMessage-message-input:focus {
-  border-color: #3498db;
+  border-color: #232323;
 }
 
 .DriverMessage-message-input::placeholder {
-  color: #030303; /* Lighter placeholder text */
+  color: #030303;
 }
 
 /* Send button styling */
 .DriverMessage-send-button {
-  background: linear-gradient(
-    145deg,
-    #42a1ec,
-    #3498db
-  ); /* Gradient for a vibrant button look */
-  color: #fff;
+  background: linear-gradient(145deg, #2b2b2b, #232323);
+  color: #f5f5f5;
   border: none;
   padding: 12px 20px;
   border-radius: 12px;
   cursor: pointer;
-  transition: background 0.3s, transform 0.2s; /* Smooth transition for background and slight scale */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Slight shadow for button elevation */
+  transition: background 0.3s, transform 0.2s;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .DriverMessage-send-button:hover {
-  background: linear-gradient(
-    145deg,
-    #3498db,
-    #2980b9
-  ); /* Darker gradient on hover */
-  transform: translateY(-2px); /* Slight lift effect on hover */
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Increased shadow on hover */
+  background: linear-gradient(145deg, #232323, #1a1a1a);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Quick replies section styling */
@@ -178,27 +162,27 @@
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  background: white;
-  border-top: 1px solid #e0e0e0;
+  background: #f5f5f5;
+  border-top: 1px solid #d9d9d9;
 }
 
 /* Quick reply button styling */
 .DriverMessage-quick-reply-button {
-  background: #e0e0e0;
+  background: #d9d9d9;
   color: #333;
   border: none;
   padding: 10px 15px;
-  border-radius: 20px; /* Rounded pill shape */
+  border-radius: 20px;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s; /* Smooth transitions for hover effects */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Light shadow for slight elevation */
+  transition: background-color 0.3s, transform 0.2s;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   font-weight: bold;
 }
 
 .DriverMessage-quick-reply-button:hover {
-  background: #d5d5d5; /* Slightly darker background on hover */
-  transform: translateY(-2px); /* Lift effect on hover */
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Increased shadow on hover for emphasis */
+  background: #c0c0c0;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* Scroll button styling */
@@ -206,7 +190,7 @@
   position: absolute;
   right: 16px;
   bottom: 80px;
-  background: white;
+  background: #f5f5f5;
   border: none;
   border-radius: 50%;
   width: 40px;
@@ -274,8 +258,8 @@
 
 .message-input-container {
   padding: 1rem;
-  background: white;
-  border-top: 1px solid #e0e0e0;
+  background: #f5f5f5;
+  border-top: 1px solid #d9d9d9;
   display: flex;
   gap: 0.5rem;
   position: sticky;

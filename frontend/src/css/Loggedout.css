@@ -21,11 +21,11 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 80px;
+  width: 64px;
   height: 100vh;
   background-color: #232323;
   color: white;
-  border-radius: 0 20px 20px 0; /* Smaller border radius */
+  border-radius: 0 38.5px 38.5px 0; /* Smaller border radius */
   padding: 16px;
   position: fixed;
   left: 0;
@@ -36,9 +36,10 @@ body {
 }
 
 .ShutlLoggedOut-logo {
-  font-size: 1.2em;
-  margin-bottom: 15px;
-  margin-top: 10px;
+  font-size: 1.4em;
+  font-weight: bold;
+  margin-bottom: 20px;
+  margin-top: 8px;
 }
 
 .ShutlLoggedOut-status {
@@ -67,9 +68,10 @@ body {
 }
 
 .ShutlLoggedOut-nav-icon {
-  width: 48px; /* Adjusted size */
-  height: 48px; /* Adjusted size */
-  margin-top: 8px;
+  width: 38px; /* Adjusted size */
+  height: 38px; /* Adjusted size */
+  margin-top: 4px;
+  margin-bottom: 2px;
 }
 
 /* ShutlLoggedOut Taskbar */
@@ -145,9 +147,10 @@ body {
   }
 
   .ShutlLoggedOut-logo {
-    font-size: 1em;
-    margin-bottom: 0;
-    align-self: center;
+    font-size: 1.4em;
+    font-weight: bold;
+    margin-bottom: 20px;
+    margin-top: 8px;
   }
 
   .ShutlLoggedOut-status {

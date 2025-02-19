@@ -1,8 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import "../css/DriverMessage.css";
 import { FaPhoneAlt, FaArrowDown } from "react-icons/fa"; // Import the down arrow icon
-import { connectSocket, joinChatRoom, leaveChatRoom } from "../utils/websocketService";
-import { getChatRooms, sendChatMessage, initializeChatRooms } from "../utils/chatService";
+import {
+  connectSocket,
+  joinChatRoom,
+  leaveChatRoom,
+} from "../utils/websocketService";
+import {
+  getChatRooms,
+  sendChatMessage,
+  initializeChatRooms,
+} from "../utils/chatService";
 
 const DriverMessage = ({ onClose }) => {
   const [messages, setMessages] = useState([]);
@@ -25,7 +33,10 @@ const DriverMessage = ({ onClose }) => {
           socket.current = connectSocket();
         }
 
-        const token = document.cookie.split("; ").find(row => row.startsWith("token="))?.split("=")[1];
+        const token = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("token="))
+          ?.split("=")[1];
         if (!token) {
           console.error("No token found");
           return;
@@ -33,38 +44,43 @@ const DriverMessage = ({ onClose }) => {
 
         const decodedToken = JSON.parse(atob(token.split(".")[1]));
         console.log("Decoded token:", decodedToken);
-        
-        let rooms = await getChatRooms(decodedToken.email, decodedToken.userType);
+
+        let rooms = await getChatRooms(
+          decodedToken.email,
+          decodedToken.userType
+        );
         console.log("Fetched chat rooms:", rooms);
-        
+
         if (rooms.length === 0) {
           console.log("No chat rooms found, initializing...");
           await initializeChatRooms();
           rooms = await getChatRooms(decodedToken.email, decodedToken.userType);
         }
-        
+
         if (rooms.length > 0) {
           const globalRoom = rooms[0];
           setChatRooms([globalRoom]);
           setCurrentRoom(globalRoom._id);
           setMessages(globalRoom.messages || []);
-          
-          socket.current.emit('join_room', globalRoom._id);
+
+          socket.current.emit("join_room", globalRoom._id);
           console.log("Joined global room:", globalRoom._id);
         }
 
         // Remove any existing listeners before adding a new one
         socket.current.off("chat_message");
-        
+
         // Add new message listener
         socket.current.on("chat_message", (message) => {
           console.log("Received message:", message);
-          setMessages(prev => {
+          setMessages((prev) => {
             // Check if message already exists
-            const messageExists = prev.some(m => 
-              m.content === message.content && 
-              m.sender.email === message.sender.email &&
-              new Date(m.timestamp).getTime() === new Date(message.timestamp).getTime()
+            const messageExists = prev.some(
+              (m) =>
+                m.content === message.content &&
+                m.sender.email === message.sender.email &&
+                new Date(m.timestamp).getTime() ===
+                  new Date(message.timestamp).getTime()
             );
             if (messageExists) {
               return prev;
@@ -75,7 +91,6 @@ const DriverMessage = ({ onClose }) => {
             return newMessages;
           });
         });
-
       } catch (error) {
         console.error("Error initializing chat:", error);
       }
@@ -87,7 +102,7 @@ const DriverMessage = ({ onClose }) => {
       if (socket.current) {
         socket.current.off("chat_message");
         if (currentRoom) {
-          socket.current.emit('leave_room', currentRoom);
+          socket.current.emit("leave_room", currentRoom);
         }
       }
     };
@@ -118,30 +133,32 @@ const DriverMessage = ({ onClose }) => {
 
     try {
       setIsSending(true);
-      const token = document.cookie.split("; ").find(row => row.startsWith("token="))?.split("=")[1];
+      const token = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("token="))
+        ?.split("=")[1];
       const decodedToken = JSON.parse(atob(token.split(".")[1]));
 
       const messageData = {
         sender: {
           email: decodedToken.email,
-          userType: decodedToken.userType
+          userType: decodedToken.userType,
         },
         content: newMessage.trim(),
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       // First save to database
       await sendChatMessage(currentRoom, messageData);
-      
+
       // Then emit socket event - this will trigger the chat_message event for all clients including sender
-      socket.current.emit('chat_message', {
+      socket.current.emit("chat_message", {
         roomId: currentRoom,
-        message: messageData
+        message: messageData,
       });
 
       // Clear input but don't update messages - let the socket event handle that
       setNewMessage("");
-      
     } catch (error) {
       console.error("Error sending message:", error);
     } finally {
@@ -150,7 +167,7 @@ const DriverMessage = ({ onClose }) => {
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendClick();
     }
@@ -191,38 +208,46 @@ const DriverMessage = ({ onClose }) => {
 
   // Add this function to determine message style
   const getMessageClassName = (message) => {
-    const token = document.cookie.split("; ").find(row => row.startsWith("token="))?.split("=")[1];
+    const token = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("token="))
+      ?.split("=")[1];
     const decodedToken = token ? JSON.parse(atob(token.split(".")[1])) : null;
-    const isOwnMessage = decodedToken && message.sender.email === decodedToken.email;
-    
-    return `DriverMessage-message-item ${isOwnMessage ? 'driver-message' : 'teller-message'}`;
+    const isOwnMessage =
+      decodedToken && message.sender.email === decodedToken.email;
+
+    return `DriverMessage-message-item ${
+      isOwnMessage ? "driver-message" : "teller-message"
+    }`;
   };
 
   const handleQuickReplyClick = async (replyText) => {
     if (!currentRoom) return;
 
     try {
-      const token = document.cookie.split("; ").find(row => row.startsWith("token="))?.split("=")[1];
+      const token = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("token="))
+        ?.split("=")[1];
       const decodedToken = JSON.parse(atob(token.split(".")[1]));
 
       const messageData = {
         sender: {
           email: decodedToken.email,
-          userType: decodedToken.userType
+          userType: decodedToken.userType,
         },
         content: replyText,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
       // Save to database
       await sendChatMessage(currentRoom, messageData);
-      
-      // Emit socket event
-      socket.current.emit('chat_message', {
-        roomId: currentRoom,
-        message: messageData
-      });
 
+      // Emit socket event
+      socket.current.emit("chat_message", {
+        roomId: currentRoom,
+        message: messageData,
+      });
     } catch (error) {
       console.error("Error sending quick reply:", error);
     }
@@ -234,7 +259,7 @@ const DriverMessage = ({ onClose }) => {
     "Running late",
     "Almost there",
     "At the location",
-    "Send location"
+    "Send location",
   ];
 
   // Add this to your JSX where you want the quick replies to appear
@@ -257,21 +282,23 @@ const DriverMessage = ({ onClose }) => {
       <div className="DriverMessage-driver-message-header">
         <span className="DriverMessage-header-title">Camella - Shuttle ID</span>
         <div className="DriverMessage-header-icons">
-          <button className="DriverMessage-call-button" onClick={handleCallClick}>
+          <button
+            className="DriverMessage-call-button"
+            onClick={handleCallClick}
+          >
             <FaPhoneAlt />
           </button>
         </div>
       </div>
-      <div className="DriverMessage-message-list" ref={messageListRef} onScroll={handleScroll}>
+      <div
+        className="DriverMessage-message-list"
+        ref={messageListRef}
+        onScroll={handleScroll}
+      >
         {messages.map((message, index) => (
-          <div
-            key={index}
-            className={getMessageClassName(message)}
-          >
+          <div key={index} className={getMessageClassName(message)}>
             <div className="message-header">
-              <span className="sender-info">
-                {message.sender.email}
-              </span>
+              <span className="sender-info">{message.sender.email}</span>
               <span className="timestamp">
                 {new Date(message.timestamp).toLocaleTimeString()}
               </span>
@@ -282,7 +309,10 @@ const DriverMessage = ({ onClose }) => {
       </div>
       {renderQuickReplies()}
       {showScrollButton && (
-        <button className="DriverMessage-scroll-button" onClick={scrollToBottom}>
+        <button
+          className="DriverMessage-scroll-button"
+          onClick={scrollToBottom}
+        >
           <FaArrowDown />
         </button>
       )}
@@ -295,8 +325,8 @@ const DriverMessage = ({ onClose }) => {
           placeholder="Type your message..."
           className="DriverMessage-message-input"
         />
-        <button 
-          onClick={handleSendClick} 
+        <button
+          onClick={handleSendClick}
           className="DriverMessage-send-button"
           disabled={isSending || !newMessage.trim() || !currentRoom}
         >
