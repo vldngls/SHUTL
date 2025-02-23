@@ -1,3 +1,5 @@
+import User from "./models/user.model.js"; // Import User model
+
 const setupSocket = (io) => {
   const shuttleLocations = new Map();
   const activePickupRequests = new Map(); // Store active pickup requests
@@ -42,7 +44,7 @@ const setupSocket = (io) => {
     });
 
     socket.on("message", (msg) => {
-      console.log("Message received:", msg);
+      console.log("💬 Message received:", msg);
       io.emit("message", msg);
     });
 
@@ -61,6 +63,7 @@ const setupSocket = (io) => {
       });
     });
 
+    // Merge pickup_accepted event handlers
     socket.on("pickup_accepted", (request) => {
       console.log("Pickup request accepted:", request);
       const pickupRequest = activePickupRequests.get(request.requestId);
@@ -87,12 +90,12 @@ const setupSocket = (io) => {
 
     socket.on("join_room", (roomId) => {
       socket.join(roomId);
-      console.log(`Socket ${socket.id} joined room ${roomId}`);
+      console.log(`✅ Socket ${socket.id} joined room ${roomId}`);
     });
 
     socket.on("leave_room", (roomId) => {
       socket.leave(roomId);
-      console.log(`Socket ${socket.id} left room ${roomId}`);
+      console.log(`✅ Socket ${socket.id} left room ${roomId}`);
     });
 
     socket.on("chat_message", ({ roomId, message }) => {
@@ -111,5 +114,7 @@ const setupSocket = (io) => {
     });
   });
 };
+
+export default setupSocket;
 
 export default setupSocket;

@@ -23,6 +23,21 @@ const userSchema = new mongoose.Schema(
     userType: {
       type: String,
       default: "Commuter",
+      enum: ["Commuter", "Driver", "Teller", "Admin"],
+    },
+    status: {
+      type: String,
+      enum: ["active", "idle", "offline"],
+      default: "offline",
+    },
+    duty_status: {
+      type: String,
+      enum: ["on_duty", "off_duty", "idle"],
+      default: "idle",
+    },
+    last_active: {
+      type: Date,
+      default: Date.now,
     },
     googleId: {
       type: String,
@@ -37,6 +52,6 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-const User = mongoose.model("User", userSchema);
+export const User = mongoose.model("User", userSchema);
 
 export default User;
