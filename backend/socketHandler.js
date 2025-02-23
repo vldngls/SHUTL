@@ -4,10 +4,30 @@ const setupSocket = (io) => {
   const shuttleLocations = new Map();
   const activePickupRequests = new Map(); // Store active pickup requests
 
-  io.on("connection", (socket) => {
-    console.log("Socket connected:", socket.id);
+  io.on("connection", async (socket) => {
+    // SHUTL-Leb: User connection and status update
+    console.log("✅ User connected:", socket.id);
+    const userId = socket.handshake.query.userId;
+    console.log(`🔍 Retrieved userId from handshake: ${userId}`);
 
-    // Add a room join for shuttle tracking
+    if (!userId) {
+      console.error("❌ No userId provided in WebSocket connection.");
+      return;
+    }
+    socket.userId = userId; // Store user ID in socket session
+
+    try {
+      await User.findByIdAndUpdate(userId, {
+        status: "active",
+        last_active: new Date(),
+      });
+      console.log(`✅ Updated user ${userId} to active`);
+      io.emit("status_update", { userId, status: "active" });
+    } catch (err) {
+      console.error("❌ Error updating user status:", err);
+    }
+
+    // HEAD: Shuttle tracking - join room for shuttle tracking
     socket.on("join_shuttle_tracking", (shuttleId) => {
       socket.join(`shuttle_${shuttleId}`);
       console.log(
@@ -25,59 +45,68 @@ const setupSocket = (io) => {
       }
     });
 
+    // Merge shuttle_location event handlers
     socket.on("shuttle_location", (data) => {
+      // HEAD branch functionality: update location and broadcast to all
       const { shuttleId, coordinates, timestamp } = data;
-
-      // Store the latest location
       shuttleLocations.set(shuttleId, {
         coordinates,
         timestamp,
         socketId: socket.id,
       });
+      io.emit("shuttle_location", { shuttleId, coordinates, timestamp });
 
-      // Broadcast to all clients
-      io.emit("shuttle_location", {
-        shuttleId,
-        coordinates,
-        timestamp,
-      });
+      // SHUTL-Leb branch functionality: log and broadcast (except sender)
+      console.log("📍 Received shuttle location:", data);
+      socket.broadcast.emit("shuttle_location", data);
     });
 
+    // Messaging system (from HEAD)
     socket.on("message", (msg) => {
       console.log("💬 Message received:", msg);
       io.emit("message", msg);
     });
 
+    // Merge pickup_request event handlers
     socket.on("pickup_request", (request) => {
+      // HEAD branch functionality: store and broadcast with a generated requestId
       console.log("Received pickup request:", request);
       const requestId = Date.now().toString(); // Generate unique ID
       activePickupRequests.set(requestId, {
         ...request,
         requestId,
-        status: 'pending'
+        status: "pending",
       });
-      // Broadcast to all drivers
       io.emit("pickup_request", {
         ...request,
-        requestId
+        requestId,
       });
+
+      // SHUTL-Leb branch functionality: log and broadcast to others
+      console.log("🚖 Received pickup request:", request);
+      socket.broadcast.emit("pickup_request", request);
     });
 
     // Merge pickup_accepted event handlers
     socket.on("pickup_accepted", (request) => {
+      // HEAD branch functionality: update request status and notify all clients
       console.log("Pickup request accepted:", request);
       const pickupRequest = activePickupRequests.get(request.requestId);
       if (pickupRequest) {
         activePickupRequests.set(request.requestId, {
           ...pickupRequest,
-          status: 'accepted',
-          driverId: socket.id
+          status: "accepted",
+          driverId: socket.id,
         });
-        // Notify all clients that this request is taken
         io.emit("pickup_request_taken", request.requestId);
       }
+
+      // SHUTL-Leb branch functionality: log and emit accepted event
+      console.log("✅ Pickup request accepted:", request);
+      io.emit("pickup_accepted", request);
     });
 
+    // HEAD branch additional pickup events
     socket.on("pickup_completed", (requestId) => {
       activePickupRequests.delete(requestId);
       io.emit("pickup_completed", requestId);
@@ -88,6 +117,7 @@ const setupSocket = (io) => {
       io.emit("pickup_cancelled", requestId);
     });
 
+    // Room Management (Chat or Shuttle Groups)
     socket.on("join_room", (roomId) => {
       socket.join(roomId);
       console.log(`✅ Socket ${socket.id} joined room ${roomId}`);
@@ -98,12 +128,29 @@ const setupSocket = (io) => {
       console.log(`✅ Socket ${socket.id} left room ${roomId}`);
     });
 
+    // Chat Messaging within Rooms
     socket.on("chat_message", ({ roomId, message }) => {
       io.to(roomId).emit("chat_message", message);
     });
 
-    socket.on("disconnect", () => {
-      // Remove disconnected shuttle's location
+    // SHUTL-Leb: User Status Updates (Commuters & Drivers/Tellers)
+    socket.on("set_status", async ({ userId, status, duty_status }) => {
+      console.log(`🔄 Updating user ${userId} status to ${status}`);
+      try {
+        await User.findByIdAndUpdate(userId, {
+          status,
+          duty_status,
+          last_active: new Date(),
+        });
+        io.emit("status_update", { userId, status, duty_status });
+      } catch (err) {
+        console.error("❌ Error updating user status:", err);
+      }
+    });
+
+    // Merge disconnect events
+    socket.on("disconnect", async () => {
+      // HEAD branch functionality: remove shuttle location if this socket was tracking it
       for (const [shuttleId, data] of shuttleLocations.entries()) {
         if (data.socketId === socket.id) {
           shuttleLocations.delete(shuttleId);
@@ -111,10 +158,25 @@ const setupSocket = (io) => {
           break;
         }
       }
+
+      // SHUTL-Leb branch functionality: update user status to idle upon disconnect
+      console.log(
+        `🔴 User disconnected: ${socket.id}, userId: ${socket.userId}`
+      );
+      if (socket.userId) {
+        try {
+          await User.findByIdAndUpdate(socket.userId, {
+            status: "idle",
+            last_active: new Date(),
+          });
+          console.log(`✅ Updated user ${socket.userId} to idle`);
+          io.emit("status_update", { userId: socket.userId, status: "idle" });
+        } catch (err) {
+          console.error("❌ Error updating disconnect status:", err);
+        }
+      }
     });
   });
 };
-
-export default setupSocket;
 
 export default setupSocket;
