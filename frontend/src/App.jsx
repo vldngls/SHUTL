@@ -1,5 +1,7 @@
 import React from "react";
 import { Route, Routes } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import SplashScreen from "./pages/SplashScreen";
 import ShutlIntro from "./pages/Intro";
 import ShutlLoggedOut from "./pages/ShutlLoggedOut";
@@ -59,6 +61,7 @@ function App() {
         />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <ToastContainer />
     </div>
   );
 }

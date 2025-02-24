@@ -74,6 +74,7 @@ const DriverMain = () => {
   const [activePickups, setActivePickups] = useState([]);
   const [profileImage, setProfileImage] = useState("/profile.png"); // Default image
   const [showProfileCard, setShowProfileCard] = useState(false);
+  const messageBoxRef = useRef(null);
 
   // Initialize socket and handle events
   useEffect(() => {
@@ -222,7 +223,7 @@ const DriverMain = () => {
   };
 
   const toggleModal = (modalName) => {
-    setActiveModal(modalName);
+    setActiveModal((prev) => (prev === modalName ? null : modalName));
   };
 
   const handleSendMessage = (newMessage) => {
@@ -426,23 +427,29 @@ const DriverMain = () => {
     fetchDriverProfile();
   }, []);
 
+  // Add this useEffect to handle clicks outside the message box
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        messageBoxRef.current &&
+        !messageBoxRef.current.contains(event.target) &&
+        !event.target.closest(".DriverMain-icon-btn")
+      ) {
+        setActiveModal(null);
+      }
+    };
+
+    if (activeModal === "isMessageOpen") {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [activeModal]);
+
   return (
     <div className="DriverMain-container">
-      <div className="DriverMain-header">
-        <img
-          src={profileImage}
-          alt="Profile"
-          className="DriverMain-profile-pic"
-          style={{
-            width: "40px",
-            height: "40px",
-            borderRadius: "50%",
-            objectFit: "cover",
-            border: "2px solid #fff",
-          }}
-        />
-        {/* Rest of your header content */}
-      </div>
       <div className="DriverMain-map-container">
         <MapContainer
           style={{ height: "100%", width: "100%" }}
@@ -565,13 +572,8 @@ const DriverMain = () => {
       )}
 
       {activeModal === "isMessageOpen" && (
-        <div className="modal-overlay" onClick={handleClickOutside}>
-          <div className="modal-container">
-            <DriverMessage
-              messages={messages}
-              onSendMessage={handleSendMessage}
-            />
-          </div>
+        <div ref={messageBoxRef}>
+          <DriverMessage onClose={() => toggleModal(null)} />
         </div>
       )}
       {activeModal === "isScheduleOpen" && (

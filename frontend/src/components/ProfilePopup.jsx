@@ -1,5 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "../css/ProfilePopup.css";
 
 const DISCOUNT_TYPES = {
@@ -223,7 +225,8 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
         setProfileImage(responseData.profilePicture);
       }
 
-      console.log("Profile updated successfully!");
+      // Show success toast notification
+      toast.success("Profile updated successfully!");
     } catch (error) {
       console.error("Error updating user data:", error);
     }
@@ -408,6 +411,7 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
           )}
         </div>
       </div>
+      <ToastContainer position="bottom-center" />
     </div>
   );
 };
