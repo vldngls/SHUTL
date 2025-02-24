@@ -6,7 +6,10 @@ const ShuttleTripTracking = ({ onClose }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [tripData, setTripData] = useState({
     date: new Date().toISOString().split("T")[0],
-    time: "",
+    time: new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
     shuttleNumber: "",
     driver: "",
     status: "Out",
@@ -60,7 +63,10 @@ const ShuttleTripTracking = ({ onClose }) => {
         alert("Shuttle trip added successfully");
         setTripData({
           date: new Date().toISOString().split("T")[0],
-          time: "",
+          time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
           shuttleNumber: "",
           driver: "",
           status: "Out",

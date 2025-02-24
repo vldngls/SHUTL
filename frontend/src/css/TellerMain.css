@@ -119,6 +119,21 @@ body {
   transform: scale(1.1);
 }
 
+/* Popup Modal Overlay */
+.TellerMain-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 /* Popup Modals */
 .TellerMain-TripTracking-popup {
   position: fixed;
@@ -126,15 +141,48 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
   width: 90%;
-  max-width: 1400px;
-  height: 80vh;
-  background: #f8fafc;
-  border-radius: 16px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  max-width: 900px;
+  min-height: 300px;
+  max-height: 70vh;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   z-index: 1000;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+/* Close Button */
+.TellerMain-close-popup-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fee2e2;
+  color: #ef4444;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  z-index: 2;
+  font-size: 16px;
+}
+
+/* Modal Animation */
+/* Removed the entire @keyframes modalFadeIn section */
+
+/* Modal Content Container */
+.TellerMain-modal-content {
+  flex: 1;
+  overflow: auto;
+  padding: 1.5rem;
+  background: #ffffff;
 }
 
 /* Summary and Overlay */
@@ -169,26 +217,6 @@ body {
   align-items: center;
   padding-bottom: 10px;
   border-bottom: 1px solid #ddd;
-}
-
-/* Close Button */
-.TellerMain-close-popup-btn,
-.TellerMain-close-btn {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  padding: 0.5rem 1rem;
-  background: #ef4444;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background 0.2s;
-}
-
-.TellerMain-close-popup-btn:hover {
-  background: #dc2626;
 }
 
 /* Taskbar */
@@ -229,6 +257,16 @@ body {
   .TellerMain-right-btn {
     padding: 8px 16px; /* Adjust padding for smaller screens */
     font-size: 14px; /* Adjust font size for smaller screens */
+  }
+
+  .TellerMain-TripTracking-popup {
+    width: 95%;
+    height: auto;
+    max-height: 80vh;
+  }
+
+  .TellerMain-modal-content {
+    padding: 1.5rem;
   }
 }
 
