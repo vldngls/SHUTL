@@ -7,6 +7,7 @@ import { jwtDecode } from "jwt-decode";
 
 const LoginForm = ({ onClose }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -156,7 +157,7 @@ const LoginForm = ({ onClose }) => {
         </div>
 
         <div className="google-login-container">
-          <GoogleOAuthProvider clientId="213011039300-02odo46u0rflq0go5sqe1njkvqc0rtf3.apps.googleusercontent.com">
+          <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
               onError={() => setError("Google login failed")}

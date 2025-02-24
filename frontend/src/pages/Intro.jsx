@@ -3,100 +3,120 @@ import { useNavigate } from "react-router-dom";
 import { getTokenFromCookies } from "../utils/tokenUtils"; // Import token utility
 import "../css/Intro.css"; // Ensure this path is correct
 
+const INTRO_CONTENT = [
+  {
+    id: 1,
+    image: "intro1.png",
+    title: "Shuttle Tracking for Camella Daang Hari",
+    subtitle: "Never miss your shuttle.",
+  },
+  {
+    id: 2,
+    image: "intro2.png",
+    title: "Prediction and consistency.",
+    subtitle: "Shuttle tracking to help you manage your time and schedule",
+  },
+  {
+    id: 3,
+    image: "intro3.png",
+    title: "Finance",
+    subtitle: "Track every trip, every cent.",
+  },
+];
+
+const IntroContent = ({ content, isAnimating }) => (
+  <div className={`ShutlIntro-intro-content ${isAnimating ? "fade-out" : ""}`}>
+    <img
+      src={content.image}
+      alt={`Intro ${content.id}`}
+      className="ShutlIntro-intro-image"
+    />
+    <p>
+      <b>{content.title}</b>
+    </p>
+    <p>
+      <small>{content.subtitle}</small>
+    </p>
+  </div>
+);
+
+const PaginationDots = ({ currentIntro, onDotClick }) => (
+  <div className="ShutlIntro-pagination-dots">
+    {INTRO_CONTENT.map((intro) => (
+      <span
+        key={intro.id}
+        className={`ShutlIntro-dot ${
+          currentIntro === intro.id ? "active" : ""
+        }`}
+        onClick={() => onDotClick(intro.id)}
+      />
+    ))}
+  </div>
+);
+
 const ShutlIntro = () => {
   const navigate = useNavigate();
   const [currentIntro, setCurrentIntro] = useState(1); // State to manage which intro is displayed
   const [isAnimating, setIsAnimating] = useState(false); // State for animation
 
-  // Function to handle navigation between intros
-  const handleNext = () => {
-    if (isAnimating) return; // Prevent multiple clicks during animation
-    setIsAnimating(true);
+  const handleTransition = (nextIntro) => {
+    if (isAnimating) return;
 
+    setIsAnimating(true);
     setTimeout(() => {
-      const token = getTokenFromCookies();
-      if (currentIntro < 3) {
-        setCurrentIntro(currentIntro + 1); // Move to the next intro
+      if (typeof nextIntro === "function") {
+        setCurrentIntro(nextIntro);
       } else {
-        // After the last intro slide, navigate based on token availability
-        if (token) {
-          navigate("/ShutlLoggedIn"); // Navigate to logged-in page if token is found
-        } else {
-          navigate("/ShutlLoggedOut"); // Otherwise, navigate to login page
-        }
+        setCurrentIntro(nextIntro);
       }
-      setIsAnimating(false); // Reset animation state
-    }, 500); // Match the duration of the fade-out animation
+      setIsAnimating(false);
+    }, 500);
+  };
+
+  const handleNext = () => {
+    if (isAnimating) return;
+
+    if (currentIntro < 3) {
+      handleTransition((prev) => prev + 1);
+    } else {
+      const token = getTokenFromCookies();
+      navigate(token ? "/ShutlLoggedIn" : "/ShutlLoggedOut");
+    }
+  };
+
+  const handleDotClick = (introNumber) => {
+    if (isAnimating || introNumber === currentIntro) return;
+    handleTransition(introNumber);
   };
 
   return (
     <div className="ShutlIntro-intro-container">
-      {currentIntro === 1 && (
-        <div className={`ShutlIntro-intro-content ${isAnimating ? "fade-out" : ""}`}>
-          <img
-            src="intro1.png"
-            alt="Intro 1"
-            className="ShutlIntro-intro-image"
-          />
-          <p>
-            <b>Shuttle Tracking for Camella Daang Hari</b>
-          </p>
-          <p>
-            <small>Never miss your shuttle.</small>
-          </p>
-        </div>
-      )}
-      {currentIntro === 2 && (
-        <div className={`ShutlIntro-intro-content ${isAnimating ? "fade-out" : ""}`}>
-          <img
-            src="intro2.png"
-            alt="Intro 2"
-            className="ShutlIntro-intro-image"
-          />
-          <p>
-            <b>Prediction and consistency.</b>
-          </p>
-          <p>
-            <small>
-              Shuttle tracking to help you manage your time and schedule
-            </small>
-          </p>
-        </div>
-      )}
-      {currentIntro === 3 && (
-        <div className={`ShutlIntro-intro-content ${isAnimating ? "fade-out" : ""}`}>
-          <img
-            src="intro3.png"
-            alt="Intro 3"
-            className="ShutlIntro-intro-image"
-          />
-          <p>
-            <b>Finance</b>
-          </p>
-          <p>
-            <small>Track every trip, every cent.</small>
-          </p>
-        </div>
-      )}
-
-      <div className="ShutlIntro-pagination-dots">
-        <span
-          className={`ShutlIntro-dot ${currentIntro === 1 ? "active" : ""}`}
-          onClick={() => setCurrentIntro(1)}
-        />
-        <span
-          className={`ShutlIntro-dot ${currentIntro === 2 ? "active" : ""}`}
-          onClick={() => setCurrentIntro(2)}
-        />
-        <span
-          className={`ShutlIntro-dot ${currentIntro === 3 ? "active" : ""}`}
-          onClick={() => setCurrentIntro(3)}
-        />
+      <div className="ShutlIntro-content-wrapper">
+        {INTRO_CONTENT.map(
+          (content) =>
+            currentIntro === content.id && (
+              <IntroContent
+                key={content.id}
+                content={content}
+                isAnimating={isAnimating}
+              />
+            )
+        )}
       </div>
 
-      <button onClick={handleNext} className="ShutlIntro-intro-button" disabled={isAnimating}>
-        Next
-      </button>
+      <div className="ShutlIntro-controls">
+        <PaginationDots
+          currentIntro={currentIntro}
+          onDotClick={handleDotClick}
+        />
+        <button
+          onClick={handleNext}
+          className="ShutlIntro-intro-button"
+          disabled={isAnimating}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 };

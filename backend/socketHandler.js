@@ -1,20 +1,47 @@
+import jwt from "jsonwebtoken"; // Import jwt to decode the token
 import User from "./models/user.model.js"; // Import User model
 
-const setupSocket = (io) => {
+const setupSocket = (io, db) => {
   const shuttleLocations = new Map();
   const activePickupRequests = new Map(); // Store active pickup requests
 
   io.on("connection", async (socket) => {
     // SHUTL-Leb: User connection and status update
     console.log("✅ User connected:", socket.id);
-    const userId = socket.handshake.query.userId;
+    let userId = socket.handshake.query.userId;
     console.log(`🔍 Retrieved userId from handshake: ${userId}`);
 
     if (!userId) {
-      console.error("❌ No userId provided in WebSocket connection.");
-      return;
+      const token = socket.handshake.headers.cookie
+        ?.split("; ")
+        .find((row) => row.startsWith("token="))
+        ?.split("=")[1];
+
+      if (token) {
+        try {
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          const cursor = db.collection("users").find({ email: decoded.email });
+          const user = await cursor.next();
+
+          if (user) {
+            userId = user._id.toString();
+            socket.userId = userId; // Store user ID in socket session
+            console.log(`🔍 Retrieved userId from email: ${userId}`);
+          } else {
+            console.error("❌ No user found with the provided email.");
+            return;
+          }
+        } catch (err) {
+          console.error("❌ Error decoding token or finding user:", err);
+          return;
+        }
+      } else {
+        console.error("❌ No token provided in WebSocket connection.");
+        return;
+      }
+    } else {
+      socket.userId = userId; // Store user ID in socket session
     }
-    socket.userId = userId; // Store user ID in socket session
 
     try {
       await User.findByIdAndUpdate(userId, {

@@ -20,9 +20,16 @@ const resetDatabase = async () => {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("Connected to MongoDB");
 
-    // Drop the database
-    await mongoose.connection.dropDatabase();
-    console.log("Database reset successfully");
+    // Get all collections
+    const collections = await mongoose.connection.db.collections();
+
+    // Drop each collection
+    for (let collection of collections) {
+      await collection.drop();
+      console.log(`Dropped collection: ${collection.collectionName}`);
+    }
+
+    console.log("All collections dropped successfully");
 
     // Close the connection
     await mongoose.connection.close();
@@ -38,4 +45,5 @@ const resetDatabase = async () => {
   }
 };
 
+// Execute the reset
 resetDatabase();

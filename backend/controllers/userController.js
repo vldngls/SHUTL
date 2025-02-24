@@ -107,18 +107,23 @@ export const getUsers = async (req, res) => {
   }
 };
 
-
-
+// Get active users count
 export const getActiveUsers = async (req, res) => {
   try {
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000); // Users active in last 5 minutes
+
+    const activeUsersCount = await User.countDocuments({
+      $or: [{ status: "active" }, { last_active: { $gte: fiveMinutesAgo } }],
+    });
+
     const totalUsers = await User.countDocuments();
-    const activeUsers = await User.countDocuments({ status: "active" });
 
-    console.log(`Total Users: ${totalUsers}, Active Users: ${activeUsers}`); // ✅ Debugging
-
-    res.json({ totalUsers, activeUsers });
+    res.status(200).json({
+      activeUsers: activeUsersCount,
+      totalUsers: totalUsers,
+    });
   } catch (error) {
     console.error("Error fetching active users:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Error fetching active users count" });
   }
 };
