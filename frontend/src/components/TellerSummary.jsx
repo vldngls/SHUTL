@@ -1,9 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../css/TellerSummary.css";
 import ShuttleDetails from "./ShuttleDetails"; // Import ShuttleDetails component
+import axios from "axios";
 
 const TellerSummary = ({ onClose }) => {
   const [selectedShuttle, setSelectedShuttle] = useState(null); // State to handle open modal
+  const [roundTrips, setRoundTrips] = useState(0);
+  const [totalPassengers, setTotalPassengers] = useState(0);
+  const [activeShuttles, setActiveShuttles] = useState(0);
 
   // Shuttle data
   const shuttles = [
@@ -45,6 +49,29 @@ const TellerSummary = ({ onClose }) => {
     },
   ];
 
+  useEffect(() => {
+    const fetchSummaryData = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+        const summaryResponse = await axios.get(
+          `${API_BASE_URL}/shuttle/summary`
+        );
+        const { roundTrips, totalPassengers, activeShuttles } =
+          summaryResponse.data;
+
+        console.log("Summary Response:", summaryResponse.data); // Add this for debugging
+
+        setRoundTrips(roundTrips);
+        setTotalPassengers(totalPassengers);
+        setActiveShuttles(activeShuttles);
+      } catch (error) {
+        console.error("Error fetching summary data:", error);
+      }
+    };
+
+    fetchSummaryData();
+  }, []);
+
   const handleOverlayClick = (e) => {
     if (e.target.className === "TellerSummary-modal") {
       onClose();
@@ -72,24 +99,19 @@ const TellerSummary = ({ onClose }) => {
           <h3>Total Stats</h3>
           <div className="TellerSummary-stats">
             <div>
-              <strong>43</strong>
+              <strong>{roundTrips}</strong>
               <br />
               Round Trips
             </div>
             <div>
-              <strong>578</strong>
+              <strong>{totalPassengers}</strong>
               <br />
               Passengers
             </div>
             <div>
-              <strong>3</strong>
+              <strong>{activeShuttles}</strong>
               <br />
               Shuttles
-            </div>
-            <div>
-              <strong>126</strong>
-              <br />
-              Pick-up
             </div>
           </div>
         </div>

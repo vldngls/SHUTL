@@ -5,9 +5,7 @@ import "leaflet/dist/leaflet.css";
 import "../css/TellerMain.css";
 import SettingsDropdown from "../components/SettingsDropdown";
 import NotificationPop from "../components/NotificationPop";
-import SuggestionForm from "../components/SuggestionForm";
 import ShuttleTripTracking from "../components/ShuttleTripTracking";
-import TellerShuttleSummary from "../components/TellerShuttleSummary";
 import TellerProfile from "../components/TellerProfile";
 import TellerSummary from "../components/TellerSummary";
 import DriverMessage from "../components/DriverMessage";
@@ -393,17 +391,7 @@ const TellerMain = () => {
         />
       )}
       {isProfilePopupOpen && <ProfilePopup onClose={toggleProfilePopup} />}
-      {isTripFormOpen && (
-        <div className="TellerMain-TripTracking-popup">
-          <ShuttleTripTracking />
-          <button
-            onClick={closeTripForm}
-            className="TellerMain-close-popup-btn"
-          >
-            Close
-          </button>
-        </div>
-      )}
+      {isTripFormOpen && <ShuttleTripTracking onClose={closeTripForm} />}
 
       {/* Taskbar */}
       <div className="TellerMain-taskbar">

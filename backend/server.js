@@ -51,7 +51,6 @@ app.use(
 
 app.use("/api/users", userRoutes);
 app.use("/api/userdata", userDataRoutes);
-
 app.use("/api/shuttle", shuttleRoutes);
 app.use("/api/fares", fareRoutes);
 app.use("/api/schedule", scheduleRoutes);

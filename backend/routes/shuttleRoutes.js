@@ -5,6 +5,8 @@ import {
   getTripById,
   updateTrip,
   deleteTrip,
+  getShuttleSummary,
+  getPendingOutTrips,
 } from "../controllers/shuttleController.js";
 
 const router = express.Router();
@@ -23,5 +25,11 @@ router.put("/trips/:id", updateTrip);
 
 // Route to delete a shuttle trip by ID
 router.delete("/trips/:id", deleteTrip);
+
+// Add new summary endpoint
+router.get("/summary", getShuttleSummary);
+
+// Add the new pending trips route
+router.get("/pending-trips", getPendingOutTrips);
 
 export default router;

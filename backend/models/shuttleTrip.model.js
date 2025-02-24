@@ -8,6 +8,7 @@ const shuttleTripSchema = new mongoose.Schema(
     driver: { type: String, required: true },
     status: { type: String, enum: ["In", "Out"], required: true },
     passengerCount: { type: Number, required: true },
+    roundTripId: { type: String },
   },
   { timestamps: true }
 );
