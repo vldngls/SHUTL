@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "../css/DriverMain.css";
@@ -57,6 +57,75 @@ const getStreetName = async (lat, lng) => {
   }
 };
 
+// Function to group nearby pickups (within ~50 meters)
+const groupNearbyPickups = (pickups) => {
+  const groups = [];
+  const DISTANCE_THRESHOLD = 0.05; // approximately 50 meters in coordinates
+
+  pickups.forEach((pickup) => {
+    let addedToGroup = false;
+
+    // Check existing groups
+    for (let group of groups) {
+      const [lat1, lng1] = group.center;
+      const [lat2, lng2] = pickup.location.coordinates;
+
+      // Calculate if within threshold
+      const distance = Math.sqrt(
+        Math.pow(lat2 - lat1, 2) + Math.pow(lng2 - lng1, 2)
+      );
+
+      if (distance < DISTANCE_THRESHOLD) {
+        group.pickups.push(pickup);
+        addedToGroup = true;
+        break;
+      }
+    }
+
+    // If not added to any existing group, create new group
+    if (!addedToGroup) {
+      groups.push({
+        center: pickup.location.coordinates,
+        pickups: [pickup],
+      });
+    }
+  });
+
+  return groups;
+};
+
+// Updated marker style function that includes count
+const createPickupMarkerStyle = (count) => ({
+  className: "pickup-location-marker",
+  html: `
+    <div class="marker-container" style="
+      transform: translate(-50%, -50%);
+      width: 30px;
+      height: 30px;
+      position: relative;
+    ">
+      <div style="
+        width: 100%;
+        height: 100%;
+        background-color: #4CAF50;
+        border: 3px solid white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        animation: pulse 1.5s infinite;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: ${count > 9 ? "12px" : "14px"};
+        font-family: Arial, sans-serif;
+      ">${count}</div>
+    </div>
+  `,
+  iconSize: [30, 30],
+  iconAnchor: [15, 15],
+});
+
 const DriverMain = () => {
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState([14.377, 120.983]);
@@ -103,22 +172,24 @@ const DriverMain = () => {
     setActivePickups(savedPickups);
 
     socket.current.on("pickup_request", (request) => {
-      console.log("Received pickup request:", request);
-      setPickupRequests((prev) => [...prev, request]);
+      console.log("🚗 Driver received pickup request:", request);
+      setPickupRequests((prev) => {
+        // Check for duplicates
+        const isDuplicate = prev.some((r) => r.requestId === request.requestId);
+        if (isDuplicate) {
+          console.log("🚫 Duplicate request ignored");
+          return prev;
+        }
+        console.log("✅ Adding new pickup request to state");
+        return [...prev, request];
+      });
 
-      // Create notification with ID
+      // Create notification without opening panel
       const notification = createNotification(
         "pickup_request",
         `New pickup request received at ${request.location.streetName}!`
       );
-
       setNotifications((prev) => [notification, ...prev].slice(0, 5));
-      setActivePopup("notifications");
-
-      // Auto close notification after 3 seconds
-      setTimeout(() => {
-        setActivePopup(null);
-      }, 3000);
     });
 
     socket.current.on("pickup_request_taken", (requestId) => {
@@ -146,19 +217,54 @@ const DriverMain = () => {
   }, []);
 
   // Handle location sharing
+  const updateLocation = useCallback(() => {
+    if (!navigator.geolocation || !shuttleId) {
+      console.warn("Cannot update location:", {
+        hasGeolocation: !!navigator.geolocation,
+        shuttleId,
+      });
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserLocation([latitude, longitude]);
+
+        const locationData = {
+          coordinates: [latitude, longitude],
+          shuttleId: shuttleId,
+          timestamp: new Date().toISOString(),
+        };
+
+        sendLocation(locationData);
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      }
+    );
+  }, [shuttleId]);
+
   useEffect(() => {
     if (isLocationSharing) {
-      updateLocation();
+      console.log("Starting location sharing for shuttle:", shuttleId);
+      updateLocation(); // Initial update
       locationUpdateInterval.current = setInterval(updateLocation, 3000);
     }
 
     return () => {
       if (locationUpdateInterval.current) {
+        console.log("Stopping location sharing");
         clearInterval(locationUpdateInterval.current);
         locationUpdateInterval.current = null;
       }
     };
-  }, [isLocationSharing]);
+  }, [isLocationSharing, updateLocation]);
 
   // Add this useEffect to fetch shuttle assignment
   useEffect(() => {
@@ -182,41 +288,6 @@ const DriverMain = () => {
     };
     fetchAssignment();
   }, []);
-
-  // Modify the updateLocation function
-  const updateLocation = () => {
-    if (navigator.geolocation && shuttleId) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setUserLocation([latitude, longitude]);
-
-          if (socket.current) {
-            const locationData = {
-              coordinates: [latitude, longitude],
-              shuttleId: shuttleId,
-              timestamp: new Date().toISOString(),
-            };
-            socket.current.emit("shuttle_location", locationData);
-          }
-
-          if (mapRef.current) {
-            mapRef.current.setView([latitude, longitude], 15.5);
-          }
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-        }
-      );
-    }
-  };
-
-  // Add this useEffect for socket connection
-  useEffect(() => {
-    if (socket.current && shuttleId) {
-      socket.current.emit("join_shuttle_tracking", shuttleId);
-    }
-  }, [shuttleId]);
 
   const handleLocationButtonClick = () => {
     setIsLocationSharing((prev) => !prev);
@@ -311,18 +382,12 @@ const DriverMain = () => {
       )
     );
 
-    // Add acceptance notification
+    // Add acceptance notification without opening panel
     const notification = createNotification(
       "pickup_accepted",
       "Pickup request accepted successfully!"
     );
     setNotifications((prev) => [notification, ...prev].slice(0, 5));
-    setActivePopup("notifications");
-
-    // Auto close after 3 seconds
-    setTimeout(() => {
-      setActivePopup(null);
-    }, 3000);
   };
 
   const handleCompletePickup = (request) => {
@@ -348,18 +413,12 @@ const DriverMain = () => {
       )
     );
 
-    // Add completion notification
+    // Add completion notification without opening panel
     const notification = createNotification(
       "pickup_completed",
       "Pickup completed successfully!"
     );
     setNotifications((prev) => [notification, ...prev].slice(0, 5));
-    setActivePopup("notifications");
-
-    // Auto close after 3 seconds
-    setTimeout(() => {
-      setActivePopup(null);
-    }, 3000);
   };
 
   const handleCancelPickup = (request) => {
@@ -385,18 +444,12 @@ const DriverMain = () => {
       )
     );
 
-    // Add cancellation notification
+    // Add cancellation notification without opening panel
     const notification = createNotification(
       "pickup_cancelled",
       "Pickup request cancelled"
     );
     setNotifications((prev) => [notification, ...prev].slice(0, 5));
-    setActivePopup("notifications");
-
-    // Auto close after 3 seconds
-    setTimeout(() => {
-      setActivePopup(null);
-    }, 3000);
   };
 
   useEffect(() => {
@@ -448,6 +501,32 @@ const DriverMain = () => {
     };
   }, [activeModal]);
 
+  // Add this new handler for completing multiple pickups
+  const handleCompleteAllPickups = (pickups) => {
+    pickups.forEach((pickup) => {
+      // Remove from active pickups
+      setActivePickups((prev) =>
+        prev.filter((p) => p.requestId !== pickup.requestId)
+      );
+
+      // Emit completion event for each pickup
+      socket.current.emit("pickup_completed", pickup.requestId);
+    });
+
+    // Update localStorage
+    const updatedActivePickups = activePickups.filter(
+      (pickup) => !pickups.some((p) => p.requestId === pickup.requestId)
+    );
+    localStorage.setItem("activePickups", JSON.stringify(updatedActivePickups));
+
+    // Add completion notification
+    const notification = createNotification(
+      "pickup_completed",
+      `Completed ${pickups.length} pickups successfully!`
+    );
+    setNotifications((prev) => [notification, ...prev].slice(0, 5));
+  };
+
   return (
     <div className="DriverMain-container">
       <div className="DriverMain-map-container">
@@ -471,24 +550,119 @@ const DriverMain = () => {
             </Tooltip>
           </Marker>
 
-          {/* Add markers for active pickups */}
-          {activePickups.map((pickup) => (
+          {/* Updated grouped markers with Complete All button */}
+          {groupNearbyPickups(activePickups).map((group, index) => (
             <Marker
-              key={pickup.requestId}
-              position={pickup.location.coordinates}
+              key={`group-${index}`}
+              position={group.center}
               icon={
-                new L.DivIcon({
-                  className: "pickup-location-marker",
-                  html: '<div style="background-color: #4CAF50; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>',
-                })
+                new L.DivIcon(createPickupMarkerStyle(group.pickups.length))
               }
             >
               <Popup>
-                <div>
-                  <p>Pickup Location</p>
-                  <p>{pickup.location.streetName}</p>
+                <div style={{ minWidth: "200px" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    <strong>
+                      Pickup Location{group.pickups.length > 1 ? "s" : ""}
+                    </strong>
+                    {group.pickups.length > 1 && (
+                      <button
+                        onClick={() => handleCompleteAllPickups(group.pickups)}
+                        style={{
+                          backgroundColor: "#4CAF50",
+                          color: "white",
+                          border: "none",
+                          padding: "6px 12px",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontWeight: "bold",
+                          fontSize: "12px",
+                        }}
+                      >
+                        Complete All ({group.pickups.length})
+                      </button>
+                    )}
+                  </div>
+                  {group.pickups.map((pickup, i) => (
+                    <div
+                      key={pickup.requestId}
+                      style={{
+                        marginTop: "8px",
+                        padding: "8px",
+                        backgroundColor: "rgba(0,0,0,0.02)",
+                        borderRadius: "4px",
+                      }}
+                    >
+                      <p
+                        style={{
+                          marginBottom: "4px",
+                          fontSize: "13px",
+                        }}
+                      >
+                        {pickup.location.streetName}
+                      </p>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "8px",
+                          marginTop: "6px",
+                        }}
+                      >
+                        <button
+                          onClick={() => handleCompletePickup(pickup)}
+                          style={{
+                            backgroundColor: "#4CAF50",
+                            color: "white",
+                            border: "none",
+                            padding: "4px 8px",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                            flex: 1,
+                          }}
+                        >
+                          Complete
+                        </button>
+                        <button
+                          onClick={() => handleCancelPickup(pickup)}
+                          style={{
+                            backgroundColor: "#f44336",
+                            color: "white",
+                            border: "none",
+                            padding: "4px 8px",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            fontSize: "12px",
+                            flex: 1,
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      {i < group.pickups.length - 1 && (
+                        <hr
+                          style={{
+                            margin: "8px 0",
+                            border: "none",
+                            borderTop: "1px solid rgba(0,0,0,0.1)",
+                          }}
+                        />
+                      )}
+                    </div>
+                  ))}
                 </div>
               </Popup>
+              <Tooltip direction="right" offset={[10, 0]}>
+                {group.pickups.length} Active Pickup
+                {group.pickups.length > 1 ? "s" : ""}
+              </Tooltip>
             </Marker>
           ))}
         </MapContainer>

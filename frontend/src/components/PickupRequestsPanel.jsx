@@ -1,7 +1,18 @@
-import React from 'react';
-import '../css/PickupRequestsPanel.css';
+import React from "react";
+import "../css/PickupRequestsPanel.css";
 
-const PickupRequestsPanel = ({ pickupRequests, activePickups, onAccept, onComplete, onCancel }) => {
+const PickupRequestsPanel = ({
+  pickupRequests,
+  activePickups,
+  onAccept,
+  onComplete,
+  onCancel,
+}) => {
+  // If there are no requests and no active pickups, don't render the panel
+  if (pickupRequests.length === 0 && activePickups.length === 0) {
+    return null;
+  }
+
   return (
     <div className="pickup-requests-panel">
       {pickupRequests.length > 0 && (
@@ -15,7 +26,7 @@ const PickupRequestsPanel = ({ pickupRequests, activePickups, onAccept, onComple
           ))}
         </div>
       )}
-      
+
       {activePickups.length > 0 && (
         <div className="active-pickups">
           <h3>Active Pickups</h3>
@@ -34,4 +45,4 @@ const PickupRequestsPanel = ({ pickupRequests, activePickups, onAccept, onComple
   );
 };
 
-export default PickupRequestsPanel; 
+export default PickupRequestsPanel;

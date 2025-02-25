@@ -18,6 +18,9 @@ import { io } from "socket.io-client";
 import { calculateDistance } from "../utils/locationUtils";
 import { getCookie } from "../utils/cookieUtils";
 import PaymentQR from "../components/PaymentQR";
+import { connectSocket, subscribeToLocation } from "../utils/websocketService";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Fix for default Leaflet icons issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -89,21 +92,19 @@ const ShutlLoggedIn = () => {
   const socket = useRef(null);
   const watchIdRef = useRef(null);
   const popupRef = useRef(null);
+  const locationUpdateInterval = useRef(null);
 
   useEffect(() => {
-    socket.current = io(SOCKET_URL, {
-      transports: ["websocket"],
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
+    socket.current = connectSocket();
 
     // Join tracking for all shuttles
     ["SHUTL001", "SHUTL002", "SHUTL003"].forEach((shuttleId) => {
       socket.current.emit("join_shuttle_tracking", shuttleId);
     });
 
-    socket.current.on("shuttle_location", (data) => {
+    // Subscribe to location updates
+    subscribeToLocation((data) => {
+      console.log("Received location update:", data);
       setShuttleLocations((prev) => ({
         ...prev,
         [data.shuttleId]: {
@@ -114,18 +115,10 @@ const ShutlLoggedIn = () => {
       }));
     });
 
-    socket.current.on("shuttle_disconnected", (data) => {
+    // Clean up stale locations every 5 seconds
+    locationUpdateInterval.current = setInterval(() => {
       setShuttleLocations((prev) => {
-        const updated = { ...prev };
-        delete updated[data.shuttleId];
-        return updated;
-      });
-    });
-
-    // Cleanup stale locations
-    const cleanupInterval = setInterval(() => {
-      const now = new Date();
-      setShuttleLocations((prev) => {
+        const now = new Date();
         const filtered = Object.entries(prev).reduce((acc, [id, data]) => {
           if (now - new Date(data.lastUpdate) < 10000) {
             // 10 seconds threshold
@@ -137,33 +130,18 @@ const ShutlLoggedIn = () => {
       });
     }, 5000);
 
-    socket.current.on("new_notification", (notification) => {
-      setNotifications((prev) => {
-        const updatedNotifications = [notification, ...prev];
-        return updatedNotifications.slice(0, 5); // Keep only the 5 most recent notifications
-      });
-      setActivePopup("notifications");
-    });
-
-    socket.current.on("connect", () => {
-      console.log("Socket connected in ShutlLoggedIn");
-    });
-
-    socket.current.on("connect_error", (error) => {
-      console.error("Socket connection error in ShutlLoggedIn:", error);
-    });
-
     return () => {
-      clearInterval(cleanupInterval);
+      if (locationUpdateInterval.current) {
+        clearInterval(locationUpdateInterval.current);
+      }
       if (socket.current) {
         socket.current.disconnect();
       }
-      socket.current.off("new_notification");
     };
   }, []);
 
   useEffect(() => {
-    console.log("Current shuttle locations:", shuttleLocations);
+    console.log("Updated shuttle locations:", shuttleLocations);
   }, [shuttleLocations]);
 
   useEffect(() => {
@@ -277,7 +255,7 @@ const ShutlLoggedIn = () => {
     fetchInitialNotifications();
   }, []);
 
-  // Add this function to handle the pickup request
+  // Update the handlePickupRequest function
   const handlePickupRequest = async (e, shuttleId) => {
     e.stopPropagation();
     if (socket.current) {
@@ -296,10 +274,26 @@ const ShutlLoggedIn = () => {
         };
         console.log("Sending pickup request:", request);
         socket.current.emit("pickup_request", request);
-        alert("Pickup request sent!");
+        toast.success("Pickup request sent successfully!", {
+          position: "bottom-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
       } catch (error) {
         console.error("Error sending pickup request:", error);
-        alert("Error sending pickup request. Please try again.");
+        toast.error("Error sending pickup request. Please try again.", {
+          position: "bottom-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
       }
     }
   };
@@ -499,6 +493,19 @@ const ShutlLoggedIn = () => {
       )}
 
       {showPaymentQR && <PaymentQR onClose={() => setShowPaymentQR(false)} />}
+
+      <ToastContainer
+        position="bottom-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
     </>
   );
 };

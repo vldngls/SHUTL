@@ -5,61 +5,70 @@ const setupSocket = (io, db) => {
   const shuttleLocations = new Map();
   const activePickupRequests = new Map(); // Store active pickup requests
 
-  io.on("connection", async (socket) => {
+  io.on("connection", (socket) => {
     // SHUTL-Leb: User connection and status update
     console.log("✅ User connected:", socket.id);
     let userId = socket.handshake.query.userId;
     console.log(`🔍 Retrieved userId from handshake: ${userId}`);
 
-    if (!userId) {
-      const token = socket.handshake.headers.cookie
-        ?.split("; ")
-        .find((row) => row.startsWith("token="))
-        ?.split("=")[1];
+    // Handle user authentication and status updates
+    const handleUserAuth = async () => {
+      if (!userId) {
+        const token = socket.handshake.headers.cookie
+          ?.split("; ")
+          .find((row) => row.startsWith("token="))
+          ?.split("=")[1];
 
-      if (token) {
-        try {
-          const decoded = jwt.verify(token, process.env.JWT_SECRET);
-          const cursor = db.collection("users").find({ email: decoded.email });
-          const user = await cursor.next();
+        if (token) {
+          try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const cursor = db
+              .collection("users")
+              .find({ email: decoded.email });
+            const user = await cursor.next();
 
-          if (user) {
-            userId = user._id.toString();
-            socket.userId = userId; // Store user ID in socket session
-            console.log(`🔍 Retrieved userId from email: ${userId}`);
-          } else {
-            console.error("❌ No user found with the provided email.");
+            if (user) {
+              userId = user._id.toString();
+              socket.userId = userId; // Store user ID in socket session
+              console.log(`🔍 Retrieved userId from email: ${userId}`);
+            } else {
+              console.error("❌ No user found with the provided email.");
+              return;
+            }
+          } catch (err) {
+            console.error("❌ Error decoding token or finding user:", err);
             return;
           }
-        } catch (err) {
-          console.error("❌ Error decoding token or finding user:", err);
+        } else {
+          console.error("❌ No token provided in WebSocket connection.");
           return;
         }
       } else {
-        console.error("❌ No token provided in WebSocket connection.");
-        return;
+        socket.userId = userId; // Store user ID in socket session
       }
-    } else {
-      socket.userId = userId; // Store user ID in socket session
-    }
 
-    try {
-      await User.findByIdAndUpdate(userId, {
-        status: "active",
-        last_active: new Date(),
-      });
-      console.log(`✅ Updated user ${userId} to active`);
-      io.emit("status_update", { userId, status: "active" });
-    } catch (err) {
-      console.error("❌ Error updating user status:", err);
-    }
+      try {
+        await User.findByIdAndUpdate(userId, {
+          status: "active",
+          last_active: new Date(),
+        });
+        console.log(`✅ Updated user ${userId} to active`);
+        io.emit("status_update", { userId, status: "active" });
+      } catch (err) {
+        console.error("❌ Error updating user status:", err);
+      }
+    };
+
+    // Initialize user authentication
+    handleUserAuth().catch((err) => {
+      console.error("Error in user authentication:", err);
+    });
 
     // HEAD: Shuttle tracking - join room for shuttle tracking
     socket.on("join_shuttle_tracking", (shuttleId) => {
-      socket.join(`shuttle_${shuttleId}`);
-      console.log(
-        `Socket ${socket.id} joined shuttle tracking for ${shuttleId}`
-      );
+      const roomName = `shuttle_${shuttleId}`;
+      socket.join(roomName);
+      console.log(`Socket ${socket.id} joined ${roomName}`);
 
       // Send current location if exists
       const currentLocation = shuttleLocations.get(shuttleId);
@@ -74,18 +83,22 @@ const setupSocket = (io, db) => {
 
     // Merge shuttle_location event handlers
     socket.on("shuttle_location", (data) => {
-      // HEAD branch functionality: update location and broadcast to all
       const { shuttleId, coordinates, timestamp } = data;
+      console.log("📍 Received shuttle location:", data);
+
+      // Store the location
       shuttleLocations.set(shuttleId, {
         coordinates,
         timestamp,
         socketId: socket.id,
       });
-      io.emit("shuttle_location", { shuttleId, coordinates, timestamp });
 
-      // SHUTL-Leb branch functionality: log and broadcast (except sender)
-      console.log("📍 Received shuttle location:", data);
-      socket.broadcast.emit("shuttle_location", data);
+      // Broadcast to all clients tracking this shuttle
+      io.to(`shuttle_${shuttleId}`).emit("shuttle_location", {
+        shuttleId,
+        coordinates,
+        timestamp,
+      });
     });
 
     // Messaging system (from HEAD)
@@ -94,54 +107,67 @@ const setupSocket = (io, db) => {
       io.emit("message", msg);
     });
 
-    // Merge pickup_request event handlers
+    // Pickup requests
     socket.on("pickup_request", (request) => {
-      // HEAD branch functionality: store and broadcast with a generated requestId
-      console.log("Received pickup request:", request);
-      const requestId = Date.now().toString(); // Generate unique ID
-      activePickupRequests.set(requestId, {
-        ...request,
-        requestId,
-        status: "pending",
-      });
-      io.emit("pickup_request", {
-        ...request,
-        requestId,
-      });
-
-      // SHUTL-Leb branch functionality: log and broadcast to others
       console.log("🚖 Received pickup request:", request);
-      socket.broadcast.emit("pickup_request", request);
+      // Check if a similar request already exists
+      const isDuplicate = Array.from(activePickupRequests.values()).some(
+        (existing) =>
+          existing.shuttleId === request.shuttleId &&
+          existing.status === "pending" &&
+          Date.now() - new Date(existing.timestamp).getTime() < 5000 // Within 5 seconds
+      );
+
+      if (!isDuplicate) {
+        const requestId = Date.now().toString();
+        const enhancedRequest = {
+          ...request,
+          requestId,
+          status: "pending",
+          timestamp: new Date().toISOString(),
+        };
+        activePickupRequests.set(requestId, enhancedRequest);
+
+        // Emit to all connected clients instead of just the shuttle room
+        io.emit("pickup_request", enhancedRequest);
+        console.log(
+          "📢 Emitted pickup request to all clients:",
+          enhancedRequest
+        );
+      } else {
+        console.log("🚫 Duplicate pickup request ignored");
+      }
     });
 
     // Merge pickup_accepted event handlers
     socket.on("pickup_accepted", (request) => {
-      // HEAD branch functionality: update request status and notify all clients
-      console.log("Pickup request accepted:", request);
+      console.log("✅ Pickup request accepted:", request);
       const pickupRequest = activePickupRequests.get(request.requestId);
-      if (pickupRequest) {
-        activePickupRequests.set(request.requestId, {
+      if (pickupRequest && pickupRequest.status === "pending") {
+        const updatedRequest = {
           ...pickupRequest,
           status: "accepted",
           driverId: socket.id,
-        });
+        };
+        activePickupRequests.set(request.requestId, updatedRequest);
         io.emit("pickup_request_taken", request.requestId);
+        io.emit("pickup_accepted", updatedRequest);
       }
-
-      // SHUTL-Leb branch functionality: log and emit accepted event
-      console.log("✅ Pickup request accepted:", request);
-      io.emit("pickup_accepted", request);
     });
 
     // HEAD branch additional pickup events
     socket.on("pickup_completed", (requestId) => {
-      activePickupRequests.delete(requestId);
-      io.emit("pickup_completed", requestId);
+      if (activePickupRequests.has(requestId)) {
+        activePickupRequests.delete(requestId);
+        io.emit("pickup_completed", requestId);
+      }
     });
 
     socket.on("pickup_cancelled", (requestId) => {
-      activePickupRequests.delete(requestId);
-      io.emit("pickup_cancelled", requestId);
+      if (activePickupRequests.has(requestId)) {
+        activePickupRequests.delete(requestId);
+        io.emit("pickup_cancelled", requestId);
+      }
     });
 
     // Room Management (Chat or Shuttle Groups)
@@ -177,12 +203,13 @@ const setupSocket = (io, db) => {
 
     // Merge disconnect events
     socket.on("disconnect", async () => {
-      // HEAD branch functionality: remove shuttle location if this socket was tracking it
+      console.log("User disconnected:", socket.id);
+
+      // Remove shuttle locations for this socket
       for (const [shuttleId, data] of shuttleLocations.entries()) {
         if (data.socketId === socket.id) {
           shuttleLocations.delete(shuttleId);
           io.emit("shuttle_disconnected", { shuttleId });
-          break;
         }
       }
 
@@ -202,6 +229,17 @@ const setupSocket = (io, db) => {
           console.error("❌ Error updating disconnect status:", err);
         }
       }
+    });
+
+    // Add these handlers
+    socket.on("check_room", (room, callback) => {
+      const isInRoom = socket.rooms.has(room);
+      callback({ inRoom: isInRoom, room, socketId: socket.id });
+    });
+
+    socket.on("list_rooms", (callback) => {
+      const rooms = Array.from(socket.rooms);
+      callback(rooms);
     });
   });
 };

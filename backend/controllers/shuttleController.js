@@ -377,3 +377,46 @@ export const getRecentTrips = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getShuttleStats = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Get all trips for today
+    const todayTrips = await ShuttleTrip.find({
+      date: {
+        $gte: today,
+        $lt: tomorrow,
+      },
+    }).lean();
+
+    // Calculate stats per shuttle
+    const stats = todayTrips.reduce((acc, trip) => {
+      const shuttleId = trip.shuttleNumber;
+      if (!acc[shuttleId]) {
+        acc[shuttleId] = {
+          totalPassengers: 0,
+          roundTrips: 0,
+        };
+      }
+
+      // Add passengers
+      acc[shuttleId].totalPassengers += trip.passengerCount || 0;
+
+      // Count round trips (when status is "In")
+      if (trip.status === "In") {
+        acc[shuttleId].roundTrips += 1;
+      }
+
+      return acc;
+    }, {});
+
+    res.status(200).json(stats);
+  } catch (error) {
+    console.error("Error getting shuttle stats:", error);
+    res.status(500).json({ error: error.message });
+  }
+};

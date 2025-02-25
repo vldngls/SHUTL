@@ -10,6 +10,7 @@ import {
   getHourlyPassengers,
   getShuttleRouteTimes,
   getRecentTrips,
+  getShuttleStats,
 } from "../controllers/shuttleController.js";
 
 const router = express.Router();
@@ -43,5 +44,8 @@ router.get("/route-times", getShuttleRouteTimes);
 
 // Add this new route
 router.get("/recent-trips", getRecentTrips);
+
+// Add this new route
+router.get("/stats", getShuttleStats);
 
 export default router;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "../css/TellerSummary.css";
 import ShuttleDetails from "./ShuttleDetails"; // Import ShuttleDetails component
 import axios from "axios";
@@ -13,6 +13,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { io } from "socket.io-client";
 
 ChartJS.register(
   CategoryScale,
@@ -33,6 +34,11 @@ const TellerSummary = ({ onClose }) => {
   const [hourlyPassengers, setHourlyPassengers] = useState(
     new Array(17).fill(0)
   );
+  const [shuttleLocations, setShuttleLocations] = useState({});
+  const [shuttleStats, setShuttleStats] = useState({});
+  const socket = useRef(null);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const SOCKET_URL = API_BASE_URL.replace("/api", "");
 
   // Shuttle data
   const shuttles = [
@@ -73,6 +79,85 @@ const TellerSummary = ({ onClose }) => {
       ],
     },
   ];
+
+  // Initialize socket connection
+  useEffect(() => {
+    socket.current = io(SOCKET_URL, {
+      transports: ["websocket"],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
+
+    // Join tracking for all shuttles
+    ["001", "002", "003"].forEach((shuttleId) => {
+      socket.current.emit("join_shuttle_tracking", `SHUTL${shuttleId}`);
+    });
+
+    socket.current.on("shuttle_location", async (data) => {
+      const streetName = await getStreetName(
+        data.coordinates[0],
+        data.coordinates[1]
+      );
+
+      setShuttleLocations((prev) => ({
+        ...prev,
+        [data.shuttleId]: {
+          coordinates: data.coordinates,
+          lastUpdate: new Date(),
+          streetName: streetName,
+        },
+      }));
+    });
+
+    // Cleanup stale locations
+    const cleanupInterval = setInterval(() => {
+      setShuttleLocations((prev) => {
+        const now = new Date();
+        return Object.entries(prev).reduce((acc, [id, data]) => {
+          if (now - new Date(data.lastUpdate) < 10000) {
+            acc[id] = data;
+          }
+          return acc;
+        }, {});
+      });
+    }, 5000);
+
+    return () => {
+      clearInterval(cleanupInterval);
+      if (socket.current) {
+        socket.current.disconnect();
+      }
+    };
+  }, []);
+
+  // Fetch shuttle statistics
+  useEffect(() => {
+    const fetchShuttleStats = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/shuttle/stats`);
+        setShuttleStats(response.data);
+      } catch (error) {
+        console.error("Error fetching shuttle stats:", error);
+      }
+    };
+
+    fetchShuttleStats();
+  }, []);
+
+  // Function to get street name from coordinates
+  const getStreetName = async (lat, lng) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+      );
+      const data = await response.json();
+      return data.address.road || "Unknown location";
+    } catch (error) {
+      console.error("Error getting street name:", error);
+      return "Unknown location";
+    }
+  };
 
   useEffect(() => {
     const fetchSummaryData = async () => {
@@ -236,16 +321,31 @@ const TellerSummary = ({ onClose }) => {
         <div className="TellerSummary-section">
           <h3>Current Status</h3>
           <div className="TellerSummary-status">
-            {shuttles.map((shuttle) => (
-              <div className="status-item" key={shuttle.id}>
-                <strong>SHUTL {shuttle.id}</strong>
-                <p>Currently {shuttle.routeLog[0]?.description}</p>
-                <p>
-                  {shuttle.pickUpNotify} Notifys | {shuttle.roundTrips} Trips
-                </p>
-                <button onClick={() => handleOpenShuttle(shuttle)}>Open</button>
-              </div>
-            ))}
+            {["001", "002", "003"].map((shuttleId) => {
+              const fullId = `SHUTL${shuttleId}`;
+              const locationData = shuttleLocations[fullId];
+              const stats = shuttleStats[shuttleId] || {
+                totalPassengers: 0,
+                roundTrips: 0,
+              };
+
+              return (
+                <div className="status-item" key={shuttleId}>
+                  <strong>SHUTL {shuttleId}</strong>
+                  <p>
+                    Currently at{" "}
+                    {locationData?.streetName || "Unknown Location"}
+                  </p>
+                  <p>
+                    {stats.totalPassengers} Passengers | {stats.roundTrips}{" "}
+                    Trips
+                  </p>
+                  <button onClick={() => handleOpenShuttle({ id: shuttleId })}>
+                    Open
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
 

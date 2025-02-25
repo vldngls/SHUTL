@@ -1,36 +1,30 @@
 import { io } from "socket.io-client";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const SOCKET_URL = API_BASE_URL.replace('/api', '');
+const SOCKET_URL = API_BASE_URL.replace("/api", "");
 
 let socket = null;
 
 export const connectSocket = () => {
   if (!socket || socket.disconnected) {
-    const token = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("token="))
-      ?.split("=")[1];
-
     socket = io(SOCKET_URL, {
       transports: ["websocket"],
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
       withCredentials: true,
-      auth: { token }
     });
 
     socket.on("connect", () => {
-      console.log("Socket connected:", socket.id);
+      console.log("Socket connected with ID:", socket.id);
     });
 
     socket.on("disconnect", (reason) => {
-      console.warn("Socket disconnected:", reason);
+      console.log("Socket disconnected:", reason);
     });
 
     socket.on("connect_error", (error) => {
-      console.error("Connection error:", error);
+      console.error("Socket connection error:", error);
     });
   }
   return socket;
@@ -63,14 +57,31 @@ export const subscribeToMessages = (callback) => {
 
 // Location-specific socket events
 export const sendLocation = (locationData) => {
-  if (socket && socket.connected) {
-    socket.emit("shuttle_location", locationData);
+  if (!socket || !socket.connected) {
+    console.warn("Cannot send location: socket not connected");
+    return false;
   }
+
+  console.log("Sending location data:", locationData);
+  socket.emit("shuttle_location", locationData);
+  return true;
 };
 
 export const subscribeToLocation = (callback) => {
-  if (socket) {
-    socket.on("shuttle_location", callback);
-  }
+  if (!socket) return;
+
+  socket.on("shuttle_location", (data) => {
+    console.log("Received shuttle location:", data);
+    callback(data);
+  });
 };
 
+export const joinShuttleTracking = (shuttleId) => {
+  if (!socket || !socket.connected) {
+    console.warn("Cannot join tracking: socket not connected");
+    return;
+  }
+
+  console.log("Joining tracking for shuttle:", shuttleId);
+  socket.emit("join_shuttle_tracking", shuttleId);
+};
