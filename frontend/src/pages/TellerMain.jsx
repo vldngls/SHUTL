@@ -54,7 +54,6 @@ const TellerMain = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
   const [isMessageBoxOpen, setIsMessageBoxOpen] = useState(false);
-  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
@@ -226,7 +225,6 @@ const TellerMain = () => {
   const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
   const toggleProfilePopup = () => setIsProfilePopupOpen(!isProfilePopupOpen);
   const toggleMessageBox = () => setIsMessageBoxOpen(!isMessageBoxOpen);
-  const toggleSchedule = () => setIsScheduleOpen(!isScheduleOpen);
   const toggleNotification = () => {
     setActivePopup(activePopup === "notifications" ? null : "notifications");
   };
@@ -321,13 +319,6 @@ const TellerMain = () => {
               <img
                 src="/message.png"
                 alt="Message Icon"
-                className="TellerMain-icon-image"
-              />
-            </button>
-            <button className="TellerMain-icon-btn" onClick={toggleSchedule}>
-              <img
-                src="/calendar.png"
-                alt="Schedule Icon"
                 className="TellerMain-icon-image"
               />
             </button>

@@ -2,12 +2,37 @@ import React, { useState, useEffect } from "react";
 import "../css/TellerSummary.css";
 import ShuttleDetails from "./ShuttleDetails"; // Import ShuttleDetails component
 import axios from "axios";
+import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const TellerSummary = ({ onClose }) => {
   const [selectedShuttle, setSelectedShuttle] = useState(null); // State to handle open modal
   const [roundTrips, setRoundTrips] = useState(0);
   const [totalPassengers, setTotalPassengers] = useState(0);
   const [activeShuttles, setActiveShuttles] = useState(0);
+  const [routeMetrics, setRouteMetrics] = useState({});
+  const [hourlyPassengers, setHourlyPassengers] = useState(
+    new Array(17).fill(0)
+  );
 
   // Shuttle data
   const shuttles = [
@@ -53,17 +78,23 @@ const TellerSummary = ({ onClose }) => {
     const fetchSummaryData = async () => {
       try {
         const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-        const summaryResponse = await axios.get(
-          `${API_BASE_URL}/shuttle/summary`
-        );
-        const { roundTrips, totalPassengers, activeShuttles } =
-          summaryResponse.data;
+        const response = await axios.get(`${API_BASE_URL}/shuttle/summary`);
 
-        console.log("Summary Response:", summaryResponse.data); // Add this for debugging
+        console.log("API Response:", response.data);
+
+        const {
+          roundTrips,
+          totalPassengers,
+          activeShuttles,
+          routeMetrics,
+          hourlyPassengers,
+        } = response.data;
 
         setRoundTrips(roundTrips);
         setTotalPassengers(totalPassengers);
         setActiveShuttles(activeShuttles);
+        setRouteMetrics(routeMetrics || {});
+        setHourlyPassengers(hourlyPassengers || new Array(17).fill(0));
       } catch (error) {
         console.error("Error fetching summary data:", error);
       }
@@ -84,6 +115,64 @@ const TellerSummary = ({ onClose }) => {
 
   const handleCloseShuttle = () => {
     setSelectedShuttle(null); // Close the modal
+  };
+
+  // Chart configuration
+  const chartData = {
+    labels: Array.from({ length: 17 }, (_, i) => `${i + 6}:00-${i + 7}:00`),
+    datasets: [
+      {
+        label: "Passengers per Hour",
+        data: hourlyPassengers,
+        fill: false,
+        borderColor: "#4A90E2",
+        tension: 0.4,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        callbacks: {
+          title: (context) => `Time: ${context[0].label}`,
+          label: (context) => `Passengers: ${context.raw}`,
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 5,
+        },
+      },
+      x: {
+        grid: {
+          display: false,
+        },
+        ticks: {
+          maxRotation: 45,
+          minRotation: 45,
+          font: {
+            size: 10,
+          },
+        },
+      },
+    },
+    layout: {
+      padding: {
+        right: 30,
+        left: 10,
+        top: 10,
+        bottom: 10,
+      },
+    },
   };
 
   return (
@@ -119,30 +208,27 @@ const TellerSummary = ({ onClose }) => {
         {/* Total Passenger Section */}
         <div className="TellerSummary-section">
           <h3>Total Passenger</h3>
-          <div className="TellerSummary-chart">[Passenger Chart]</div>{" "}
-          {/* Placeholder for a chart */}
+          <div className="TellerSummary-chart">
+            <Line data={chartData} options={chartOptions} />
+          </div>
         </div>
 
         {/* Route Time Section */}
         <div className="TellerSummary-section">
           <h3>Route Time</h3>
           <div className="TellerSummary-route">
-            <div>
-              <strong>SHUTL 001</strong>
-              <p>
-                1 hr 16 min route
-                <br />
-                32 min departure
-              </p>
-            </div>
-            <div>
-              <strong>SHUTL 002</strong>
-              <p>
-                1 hr 16 min route
-                <br />
-                32 min departure
-              </p>
-            </div>
+            {Object.entries(routeMetrics).map(([shuttleNumber, metrics]) => (
+              <div key={shuttleNumber}>
+                <strong>SHUTL {shuttleNumber}</strong>
+                <p>
+                  <span>{metrics.averageRouteMinutes} min</span> average route
+                  time
+                  <br />
+                  <span>{metrics.averageDepartureMinutes} min</span> average
+                  departure time
+                </p>
+              </div>
+            ))}
           </div>
         </div>
 

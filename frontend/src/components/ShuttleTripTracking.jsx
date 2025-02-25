@@ -18,9 +18,15 @@ const ShuttleTripTracking = ({ onClose }) => {
   });
 
   const [pendingOutTrips, setPendingOutTrips] = useState([]);
+  const [recentTrips, setRecentTrips] = useState([]);
+
+  // Add pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const tripsPerPage = 5;
 
   useEffect(() => {
     fetchPendingOutTrips();
+    fetchRecentTrips();
   }, []);
 
   const fetchPendingOutTrips = async () => {
@@ -33,8 +39,35 @@ const ShuttleTripTracking = ({ onClose }) => {
     }
   };
 
+  const fetchRecentTrips = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/shuttle/recent-trips`);
+      const data = await response.json();
+      setRecentTrips(data);
+    } catch (error) {
+      console.error("Error fetching recent trips:", error);
+    }
+  };
+
   const handleChange = (e) => {
-    setTripData({ ...tripData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    if (name === "roundTripId" && value) {
+      // Find the matching out trip
+      const matchingTrip = pendingOutTrips.find((trip) => trip._id === value);
+      if (matchingTrip) {
+        // Auto-fill shuttle number and driver
+        setTripData((prev) => ({
+          ...prev,
+          roundTripId: value,
+          shuttleNumber: matchingTrip.shuttleNumber,
+          driver: matchingTrip.driver,
+        }));
+      }
+    } else {
+      // Handle other input changes normally
+      setTripData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -74,6 +107,7 @@ const ShuttleTripTracking = ({ onClose }) => {
           roundTripId: "",
         });
         fetchPendingOutTrips();
+        fetchRecentTrips();
       } else {
         const errorData = await response.json();
         alert(errorData.message || "Failed to add shuttle trip");
@@ -84,34 +118,108 @@ const ShuttleTripTracking = ({ onClose }) => {
     }
   };
 
+  // Calculate pagination
+  const indexOfLastTrip = currentPage * tripsPerPage;
+  const indexOfFirstTrip = indexOfLastTrip - tripsPerPage;
+  const currentTrips = recentTrips.slice(indexOfFirstTrip, indexOfLastTrip);
+  const totalPages = Math.ceil(recentTrips.length / tripsPerPage);
+
+  // Pagination controls
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Add click handler for background
+  const handleBackgroundClick = (e) => {
+    // Check if the click is on the background (popup container) and not its children
+    if (e.target.className === "TellerMain-TripTracking-popup") {
+      onClose();
+    }
+  };
+
   return (
-    <div className="TellerMain-TripTracking-popup">
+    <div
+      className="TellerMain-TripTracking-popup"
+      onClick={handleBackgroundClick}
+    >
       <div className="shuttle-tracking-container">
-        <div className="pending-trips-table">
-          <h3>Pending Out Trips</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Shuttle Number</th>
-                <th>Driver</th>
-                <th>Passengers</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pendingOutTrips.map((trip) => (
-                <tr key={trip._id}>
-                  <td>{trip.time}</td>
-                  <td>{trip.shuttleNumber}</td>
-                  <td>{trip.driver}</td>
-                  <td>{trip.passengerCount}</td>
+        <div className="tables-section">
+          <div className="pending-trips-table">
+            <h3>Pending Out Trips</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Shuttle Number</th>
+                  <th>Driver</th>
+                  <th>Passengers</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          {pendingOutTrips.length === 0 && (
-            <p className="no-pending">No pending out trips</p>
-          )}
+              </thead>
+              <tbody>
+                {pendingOutTrips.map((trip) => (
+                  <tr key={trip._id}>
+                    <td>{trip.time}</td>
+                    <td>{trip.shuttleNumber}</td>
+                    <td>{trip.driver}</td>
+                    <td>{trip.passengerCount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {pendingOutTrips.length === 0 && (
+              <p className="no-pending">No pending out trips</p>
+            )}
+          </div>
+          <div className="recent-trips-table">
+            <h3>Recent Trips</h3>
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Shuttle Number</th>
+                    <th>Driver</th>
+                    <th>Status</th>
+                    <th>Passengers</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentTrips.map((trip) => (
+                    <tr key={trip._id} className={trip.status.toLowerCase()}>
+                      <td>{trip.time}</td>
+                      <td>{trip.shuttleNumber}</td>
+                      <td>{trip.driver}</td>
+                      <td>
+                        <span
+                          className={`status-badge ${trip.status.toLowerCase()}`}
+                        >
+                          {trip.status}
+                        </span>
+                      </td>
+                      <td>{trip.passengerCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="pagination">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (pageNumber) => (
+                  <button
+                    key={pageNumber}
+                    onClick={() => handlePageChange(pageNumber)}
+                    className={`pagination-button ${
+                      pageNumber === currentPage ? "active" : ""
+                    }`}
+                  >
+                    {pageNumber}
+                  </button>
+                )
+              )}
+            </div>
+          </div>
         </div>
         <div className="form-section">
           <h2 className="form-title">Add New Trip</h2>
@@ -143,6 +251,7 @@ const ShuttleTripTracking = ({ onClose }) => {
                 name="shuttleNumber"
                 value={tripData.shuttleNumber}
                 onChange={handleChange}
+                readOnly={tripData.status === "In"}
                 required
               />
             </div>
@@ -153,6 +262,7 @@ const ShuttleTripTracking = ({ onClose }) => {
                 name="driver"
                 value={tripData.driver}
                 onChange={handleChange}
+                readOnly={tripData.status === "In"}
                 required
               />
             </div>

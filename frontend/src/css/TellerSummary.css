@@ -10,14 +10,14 @@
 .TellerSummary-header h1 {
   font-size: 36px;
   margin: 0;
-  color: #0c0c0c; /* Set color to white */
+  color: #232323;
   font-weight: bold;
 }
 
 .TellerSummary-header p {
   font-size: 18px;
   margin: 5px 0 0;
-  color: #0c0c0c; /* Set color to white */
+  color: #232323;
 }
 
 /* Modal overlay */
@@ -55,19 +55,17 @@
 
 /* Summary container */
 .TellerSummary-container {
-  background-color: #ffffff9a;
-  padding: 70px 25px 25px; /* Add more padding to push sections lower */
+  background-color: #f5f5f5;
+  padding: 70px 25px 25px;
   border-radius: 12px;
   width: 100%;
-  max-width: 750px; /* Adjust the width for left-side alignment */
-  max-height: 97vh; /* Restrict height to viewport */
-  overflow-y: auto; /* Enable scrolling for content overflow */
-  
+  max-width: 750px;
+  max-height: 97vh;
+  overflow-y: auto;
   position: relative;
-  font-family: "Arial", sans-serif;
-  color: #333;
+  color: #232323;
   box-sizing: border-box;
-  margin-left: 90px; /* Add space to move it slightly to the right */
+  margin-left: 90px;
 
   /* Hide scrollbar but keep scrolling */
   scrollbar-width: none; /* Firefox */
@@ -75,7 +73,20 @@
 }
 
 .TellerSummary-container::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, and Opera */
+  width: 8px;
+}
+
+.TellerSummary-container::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+.TellerSummary-container::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 4px;
+}
+
+.TellerSummary-container::-webkit-scrollbar-thumb:hover {
+  background: #232323;
 }
 
 /* Close button */
@@ -97,61 +108,92 @@
 
 /* Summary Section styling */
 .TellerSummary-section {
-  margin-top: 30px; /* Add margin to push sections lower */
+  margin-top: 30px;
   margin-bottom: 25px;
   padding: 25px;
-  background-color: #f1f3f5;
-  border-radius: 10px;
+  background-color: #ffffff;
+  border-radius: 12px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Title and subtitle styling */
-.TellerSummary-section h1 {
-  font-size: 20px;
-  color: #007bff;
-  margin-bottom: 10px;
+/* Title styling */
+.TellerSummary-section h3 {
+  font-size: 18px;
+  color: #232323;
+  margin-bottom: 20px;
+  font-weight: 600;
 }
 
-.TellerSummary-section p {
+/* Route time grid layout */
+.TellerSummary-route {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+/* Individual shuttle stats card */
+.TellerSummary-route > div {
+  background-color: #f5f5f5;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #d9d9d9;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.TellerSummary-route > div:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Shuttle number styling */
+.TellerSummary-route strong {
+  display: block;
+  font-size: 16px;
+  color: #232323;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #d9d9d9;
+}
+
+/* Route stats styling */
+.TellerSummary-route p {
+  color: #232323;
   font-size: 14px;
-  color: #666;
-  margin-bottom: 15px;
+  line-height: 1.6;
+  margin: 0;
 }
 
-/* 2x2 grid for summary items */
+.TellerSummary-route p span {
+  color: #334155;
+  font-weight: 500;
+}
+
+/* Stats grid layout */
 .TellerSummary-stats {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 2 columns */
-  gap: 10px; /* Space between items */
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
-/* Individual stat item styling */
 .TellerSummary-stats div {
-  background-color: #e9ecef;
-  padding: 15px;
-  border-radius: 8px;
+  background-color: #f5f5f5;
+  padding: 20px;
+  border-radius: 10px;
   text-align: center;
-  font-size: 16px;
-  color: #333;
-  font-weight: bold;
-  transition: background-color 0.2s ease;
+  border: 1px solid #d9d9d9;
 }
 
-.TellerSummary-stats div:hover {
-  background-color: #d1d9e0;
+.TellerSummary-stats strong {
+  display: block;
+  font-size: 24px;
+  color: #232323;
+  margin-bottom: 8px;
 }
 
-/* Placeholder for chart */
-.TellerSummary-chart {
-  height: 140px;
-  background-color: #dee2e6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  color: #777;
+.TellerSummary-stats div span {
+  color: #64748b;
   font-size: 14px;
-  margin-top: 15px;
 }
 
 /* Current status items */
@@ -193,20 +235,20 @@
 
 /* Transaction history button */
 .transaction-btn {
-  background-color: #28a745;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 15px;
   width: 100%;
-  margin-top: 15px;
+  padding: 12px;
+  background-color: #232323;
+  color: #f5f5f5;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
   transition: background-color 0.2s ease;
+  margin-top: 15px;
 }
 
 .transaction-btn:hover {
-  background-color: #218838;
+  background-color: #3a3a3a;
 }
 
 /* Responsive adjustments */
@@ -227,7 +269,10 @@
   }
 
   .TellerSummary-stats {
-    grid-template-columns: repeat(1, 1fr); /* Single column on smaller screens */
+    grid-template-columns: repeat(
+      1,
+      1fr
+    ); /* Single column on smaller screens */
   }
 
   .status-item strong {
@@ -240,6 +285,10 @@
 
   .status-item button {
     font-size: 13px; /* Smaller buttons */
+  }
+
+  .TellerSummary-chart {
+    height: 250px; /* Slightly smaller on mobile */
   }
 }
 
@@ -269,4 +318,67 @@
     font-size: 12px;
     padding: 8px; /* Smaller buttons */
   }
+}
+
+/* Chart section */
+.TellerSummary-chart {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #d9d9d9;
+}
+
+/* Update chart options in the component */
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      display: false,
+    },
+    tooltip: {
+      backgroundColor: '#ffffff',
+      titleColor: '#232323',
+      bodyColor: '#232323',
+      borderColor: '#d9d9d9',
+      borderWidth: 1,
+    }
+  },
+  scales: {
+    y: {
+      beginAtZero: true,
+      grid: {
+        color: '#d9d9d9',
+        drawBorder: false,
+      },
+      ticks: {
+        color: '#232323',
+      }
+    },
+    x: {
+      grid: {
+        display: false,
+      },
+      ticks: {
+        color: '#232323',
+      }
+    }
+  }
+};
+
+/* Fare breakdown section */
+.TellerSummary-fare {
+  background-color: #f5f5f5;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #d9d9d9;
+}
+
+.TellerSummary-fare p {
+  color: #232323;
+  margin: 10px 0;
+}
+
+.TellerSummary-fare strong {
+  color: #232323;
 }

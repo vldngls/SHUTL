@@ -7,6 +7,9 @@ import {
   deleteTrip,
   getShuttleSummary,
   getPendingOutTrips,
+  getHourlyPassengers,
+  getShuttleRouteTimes,
+  getRecentTrips,
 } from "../controllers/shuttleController.js";
 
 const router = express.Router();
@@ -31,5 +34,14 @@ router.get("/summary", getShuttleSummary);
 
 // Add the new pending trips route
 router.get("/pending-trips", getPendingOutTrips);
+
+// Add this new route
+router.get("/hourly-passengers", getHourlyPassengers);
+
+// Add this new route
+router.get("/route-times", getShuttleRouteTimes);
+
+// Add this new route
+router.get("/recent-trips", getRecentTrips);
 
 export default router;
