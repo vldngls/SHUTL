@@ -7,6 +7,7 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
   const [transactions, setTransactions] = useState([]);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const modalRef = useRef(null);
+  const collectFareRef = useRef(null);
 
   const fetchTransactions = async () => {
     try {
@@ -26,7 +27,11 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (modalRef.current && !modalRef.current.contains(event.target)) {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target) &&
+        (!collectFareRef.current || !collectFareRef.current.contains(event.target))
+      ) {
         onClose();
       }
     };
@@ -103,11 +108,13 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
       </div>
 
       {showCollectFare && (
-        <CollectFare
-          onClose={() => setShowCollectFare(false)}
-          shuttleID={shuttle.id}
-          onTransactionSaved={fetchTransactions}
-        />
+        <div ref={collectFareRef}>
+          <CollectFare
+            onClose={() => setShowCollectFare(false)}
+            shuttleID={shuttle.id}
+            onTransactionSaved={fetchTransactions}
+          />
+        </div>
       )}
     </div>
   );
