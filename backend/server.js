@@ -23,6 +23,7 @@ import onfieldShuttleRoutes from "./routes/onfieldShuttleRoutes.js";
 import setupSocket from "./socketHandler.js";
 import driverProfileRoutes from "./routes/driverProfileRoutes.js";
 import suggestionRoutes from "./routes/suggestionRoutes.js";
+import operationalHoursRoutes from "./routes/operationalHoursRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,6 +66,7 @@ app.use("/api/shuttleassignments", shuttleAssignmentRoutes);
 app.use("/api/onfieldshuttles", onfieldShuttleRoutes);
 app.use("/api/driver-profiles", driverProfileRoutes);
 app.use("/api/suggestions", suggestionRoutes);
+app.use("/api/operational-hours", operationalHoursRoutes);
 
 connectDB();
 
