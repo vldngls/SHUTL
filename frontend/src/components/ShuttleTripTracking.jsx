@@ -5,7 +5,7 @@ import "../css/ShuttleTripTracking.css"; // Import the CSS file
 const ShuttleTripTracking = ({ onClose }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [tripData, setTripData] = useState({
-    date: new Date().toISOString().split("T")[0],
+    date: new Date().toLocaleDateString("en-CA"),
     time: new Date().toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
@@ -84,18 +84,41 @@ const ShuttleTripTracking = ({ onClose }) => {
         tripData.roundTripId = `RT-${Date.now()}`;
       }
 
+      // Create a date object in local timezone
+      const [year, month, day] = tripData.date.split("-").map(Number);
+      const [hours, minutes] = tripData.time.split(":").map(Number);
+
+      // Create the date in local timezone
+      const localDate = new Date(year, month - 1, day, hours, minutes);
+
+      // Format the date as an ISO string but preserve the local time
+      const isoString = new Date(
+        Date.UTC(
+          localDate.getFullYear(),
+          localDate.getMonth(),
+          localDate.getDate(),
+          localDate.getHours(),
+          localDate.getMinutes()
+        )
+      ).toISOString();
+
+      const tripDataToSend = {
+        ...tripData,
+        date: isoString,
+      };
+
       const response = await fetch(`${API_BASE_URL}/shuttle/trips`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(tripData),
+        body: JSON.stringify(tripDataToSend),
       });
 
       if (response.ok) {
         alert("Shuttle trip added successfully");
         setTripData({
-          date: new Date().toISOString().split("T")[0],
+          date: new Date().toLocaleDateString("en-CA"),
           time: new Date().toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",

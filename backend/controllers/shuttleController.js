@@ -4,7 +4,24 @@ import ShuttleAssignment from "../models/shuttleAssignment.model.js";
 // Add new shuttle trip record
 export const createTrip = async (req, res) => {
   try {
-    const trip = new ShuttleTrip(req.body);
+    const tripData = req.body;
+
+    // Parse the ISO date string and convert to UTC while preserving the local time
+    const localDate = new Date(tripData.date);
+    const utcDate = new Date(
+      Date.UTC(
+        localDate.getFullYear(),
+        localDate.getMonth(),
+        localDate.getDate(),
+        localDate.getHours(),
+        localDate.getMinutes()
+      )
+    );
+
+    // Update the tripData with the UTC date
+    tripData.date = utcDate;
+
+    const trip = new ShuttleTrip(tripData);
     await trip.save();
     res.status(201).json(trip);
   } catch (error) {
@@ -180,16 +197,37 @@ export const getShuttleSummary = async (req, res) => {
 // Update the getPendingOutTrips function
 export const getPendingOutTrips = async (req, res) => {
   try {
+    // Get today's date in local timezone
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    const todayUTC = new Date(
+      Date.UTC(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+        0,
+        0,
+        0,
+        0
+      )
+    );
+
+    const tomorrowUTC = new Date(
+      Date.UTC(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() + 1,
+        0,
+        0,
+        0,
+        0
+      )
+    );
 
     // First, get all Out trips for today
     const outTrips = await ShuttleTrip.find({
       date: {
-        $gte: today,
-        $lt: tomorrow,
+        $gte: todayUTC,
+        $lt: tomorrowUTC,
       },
       status: "Out",
     }).lean();
@@ -197,8 +235,8 @@ export const getPendingOutTrips = async (req, res) => {
     // Get all In trips for today
     const inTrips = await ShuttleTrip.find({
       date: {
-        $gte: today,
-        $lt: tomorrow,
+        $gte: todayUTC,
+        $lt: tomorrowUTC,
       },
       status: "In",
     }).lean();
