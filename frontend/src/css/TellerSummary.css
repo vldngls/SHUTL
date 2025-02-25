@@ -49,23 +49,23 @@
   align-items: flex-start; /* Align to the top of the screen */
   justify-content: flex-start; /* Align to the left side */
   z-index: 1000;
-  padding: 20px;
+  padding: 0; /* Remove padding to ensure no space at the top */
   overflow: hidden; /* Prevent overlay from scrolling */
 }
 
 /* Summary container */
 .TellerSummary-container {
   background-color: #f5f5f5;
-  padding: 70px 25px 25px;
+  padding: 55px 25px 25px;
   border-radius: 12px;
-  width: 100%;
-  max-width: 750px;
-  max-height: 97vh;
+  width: 50%; /* Default width for larger screens */
+  max-width: none;
+  height: 100vh;
   overflow-y: auto;
   position: relative;
   color: #232323;
   box-sizing: border-box;
-  margin-left: 90px;
+  margin-left: 64px; /* Add margin to the left to avoid covering the sidebar */
 
   /* Hide scrollbar but keep scrolling */
   scrollbar-width: none; /* Firefox */
@@ -270,9 +270,17 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .TellerSummary-container {
-    margin-left: 30px; /* Shift container further for smaller screens */
-    padding: 20px;
-    max-width: 100%; /* Use full width */
+    width: 100%; /* Make the summary smaller */
+    padding: 15px; /* Reduce padding for smaller screens */
+    height: calc(100vh - 50px); /* Adjust height to leave space for taskbar */
+  }
+
+  .TellerSummary-header h1 {
+    font-size: 28px; /* Adjust font size for smaller screens */
+  }
+
+  .TellerSummary-header p {
+    font-size: 16px; /* Adjust font size for smaller screens */
   }
 
   .TellerSummary-section {
@@ -285,10 +293,7 @@
   }
 
   .TellerSummary-stats {
-    grid-template-columns: repeat(
-      1,
-      1fr
-    ); /* Single column on smaller screens */
+    grid-template-columns: repeat(1, 1fr); /* Single column on smaller screens */
   }
 
   .status-item strong {
@@ -310,13 +315,14 @@
 
 @media (max-width: 480px) {
   .TellerSummary-container {
-    margin-left: 10px; /* Further reduce margin for extra small screens */
-    padding: 15px;
+    margin-left: 60px; /* Further reduce margin for extra small screens */
+    padding: 10px;
+    height: calc(100vh - 50px); /* Adjust height to leave space for taskbar */
   }
 
   .TellerSummary-section {
-    margin-top: 15px; /* Adjust margin for extra small screens */
-    padding: 15px;
+    margin-top: 60px; /* Adjust margin for extra small screens */
+    padding: 10px;
     margin-bottom: 10px;
   }
 

@@ -91,7 +91,7 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .ShuttleDetails-container {
-      width: 90%; /* Use almost full screen width */
+      width: 100%; /* Use almost full screen width */
   }
 
   .ShuttleDetails-stats {
