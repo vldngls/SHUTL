@@ -466,3 +466,10 @@ body {
 .TellerMain-close-btn:hover {
   background: #dc2626;
 }
+/* Add this CSS rule for the profile section */
+.TellerMain-navbar-profile {
+  border-top: 1px solid #e0e0e0; /* Add a top border similar to the sidebar */
+  padding-top: 10px; /* Add some padding to separate the border from the content */
+  margin-top: 10px; /* Add margin to ensure spacing from the above elements */
+}
+
