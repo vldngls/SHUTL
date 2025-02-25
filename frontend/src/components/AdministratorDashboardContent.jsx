@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "../css/AdministratorDashboardContent.css";
 import { getCookie } from "../utils/cookieUtils";
+import { getTokenFromCookies } from "../utils/tokenUtils";
 
 const AdministratorDashboardContent = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Base URL from environment variables
@@ -9,6 +10,8 @@ const AdministratorDashboardContent = () => {
   const [notificationMessage, setNotificationMessage] = useState(""); // State for notification message
   const [recipientType, setRecipientType] = useState("Commuter"); // Default recipient type
   const [notificationStatus, setNotificationStatus] = useState(null); // Status message for feedback
+  const [shuttleStats, setShuttleStats] = useState(null);
+  const [shuttleLocations, setShuttleLocations] = useState([]);
 
   useEffect(() => {
     // Function to fetch user counts (total & active)
@@ -31,6 +34,70 @@ const AdministratorDashboardContent = () => {
     const interval = setInterval(fetchUserCounts, 10000); // Refresh every 10 seconds
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const fetchShuttleSummary = async () => {
+      try {
+        const token = getTokenFromCookies();
+        const response = await fetch(`${API_BASE_URL}/shuttle/summary`, {
+          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setShuttleStats({
+          roundTrips: data.roundTrips || 0,
+          totalPassengers: data.totalPassengers || 0,
+          inTrips: data.activeShuttles || 0, // Using activeShuttles for in trips
+          outTrips: data.routeMetrics
+            ? Object.keys(data.routeMetrics).length
+            : 0,
+        });
+      } catch (error) {
+        console.error("Error fetching shuttle summary:", error);
+      }
+    };
+
+    const fetchShuttleLocations = async () => {
+      try {
+        const token = getTokenFromCookies();
+        const response = await fetch(`${API_BASE_URL}/shuttle/locations`, {
+          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setShuttleLocations(data);
+      } catch (error) {
+        console.error("Error fetching shuttle locations:", error);
+      }
+    };
+
+    // Initial fetches
+    fetchShuttleSummary();
+    fetchShuttleLocations();
+
+    // Set up intervals for periodic updates
+    const summaryInterval = setInterval(fetchShuttleSummary, 10000);
+    const locationsInterval = setInterval(fetchShuttleLocations, 5000);
+
+    return () => {
+      clearInterval(summaryInterval);
+      clearInterval(locationsInterval);
+    };
+  }, [API_BASE_URL]);
 
   // Function to handle sending notifications
   const handleSendNotification = async () => {
@@ -63,39 +130,47 @@ const AdministratorDashboardContent = () => {
       {/* Real-Time Status */}
       <div className="AdministratorDashboard-real-time-status">
         <h3>Real Time Status</h3>
-        <div className="AdministratorDashboard-status-grid">
-          <div>
-            <span>3</span>
-            <p>Shuttles</p>
+        {shuttleStats && (
+          <div className="AdministratorDashboard-status-grid">
+            <div className="status-item">
+              <span>{shuttleStats.roundTrips}</span>
+              <p>Round Trips</p>
+            </div>
+            <div className="status-item">
+              <span>{shuttleStats.inTrips}</span>
+              <p>Active Shuttles</p>
+            </div>
+            <div className="status-item">
+              <span>{shuttleStats.outTrips}</span>
+              <p>Total Routes</p>
+            </div>
+            <div className="status-item">
+              <span>{shuttleStats.totalPassengers}</span>
+              <p>Total Passengers</p>
+            </div>
           </div>
-          <div>
-            <span>2</span>
-            <p>Routes</p>
-          </div>
-          <div>
-            <span>1</span>
-            <p>Issues</p>
-          </div>
-          <div>
-            <span>0</span>
-            <p>Offline</p>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* API Requests */}
-      <div className="AdministratorDashboard-api-requests">
-        <h3>API Requests</h3>
-        <div className="AdministratorDashboard-api-details">
-          <div className="AdministratorDashboard-api-circle">
-            {/* Add a chart or pie graph here */}
-          </div>
-          <div className="AdministratorDashboard-api-stats">
-            <h4>Mapbox API</h4>
-            <p>Total Request</p>
-            <h2>6,237</h2>
-            <p>as of 12:42 PM</p>
-          </div>
+      {/* SHUTL Tracking */}
+      <div className="AdministratorDashboard-shutl-tracking">
+        <h3>SHUTL Tracking</h3>
+        <div className="AdministratorDashboard-shutl-grid">
+          {shuttleLocations.map((shuttle) => (
+            <div key={shuttle.shuttleId} className="shutl-status-card">
+              <h4>{shuttle.shuttleId}</h4>
+              <p>
+                Currently at {shuttle.location.streetName || "Unknown Location"}
+              </p>
+              <p>Driver: {shuttle.driverName || "Unassigned"}</p>
+              <p className="status-indicator">
+                Status:{" "}
+                <span className={shuttle.status.toLowerCase()}>
+                  {shuttle.status}
+                </span>
+              </p>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -103,34 +178,17 @@ const AdministratorDashboardContent = () => {
       <div className="AdministratorDashboard-user-stats">
         <h3>User Statistics</h3>
         <div className="AdministratorDashboard-users-number">
-          <p><strong>Current Users:</strong> {totalUsers}</p>
-          <p><strong>Active Users:</strong> <span style={{ color: "green" }}>{activeUsers}</span></p>
+          <p>
+            <strong>Current Users:</strong> {totalUsers}
+          </p>
+          <p>
+            <strong>Active Users:</strong>{" "}
+            <span style={{ color: "green" }}>{activeUsers}</span>
+          </p>
         </div>
       </div>
 
-      {/* Bus Tracking */}
-      <div className="AdministratorDashboard-bus-tracking">
-        <h3>Bus Tracking</h3>
-        <div className="AdministratorDashboard-bus-grid">
-          <div>
-            <h4>SHUTL. 001</h4>
-            <p>Currently at Acosta Street</p>
-            <p>Driver: Salcedo A.</p>
-          </div>
-          <div>
-            <h4>SHUTL. 002</h4>
-            <p>Currently at Madrid Street</p>
-            <p>Driver: Cruz J.</p>
-          </div>
-          <div>
-            <h4>SHUTL. 003</h4>
-            <p>Currently at VistaMall DH</p>
-            <p>Driver: Doe J.</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Announcements - now handles sending notifications */}
+      {/* Announcements Section */}
       <div className="AdministratorDashboard-announcements">
         <h3>Announcements</h3>
         <textarea
@@ -148,8 +206,6 @@ const AdministratorDashboardContent = () => {
           <option value="Teller">Teller</option>
         </select>
         <button onClick={handleSendNotification}>Post</button>
-
-        {/* Display the notification status message */}
         {notificationStatus && (
           <p className="notification-status">{notificationStatus}</p>
         )}
