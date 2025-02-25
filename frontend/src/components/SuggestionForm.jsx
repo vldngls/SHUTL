@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "../css/SuggestionForm.css"; // Make sure to import the CSS for styling
 
 const SuggestionForm = ({ onClose }) => {
@@ -21,6 +23,10 @@ const SuggestionForm = ({ onClose }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Show loading toast
+    const loadingToast = toast.loading("Submitting your suggestion...");
+
     fetch(`${API_BASE_URL}/suggestions/submit`, {
       method: "POST",
       headers: {
@@ -35,15 +41,26 @@ const SuggestionForm = ({ onClose }) => {
         return response.json();
       })
       .then((data) => {
-        // Show success alert after submission
-        alert("Suggestion sent, thank you for your feedback!");
+        // Update loading toast to success
+        toast.update(loadingToast, {
+          render: "Thank you! Your suggestion has been sent successfully.",
+          type: "success",
+          isLoading: false,
+          autoClose: 3000,
+        });
 
         // Close the suggestion form
         onClose();
       })
       .catch((error) => {
         console.error("Error submitting form:", error);
-        alert("An error occurred while submitting your suggestion.");
+        // Update loading toast to error
+        toast.update(loadingToast, {
+          render: "Failed to submit suggestion. Please try again.",
+          type: "error",
+          isLoading: false,
+          autoClose: 3000,
+        });
       });
   };
 
