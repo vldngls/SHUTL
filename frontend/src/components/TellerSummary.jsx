@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import "../css/TellerSummary.css";
 import ShuttleDetails from "./ShuttleDetails"; // Import ShuttleDetails component
 import axios from "axios";
-import { Line } from "react-chartjs-2";
+import { Line, Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,8 +12,10 @@ import {
   Title,
   Tooltip,
   Legend,
+  ArcElement,
 } from "chart.js";
 import { io } from "socket.io-client";
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 ChartJS.register(
   CategoryScale,
@@ -22,7 +24,9 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  ArcElement,
+  ChartDataLabels
 );
 
 const TellerSummary = ({ onClose }) => {
@@ -43,6 +47,7 @@ const TellerSummary = ({ onClose }) => {
     startTime: "05:00",
     endTime: "22:00",
   });
+  const [earningsData, setEarningsData] = useState({ regular: 0, discounted: 0 });
 
   // Shuttle data
   const shuttles = [
@@ -91,6 +96,10 @@ const TellerSummary = ({ onClose }) => {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+    });
+
+    socket.current.on("connect_error", (error) => {
+      console.error("WebSocket connection error:", error);
     });
 
     // Join tracking for all shuttles
@@ -194,6 +203,20 @@ const TellerSummary = ({ onClose }) => {
     fetchSummaryData();
   }, []);
 
+  // Fetch earnings data
+  useEffect(() => {
+    const fetchEarningsData = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/fare-transactions/earnings`);
+        setEarningsData(response.data);
+      } catch (error) {
+        console.error("Error fetching earnings data:", error);
+      }
+    };
+
+    fetchEarningsData();
+  }, [API_BASE_URL]);
+
   const handleOverlayClick = (e) => {
     if (e.target.className === "TellerSummary-modal") {
       onClose();
@@ -266,6 +289,60 @@ const TellerSummary = ({ onClose }) => {
         top: 10,
         bottom: 10,
       },
+    },
+  };
+
+  // Prepare data for the pie chart
+  const pieChartData = {
+    labels: ['Regular', 'Discounted'],
+    datasets: [
+      {
+        data: [earningsData.regular || 0, earningsData.discounted || 0],
+        backgroundColor: ['#4A90E2', '#E27A4A'],
+        borderColor: ['#ffffff', '#ffffff'],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  // Add these options for the pie chart
+  const pieChartOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    width: 200,
+    height: 200,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          padding: 10,
+        },
+      },
+      tooltip: {
+        enabled: true,
+        callbacks: {
+          label: function(context) {
+            const dataset = context.dataset;
+            const total = dataset.data.reduce((acc, data) => acc + data, 0);
+            const value = dataset.data[context.dataIndex];
+            const percentage = ((value / total) * 100).toFixed(1);
+            return `${context.label}: ${value} (${percentage}%)`;
+          }
+        }
+      },
+      datalabels: {
+        color: '#ffffff',
+        font: {
+          weight: 'bold',
+          size: 12
+        },
+        formatter: (value, context) => {
+          const dataset = context.dataset;
+          const total = dataset.data.reduce((acc, data) => acc + data, 0);
+          const percentage = ((value / total) * 100).toFixed(1);
+          return `${percentage}%`;
+        }
+      }
     },
   };
 
@@ -363,22 +440,23 @@ const TellerSummary = ({ onClose }) => {
         {/* Fare Breakdown Section */}
         <div className="TellerSummary-section">
           <h3>Fare Breakdown</h3>
+          <p className="operational-hours-note">
+            (Data for operational hours: {earningsData.operationalHours?.startTime} - {earningsData.operationalHours?.endTime})
+          </p>
+          <div style={{ width: '300px', height: '300px', margin: 'auto' }}>
+            <Pie data={pieChartData} options={pieChartOptions} />
+          </div>
           <div className="TellerSummary-fare">
             <p>
-              <strong>16,880</strong> Net Earning
+              <strong>Total Earnings: ₱{earningsData.totalFare || 0}</strong>
             </p>
             <p>
-              <strong>463</strong> Regular
+              Regular Passengers: <strong>{earningsData.regular || 0}</strong>
             </p>
             <p>
-              <strong>115</strong> Discounted
-            </p>
-            <p>
-              <strong>578</strong> Pick-up
+              Discounted Passengers: <strong>{earningsData.discounted || 0}</strong>
             </p>
           </div>
-          <p>Posted SHUTL. 002 | Trip 12</p>
-          <button className="transaction-btn">Transaction History</button>
         </div>
       </div>
 

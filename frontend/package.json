@@ -19,6 +19,7 @@
     "axios": "^1.7.9",
     "bootstrap": "^5.3.3",
     "chart.js": "^4.4.8",
+    "chartjs-plugin-datalabels": "^2.2.0",
     "framer-motion": "^11.3.31",
     "frontend": "file:",
     "html5-qrcode": "^2.3.8",

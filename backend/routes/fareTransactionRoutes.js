@@ -3,6 +3,7 @@ import {
   createFareTransaction,
   getTransactionsByShuttleID,
   getTransactionsByCommuterEmail,
+  getTotalEarnings,
 } from "../controllers/fareTransactionController.js";
 
 const router = express.Router();
@@ -15,5 +16,8 @@ router.get("/", getTransactionsByShuttleID);
 
 // Route to get transactions by commuter email
 router.get("/commuter", getTransactionsByCommuterEmail);
+
+// Route to get total earnings
+router.get("/earnings", getTotalEarnings);
 
 export default router;

@@ -16,13 +16,31 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
   const [qrResult, setQrResult] = useState("");
   const [qrError, setQrError] = useState("");
   const [scanner, setScanner] = useState(null);
+  const [fares, setFares] = useState({ regular: 30, discounted: 28 });
 
-  const regularFare = 30;
-  const discountedFare = 28;
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   // Add these preset amounts based on common bill denominations
   const presetAmounts = [20, 50, 100, 200, 500, 1000];
+
+  useEffect(() => {
+    const fetchFares = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/fares`);
+        const data = await response.json();
+        const regularFare = data.find(fare => fare.fare === "Regular");
+        const discountedFare = data.find(fare => fare.fare === "Discounted");
+        setFares({
+          regular: regularFare ? parseFloat(regularFare.price) : 30,
+          discounted: discountedFare ? parseFloat(discountedFare.price) : 28
+        });
+      } catch (error) {
+        console.error("Error fetching fares:", error);
+      }
+    };
+
+    fetchFares();
+  }, [API_BASE_URL]);
 
   useEffect(() => {
     const fetchCommuterEmails = async () => {
@@ -91,7 +109,7 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
   }, [showQrScanner]);
 
   const calculateTotal = () => {
-    return regularCount * regularFare + discountedCount * discountedFare;
+    return regularCount * fares.regular + discountedCount * fares.discounted;
   };
 
   // Modify handleTenderChange to handle string inputs
