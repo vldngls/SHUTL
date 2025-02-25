@@ -32,8 +32,14 @@ const ProtectedRoute = ({ element, allowedRoles }) => {
     if (token) fetchUserType();
   }, [token]);
 
-  if (loading) return null; // Optional: Display a loading screen if needed
+  if (loading) return null;
 
+  // Allow admin access to all routes
+  if (userType === "Admin") {
+    return element;
+  }
+
+  // For non-admin users, check specific role permissions
   if (!token || !userType || !allowedRoles.includes(userType)) {
     return <Navigate to="/ShutlLoggedOut" />;
   }

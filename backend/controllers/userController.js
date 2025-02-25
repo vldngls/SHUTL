@@ -39,17 +39,30 @@ export const loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
-    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
+    if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
+    }
 
-    // Include email in the token payload
+    // Enhanced token payload for admin users
+    const tokenPayload = {
+      id: user._id,
+      email: user.email,
+      userType: user.userType,
+      // Add additional admin privileges
+      isAdmin: user.userType === "Admin",
+      fullAccess: user.userType === "Admin",
+    };
+
     const token = jwt.sign(
-      { id: user._id, email: user.email, userType: user.userType }, // Include email in the token payload
+      tokenPayload,
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "24h" } // Increased token expiration for admins
     );
 
     res.status(200).json({
@@ -60,6 +73,8 @@ export const loginUser = async (req, res) => {
         email: user.email,
         username: user.username,
         userType: user.userType,
+        isAdmin: user.userType === "Admin",
+        fullAccess: user.userType === "Admin",
       },
     });
   } catch (error) {
