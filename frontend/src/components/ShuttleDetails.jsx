@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "../css/ShuttleDetails.css";
 import CollectFare from "./CollectFare";
 
@@ -6,6 +6,7 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
   const [showCollectFare, setShowCollectFare] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const modalRef = useRef(null);
 
   const fetchTransactions = async () => {
     try {
@@ -23,6 +24,19 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
     fetchTransactions();
   }, [API_BASE_URL, shuttle.id]);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [onClose]);
+
   const totalRegular = transactions.reduce((sum, t) => sum + t.regularCount, 0);
   const totalDiscounted = transactions.reduce(
     (sum, t) => sum + t.discountedCount,
@@ -38,7 +52,7 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
 
   return (
     <div className="ShuttleDetails-modal" onClick={handleOverlayClick}>
-      <div className="ShuttleDetails-container">
+      <div className="ShuttleDetails-container" ref={modalRef}>
         <div className="ShuttleDetails-header">
           <h1>SHUTL. {shuttle.id}</h1>
         </div>
