@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import "../css/AdministratorDashboardContent.css";
 import { getCookie } from "../utils/cookieUtils";
 import { getTokenFromCookies } from "../utils/tokenUtils";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const AdministratorDashboardContent = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Base URL from environment variables
@@ -132,14 +134,23 @@ const AdministratorDashboardContent = () => {
       });
 
       if (response.ok) {
-        setNotificationStatus("Notification sent successfully!");
+        toast.success("Notification sent successfully!", {
+          position: "top-right",
+          autoClose: 3000,
+        });
         setNotificationMessage("");
       } else {
-        setNotificationStatus("Failed to send notification.");
+        toast.error("Failed to send notification", {
+          position: "top-right",
+          autoClose: 5000,
+        });
       }
     } catch (error) {
       console.error("Error sending notification:", error);
-      setNotificationStatus("Error sending notification.");
+      toast.error("Error sending notification", {
+        position: "top-right",
+        autoClose: 5000,
+      });
     }
   };
 
@@ -149,25 +160,46 @@ const AdministratorDashboardContent = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${getCookie("token")}`, // Add token for authentication
+          Authorization: `Bearer ${getCookie("token")}`,
         },
         body: JSON.stringify(operationalHours),
       });
 
       if (response.ok) {
-        alert("Operational hours updated successfully");
+        toast.success("Operational hours updated successfully", {
+          position: "top-right",
+          autoClose: 3000,
+        });
       } else {
         const errorData = await response.json();
-        alert(errorData.error || "Failed to update operational hours");
+        toast.error(errorData.error || "Failed to update operational hours", {
+          position: "top-right",
+          autoClose: 5000,
+        });
       }
     } catch (error) {
       console.error("Error updating operational hours:", error);
-      alert("Error updating operational hours");
+      toast.error("Error updating operational hours", {
+        position: "top-right",
+        autoClose: 5000,
+      });
     }
   };
 
   return (
     <div className="AdministratorDashboard-dashboard-content">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       {/* Real-Time Status */}
       <div className="AdministratorDashboard-real-time-status">
         <h3>Real Time Status</h3>
