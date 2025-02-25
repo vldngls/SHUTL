@@ -24,10 +24,42 @@ const ShuttleTripTracking = ({ onClose }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const tripsPerPage = 5;
 
+  const [operationalHours, setOperationalHours] = useState(null);
+  const [isWithinHours, setIsWithinHours] = useState(true);
+
   useEffect(() => {
     fetchPendingOutTrips();
     fetchRecentTrips();
+    const fetchOperationalHours = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/operational-hours`);
+        const data = await response.json();
+        setOperationalHours(data);
+      } catch (error) {
+        console.error("Error fetching operational hours:", error);
+      }
+    };
+
+    fetchOperationalHours();
   }, []);
+
+  useEffect(() => {
+    if (operationalHours && tripData.time) {
+      const [hour, minute] = tripData.time.split(":").map(Number);
+      const [startHour, startMinute] = operationalHours.startTime
+        .split(":")
+        .map(Number);
+      const [endHour, endMinute] = operationalHours.endTime
+        .split(":")
+        .map(Number);
+
+      const currentTime = hour * 60 + minute;
+      const startTime = startHour * 60 + startMinute;
+      const endTime = endHour * 60 + endMinute;
+
+      setIsWithinHours(currentTime >= startTime && currentTime <= endTime);
+    }
+  }, [tripData.time, operationalHours]);
 
   const fetchPendingOutTrips = async () => {
     try {
@@ -72,6 +104,14 @@ const ShuttleTripTracking = ({ onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!isWithinHours) {
+      alert(
+        `Trips can only be created between ${operationalHours.startTime} and ${operationalHours.endTime}`
+      );
+      return;
+    }
+
     try {
       if (tripData.status === "In") {
         const matchingOutTrip = pendingOutTrips.find(
@@ -91,8 +131,8 @@ const ShuttleTripTracking = ({ onClose }) => {
       // Create the date in local timezone
       const localDate = new Date(year, month - 1, day, hours, minutes);
 
-      // Format the date as an ISO string but preserve the local time
-      const isoString = new Date(
+      // Convert to UTC while preserving the intended local time
+      const utcDate = new Date(
         Date.UTC(
           localDate.getFullYear(),
           localDate.getMonth(),
@@ -100,11 +140,13 @@ const ShuttleTripTracking = ({ onClose }) => {
           localDate.getHours(),
           localDate.getMinutes()
         )
-      ).toISOString();
+      );
 
       const tripDataToSend = {
         ...tripData,
-        date: isoString,
+        date: utcDate.toISOString(),
+        // Store the local time string separately
+        localTime: tripData.time,
       };
 
       const response = await fetch(`${API_BASE_URL}/shuttle/trips`, {
@@ -246,6 +288,17 @@ const ShuttleTripTracking = ({ onClose }) => {
         </div>
         <div className="form-section">
           <h2 className="form-title">Add New Trip</h2>
+          {operationalHours && (
+            <p className="operational-hours-notice">
+              Operational Hours: {operationalHours.startTime} -{" "}
+              {operationalHours.endTime}
+            </p>
+          )}
+          {!isWithinHours && (
+            <p className="error-message">
+              Selected time is outside operational hours
+            </p>
+          )}
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label>Date:</label>

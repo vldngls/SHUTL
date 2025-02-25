@@ -1,22 +1,27 @@
 import ShuttleTrip from "../models/shuttleTrip.model.js";
 import ShuttleAssignment from "../models/shuttleAssignment.model.js";
+import { isWithinOperationalHours } from "./operationalHoursController.js";
+import OperationalHours from "../models/operationalHours.model.js";
 
 // Add new shuttle trip record
 export const createTrip = async (req, res) => {
   try {
     const tripData = req.body;
 
-    // Parse the ISO date string and convert to UTC while preserving the local time
-    const localDate = new Date(tripData.date);
-    const utcDate = new Date(
-      Date.UTC(
-        localDate.getFullYear(),
-        localDate.getMonth(),
-        localDate.getDate(),
-        localDate.getHours(),
-        localDate.getMinutes()
-      )
-    );
+    // Check if the trip time is within operational hours
+    const isWithinHours = await isWithinOperationalHours(tripData.time);
+    if (!isWithinHours) {
+      return res.status(400).json({
+        error: "Trip cannot be created outside operational hours",
+      });
+    }
+
+    // Create a date object in local timezone
+    const [year, month, day] = tripData.date.split("-").map(Number);
+    const [hours, minutes] = tripData.time.split(":").map(Number);
+
+    // Convert to UTC while preserving the intended local time
+    const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes));
 
     // Update the tripData with the UTC date
     tripData.date = utcDate;
@@ -81,45 +86,90 @@ export const getTripById = async (req, res) => {
 // Get summary data for teller dashboard
 export const getShuttleSummary = async (req, res) => {
   try {
+    // Get operational hours
+    const operationalHours = (await OperationalHours.findOne({
+      isActive: true,
+    })) || { startTime: "05:00", endTime: "22:00" }; // Default hours
+
+    // Get today's date in UTC
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    const todayUTC = new Date(
+      Date.UTC(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+        0,
+        0,
+        0,
+        0
+      )
+    );
+
+    const tomorrowUTC = new Date(
+      Date.UTC(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() + 1,
+        0,
+        0,
+        0,
+        0
+      )
+    );
 
     const todayTrips = await ShuttleTrip.find({
       date: {
-        $gte: today,
-        $lt: tomorrow,
+        $gte: todayUTC,
+        $lt: tomorrowUTC,
       },
     })
       .sort({ time: 1 })
       .lean();
 
-    // Calculate basic metrics
+    // Parse operational hours
+    const [startHour, startMinute] = operationalHours.startTime
+      .split(":")
+      .map(Number);
+    const [endHour, endMinute] = operationalHours.endTime
+      .split(":")
+      .map(Number);
+    const startMinutes = startHour * 60 + startMinute;
+    const endMinutes = endHour * 60 + endMinute;
+
+    // Filter trips within operational hours
+    const operationalTrips = todayTrips.filter((trip) => {
+      const [tripHour, tripMinute] = trip.time.split(":").map(Number);
+      const tripMinutes = tripHour * 60 + tripMinute;
+      return tripMinutes >= startMinutes && tripMinutes <= endMinutes;
+    });
+
+    // Calculate basic metrics using filtered trips
     const roundTrips = Math.floor(
-      todayTrips.filter((trip) => trip.status === "In").length
+      operationalTrips.filter((trip) => trip.status === "In").length
     );
-    const totalPassengers = todayTrips.reduce(
+    const totalPassengers = operationalTrips.reduce(
       (sum, trip) => sum + (trip.passengerCount || 0),
       0
     );
-    const activeShuttles = new Set(todayTrips.map((trip) => trip.shuttleNumber))
-      .size;
+    const activeShuttles = new Set(
+      operationalTrips.map((trip) => trip.shuttleNumber)
+    ).size;
 
-    // Calculate hourly passengers (for the line chart)
-    const hourlyPassengers = new Array(17).fill(0); // 6am to 10pm (17 hours)
-    todayTrips.forEach((trip) => {
+    // Calculate hourly passengers
+    const hoursRange = endHour - startHour + 1;
+    const hourlyPassengers = new Array(hoursRange).fill(0);
+
+    operationalTrips.forEach((trip) => {
       const [hour] = trip.time.split(":").map(Number);
-      if (hour >= 6 && hour <= 22) {
-        // Only count between 6am and 10pm
-        const index = hour - 6;
+      if (hour >= startHour && hour <= endHour) {
+        const index = hour - startHour;
         hourlyPassengers[index] += trip.passengerCount || 0;
       }
     });
 
-    // Calculate route metrics
+    // Calculate route metrics for operational hours only
     const shuttleTrips = {};
-    todayTrips.forEach((trip) => {
+    operationalTrips.forEach((trip) => {
       if (!shuttleTrips[trip.shuttleNumber]) {
         shuttleTrips[trip.shuttleNumber] = [];
       }
@@ -127,7 +177,6 @@ export const getShuttleSummary = async (req, res) => {
     });
 
     const routeMetrics = {};
-
     for (const [shuttleNumber, trips] of Object.entries(shuttleTrips)) {
       const routeTimes = [];
       const departureTimes = [];
@@ -137,7 +186,6 @@ export const getShuttleSummary = async (req, res) => {
         const nextTrip = trips[i + 1];
 
         if (currentTrip.status === "Out" && nextTrip.status === "In") {
-          // Calculate route time
           const [outHour, outMin] = currentTrip.time.split(":").map(Number);
           const [inHour, inMin] = nextTrip.time.split(":").map(Number);
 
@@ -147,7 +195,6 @@ export const getShuttleSummary = async (req, res) => {
             routeTimes.push(routeTimeMinutes);
           }
 
-          // Calculate departure time
           if (i < trips.length - 2) {
             const nextOutTrip = trips[i + 2];
             if (nextOutTrip.status === "Out") {
@@ -180,13 +227,16 @@ export const getShuttleSummary = async (req, res) => {
       };
     }
 
-    // Send combined response including hourlyPassengers
     res.status(200).json({
       roundTrips,
       totalPassengers,
       activeShuttles,
       routeMetrics,
       hourlyPassengers,
+      operationalHours: {
+        startTime: operationalHours.startTime,
+        endTime: operationalHours.endTime,
+      },
     });
   } catch (error) {
     console.error("Error getting shuttle summary:", error);
@@ -270,34 +320,54 @@ export const getPendingOutTrips = async (req, res) => {
   }
 };
 
-// Add this new controller function
+// Update the getHourlyPassengers function
 export const getHourlyPassengers = async (req, res) => {
   try {
-    // Get today's date range
+    // Get today's date in UTC
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    const todayUTC = new Date(
+      Date.UTC(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+        0,
+        0,
+        0,
+        0
+      )
+    );
+
+    const tomorrowUTC = new Date(
+      Date.UTC(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() + 1,
+        0,
+        0,
+        0,
+        0
+      )
+    );
 
     // Get all trips for today
     const todayTrips = await ShuttleTrip.find({
       date: {
-        $gte: today,
-        $lt: tomorrow,
+        $gte: todayUTC,
+        $lt: tomorrowUTC,
       },
     }).lean();
 
-    // Initialize array for 6 AM to 10 PM (17 hours)
-    const hourlyData = new Array(17).fill(0);
+    // Initialize array for 5 AM to 10 PM (18 hours)
+    const hourlyData = new Array(18).fill(0);
 
     // Process each trip and add passengers to the corresponding hour
     todayTrips.forEach((trip) => {
-      // Parse the time string (format: "HH:mm")
+      // Use the stored local time
       const [hours] = trip.time.split(":").map(Number);
 
-      // Only count trips between 6 AM (6) and 10 PM (22)
-      if (hours >= 6 && hours <= 22) {
-        const index = hours - 6; // Convert hour to array index (6 AM = index 0)
+      // Only count trips between 5 AM (5) and 10 PM (22)
+      if (hours >= 5 && hours <= 22) {
+        const index = hours - 5; // Convert hour to array index (5 AM = index 0)
         hourlyData[index] += trip.passengerCount || 0;
       }
     });

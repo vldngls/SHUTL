@@ -39,6 +39,10 @@ const TellerSummary = ({ onClose }) => {
   const socket = useRef(null);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const SOCKET_URL = API_BASE_URL.replace("/api", "");
+  const [operationalHours, setOperationalHours] = useState({
+    startTime: "05:00",
+    endTime: "22:00",
+  });
 
   // Shuttle data
   const shuttles = [
@@ -173,13 +177,15 @@ const TellerSummary = ({ onClose }) => {
           activeShuttles,
           routeMetrics,
           hourlyPassengers,
+          operationalHours: hours,
         } = response.data;
 
         setRoundTrips(roundTrips);
         setTotalPassengers(totalPassengers);
         setActiveShuttles(activeShuttles);
         setRouteMetrics(routeMetrics || {});
-        setHourlyPassengers(hourlyPassengers || new Array(17).fill(0));
+        setHourlyPassengers(hourlyPassengers || []);
+        setOperationalHours(hours);
       } catch (error) {
         console.error("Error fetching summary data:", error);
       }
@@ -204,7 +210,10 @@ const TellerSummary = ({ onClose }) => {
 
   // Chart configuration
   const chartData = {
-    labels: Array.from({ length: 17 }, (_, i) => `${i + 6}:00-${i + 7}:00`),
+    labels: Array.from({ length: hourlyPassengers.length }, (_, i) => {
+      const hour = parseInt(operationalHours.startTime.split(":")[0]) + i;
+      return `${hour}:00-${hour + 1}:00`;
+    }),
     datasets: [
       {
         label: "Passengers per Hour",
@@ -265,12 +274,14 @@ const TellerSummary = ({ onClose }) => {
       <div className="TellerSummary-container">
         <div className="TellerSummary-header">
           <h1>Summary</h1>
-          <p>Today</p>
+          <p>
+            Today ({operationalHours.startTime} - {operationalHours.endTime})
+          </p>
         </div>
 
         {/* Main Content Sections */}
         <div className="TellerSummary-section">
-          <h3>Total Stats</h3>
+          <h3>Total Stats (Within Operational Hours)</h3>
           <div className="TellerSummary-stats">
             <div>
               <strong>{roundTrips}</strong>
@@ -292,7 +303,7 @@ const TellerSummary = ({ onClose }) => {
 
         {/* Total Passenger Section */}
         <div className="TellerSummary-section">
-          <h3>Total Passenger</h3>
+          <h3>Total Passenger (Within Operational Hours)</h3>
           <div className="TellerSummary-chart">
             <Line data={chartData} options={chartOptions} />
           </div>
@@ -300,7 +311,7 @@ const TellerSummary = ({ onClose }) => {
 
         {/* Route Time Section */}
         <div className="TellerSummary-section">
-          <h3>Route Time</h3>
+          <h3>Route Time (Within Operational Hours)</h3>
           <div className="TellerSummary-route">
             {Object.entries(routeMetrics).map(([shuttleNumber, metrics]) => (
               <div key={shuttleNumber}>

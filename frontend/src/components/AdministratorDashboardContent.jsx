@@ -12,6 +12,10 @@ const AdministratorDashboardContent = () => {
   const [notificationStatus, setNotificationStatus] = useState(null); // Status message for feedback
   const [shuttleStats, setShuttleStats] = useState(null);
   const [shuttleLocations, setShuttleLocations] = useState([]);
+  const [operationalHours, setOperationalHours] = useState({
+    startTime: "05:00",
+    endTime: "22:00",
+  });
 
   useEffect(() => {
     // Function to fetch user counts (total & active)
@@ -99,6 +103,20 @@ const AdministratorDashboardContent = () => {
     };
   }, [API_BASE_URL]);
 
+  useEffect(() => {
+    const fetchOperationalHours = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/operational-hours`);
+        const data = await response.json();
+        setOperationalHours(data);
+      } catch (error) {
+        console.error("Error fetching operational hours:", error);
+      }
+    };
+
+    fetchOperationalHours();
+  }, []);
+
   // Function to handle sending notifications
   const handleSendNotification = async () => {
     const token = getCookie("token");
@@ -122,6 +140,29 @@ const AdministratorDashboardContent = () => {
     } catch (error) {
       console.error("Error sending notification:", error);
       setNotificationStatus("Error sending notification.");
+    }
+  };
+
+  const handleOperationalHoursUpdate = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/operational-hours`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${getCookie("token")}`, // Add token for authentication
+        },
+        body: JSON.stringify(operationalHours),
+      });
+
+      if (response.ok) {
+        alert("Operational hours updated successfully");
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || "Failed to update operational hours");
+      }
+    } catch (error) {
+      console.error("Error updating operational hours:", error);
+      alert("Error updating operational hours");
     }
   };
 
@@ -215,9 +256,28 @@ const AdministratorDashboardContent = () => {
       <div className="AdministratorDashboard-operational-hours">
         <h3>Operational Hours</h3>
         <div className="AdministratorDashboard-hours-input">
-          <input type="time" />
-          <input type="time" />
-          <button>Save</button>
+          <input
+            type="time"
+            value={operationalHours.startTime}
+            onChange={(e) =>
+              setOperationalHours((prev) => ({
+                ...prev,
+                startTime: e.target.value,
+              }))
+            }
+          />
+          <span>to</span>
+          <input
+            type="time"
+            value={operationalHours.endTime}
+            onChange={(e) =>
+              setOperationalHours((prev) => ({
+                ...prev,
+                endTime: e.target.value,
+              }))
+            }
+          />
+          <button onClick={handleOperationalHoursUpdate}>Save</button>
         </div>
       </div>
     </div>
