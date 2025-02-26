@@ -129,7 +129,7 @@ const createPickupMarkerStyle = (count) => ({
 
 const DriverMain = () => {
   const [dateTime, setDateTime] = useState(new Date());
-  const [userLocation, setUserLocation] = useState([14.377, 120.983]);
+  const [userLocation, setUserLocation] = useState(null);
   const [activeModal, setActiveModal] = useState(null);
   const [isLocationSharing, setIsLocationSharing] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -327,8 +327,34 @@ const DriverMain = () => {
     if (!hasInitialized.current) {
       hasInitialized.current = true;
       const wasSharing = localStorage.getItem("isLocationSharing") === "true";
-      if (wasSharing) {
-        startLocationSharing();
+
+      // Get actual location first
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            const userCoords = [latitude, longitude];
+            setUserLocation(userCoords);
+
+            // Only start sharing after we have the actual location
+            if (wasSharing) {
+              startLocationSharing();
+            }
+          },
+          (error) => {
+            console.error("Location error:", error);
+            toast.error(`Location error: ${error.message}`, {
+              position: "bottom-center",
+              theme: "colored",
+            });
+            setUserLocation([14.377, 120.983]); // Set default only if error
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0,
+          }
+        );
       }
     }
     return () => {
@@ -602,7 +628,7 @@ const DriverMain = () => {
       <div className="DriverMain-map-container">
         <MapContainer
           style={{ height: "100%", width: "100%" }}
-          center={userLocation}
+          center={userLocation || [14.377, 120.983]}
           zoom={15.5}
           zoomControl={false}
           whenCreated={(mapInstance) => {
@@ -613,128 +639,134 @@ const DriverMain = () => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           />
-          <Marker position={userLocation} icon={carIcon}>
-            <Popup>You are here.</Popup>
-            <Tooltip direction="right" offset={[12, 0]} permanent>
-              {shuttleId}
-            </Tooltip>
-          </Marker>
+          {userLocation && isLocationSharing && (
+            <Marker position={userLocation} icon={carIcon}>
+              <Popup>You are here.</Popup>
+              <Tooltip direction="right" offset={[12, 0]} permanent>
+                {shuttleId}
+              </Tooltip>
+            </Marker>
+          )}
 
           {/* Updated grouped markers with Complete All button */}
-          {groupNearbyPickups(activePickups).map((group, index) => (
-            <Marker
-              key={`group-${index}`}
-              position={group.center}
-              icon={
-                new L.DivIcon(createPickupMarkerStyle(group.pickups.length))
-              }
-            >
-              <Popup>
-                <div style={{ minWidth: "200px" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginBottom: "10px",
-                    }}
-                  >
-                    <strong>
-                      Pickup Location{group.pickups.length > 1 ? "s" : ""}
-                    </strong>
-                    {group.pickups.length > 1 && (
-                      <button
-                        onClick={() => handleCompleteAllPickups(group.pickups)}
-                        style={{
-                          backgroundColor: "#4CAF50",
-                          color: "white",
-                          border: "none",
-                          padding: "6px 12px",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                          fontWeight: "bold",
-                          fontSize: "12px",
-                        }}
-                      >
-                        Complete All ({group.pickups.length})
-                      </button>
-                    )}
-                  </div>
-                  {group.pickups.map((pickup, i) => (
+          {userLocation &&
+            isLocationSharing &&
+            groupNearbyPickups(activePickups).map((group, index) => (
+              <Marker
+                key={`group-${index}`}
+                position={group.center}
+                icon={
+                  new L.DivIcon(createPickupMarkerStyle(group.pickups.length))
+                }
+              >
+                <Popup>
+                  <div style={{ minWidth: "200px" }}>
                     <div
-                      key={pickup.requestId}
                       style={{
-                        marginTop: "8px",
-                        padding: "8px",
-                        backgroundColor: "rgba(0,0,0,0.02)",
-                        borderRadius: "4px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: "10px",
                       }}
                     >
-                      <p
-                        style={{
-                          marginBottom: "4px",
-                          fontSize: "13px",
-                        }}
-                      >
-                        {pickup.location.streetName}
-                      </p>
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "8px",
-                          marginTop: "6px",
-                        }}
-                      >
+                      <strong>
+                        Pickup Location{group.pickups.length > 1 ? "s" : ""}
+                      </strong>
+                      {group.pickups.length > 1 && (
                         <button
-                          onClick={() => handleCompletePickup(pickup)}
+                          onClick={() =>
+                            handleCompleteAllPickups(group.pickups)
+                          }
                           style={{
                             backgroundColor: "#4CAF50",
                             color: "white",
                             border: "none",
-                            padding: "4px 8px",
+                            padding: "6px 12px",
                             borderRadius: "4px",
                             cursor: "pointer",
+                            fontWeight: "bold",
                             fontSize: "12px",
-                            flex: 1,
                           }}
                         >
-                          Complete
+                          Complete All ({group.pickups.length})
                         </button>
-                        <button
-                          onClick={() => handleCancelPickup(pickup)}
-                          style={{
-                            backgroundColor: "#f44336",
-                            color: "white",
-                            border: "none",
-                            padding: "4px 8px",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontSize: "12px",
-                            flex: 1,
-                          }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                      {i < group.pickups.length - 1 && (
-                        <hr
-                          style={{
-                            margin: "8px 0",
-                            border: "none",
-                            borderTop: "1px solid rgba(0,0,0,0.1)",
-                          }}
-                        />
                       )}
                     </div>
-                  ))}
-                </div>
-              </Popup>
-              <Tooltip direction="right" offset={[10, 0]}>
-                {group.pickups.length} Active Pickup
-                {group.pickups.length > 1 ? "s" : ""}
-              </Tooltip>
-            </Marker>
-          ))}
+                    {group.pickups.map((pickup, i) => (
+                      <div
+                        key={pickup.requestId}
+                        style={{
+                          marginTop: "8px",
+                          padding: "8px",
+                          backgroundColor: "rgba(0,0,0,0.02)",
+                          borderRadius: "4px",
+                        }}
+                      >
+                        <p
+                          style={{
+                            marginBottom: "4px",
+                            fontSize: "13px",
+                          }}
+                        >
+                          {pickup.location.streetName}
+                        </p>
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: "8px",
+                            marginTop: "6px",
+                          }}
+                        >
+                          <button
+                            onClick={() => handleCompletePickup(pickup)}
+                            style={{
+                              backgroundColor: "#4CAF50",
+                              color: "white",
+                              border: "none",
+                              padding: "4px 8px",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              fontSize: "12px",
+                              flex: 1,
+                            }}
+                          >
+                            Complete
+                          </button>
+                          <button
+                            onClick={() => handleCancelPickup(pickup)}
+                            style={{
+                              backgroundColor: "#f44336",
+                              color: "white",
+                              border: "none",
+                              padding: "4px 8px",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              fontSize: "12px",
+                              flex: 1,
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                        {i < group.pickups.length - 1 && (
+                          <hr
+                            style={{
+                              margin: "8px 0",
+                              border: "none",
+                              borderTop: "1px solid rgba(0,0,0,0.1)",
+                            }}
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </Popup>
+                <Tooltip direction="right" offset={[10, 0]}>
+                  {group.pickups.length} Active Pickup
+                  {group.pickups.length > 1 ? "s" : ""}
+                </Tooltip>
+              </Marker>
+            ))}
         </MapContainer>
 
         <PickupRequestsPanel
