@@ -16,7 +16,6 @@ import { MemoryMonitoringDashboard } from "./components/MemoryMonitoringDashboar
 
 function App() {
   useEffect(() => {
-    // Start memory monitoring
     const monitorId = MemoryMonitor.startMonitoring();
 
     return () => {
