@@ -1,6 +1,8 @@
 // Predefined locations for the service area
 const KNOWN_LOCATIONS = {
   // Format: "lat,lon": "location name"
+  "14.371742,120.992025": "Lessandra Heights Clubhouse",
+  "14.376042,120.990944": "Camella Cerritos Heights Clubhouse",
   "14.3723,120.992": "Daang Hari Road",
   "14.385152,120.9663488": "Molino Road",
   "14.385586,120.978863": "SOMO - A Vista Mall",
