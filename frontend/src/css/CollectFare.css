@@ -211,24 +211,4 @@ button.secondary:hover {
   border-radius: 10px;
 }
 
-/* Update toast styles */
-.Toastify__toast-container--bottom-center {
-  bottom: 20px !important;
-}
-
-.Toastify__toast {
-  font-size: 14px;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.Toastify__toast--success {
-  background: #4caf50;
-  color: white;
-}
-
-.Toastify__toast--error {
-  background: #f44336;
-  color: white;
-}
+/* Remove any remaining toast-related styles */

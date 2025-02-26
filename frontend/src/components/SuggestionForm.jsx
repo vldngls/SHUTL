@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-hot-toast";
 import "../css/SuggestionForm.css"; // Make sure to import the CSS for styling
 
 const SuggestionForm = ({ onClose }) => {
@@ -21,47 +20,38 @@ const SuggestionForm = ({ onClose }) => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Show loading toast
-    const loadingToast = toast.loading("Submitting your suggestion...");
+    const loadingToastId = toast.loading("Submitting your suggestion...");
 
-    fetch(`${API_BASE_URL}/suggestions/submit`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to submit suggestion");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        // Update loading toast to success
-        toast.update(loadingToast, {
-          render: "Thank you! Your suggestion has been sent successfully.",
-          type: "success",
-          isLoading: false,
-          autoClose: 3000,
-        });
-
-        // Close the suggestion form
-        onClose();
-      })
-      .catch((error) => {
-        console.error("Error submitting form:", error);
-        // Update loading toast to error
-        toast.update(loadingToast, {
-          render: "Failed to submit suggestion. Please try again.",
-          type: "error",
-          isLoading: false,
-          autoClose: 3000,
-        });
+    try {
+      const response = await fetch(`${API_BASE_URL}/suggestions/submit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
       });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit suggestion");
+      }
+
+      await response.json();
+      toast.success("Thank you! Your suggestion has been sent successfully.", {
+        id: loadingToastId,
+        duration: 2000
+      });
+
+      onClose();
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("Failed to submit suggestion. Please try again.", {
+        id: loadingToastId,
+        duration: 2000
+      });
+    }
   };
 
   return (

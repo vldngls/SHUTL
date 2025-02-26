@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "../css/AdministratorDashboardContent.css";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-hot-toast";
 import { userService } from "../services/api/users";
 import { shuttleService } from "../services/api/shuttles";
 import { notificationService } from "../services/api/notifications";
@@ -118,7 +117,9 @@ const AdministratorDashboardContent = ({ shuttleLocations }) => {
         notificationMessage,
         recipientType
       );
-      toast.success("Notification sent successfully!");
+      toast.success("Notification sent successfully", {
+        duration: 2000
+      });
       setNotificationMessage("");
     } catch (error) {
       toast.error("Failed to send notification");
@@ -128,7 +129,9 @@ const AdministratorDashboardContent = ({ shuttleLocations }) => {
   const handleOperationalHoursUpdate = async () => {
     try {
       await operationsService.updateOperationalHours(operationalHours);
-      toast.success("Operational hours updated successfully");
+      toast.success("Operational hours updated successfully", {
+        duration: 2000
+      });
     } catch (error) {
       toast.error("Failed to update operational hours");
     }
@@ -136,18 +139,6 @@ const AdministratorDashboardContent = ({ shuttleLocations }) => {
 
   return (
     <div className="AdministratorDashboard-dashboard-content">
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
       {/* Real-Time Status */}
       <div className="AdministratorDashboard-real-time-status">
         <h3>Real Time Status</h3>

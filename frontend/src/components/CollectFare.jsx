@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import { Html5QrcodeScanner } from "html5-qrcode";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-hot-toast";
 import "../css/CollectFare.css";
 
 const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
@@ -129,55 +128,49 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
     setChange(amount - calculateTotal());
   };
 
-  const handleSaveTransaction = async () => {
-    const totalFare = calculateTotal();
-    const newTransaction = {
-      commuterEmail,
-      regularCount,
-      discountedCount,
-      totalFare,
-      tender,
-      change,
-      shuttleID,
-    };
-
+  const handleSubmit = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/fare-transactions`, {
+      const totalFare = calculateTotal();
+      const tenderAmount = parseFloat(tender);
+
+      if (tenderAmount < totalFare) {
+        toast.error("Tender amount is less than the total fare");
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/fare-transactions/save`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newTransaction),
-        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          shuttleID,
+          regularCount,
+          discountedCount,
+          totalFare,
+          tender: tenderAmount,
+          change: tenderAmount - totalFare,
+          commuterEmail: commuterEmail || null,
+        }),
       });
 
-      if (!response.ok) throw new Error("Failed to save transaction");
+      if (!response.ok) {
+        throw new Error("Failed to save transaction");
+      }
 
       toast.success("Fare collected successfully!", {
-        position: "bottom-center",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        style: { zIndex: 9999 },
+        duration: 2000
       });
 
+      if (onTransactionSaved) {
+        onTransactionSaved();
+      }
+
       resetCounts();
-      setShowQrScanner(false);
-      onTransactionSaved();
-      setTimeout(() => {
-        onClose();
-      }, 1000);
+      onClose();
     } catch (error) {
       console.error("Error saving transaction:", error);
-      toast.error("Failed to collect fare. Please try again.", {
-        position: "bottom-center",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        style: { zIndex: 9999 },
-      });
+      toast.error("Failed to collect fare. Please try again.");
     }
   };
 
@@ -323,7 +316,7 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
         </div>
         <div className="fare-actions">
           <button onClick={handleCancel}>Cancel</button>
-          <button onClick={handleSaveTransaction}>Save</button>
+          <button onClick={handleSubmit}>Save</button>
         </div>
       </div>
     </div>

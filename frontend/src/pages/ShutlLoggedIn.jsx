@@ -18,7 +18,7 @@ import {
   subscribeToLocationUpdates,
   joinShuttleTracking,
 } from "../utils/websocketService";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
 
 // Fix for default Leaflet icons issue
@@ -163,23 +163,22 @@ const ShutlLoggedIn = () => {
       toast.success(
         `Your pickup request for ${data.shuttleId} has been accepted!`,
         {
-          position: "bottom-center",
-          autoClose: 3000,
+          duration: 2000
         }
       );
     });
 
     socket.current.on("pickup_request_completed", () => {
-      toast.info(`Your pickup request has been completed.`, {
-        position: "bottom-center",
-        autoClose: 3000,
+      toast(`Your pickup request has been completed.`, {
+        icon: '✅',
+        duration: 2000
       });
     });
 
     socket.current.on("pickup_request_cancelled", () => {
-      toast.warning(`Your pickup request has been cancelled.`, {
-        position: "bottom-center",
-        autoClose: 3000,
+      toast(`Your pickup request has been cancelled.`, {
+        icon: '❌',
+        duration: 2000
       });
     });
 
@@ -246,10 +245,7 @@ const ShutlLoggedIn = () => {
 
   const updateUserLocation = () => {
     if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported by your browser.", {
-        position: "bottom-center",
-        autoClose: 3000,
-      });
+      toast.error("Geolocation is not supported by your browser.");
       return;
     }
 
@@ -260,10 +256,9 @@ const ShutlLoggedIn = () => {
       setIsLocationSharing(false);
       setUserLocation(null);
       hasShownToastRef.current = false;
-      toast.info("Location sharing stopped", {
-        position: "bottom-center",
-        autoClose: 3000,
-        icon: "🚫",
+      toast('Location sharing stopped', {
+        icon: '🚫',
+        duration: 2000
       });
       return;
     }
@@ -278,10 +273,9 @@ const ShutlLoggedIn = () => {
         if (!hasShownToastRef.current) {
           setIsLocationSharing(true);
           hasShownToastRef.current = true;
-          toast.success("Location sharing started", {
-            position: "bottom-center",
-            autoClose: 3000,
-            icon: "📍",
+          toast.success('Location sharing started', {
+            icon: '📍',
+            duration: 2000
           });
         }
 
@@ -291,10 +285,7 @@ const ShutlLoggedIn = () => {
       },
       (error) => {
         console.error("Location error:", error);
-        toast.error(`Location error: ${error.message}`, {
-          position: "bottom-center",
-          autoClose: 3000,
-        });
+        toast.error(`Location error: ${error.message}`);
         setIsLocationSharing(false);
         setUserLocation(null);
         watchIdRef.current = null;
@@ -368,10 +359,7 @@ const ShutlLoggedIn = () => {
   const handlePickupRequest = async (e, shuttleId) => {
     e.stopPropagation();
     if (!userLocation) {
-      toast.error("Please enable location sharing first", {
-        position: "bottom-center",
-        theme: "colored",
-      });
+      toast.error("Please enable location sharing first");
       return;
     }
 
@@ -394,16 +382,10 @@ const ShutlLoggedIn = () => {
       }
 
       socket.current.emit("pickup_request", request);
-      toast.success("Pickup request sent successfully!", {
-        position: "bottom-center",
-        theme: "colored",
-      });
+      toast.success("Pickup request sent successfully!");
     } catch (error) {
       console.error("Error sending pickup request:", error);
-      toast.error("Error sending pickup request. Please try again.", {
-        position: "bottom-center",
-        theme: "colored",
-      });
+      toast.error("Error sending pickup request. Please try again.");
     }
   };
 
@@ -636,19 +618,6 @@ const ShutlLoggedIn = () => {
       )}
 
       {showPaymentQR && <PaymentQR onClose={() => setShowPaymentQR(false)} />}
-
-      <ToastContainer
-        position="bottom-center"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
     </>
   );
 };

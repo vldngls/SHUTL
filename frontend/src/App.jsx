@@ -1,7 +1,6 @@
 import React from "react";
 import { Route, Routes } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { Toaster } from "react-hot-toast";
 import SplashScreen from "./pages/SplashScreen";
 import ShutlIntro from "./pages/Intro";
 import ShutlLoggedOut from "./pages/ShutlLoggedOut";
@@ -61,18 +60,21 @@ function App() {
         />
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <ToastContainer
+      <Toaster
         position="bottom-center"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-        style={{ zIndex: 9999 }}
+        toastOptions={{
+          duration: 2000,
+          style: {
+            background: "#232323",
+            color: "#fff",
+            fontSize: "14px",
+            padding: "12px 16px",
+            borderRadius: "24px",
+            width: "220px",
+            maxWidth: "220px",
+            textAlign: "center",
+          },
+        }}
       />
     </div>
   );

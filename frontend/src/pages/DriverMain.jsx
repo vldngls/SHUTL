@@ -17,7 +17,7 @@ import {
 import L from "leaflet";
 import PickupRequestsPanel from "../components/PickupRequestsPanel";
 import { getTokenFromCookies } from "../utils/tokenUtils";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -227,10 +227,7 @@ const DriverMain = () => {
   // Separate the start and stop functions
   const startLocationSharing = () => {
     if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported by your browser.", {
-        position: "bottom-center",
-        theme: "colored",
-      });
+      toast.error("Geolocation is not supported by your browser.");
       return;
     }
 
@@ -252,8 +249,7 @@ const DriverMain = () => {
         if (!hasShownToastRef.current) {
           hasShownToastRef.current = true;
           toast.success("Location sharing started", {
-            position: "bottom-center",
-            theme: "colored",
+            duration: 2000
           });
         }
 
@@ -263,10 +259,7 @@ const DriverMain = () => {
       },
       (error) => {
         console.error("Location error:", error);
-        toast.error(`Location error: ${error.message}`, {
-          position: "bottom-center",
-          theme: "colored",
-        });
+        toast.error(`Location error: ${error.message}`);
         cleanupLocationServices();
       },
       {
@@ -343,10 +336,7 @@ const DriverMain = () => {
           },
           (error) => {
             console.error("Location error:", error);
-            toast.error(`Location error: ${error.message}`, {
-              position: "bottom-center",
-              theme: "colored",
-            });
+            toast.error(`Location error: ${error.message}`);
             setUserLocation([14.377, 120.983]); // Set default only if error
           },
           {

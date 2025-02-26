@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-hot-toast";
 import "../css/ProfilePopup.css";
 
 const DISCOUNT_TYPES = {
@@ -166,69 +165,30 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
     }
   };
 
-  const handleUpdateProfile = async () => {
+  const handleSave = async () => {
     try {
-      if (!userData || !userData.email) {
-        console.error("No user data or email available");
-        return;
-      }
-
-      const updatedData = {
-        email: userData.email,
-        ...Object.fromEntries(
-          Object.entries(editedData).filter(
-            ([_, value]) => value !== undefined && value !== null
-          )
-        ),
-        profilePicture: profileImage || userData.profilePicture,
-      };
-
-      console.log("Sending update request with data:", updatedData);
-
-      // Get the JWT token from cookies
-      const token = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("token="))
-        ?.split("=")[1];
-
-      if (!token) {
-        console.error("No authentication token found");
-        return;
-      }
-
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      };
-
       const response = await fetch(`${API_BASE_URL}/userdata/update`, {
         method: "PUT",
-        headers,
+        headers: {
+          "Content-Type": "application/json",
+        },
         credentials: "include",
-        body: JSON.stringify(updatedData),
+        body: JSON.stringify(editedData),
       });
 
-      console.log("Response status:", response.status);
-      const responseData = await response.json();
-      console.log("Response data:", responseData);
-
       if (!response.ok) {
-        console.error("Failed to update user data:", responseData);
-        return;
+        throw new Error("Failed to update profile");
       }
 
-      setUserData(responseData);
-      setEditedData({});
+      const updatedData = await response.json();
+      setUserData(updatedData);
       setIsEditing(false);
-
-      if (responseData.profilePicture) {
-        setProfileImage(responseData.profilePicture);
-      }
-
-      // Show success toast notification
-      toast.success("Profile updated successfully!");
+      toast.success("Profile updated successfully", {
+        duration: 2000
+      });
     } catch (error) {
-      console.error("Error updating user data:", error);
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile. Please try again.");
     }
   };
 
@@ -361,7 +321,7 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
               onChange={handleInputChange}
               placeholder="Contact Number"
             />
-            <button onClick={handleUpdateProfile}>Save Changes</button>
+            <button onClick={handleSave}>Save Changes</button>
           </div>
         )}
 
@@ -411,7 +371,6 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
           )}
         </div>
       </div>
-      <ToastContainer position="bottom-center" />
     </div>
   );
 };
