@@ -1,19 +1,42 @@
 import React, { useEffect, useState } from "react";
 import "../css/AdministratorDashboardContent.css";
-import { getCookie } from "../utils/cookieUtils";
-import { getTokenFromCookies } from "../utils/tokenUtils";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { userService } from "../services/api/users";
+import { shuttleService } from "../services/api/shuttles";
+import { notificationService } from "../services/api/notifications";
+import { operationsService } from "../services/api/operations";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 
-const AdministratorDashboardContent = () => {
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Base URL from environment variables
+// Fix for default Leaflet icons
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
+
+// Add car icon for shuttles
+const carIcon = new L.Icon({
+  iconUrl: "/car.png",
+  iconRetinaUrl: "/car.png",
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  iconSize: [29, 59],
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  shadowSize: [41, 41],
+});
+
+const AdministratorDashboardContent = ({ shuttleLocations }) => {
   const [totalUsers, setTotalUsers] = useState(0); // State for total registered users
   const [activeUsers, setActiveUsers] = useState(0); // State for active (online) users
   const [notificationMessage, setNotificationMessage] = useState(""); // State for notification message
   const [recipientType, setRecipientType] = useState("Commuter"); // Default recipient type
   const [notificationStatus, setNotificationStatus] = useState(null); // Status message for feedback
   const [shuttleStats, setShuttleStats] = useState(null);
-  const [shuttleLocations, setShuttleLocations] = useState([]);
   const [operationalHours, setOperationalHours] = useState({
     startTime: "05:00",
     endTime: "22:00",
@@ -21,96 +44,48 @@ const AdministratorDashboardContent = () => {
   const [shuttleAssignments, setShuttleAssignments] = useState([]);
 
   useEffect(() => {
-    // Function to fetch user counts (total & active)
     const fetchUserCounts = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/users/active-users`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setTotalUsers(data.totalUsers); // Update total user count
-        setActiveUsers(data.activeUsers); // Update active user count
+        const data = await userService.getActiveCounts();
+        setTotalUsers(data.totalUsers);
+        setActiveUsers(data.activeUsers);
       } catch (error) {
         console.error("Error fetching user counts:", error);
       }
     };
 
     fetchUserCounts();
-    const interval = setInterval(fetchUserCounts, 10000); // Refresh every 10 seconds
+    const interval = setInterval(fetchUserCounts, 10000);
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-    const fetchShuttleSummary = async () => {
+    const fetchShuttleData = async () => {
       try {
-        const token = getTokenFromCookies();
-        const response = await fetch(`${API_BASE_URL}/shuttle/summary`, {
-          credentials: "include",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const summaryData = await shuttleService.getSummary();
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
         setShuttleStats({
-          roundTrips: data.roundTrips || 0,
-          totalPassengers: data.totalPassengers || 0,
-          inTrips: data.activeShuttles || 0, // Using activeShuttles for in trips
-          outTrips: data.routeMetrics
-            ? Object.keys(data.routeMetrics).length
+          roundTrips: summaryData.roundTrips || 0,
+          totalPassengers: summaryData.totalPassengers || 0,
+          inTrips: summaryData.activeShuttles || 0,
+          outTrips: summaryData.routeMetrics
+            ? Object.keys(summaryData.routeMetrics).length
             : 0,
         });
       } catch (error) {
-        console.error("Error fetching shuttle summary:", error);
+        console.error("Error fetching shuttle data:", error);
       }
     };
 
-    const fetchShuttleLocations = async () => {
-      try {
-        const token = getTokenFromCookies();
-        const response = await fetch(`${API_BASE_URL}/shuttle/locations`, {
-          credentials: "include",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setShuttleLocations(data);
-      } catch (error) {
-        console.error("Error fetching shuttle locations:", error);
-      }
-    };
-
-    // Initial fetches
-    fetchShuttleSummary();
-    fetchShuttleLocations();
-
-    // Set up intervals for periodic updates
-    const summaryInterval = setInterval(fetchShuttleSummary, 10000);
-    const locationsInterval = setInterval(fetchShuttleLocations, 5000);
-
-    return () => {
-      clearInterval(summaryInterval);
-      clearInterval(locationsInterval);
-    };
-  }, [API_BASE_URL]);
+    fetchShuttleData();
+    const interval = setInterval(fetchShuttleData, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const fetchOperationalHours = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/operational-hours`);
-        const data = await response.json();
+        const data = await operationsService.getOperationalHours();
         setOperationalHours(data);
       } catch (error) {
         console.error("Error fetching operational hours:", error);
@@ -123,18 +98,7 @@ const AdministratorDashboardContent = () => {
   useEffect(() => {
     const fetchShuttleAssignments = async () => {
       try {
-        const token = getTokenFromCookies();
-        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
+        const data = await shuttleService.getAssignments();
         setShuttleAssignments(data);
       } catch (error) {
         console.error("Error fetching shuttle assignments:", error);
@@ -144,70 +108,29 @@ const AdministratorDashboardContent = () => {
     fetchShuttleAssignments();
   }, []);
 
-  // Function to handle sending notifications
+  useEffect(() => {
+    console.log("AdministratorDashboard received locations:", shuttleLocations);
+  }, [shuttleLocations]);
+
   const handleSendNotification = async () => {
-    const token = getCookie("token");
-
     try {
-      const response = await fetch(`${API_BASE_URL}/notifications/send`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ message: notificationMessage, recipientType }),
-      });
-
-      if (response.ok) {
-        toast.success("Notification sent successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-        setNotificationMessage("");
-      } else {
-        toast.error("Failed to send notification", {
-          position: "top-right",
-          autoClose: 5000,
-        });
-      }
+      await notificationService.sendNotification(
+        notificationMessage,
+        recipientType
+      );
+      toast.success("Notification sent successfully!");
+      setNotificationMessage("");
     } catch (error) {
-      console.error("Error sending notification:", error);
-      toast.error("Error sending notification", {
-        position: "top-right",
-        autoClose: 5000,
-      });
+      toast.error("Failed to send notification");
     }
   };
 
   const handleOperationalHoursUpdate = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/operational-hours`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getCookie("token")}`,
-        },
-        body: JSON.stringify(operationalHours),
-      });
-
-      if (response.ok) {
-        toast.success("Operational hours updated successfully", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.error || "Failed to update operational hours", {
-          position: "top-right",
-          autoClose: 5000,
-        });
-      }
+      await operationsService.updateOperationalHours(operationalHours);
+      toast.success("Operational hours updated successfully");
     } catch (error) {
-      console.error("Error updating operational hours:", error);
-      toast.error("Error updating operational hours", {
-        position: "top-right",
-        autoClose: 5000,
-      });
+      toast.error("Failed to update operational hours");
     }
   };
 
@@ -253,25 +176,59 @@ const AdministratorDashboardContent = () => {
       {/* SHUTL Tracking */}
       <div className="AdministratorDashboard-shutl-tracking">
         <h3>SHUTL Tracking</h3>
+        <div
+          className="AdministratorDashboard-map-container"
+          style={{ height: "400px", width: "100%" }}
+        >
+          <MapContainer
+            style={{ height: "100%", width: "100%" }}
+            center={[14.377, 120.983]}
+            zoom={15.5}
+            zoomControl={false}
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            />
+
+            {/* Add shuttle markers */}
+            {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
+              const isRecent = new Date() - new Date(data.lastUpdate) < 120000; // 2 minutes threshold
+              if (!isRecent) return null;
+
+              return (
+                <Marker
+                  key={shuttleId}
+                  position={data.coordinates}
+                  icon={carIcon}
+                >
+                  <Popup>
+                    <div className="AdministratorDashboard-shuttle-info">
+                      <h3>{shuttleId}</h3>
+                      <p>
+                        Last updated:{" "}
+                        {new Date(data.lastUpdate).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
+          </MapContainer>
+        </div>
         <div className="AdministratorDashboard-shutl-grid">
-          {shuttleAssignments.map((assignment) => {
-            const locationData = shuttleLocations.find(
-              (loc) => loc.shuttleId === assignment.shuttleId
-            );
+          {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
+            const isRecent = new Date() - new Date(data.lastUpdate) < 120000;
+            if (!isRecent) return null;
 
             return (
-              <div key={assignment.shuttleId} className="shutl-status-card">
-                <h4>{assignment.shuttleId}</h4>
+              <div key={shuttleId} className="shutl-status-card">
+                <h4>{shuttleId}</h4>
                 <p>
-                  Currently at{" "}
-                  {locationData?.location.streetName || "Unknown Location"}
+                  Last Updated: {new Date(data.lastUpdate).toLocaleTimeString()}
                 </p>
-                <p>Driver: {assignment.driverName || "Unassigned"}</p>
                 <p className="status-indicator">
-                  Status:{" "}
-                  <span className={locationData ? "active" : "inactive"}>
-                    {locationData ? "Active" : "Inactive"}
-                  </span>
+                  Status: <span className="active">Active</span>
                 </p>
               </div>
             );

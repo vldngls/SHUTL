@@ -12,6 +12,12 @@ import AdministratorTransactionsContent from "@components/AdministratorTransacti
 import AccountManagement from "@components/AccountManagement.jsx";
 import NotificationPop from "../components/NotificationPop";
 import { getCookie } from "../utils/cookieUtils"; // Adjust the path as necessary
+import {
+  connectSocket,
+  disconnectSocket,
+  subscribeToLocationUpdates,
+  joinShuttleTracking,
+} from "../utils/websocketService";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Use API_BASE_URL for the backend API
 const socket = io(API_BASE_URL); // Dynamic WebSocket connection to the backend
@@ -21,6 +27,7 @@ const AdministratorMain = () => {
   const [dateTime, setDateTime] = useState(new Date());
   const [notifications, setNotifications] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
+  const [shuttleLocations, setShuttleLocations] = useState({});
 
   const navigate = useNavigate();
 
@@ -56,6 +63,30 @@ const AdministratorMain = () => {
   }, []);
 
   useEffect(() => {
+    const socket = connectSocket();
+
+    // Join tracking for all shuttles
+    ["SHUTL001", "SHUTL002", "SHUTL003"].forEach((shuttleId) => {
+      joinShuttleTracking(shuttleId);
+    });
+
+    // Subscribe to location updates
+    subscribeToLocationUpdates((data) => {
+      setShuttleLocations((prev) => ({
+        ...prev,
+        [data.shuttleId]: {
+          coordinates: data.coordinates,
+          lastUpdate: new Date(data.timestamp),
+        },
+      }));
+    });
+
+    return () => {
+      disconnectSocket();
+    };
+  }, []);
+
+  useEffect(() => {
     socket.on("new_notification", (notification) => {
       setNotifications((prevNotifications) => [
         notification,
@@ -72,7 +103,9 @@ const AdministratorMain = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "Dashboard":
-        return <AdministratorDashboardContent />;
+        return (
+          <AdministratorDashboardContent shuttleLocations={shuttleLocations} />
+        );
       case "Maintenance":
         return <AdministratorMaintenanceContent />;
       case "Fare":

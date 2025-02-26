@@ -15,7 +15,7 @@ import SuggestionForm from "../components/SuggestionForm";
 import PickMeUp from "../components/PickMeUp";
 import L from "leaflet";
 import { io } from "socket.io-client";
-import { calculateDistance } from "../utils/locationUtils";
+import { calculateDistance, reverseGeocode } from "../utils/locationUtils";
 import { getCookie } from "../utils/cookieUtils";
 import PaymentQR from "../components/PaymentQR";
 import {
@@ -98,15 +98,41 @@ const ShutlLoggedIn = () => {
   const watchIdRef = useRef(null);
   const popupRef = useRef(null);
   const locationUpdateInterval = useRef(null);
+  const [isLocationSharing, setIsLocationSharing] = useState(false);
+  const hasShownToastRef = useRef(false);
 
   useEffect(() => {
-    const socket = connectSocket();
+    // Function to clean up stale locations
+    const cleanupStaleLocations = () => {
+      setShuttleLocations((prev) => {
+        const now = new Date();
+        const updatedLocations = {};
+
+        Object.entries(prev).forEach(([shuttleId, data]) => {
+          // Check if location is less than 3 seconds old
+          if (now - new Date(data.lastUpdate) < 3000) {
+            updatedLocations[shuttleId] = data;
+          } else {
+            console.log(`Removing stale location for ${shuttleId}`);
+          }
+        });
+
+        return updatedLocations;
+      });
+    };
+
+    // Run cleanup every 3 seconds
+    const cleanupInterval = setInterval(cleanupStaleLocations, 3000);
+
+    // Initialize socket connection
+    socket.current = connectSocket();
 
     ["SHUTL001", "SHUTL002", "SHUTL003"].forEach((shuttleId) => {
       joinShuttleTracking(shuttleId);
     });
 
-    subscribeToLocationUpdates((data) => {
+    // Listen for both types of location updates
+    socket.current.on("shuttle_location", (data) => {
       setShuttleLocations((prev) => ({
         ...prev,
         [data.shuttleId]: {
@@ -116,8 +142,53 @@ const ShutlLoggedIn = () => {
       }));
     });
 
+    socket.current.on("shuttle_location_update", (data) => {
+      setShuttleLocations((prev) => ({
+        ...prev,
+        [data.shuttleId]: {
+          coordinates: data.coordinates,
+          lastUpdate: new Date(data.timestamp),
+        },
+      }));
+    });
+
+    // Add socket event listeners for pickup request responses
+    socket.current.on("pickup_request_accepted", (data) => {
+      toast.success(
+        `Your pickup request for ${data.shuttleId} has been accepted!`,
+        {
+          position: "bottom-center",
+          autoClose: 3000,
+        }
+      );
+    });
+
+    socket.current.on("pickup_request_completed", (data) => {
+      toast.info(`Your pickup request has been completed.`, {
+        position: "bottom-center",
+        autoClose: 3000,
+      });
+    });
+
+    socket.current.on("pickup_request_cancelled", (data) => {
+      toast.warning(`Your pickup request has been cancelled.`, {
+        position: "bottom-center",
+        autoClose: 3000,
+      });
+    });
+
     return () => {
-      disconnectSocket();
+      // Clear the cleanup interval
+      clearInterval(cleanupInterval);
+
+      if (socket.current) {
+        socket.current.off("shuttle_location");
+        socket.current.off("shuttle_location_update");
+        socket.current.off("pickup_request_accepted");
+        socket.current.off("pickup_request_completed");
+        socket.current.off("pickup_request_cancelled");
+        disconnectSocket();
+      }
     };
   }, []);
 
@@ -149,22 +220,46 @@ const ShutlLoggedIn = () => {
     fetchUserProfile();
   }, []);
 
-  const updateUserLocation = useCallback(() => {
+  const updateUserLocation = () => {
     if (!navigator.geolocation) {
-      console.error("Geolocation is not supported by this browser.");
+      toast.error("Geolocation is not supported by your browser.", {
+        position: "bottom-center",
+        autoClose: 3000,
+      });
       return;
     }
 
+    // If already watching location, stop sharing
     if (watchIdRef.current) {
       navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+      setIsLocationSharing(false);
+      setUserLocation(null);
+      hasShownToastRef.current = false;
+      toast.info("Location sharing stopped", {
+        position: "bottom-center",
+        autoClose: 3000,
+        icon: "🚫",
+      });
+      return;
     }
 
+    // Start watching location
     watchIdRef.current = navigator.geolocation.watchPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         const userCoords = [latitude, longitude];
-        console.log("User location updated:", userCoords);
         setUserLocation(userCoords);
+
+        if (!hasShownToastRef.current) {
+          setIsLocationSharing(true);
+          hasShownToastRef.current = true;
+          toast.success("Location sharing started", {
+            position: "bottom-center",
+            autoClose: 3000,
+            icon: "📍",
+          });
+        }
 
         if (mapInstance) {
           mapInstance.setView(userCoords, 15.5, { animate: true });
@@ -172,6 +267,14 @@ const ShutlLoggedIn = () => {
       },
       (error) => {
         console.error("Location error:", error);
+        toast.error(`Location error: ${error.message}`, {
+          position: "bottom-center",
+          autoClose: 3000,
+        });
+        setIsLocationSharing(false);
+        setUserLocation(null);
+        watchIdRef.current = null;
+        hasShownToastRef.current = false;
       },
       {
         enableHighAccuracy: true,
@@ -179,12 +282,16 @@ const ShutlLoggedIn = () => {
         maximumAge: 0,
       }
     );
-  }, [mapInstance]);
+  };
 
+  // Clean up location watching on unmount
   useEffect(() => {
     return () => {
       if (watchIdRef.current) {
         navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+        setUserLocation(null);
+        hasShownToastRef.current = false;
       }
     };
   }, []);
@@ -239,43 +346,40 @@ const ShutlLoggedIn = () => {
   // Update the handlePickupRequest function
   const handlePickupRequest = async (e, shuttleId) => {
     e.stopPropagation();
-    if (socket.current) {
-      try {
-        const streetName = await getStreetName(
-          userLocation[0],
-          userLocation[1]
-        );
-        const request = {
-          shuttleId,
-          location: {
-            coordinates: userLocation,
-            streetName,
-          },
-          timestamp: new Date().toISOString(),
-        };
-        console.log("Sending pickup request:", request);
-        socket.current.emit("pickup_request", request);
-        toast.success("Pickup request sent successfully!", {
-          position: "bottom-center",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-      } catch (error) {
-        console.error("Error sending pickup request:", error);
-        toast.error("Error sending pickup request. Please try again.", {
-          position: "bottom-center",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
+    if (!userLocation) {
+      toast.error("Please enable location sharing first", {
+        position: "bottom-center",
+        theme: "colored",
+      });
+      return;
+    }
+
+    try {
+      const streetName = await reverseGeocode(userLocation[0], userLocation[1]);
+      const request = {
+        shuttleId,
+        location: {
+          coordinates: userLocation,
+          streetName,
+        },
+        timestamp: new Date().toISOString(),
+      };
+
+      if (!socket.current) {
+        socket.current = connectSocket();
       }
+
+      socket.current.emit("pickup_request", request);
+      toast.success("Pickup request sent successfully!", {
+        position: "bottom-center",
+        theme: "colored",
+      });
+    } catch (error) {
+      console.error("Error sending pickup request:", error);
+      toast.error("Error sending pickup request. Please try again.", {
+        position: "bottom-center",
+        theme: "colored",
+      });
     }
   };
 
@@ -294,25 +398,23 @@ const ShutlLoggedIn = () => {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
 
-          {userLocation && (
-            <Marker
-              position={userLocation}
-              icon={userIcon}
-              eventHandlers={{
-                click: () => {
-                  updateUserLocation();
-                  setShowPickMeUp(true);
-                },
-              }}
-            >
-              <Popup>Your Location</Popup>
-            </Marker>
-          )}
+          {userLocation &&
+            isLocationSharing && ( // Only show marker if location sharing is active
+              <Marker
+                position={userLocation}
+                icon={userIcon}
+                eventHandlers={{
+                  click: () => {
+                    setShowPickMeUp(true);
+                  },
+                }}
+              >
+                <Popup>Your Location</Popup>
+              </Marker>
+            )}
 
           {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
-            const isRecent = new Date() - data.lastUpdate < 120000;
-            if (!isRecent) return null;
-
+            // Location data is already filtered by the cleanup interval
             let distance = null;
             let eta = null;
             if (userLocation) {
@@ -432,11 +534,28 @@ const ShutlLoggedIn = () => {
       <button
         className="ShutlLoggedIn-update-location-btn"
         onClick={updateUserLocation}
+        style={{
+          backgroundColor: isLocationSharing ? "#4CAF50" : "white",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+          border: "none",
+          borderRadius: "50%",
+          padding: "10px",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "background-color 0.3s ease",
+        }}
       >
         <img
           src="/locup.png"
-          alt="Update Location"
+          alt={isLocationSharing ? "Stop Sharing Location" : "Share Location"}
           className="ShutlLoggedIn-update-location-icon"
+          style={{
+            width: "24px",
+            height: "24px",
+            filter: isLocationSharing ? "brightness(0) invert(1)" : "none",
+          }}
         />
       </button>
 

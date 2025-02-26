@@ -5,7 +5,7 @@ const KNOWN_LOCATIONS = {
   "14.385152,120.9663488": "Molino Road",
   "14.385586,120.978863": "SOMO - A Vista Mall",
   "14.384981,120.979704": "SOMO Parking Entrance",
-  "14.374463, 120.991615": "Lessandra Gate"
+  "14.374463, 120.991615": "Lessandra Gate",
   // Add more known locations in your service area
 };
 
@@ -125,25 +125,25 @@ function getAreaDescription(lat, lon) {
   return null;
 }
 
-// Calculate distance between two points in kilometers
-function calculateDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // Earth's radius in kilometers
+// Change the function declaration to export it
+export function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Earth's radius in km
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
-
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(toRad(lat1)) *
       Math.cos(toRad(lat2)) *
       Math.sin(dLon / 2) *
       Math.sin(dLon / 2);
-
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
+  const distance = R * c; // Distance in km
+  return distance;
 }
 
+// Helper function for converting degrees to radians
 function toRad(degrees) {
-  return degrees * (Math.PI / 180);
+  return (degrees * Math.PI) / 180;
 }
 
 export const clearGeocodeCache = () => {

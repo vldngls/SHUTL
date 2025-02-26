@@ -17,6 +17,7 @@ import {
 import L from "leaflet";
 import PickupRequestsPanel from "../components/PickupRequestsPanel";
 import { getTokenFromCookies } from "../utils/tokenUtils";
+import { toast } from "react-toastify";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -144,6 +145,9 @@ const DriverMain = () => {
   const [profileImage, setProfileImage] = useState("/profile.png"); // Default image
   const [showProfileCard, setShowProfileCard] = useState(false);
   const messageBoxRef = useRef(null);
+  const hasInitialized = useRef(false);
+  const hasShownToastRef = useRef(false);
+  const watchIdRef = useRef(null);
 
   // Initialize socket and handle events
   useEffect(() => {
@@ -212,61 +216,117 @@ const DriverMain = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Handle location sharing
-  const updateLocation = useCallback(async () => {
-    if (!navigator.geolocation || !shuttleId) {
-      console.warn("Cannot update location:", {
-        hasGeolocation: !!navigator.geolocation,
-        shuttleId,
+  // Separate the start and stop functions
+  const startLocationSharing = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser.", {
+        position: "bottom-center",
+        theme: "colored",
       });
       return;
     }
 
-    try {
-      const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0,
+    // Clear any existing watchers/intervals first
+    if (watchIdRef.current) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+    }
+    if (locationUpdateInterval.current) {
+      clearInterval(locationUpdateInterval.current);
+    }
+
+    // Start watching location
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const userCoords = [latitude, longitude];
+        setUserLocation(userCoords);
+
+        if (!hasShownToastRef.current) {
+          hasShownToastRef.current = true;
+          toast.success("Location sharing started", {
+            position: "bottom-center",
+            theme: "colored",
+          });
+        }
+
+        if (mapRef.current) {
+          mapRef.current.setView(userCoords, 15.5, { animate: true });
+        }
+      },
+      (error) => {
+        console.error("Location error:", error);
+        toast.error(`Location error: ${error.message}`, {
+          position: "bottom-center",
+          theme: "colored",
         });
-      });
-
-      const { latitude, longitude } = position.coords;
-      setUserLocation([latitude, longitude]);
-
-      const locationData = {
-        coordinates: [latitude, longitude],
-        shuttleId: shuttleId,
-        timestamp: new Date().toISOString(),
-      };
-
-      console.log("Sending location:", locationData);
-      const sent = await sendLocation(locationData);
-
-      if (!sent) {
-        console.warn("Failed to send location update");
+        cleanupLocationServices();
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
       }
-    } catch (error) {
-      console.error("Error updating location:", error);
+    );
+
+    // Set up interval to send location updates
+    locationUpdateInterval.current = setInterval(() => {
+      if (shuttleId && userLocation) {
+        sendLocation({
+          shuttleId,
+          coordinates: userLocation,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }, 3000);
+
+    setIsLocationSharing(true);
+    localStorage.setItem("isLocationSharing", "true");
+  };
+
+  const cleanupLocationServices = () => {
+    if (watchIdRef.current) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
     }
-  }, [shuttleId]);
+    if (locationUpdateInterval.current) {
+      clearInterval(locationUpdateInterval.current);
+      locationUpdateInterval.current = null;
+    }
+    hasShownToastRef.current = false;
+    setIsLocationSharing(false);
+    localStorage.removeItem("isLocationSharing");
+  };
 
-  useEffect(() => {
-    let interval;
+  const stopLocationSharing = () => {
+    cleanupLocationServices();
+    toast.info("Location sharing stopped", {
+      position: "bottom-center",
+      theme: "colored",
+    });
+  };
 
+  // Handle the location sharing button click
+  const updateUserLocation = () => {
     if (isLocationSharing) {
-      console.log("Starting location sharing for shuttle:", shuttleId);
-      updateLocation(); // Initial update
-      interval = setInterval(updateLocation, 3000);
+      stopLocationSharing();
+    } else {
+      startLocationSharing();
     }
+  };
 
-    return () => {
-      if (interval) {
-        console.log("Stopping location sharing");
-        clearInterval(interval);
+  // Initialize location sharing on mount if it was previously active
+  useEffect(() => {
+    if (!hasInitialized.current) {
+      hasInitialized.current = true;
+      const wasSharing = localStorage.getItem("isLocationSharing") === "true";
+      if (wasSharing) {
+        startLocationSharing();
       }
+    }
+    return () => {
+      cleanupLocationServices();
     };
-  }, [isLocationSharing, updateLocation]);
+  }, []);
 
   // Add this useEffect to fetch shuttle assignment
   useEffect(() => {
@@ -738,14 +798,37 @@ const DriverMain = () => {
 
       <button
         className="DriverMain-update-location-btn"
-        onClick={handleLocationButtonClick}
+        onClick={updateUserLocation}
+        style={{
+          backgroundColor: isLocationSharing ? "#4CAF50" : "white",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+          border: "none",
+          borderRadius: "50%",
+          padding: "10px",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "background-color 0.3s ease",
+          position: "fixed",
+          right: "16px",
+          bottom: "60px",
+          zIndex: 1000,
+          width: "44px",
+          height: "44px",
+        }}
       >
-        <img src="/locup.png" alt="Update Location" />
+        <img
+          src="/locup.png"
+          alt={isLocationSharing ? "Stop Sharing Location" : "Share Location"}
+          style={{
+            width: "24px",
+            height: "24px",
+            filter: isLocationSharing ? "brightness(0) invert(1)" : "none",
+            transition: "filter 0.3s ease",
+          }}
+        />
       </button>
-
-      {isLocationSharing && (
-        <div className="DriverMain-sharing-status">Live Location Active</div>
-      )}
 
       {activeModal === "isMessageOpen" && (
         <div ref={messageBoxRef}>

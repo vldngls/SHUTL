@@ -104,21 +104,16 @@
 /* Update Location Button */
 .DriverMain-update-location-btn {
   position: fixed;
-  right: 20px;
+  right: 16px;
   bottom: 60px;
-  background: none;
-  border: none;
-  cursor: pointer;
   z-index: 1000;
-}
-
-.DriverMain-update-location-btn img {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
+  transition: all 0.3s ease;
 }
 
 .DriverMain-update-location-btn:hover {
-  background-color: #cacaca21;
+  transform: scale(1.1);
 }
 
 /* Request Assistance Button */
