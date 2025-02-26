@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  useRef,
-} from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "../css/LoggedIn.css";
@@ -163,18 +157,35 @@ const ShutlLoggedIn = () => {
       );
     });
 
-    socket.current.on("pickup_request_completed", (data) => {
+    socket.current.on("pickup_request_completed", () => {
       toast.info(`Your pickup request has been completed.`, {
         position: "bottom-center",
         autoClose: 3000,
       });
     });
 
-    socket.current.on("pickup_request_cancelled", (data) => {
+    socket.current.on("pickup_request_cancelled", () => {
       toast.warning(`Your pickup request has been cancelled.`, {
         position: "bottom-center",
         autoClose: 3000,
       });
+    });
+
+    // Add socket connection and notification handling
+    socket.current.on("new_notification", (notification) => {
+      setNotifications((prev) => {
+        const updatedNotifications = [notification, ...prev];
+        return updatedNotifications.slice(0, 5); // Keep only 5 most recent notifications
+      });
+      // Automatically show notification popup
+      setActivePopup("notifications");
+
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        setActivePopup((current) =>
+          current === "notifications" ? null : current
+        );
+      }, 5000);
     });
 
     return () => {
@@ -187,6 +198,7 @@ const ShutlLoggedIn = () => {
         socket.current.off("pickup_request_accepted");
         socket.current.off("pickup_request_completed");
         socket.current.off("pickup_request_cancelled");
+        socket.current.off("new_notification");
         disconnectSocket();
       }
     };
@@ -309,10 +321,7 @@ const ShutlLoggedIn = () => {
     return dateTime.toLocaleTimeString("en-PH");
   }, [dateTime]);
 
-  const handleSettingsClick = (e) => {
-    e.stopPropagation();
-    setIsSettingsOpen(!isSettingsOpen);
-  };
+  const handleSettingsClick = () => setIsSettingsOpen(!isSettingsOpen);
 
   const handleProfileSettings = () => {
     setIsProfileEditMode(true);
@@ -382,6 +391,16 @@ const ShutlLoggedIn = () => {
       });
     }
   };
+
+  // Add timer effect to update dateTime
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setDateTime(new Date());
+    }, 1000);
+
+    // Cleanup timer on unmount
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <>
@@ -486,7 +505,7 @@ const ShutlLoggedIn = () => {
           </button>
           <button
             className="ShutlLoggedIn-setting-btn"
-            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+            onClick={handleSettingsClick}
           >
             <img
               src="/settings.png"
@@ -581,6 +600,7 @@ const ShutlLoggedIn = () => {
           <NotificationPop
             notifications={notifications}
             onClose={() => setActivePopup(null)}
+            show={true}
           />
         )}
       </div>

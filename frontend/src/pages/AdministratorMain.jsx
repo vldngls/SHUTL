@@ -93,6 +93,11 @@ const AdministratorMain = () => {
         ...prevNotifications,
       ]);
       setShowPopup(true);
+
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        setShowPopup(false);
+      }, 5000);
     });
 
     return () => {
@@ -194,10 +199,11 @@ const AdministratorMain = () => {
         {renderContent()}
 
         {/* Notification popup for new notifications */}
-        {showPopup && notifications[0] && (
+        {showPopup && (
           <NotificationPop
             notifications={notifications}
             onClose={() => setShowPopup(false)}
+            show={true}
           />
         )}
       </div>

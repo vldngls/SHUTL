@@ -160,9 +160,17 @@ const DriverMain = () => {
     socket.current.on("new_notification", (notification) => {
       setNotifications((prev) => {
         const updatedNotifications = [notification, ...prev];
-        return updatedNotifications.slice(0, 5); // Keep only the 5 most recent notifications
+        return updatedNotifications.slice(0, 5); // Keep only 5 most recent notifications
       });
+      // Automatically show notification popup
       setActivePopup("notifications");
+
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        setActivePopup((current) =>
+          current === "notifications" ? null : current
+        );
+      }, 5000);
     });
 
     // Load active pickups from localStorage
@@ -860,6 +868,7 @@ const DriverMain = () => {
         <NotificationPop
           notifications={notifications}
           onClose={() => setActivePopup(null)}
+          show={true}
         />
       )}
       {activeModal === "isProfileOpen" && (

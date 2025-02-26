@@ -1,8 +1,24 @@
 // frontend/src/components/NotificationPop.jsx
-import React from "react";
+import React, { useEffect } from "react";
 import "../css/NotificationPop.css";
 
-const ShutlNotificationPop = ({ notifications = [], onClose }) => {
+const ShutlNotificationPop = ({
+  notifications = [],
+  onClose,
+  show = false,
+}) => {
+  useEffect(() => {
+    // Auto-close notification after 5 seconds if shown
+    if (show) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [show, onClose]);
+
+  if (!show) return null;
+
   return (
     <div className="ShutlNotificationPop-popup" onClick={onClose}>
       <ul className="ShutlNotificationPop-list">
@@ -10,6 +26,9 @@ const ShutlNotificationPop = ({ notifications = [], onClose }) => {
           notifications.map((notif, index) => (
             <li key={index} className="ShutlNotificationPop-item">
               {notif.message}
+              <span className="ShutlNotificationPop-time">
+                {new Date(notif.createdAt).toLocaleTimeString()}
+              </span>
             </li>
           ))
         ) : (

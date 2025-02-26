@@ -25,6 +25,10 @@
 .ShutlNotificationPop-item {
   padding: 10px 0; /* Space between items */
   border-bottom: 1px solid rgba(255, 255, 255, 0.2); /* Divider between items */
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .ShutlNotificationPop-item:last-child {
@@ -47,4 +51,10 @@
 
 .ShutlNotificationPop-close:hover {
   color: #fff;
+}
+
+.ShutlNotificationPop-time {
+  font-size: 0.8em;
+  color: #ccc;
+  white-space: nowrap;
 }
