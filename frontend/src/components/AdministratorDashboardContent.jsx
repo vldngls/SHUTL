@@ -118,7 +118,7 @@ const AdministratorDashboardContent = ({ shuttleLocations }) => {
         recipientType
       );
       toast.success("Notification sent successfully", {
-        duration: 2000
+        duration: 2000,
       });
       setNotificationMessage("");
     } catch (error) {
@@ -130,10 +130,41 @@ const AdministratorDashboardContent = ({ shuttleLocations }) => {
     try {
       await operationsService.updateOperationalHours(operationalHours);
       toast.success("Operational hours updated successfully", {
-        duration: 2000
+        duration: 2000,
       });
     } catch (error) {
       toast.error("Failed to update operational hours");
+    }
+  };
+
+  const getShuttleStatus = (shuttleId, lastUpdate) => {
+    if (!lastUpdate) return "offline";
+
+    const now = new Date();
+    const lastUpdateTime = new Date(lastUpdate);
+    const timeDiff = now - lastUpdateTime;
+
+    if (timeDiff < 30 * 1000) {
+      // Less than 30 seconds
+      return "active";
+    } else if (timeDiff < 5 * 60 * 1000) {
+      // Less than 5 minutes
+      return "idle";
+    } else {
+      return "offline";
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "active":
+        return "green";
+      case "idle":
+        return "orange";
+      case "offline":
+        return "red";
+      default:
+        return "gray";
     }
   };
 
@@ -184,8 +215,15 @@ const AdministratorDashboardContent = ({ shuttleLocations }) => {
 
             {/* Add shuttle markers */}
             {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
-              const isRecent = new Date() - new Date(data.lastUpdate) < 120000; // 2 minutes threshold
-              if (!isRecent) return null;
+              if (!data || !data.coordinates) return null;
+
+              const status = getShuttleStatus(shuttleId, data.lastUpdate);
+              // Only show markers for active and idle shuttles
+              if (status === "offline") return null;
+
+              const lastUpdateTime = data.lastUpdate
+                ? new Date(data.lastUpdate).toLocaleTimeString()
+                : "N/A";
 
               return (
                 <Marker
@@ -196,9 +234,12 @@ const AdministratorDashboardContent = ({ shuttleLocations }) => {
                   <Popup>
                     <div className="AdministratorDashboard-shuttle-info">
                       <h3>{shuttleId}</h3>
+                      <p>Last updated: {lastUpdateTime}</p>
                       <p>
-                        Last updated:{" "}
-                        {new Date(data.lastUpdate).toLocaleTimeString()}
+                        Status:{" "}
+                        <span style={{ color: getStatusColor(status) }}>
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </span>
                       </p>
                     </div>
                   </Popup>
@@ -208,18 +249,24 @@ const AdministratorDashboardContent = ({ shuttleLocations }) => {
           </MapContainer>
         </div>
         <div className="AdministratorDashboard-shutl-grid">
-          {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
-            const isRecent = new Date() - new Date(data.lastUpdate) < 120000;
-            if (!isRecent) return null;
+          {["SHUTL001", "SHUTL002", "SHUTL003"].map((shuttleId) => {
+            const data = shuttleLocations[shuttleId] || {};
+            const status = getShuttleStatus(shuttleId, data.lastUpdate);
 
             return (
               <div key={shuttleId} className="shutl-status-card">
                 <h4>{shuttleId}</h4>
                 <p>
-                  Last Updated: {new Date(data.lastUpdate).toLocaleTimeString()}
+                  Last Updated:{" "}
+                  {data.lastUpdate
+                    ? new Date(data.lastUpdate).toLocaleTimeString()
+                    : "N/A"}
                 </p>
                 <p className="status-indicator">
-                  Status: <span className="active">Active</span>
+                  Status:{" "}
+                  <span style={{ color: getStatusColor(status) }}>
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </span>
                 </p>
               </div>
             );

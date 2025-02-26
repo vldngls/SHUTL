@@ -1,4 +1,5 @@
 import { io } from "socket.io-client";
+import { getCookie } from "./cookieUtils";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const SOCKET_URL = API_BASE_URL.replace("/api", "");
@@ -10,6 +11,8 @@ const messageQueue = [];
 
 export const connectSocket = () => {
   if (!socket) {
+    const token = getCookie("token");
+
     socket = io(SOCKET_URL, {
       transports: ["websocket"],
       reconnection: true,
@@ -17,6 +20,10 @@ export const connectSocket = () => {
       reconnectionDelay: 1000,
       withCredentials: true,
       timeout: 10000, // 10 second connection timeout
+      auth: { token }, // Send token in auth
+      extraHeaders: {
+        Cookie: `token=${token}`, // Also send token as cookie
+      },
     });
 
     socket.on("connect", () => {
@@ -119,11 +126,33 @@ export const subscribeToLocationUpdates = (callback) => {
     socket = connectSocket();
   }
 
+  // Remove any existing listeners
+  socket.off("shuttle_location");
   socket.off("shuttle_location_update");
+
+  // Listen for both initial locations and updates
+  socket.on("shuttle_location", (data) => {
+    console.log("Received initial shuttle location:", data);
+    // Ensure consistent shuttleId format
+    const formattedData = {
+      ...data,
+      shuttleId: data.shuttleId.startsWith("SHUTL")
+        ? data.shuttleId
+        : `SHUTL${data.shuttleId}`,
+    };
+    callback(formattedData);
+  });
 
   socket.on("shuttle_location_update", (data) => {
     console.log("Received shuttle location update:", data);
-    callback(data);
+    // Ensure consistent shuttleId format
+    const formattedData = {
+      ...data,
+      shuttleId: data.shuttleId.startsWith("SHUTL")
+        ? data.shuttleId
+        : `SHUTL${data.shuttleId}`,
+    };
+    callback(formattedData);
   });
 };
 

@@ -75,7 +75,13 @@ const io = new Server(server, {
     origin: process.env.FRONTEND_URL || "http://localhost:5173",
     methods: ["GET", "POST"],
     credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
     transports: ["websocket", "polling"],
+  },
+  cookie: {
+    name: "token",
+    httpOnly: true,
+    sameSite: "lax",
   },
 });
 

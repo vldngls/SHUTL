@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { io } from "socket.io-client";
 import ShutlNotificationPop from "../components/NotificationPop";
 import "../css/AdministratorMain.css";
 import AdministratorDashboardContent from "@components/AdministratorDashboardContent.jsx";
@@ -11,7 +10,7 @@ import AdministratorShuttleManagementContent from "@components/AdministratorShut
 import AdministratorTransactionsContent from "@components/AdministratorTransactionsContent.jsx";
 import AccountManagement from "@components/AccountManagement.jsx";
 import NotificationPop from "../components/NotificationPop";
-import { getCookie } from "../utils/cookieUtils"; // Adjust the path as necessary
+import { getCookie } from "../utils/cookieUtils";
 import {
   connectSocket,
   disconnectSocket,
@@ -19,8 +18,7 @@ import {
   joinShuttleTracking,
 } from "../utils/websocketService";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Use API_BASE_URL for the backend API
-const socket = io(API_BASE_URL); // Dynamic WebSocket connection to the backend
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const AdministratorMain = () => {
   const [activeTab, setActiveTab] = useState("Dashboard");
@@ -46,7 +44,7 @@ const AdministratorMain = () => {
       try {
         const response = await fetch(`${API_BASE_URL}/notifications/user`, {
           headers: {
-            Authorization: `Bearer ${getCookie("token")}`, // Replace with your token management
+            Authorization: `Bearer ${getCookie("token")}`,
           },
         });
         if (response.ok) {
@@ -63,6 +61,7 @@ const AdministratorMain = () => {
   }, []);
 
   useEffect(() => {
+    // Initialize socket connection
     const socket = connectSocket();
 
     // Join tracking for all shuttles
@@ -72,21 +71,20 @@ const AdministratorMain = () => {
 
     // Subscribe to location updates
     subscribeToLocationUpdates((data) => {
+      console.log("Received location update:", data);
+      const shuttleId = data.shuttleId.startsWith("SHUTL")
+        ? data.shuttleId
+        : `SHUTL${data.shuttleId}`;
       setShuttleLocations((prev) => ({
         ...prev,
-        [data.shuttleId]: {
+        [shuttleId]: {
           coordinates: data.coordinates,
           lastUpdate: new Date(data.timestamp),
         },
       }));
     });
 
-    return () => {
-      disconnectSocket();
-    };
-  }, []);
-
-  useEffect(() => {
+    // Handle notifications
     socket.on("new_notification", (notification) => {
       setNotifications((prevNotifications) => [
         notification,
@@ -101,7 +99,7 @@ const AdministratorMain = () => {
     });
 
     return () => {
-      socket.off("new_notification");
+      disconnectSocket();
     };
   }, []);
 
