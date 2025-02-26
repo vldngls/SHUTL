@@ -133,26 +133,12 @@ export const subscribeToLocationUpdates = (callback) => {
   // Listen for both initial locations and updates
   socket.on("shuttle_location", (data) => {
     console.log("Received initial shuttle location:", data);
-    // Ensure consistent shuttleId format
-    const formattedData = {
-      ...data,
-      shuttleId: data.shuttleId.startsWith("SHUTL")
-        ? data.shuttleId
-        : `SHUTL${data.shuttleId}`,
-    };
-    callback(formattedData);
+    callback(data);
   });
 
   socket.on("shuttle_location_update", (data) => {
     console.log("Received shuttle location update:", data);
-    // Ensure consistent shuttleId format
-    const formattedData = {
-      ...data,
-      shuttleId: data.shuttleId.startsWith("SHUTL")
-        ? data.shuttleId
-        : `SHUTL${data.shuttleId}`,
-    };
-    callback(formattedData);
+    callback(data);
   });
 };
 

@@ -333,9 +333,9 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
         <div className="TellerSummary-section">
           <h3>Route Time (Within Operational Hours)</h3>
           <div className="TellerSummary-route">
-            {Object.entries(routeMetrics).map(([shuttleNumber, metrics]) => (
-              <div key={shuttleNumber}>
-                <strong>SHUTL {shuttleNumber}</strong>
+            {Object.entries(routeMetrics).map(([shuttleId, metrics]) => (
+              <div key={shuttleId}>
+                <strong>SHUTL {shuttleId}</strong>
                 <p>
                   <span>{metrics.averageRouteMinutes} min</span> average route
                   time
@@ -352,32 +352,35 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
         <div className="TellerSummary-section">
           <h3>Current Status</h3>
           <div className="TellerSummary-status">
-            {["001", "002", "003"].map((shuttleId) => {
-              const locationData = shuttleLocations[shuttleId];
-              const stats = shuttleStats[shuttleId] || {
-                totalPassengers: 0,
-                roundTrips: 0,
-              };
+            {Object.entries(shuttleLocations).map(
+              ([shuttleId, locationData]) => {
+                const stats = shuttleStats[shuttleId] || {
+                  totalPassengers: 0,
+                  roundTrips: 0,
+                };
 
-              return (
-                <div className="status-item" key={shuttleId}>
-                  <strong>SHUTL {shuttleId}</strong>
-                  <p>
-                    Currently at{" "}
-                    {locationData
-                      ? streetNames[shuttleId] || "Fetching location..."
-                      : "Not transmitting location"}
-                  </p>
-                  <p>
-                    {stats.totalPassengers} Passengers | {stats.roundTrips}{" "}
-                    Trips
-                  </p>
-                  <button onClick={() => handleOpenShuttle({ id: shuttleId })}>
-                    Open
-                  </button>
-                </div>
-              );
-            })}
+                return (
+                  <div className="status-item" key={shuttleId}>
+                    <strong>SHUTL {shuttleId}</strong>
+                    <p>
+                      Currently at{" "}
+                      {locationData
+                        ? streetNames[shuttleId] || "Fetching location..."
+                        : "Not transmitting location"}
+                    </p>
+                    <p>
+                      {stats.totalPassengers} Passengers | {stats.roundTrips}{" "}
+                      Trips
+                    </p>
+                    <button
+                      onClick={() => handleOpenShuttle({ id: shuttleId })}
+                    >
+                      Open
+                    </button>
+                  </div>
+                );
+              }
+            )}
           </div>
         </div>
 

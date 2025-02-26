@@ -64,20 +64,33 @@ const AdministratorMain = () => {
     // Initialize socket connection
     const socket = connectSocket();
 
-    // Join tracking for all shuttles
-    ["SHUTL001", "SHUTL002", "SHUTL003"].forEach((shuttleId) => {
-      joinShuttleTracking(shuttleId);
-    });
+    // Fetch and track all active shuttles
+    const fetchAndTrackShuttles = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
+          headers: {
+            Authorization: `Bearer ${getCookie("token")}`,
+          },
+        });
+        const assignments = await response.json();
+
+        // Join tracking for each active shuttle
+        assignments.forEach((assignment) => {
+          joinShuttleTracking(assignment.shuttleId);
+        });
+      } catch (error) {
+        console.error("Error fetching shuttle assignments:", error);
+      }
+    };
+
+    fetchAndTrackShuttles();
 
     // Subscribe to location updates
     subscribeToLocationUpdates((data) => {
       console.log("Received location update:", data);
-      const shuttleId = data.shuttleId.startsWith("SHUTL")
-        ? data.shuttleId
-        : `SHUTL${data.shuttleId}`;
       setShuttleLocations((prev) => ({
         ...prev,
-        [shuttleId]: {
+        [data.shuttleId]: {
           coordinates: data.coordinates,
           lastUpdate: new Date(data.timestamp),
         },

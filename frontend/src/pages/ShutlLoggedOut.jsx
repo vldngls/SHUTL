@@ -74,10 +74,22 @@ const ShutlLoggedOut = () => {
       path: "/socket.io",
     });
 
-    // Join shuttle tracking rooms
-    ["SHUTL001", "SHUTL002", "SHUTL003"].forEach((shuttleId) => {
-      socket.current.emit("join_shuttle_tracking", { shuttleId });
-    });
+    // Fetch and track all active shuttles
+    const fetchAndTrackShuttles = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`);
+        const assignments = await response.json();
+
+        // Join tracking for each active shuttle
+        assignments.forEach((assignment) => {
+          socket.current.emit("join_shuttle_tracking", assignment.shuttleId);
+        });
+      } catch (error) {
+        console.error("Error fetching shuttle assignments:", error);
+      }
+    };
+
+    fetchAndTrackShuttles();
 
     // Listen for both types of location updates
     socket.current.on("shuttle_location", (data) => {

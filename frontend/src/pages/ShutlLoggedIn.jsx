@@ -133,9 +133,22 @@ const ShutlLoggedIn = () => {
     // Initialize socket connection
     socket.current = connectSocket();
 
-    ["SHUTL001", "SHUTL002", "SHUTL003"].forEach((shuttleId) => {
-      joinShuttleTracking(shuttleId);
-    });
+    // Fetch and track active shuttles
+    const fetchAndTrackShuttles = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`);
+        const assignments = await response.json();
+
+        // Join tracking for each active shuttle
+        assignments.forEach((assignment) => {
+          joinShuttleTracking(assignment.shuttleId);
+        });
+      } catch (error) {
+        console.error("Error fetching shuttle assignments:", error);
+      }
+    };
+
+    fetchAndTrackShuttles();
 
     // Listen for both types of location updates
     socket.current.on("shuttle_location", (data) => {
@@ -163,22 +176,22 @@ const ShutlLoggedIn = () => {
       toast.success(
         `Your pickup request for ${data.shuttleId} has been accepted!`,
         {
-          duration: 2000
+          duration: 2000,
         }
       );
     });
 
     socket.current.on("pickup_request_completed", () => {
       toast(`Your pickup request has been completed.`, {
-        icon: '✅',
-        duration: 2000
+        icon: "✅",
+        duration: 2000,
       });
     });
 
     socket.current.on("pickup_request_cancelled", () => {
       toast(`Your pickup request has been cancelled.`, {
-        icon: '❌',
-        duration: 2000
+        icon: "❌",
+        duration: 2000,
       });
     });
 
@@ -256,9 +269,9 @@ const ShutlLoggedIn = () => {
       setIsLocationSharing(false);
       setUserLocation(null);
       hasShownToastRef.current = false;
-      toast('Location sharing stopped', {
-        icon: '🚫',
-        duration: 2000
+      toast("Location sharing stopped", {
+        icon: "🚫",
+        duration: 2000,
       });
       return;
     }
@@ -273,9 +286,9 @@ const ShutlLoggedIn = () => {
         if (!hasShownToastRef.current) {
           setIsLocationSharing(true);
           hasShownToastRef.current = true;
-          toast.success('Location sharing started', {
-            icon: '📍',
-            duration: 2000
+          toast.success("Location sharing started", {
+            icon: "📍",
+            duration: 2000,
           });
         }
 

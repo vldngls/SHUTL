@@ -249,13 +249,12 @@ const AdministratorDashboardContent = ({ shuttleLocations }) => {
           </MapContainer>
         </div>
         <div className="AdministratorDashboard-shutl-grid">
-          {["SHUTL001", "SHUTL002", "SHUTL003"].map((shuttleId) => {
-            const data = shuttleLocations[shuttleId] || {};
+          {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
             const status = getShuttleStatus(shuttleId, data.lastUpdate);
 
             return (
               <div key={shuttleId} className="shutl-status-card">
-                <h4>{shuttleId}</h4>
+                <h4>SHUTL{shuttleId}</h4>
                 <p>
                   Last Updated:{" "}
                   {data.lastUpdate

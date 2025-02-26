@@ -47,31 +47,32 @@ const initializeDatabase = async () => {
     // Create three drivers
     const drivers = [
       {
-        username: "SHUTL001",
-        email: "shutl001@shutl.com",
+        username: "driver1",
+        email: "driver1@shutl.com",
         password: await bcrypt.hash("password123", 10),
         userType: "Driver",
-        name: "SHUTL 001",
-        firstName: "SHUTL",
-        lastName: "001",
+        name: "Driver 1",
       },
       {
-        username: "SHUTL002",
-        email: "shutl002@shutl.com",
+        username: "driver2",
+        email: "driver2@shutl.com",
         password: await bcrypt.hash("password123", 10),
         userType: "Driver",
-        name: "SHUTL 002",
-        firstName: "SHUTL",
-        lastName: "002",
+        name: "Driver 2",
       },
       {
-        username: "SHUTL003",
-        email: "shutl003@shutl.com",
+        username: "driver3",
+        email: "driver3@shutl.com",
         password: await bcrypt.hash("password123", 10),
         userType: "Driver",
-        name: "SHUTL 003",
-        firstName: "SHUTL",
-        lastName: "003",
+        name: "Driver 3",
+      },
+      {
+        username: "driver4",
+        email: "driver4@shutl.com",
+        password: await bcrypt.hash("password123", 10),
+        userType: "Driver",
+        name: "Driver 4",
       },
     ];
 
@@ -82,18 +83,23 @@ const initializeDatabase = async () => {
     // Create shuttle assignments
     const assignments = [
       {
-        driverEmail: "shutl001@shutl.com",
-        shuttleId: "SHUTL001",
+        driverEmail: "driver1@shutl.com",
+        shuttleId: "001",
         status: "active",
       },
       {
-        driverEmail: "shutl002@shutl.com",
-        shuttleId: "SHUTL002",
+        driverEmail: "driver2@shutl.com",
+        shuttleId: "002",
         status: "active",
       },
       {
-        driverEmail: "shutl003@shutl.com",
-        shuttleId: "SHUTL003",
+        driverEmail: "driver3@shutl.com",
+        shuttleId: "003",
+        status: "active",
+      },
+      {
+        driverEmail: "driver4@shutl.com",
+        shuttleId: "004",
         status: "active",
       },
     ];
@@ -109,15 +115,10 @@ const initializeDatabase = async () => {
     console.log("Username: teller");
     console.log("Password: teller123");
     console.log("\nDriver Accounts:");
-    console.log(
-      "1. Username: SHUTL001, Password: password123, Shuttle: SHUTL001"
-    );
-    console.log(
-      "2. Username: SHUTL002, Password: password123, Shuttle: SHUTL002"
-    );
-    console.log(
-      "3. Username: SHUTL003, Password: password123, Shuttle: SHUTL003"
-    );
+    console.log("1. Username: driver1, Password: password123, Shuttle: 001");
+    console.log("2. Username: driver2, Password: password123, Shuttle: 002");
+    console.log("3. Username: driver3, Password: password123, Shuttle: 003");
+    console.log("4. Username: driver4, Password: password123, Shuttle: 004");
 
     await mongoose.connection.close();
     console.log("\nDatabase connection closed");

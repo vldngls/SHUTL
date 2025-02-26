@@ -92,10 +92,26 @@ const TellerMain = () => {
       setMessages((prev) => [...prev, message]);
     });
 
-    // Join shuttle tracking rooms
-    ["SHUTL001", "SHUTL002", "SHUTL003"].forEach((shuttleId) => {
-      socket.current.emit("join_shuttle_tracking", { shuttleId });
-    });
+    // Fetch active shuttle assignments and join their tracking rooms
+    const fetchAndTrackShuttles = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
+          headers: {
+            Authorization: `Bearer ${getCookie("token")}`,
+          },
+        });
+        const assignments = await response.json();
+
+        // Join tracking for each active shuttle
+        assignments.forEach((assignment) => {
+          socket.current.emit("join_shuttle_tracking", assignment.shuttleId);
+        });
+      } catch (error) {
+        console.error("Error fetching shuttle assignments:", error);
+      }
+    };
+
+    fetchAndTrackShuttles();
 
     // Listen for both types of location updates
     socket.current.on("shuttle_location", (data) => {

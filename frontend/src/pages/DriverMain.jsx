@@ -291,7 +291,7 @@ const DriverMain = () => {
     // Clear any existing watchers/intervals first
     cleanupLocationServices();
 
-    // Start watching location
+    // Start watching location with better error handling
     watchIdRef.current = navigator.geolocation.watchPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
@@ -320,24 +320,60 @@ const DriverMain = () => {
       },
       (error) => {
         console.error("Location error:", error);
-        toast.error(`Location error: ${error.message}`);
+        let errorMessage = "Unknown location error occurred";
+
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage =
+              "Location permission was denied. Please enable location services in your browser settings.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage =
+              "Location information is unavailable. Please check your device's location services and try again.";
+            break;
+          case error.TIMEOUT:
+            errorMessage =
+              "Location request timed out. Please check your internet connection and try again.";
+            break;
+        }
+
+        toast.error(errorMessage);
         cleanupLocationServices();
+
+        // Set default location as fallback
+        setUserLocation([14.377, 120.983]);
+
+        // Try to get location again after 5 seconds if it was a timeout or unavailable error
+        if (
+          error.code === error.POSITION_UNAVAILABLE ||
+          error.code === error.TIMEOUT
+        ) {
+          setTimeout(() => {
+            toast.info("Retrying location services...");
+            startLocationSharing();
+          }, 5000);
+        }
       },
       {
         enableHighAccuracy: true,
-        timeout: 5000,
+        timeout: 10000, // Increased timeout to 10 seconds
         maximumAge: 0,
       }
     );
 
-    // Set up interval to send location updates
+    // Set up interval to send location updates with error handling
     locationUpdateInterval.current = setInterval(() => {
       if (shuttleId && userLocation) {
-        sendLocation({
-          shuttleId,
-          coordinates: userLocation,
-          timestamp: new Date().toISOString(),
-        });
+        try {
+          sendLocation({
+            shuttleId,
+            coordinates: userLocation,
+            timestamp: new Date().toISOString(),
+          });
+        } catch (error) {
+          console.error("Error sending location update:", error);
+          toast.error("Failed to send location update. Retrying...");
+        }
       }
     }, 3000);
 
@@ -361,7 +397,7 @@ const DriverMain = () => {
 
   const stopLocationSharing = () => {
     cleanupLocationServices();
-    toast.info("Location sharing stopped", {
+    toast.success("Location sharing stopped", {
       position: "bottom-center",
       theme: "colored",
     });
