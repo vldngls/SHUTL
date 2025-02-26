@@ -58,10 +58,10 @@ const getStreetName = async (lat, lng) => {
   }
 };
 
-// Function to group nearby pickups (within ~50 meters)
+// Function to group nearby pickups (within ~20 meters)
 const groupNearbyPickups = (pickups) => {
   const groups = [];
-  const DISTANCE_THRESHOLD = 0.05; // approximately 50 meters in coordinates
+  const DISTANCE_THRESHOLD = 0.0002; // approximately 20 meters in coordinates
 
   pickups.forEach((pickup) => {
     let addedToGroup = false;
@@ -78,6 +78,13 @@ const groupNearbyPickups = (pickups) => {
 
       if (distance < DISTANCE_THRESHOLD) {
         group.pickups.push(pickup);
+        // Update group center to be the average of all points
+        group.center = [
+          group.pickups.reduce((sum, p) => sum + p.location.coordinates[0], 0) /
+            group.pickups.length,
+          group.pickups.reduce((sum, p) => sum + p.location.coordinates[1], 0) /
+            group.pickups.length,
+        ];
         addedToGroup = true;
         break;
       }
@@ -249,7 +256,7 @@ const DriverMain = () => {
         if (!hasShownToastRef.current) {
           hasShownToastRef.current = true;
           toast.success("Location sharing started", {
-            duration: 2000
+            duration: 2000,
           });
         }
 
@@ -646,7 +653,48 @@ const DriverMain = () => {
                 key={`group-${index}`}
                 position={group.center}
                 icon={
-                  new L.DivIcon(createPickupMarkerStyle(group.pickups.length))
+                  new L.DivIcon({
+                    className: "pickup-location-marker",
+                    html: `
+                      <div class="marker-container" style="
+                        transform: translate(-50%, -50%);
+                        width: 30px;
+                        height: 30px;
+                        position: relative;
+                      ">
+                        <div style="
+                          width: 100%;
+                          height: 100%;
+                          background-color: ${
+                            group.pickups.length > 1 ? "#4CAF50" : "#2196F3"
+                          };
+                          border: 3px solid white;
+                          border-radius: 50%;
+                          box-shadow: 0 0 10px rgba(0,0,0,0.5);
+                          animation: pulse 1.5s infinite;
+                          display: flex;
+                          align-items: center;
+                          justify-content: center;
+                          color: white;
+                          font-weight: bold;
+                          font-size: ${
+                            group.pickups.reduce(
+                              (sum, p) => sum + p.passengers,
+                              0
+                            ) > 9
+                              ? "12px"
+                              : "14px"
+                          };
+                          font-family: Arial, sans-serif;
+                        ">${group.pickups.reduce(
+                          (sum, p) => sum + p.passengers,
+                          0
+                        )}</div>
+                      </div>
+                    `,
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15],
+                  })
                 }
               >
                 <Popup>
@@ -660,7 +708,18 @@ const DriverMain = () => {
                       }}
                     >
                       <strong>
-                        Pickup Location{group.pickups.length > 1 ? "s" : ""}
+                        {group.pickups.length > 1
+                          ? `${
+                              group.pickups.length
+                            } Pickup Locations (${group.pickups.reduce(
+                              (sum, p) => sum + p.passengers,
+                              0
+                            )} passengers)`
+                          : `${group.pickups[0].passengers} ${
+                              group.pickups[0].passengers === 1
+                                ? "passenger"
+                                : "passengers"
+                            }`}
                       </strong>
                       {group.pickups.length > 1 && (
                         <button
@@ -698,7 +757,9 @@ const DriverMain = () => {
                             fontSize: "13px",
                           }}
                         >
-                          {pickup.location.streetName}
+                          {pickup.location.streetName} ({pickup.passengers}{" "}
+                          {pickup.passengers === 1 ? "passenger" : "passengers"}
+                          )
                         </p>
                         <div
                           style={{
@@ -752,8 +813,9 @@ const DriverMain = () => {
                   </div>
                 </Popup>
                 <Tooltip direction="right" offset={[10, 0]}>
-                  {group.pickups.length} Active Pickup
-                  {group.pickups.length > 1 ? "s" : ""}
+                  {group.pickups.length > 1
+                    ? `${group.pickups.length} Pickup Locations`
+                    : group.pickups[0].location.streetName}
                 </Tooltip>
               </Marker>
             ))}
