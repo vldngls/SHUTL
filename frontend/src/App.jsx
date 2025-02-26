@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import SplashScreen from "./pages/SplashScreen";
@@ -11,8 +11,19 @@ import AdministratorMain from "./pages/AdministratorMain";
 import TellerMain from "./pages/TellerMain";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
+import { MemoryMonitor } from "./utils/memoryMonitor";
+import { MemoryMonitoringDashboard } from "./components/MemoryMonitoringDashboard";
 
 function App() {
+  useEffect(() => {
+    // Start memory monitoring
+    const monitorId = MemoryMonitor.startMonitoring();
+
+    return () => {
+      clearInterval(monitorId);
+    };
+  }, []);
+
   return (
     <div
       style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
@@ -76,6 +87,7 @@ function App() {
           },
         }}
       />
+      {process.env.NODE_ENV === "development" && <MemoryMonitoringDashboard />}
     </div>
   );
 }

@@ -7,7 +7,16 @@ const SOCKET_URL = API_BASE_URL.replace("/api", "");
 let socket = null;
 
 // Add message queue for handling disconnections
-const messageQueue = [];
+let messageQueue = [];
+const MAX_QUEUE_SIZE = 100;
+const QUEUE_CLEANUP_INTERVAL = 300000; // 5 minutes
+
+export const addToMessageQueue = (message) => {
+  if (messageQueue.length >= MAX_QUEUE_SIZE) {
+    messageQueue.shift(); // Remove oldest message
+  }
+  messageQueue.push(message);
+};
 
 export const connectSocket = () => {
   if (!socket) {
@@ -26,9 +35,16 @@ export const connectSocket = () => {
       },
     });
 
+    // Add message queue cleanup
+    setInterval(() => {
+      if (messageQueue.length > 0) {
+        messageQueue = [];
+      }
+    }, QUEUE_CLEANUP_INTERVAL);
+
     socket.on("connect", () => {
       console.log("Socket connected with ID:", socket.id);
-      // Emit any queued messages
+      // Process queued messages
       while (messageQueue.length > 0) {
         const { event, data } = messageQueue.shift();
         socket.emit(event, data);
@@ -47,6 +63,11 @@ export const connectSocket = () => {
       setTimeout(() => {
         connectSocket();
       }, 1000);
+    });
+
+    // Add memory monitoring
+    socket.on("message", (data) => {
+      addToMessageQueue(data);
     });
   }
   return socket;

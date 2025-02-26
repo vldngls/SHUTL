@@ -5,6 +5,7 @@ import "../css/Loggedout.css";
 import LoginForm from "../components/LoginForm"; // Ensure this path is correct
 import L from "leaflet";
 import { io } from "socket.io-client"; // Import socket.io-client
+import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 
 // Define SOCKET_URL
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Ensure this is set in your environment
@@ -37,6 +38,7 @@ const ShutlLoggedOut = () => {
   const [shuttleLocations, setShuttleLocations] = useState({});
   const mapRef = useRef();
   const socket = useRef(null);
+  const optimizedLocations = useOptimizedLocations(shuttleLocations);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -180,20 +182,31 @@ const ShutlLoggedOut = () => {
               <Popup>You are here.</Popup>
             </Marker>
           )}
-          {Object.entries(shuttleLocations).map(([shuttleId, data]) => (
-            <Marker
-              key={shuttleId}
-              position={data.coordinates}
-              icon={driverIcon}
-            >
-              <Popup>
-                <div className="ShutlLoggedOut-shuttle-info">
-                  <h3>{shuttleId}</h3>
-                  <p>Last updated: {data.lastUpdate.toLocaleTimeString()}</p>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
+          {Object.entries(optimizedLocations).map(([shuttleId, data]) => {
+            if (!data || !data.coordinates || data.status === "offline")
+              return null;
+
+            return (
+              <Marker
+                key={shuttleId}
+                position={data.coordinates}
+                icon={driverIcon}
+              >
+                <Popup>
+                  <div className="ShutlLoggedOut-shuttle-info">
+                    <h3>SHUTL {shuttleId}</h3>
+                    <p>Last updated: {data.lastUpdate.toLocaleTimeString()}</p>
+                    <p>
+                      Status:{" "}
+                      {data.status.charAt(0).toUpperCase() +
+                        data.status.slice(1)}
+                    </p>
+                    {data.streetName && <p>Location: {data.streetName}</p>}
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
         </MapContainer>
       </div>
 

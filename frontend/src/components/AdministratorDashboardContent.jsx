@@ -8,6 +8,7 @@ import { operationsService } from "../services/api/operations";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 
 // Fix for default Leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -41,6 +42,8 @@ const AdministratorDashboardContent = ({ shuttleLocations }) => {
     endTime: "22:00",
   });
   const [shuttleAssignments, setShuttleAssignments] = useState([]);
+
+  const optimizedLocations = useOptimizedLocations(shuttleLocations);
 
   useEffect(() => {
     const fetchUserCounts = async () => {
@@ -137,24 +140,6 @@ const AdministratorDashboardContent = ({ shuttleLocations }) => {
     }
   };
 
-  const getShuttleStatus = (shuttleId, lastUpdate) => {
-    if (!lastUpdate) return "offline";
-
-    const now = new Date();
-    const lastUpdateTime = new Date(lastUpdate);
-    const timeDiff = now - lastUpdateTime;
-
-    if (timeDiff < 30 * 1000) {
-      // Less than 30 seconds
-      return "active";
-    } else if (timeDiff < 5 * 60 * 1000) {
-      // Less than 5 minutes
-      return "idle";
-    } else {
-      return "offline";
-    }
-  };
-
   const getStatusColor = (status) => {
     switch (status) {
       case "active":
@@ -166,6 +151,11 @@ const AdministratorDashboardContent = ({ shuttleLocations }) => {
       default:
         return "gray";
     }
+  };
+
+  const formatStatus = (status) => {
+    if (!status) return "Unknown";
+    return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
   return (
@@ -213,60 +203,58 @@ const AdministratorDashboardContent = ({ shuttleLocations }) => {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             />
 
-            {/* Add shuttle markers */}
-            {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
-              if (!data || !data.coordinates) return null;
+            {Object.entries(optimizedLocations || {}).map(
+              ([shuttleId, data]) => {
+                if (!data?.coordinates) return null;
 
-              const status = getShuttleStatus(shuttleId, data.lastUpdate);
-              // Only show markers for active and idle shuttles
-              if (status === "offline") return null;
+                const status = data?.status || "unknown";
+                const lastUpdate = data?.lastUpdate
+                  ? new Date(data.lastUpdate).toLocaleTimeString()
+                  : "N/A";
 
-              const lastUpdateTime = data.lastUpdate
-                ? new Date(data.lastUpdate).toLocaleTimeString()
-                : "N/A";
-
-              return (
-                <Marker
-                  key={shuttleId}
-                  position={data.coordinates}
-                  icon={carIcon}
-                >
-                  <Popup>
-                    <div className="AdministratorDashboard-shuttle-info">
-                      <h3>{shuttleId}</h3>
-                      <p>Last updated: {lastUpdateTime}</p>
-                      <p>
-                        Status:{" "}
-                        <span style={{ color: getStatusColor(status) }}>
-                          {status.charAt(0).toUpperCase() + status.slice(1)}
-                        </span>
-                      </p>
-                    </div>
-                  </Popup>
-                </Marker>
-              );
-            })}
+                return (
+                  <Marker
+                    key={shuttleId}
+                    position={data.coordinates}
+                    icon={carIcon}
+                  >
+                    <Popup>
+                      <div className="AdministratorDashboard-shuttle-info">
+                        <h3>SHUTL {shuttleId}</h3>
+                        <p>Last updated: {lastUpdate}</p>
+                        <p>
+                          Status:{" "}
+                          <span style={{ color: getStatusColor(status) }}>
+                            {formatStatus(status)}
+                          </span>
+                        </p>
+                        {data?.streetName && <p>Location: {data.streetName}</p>}
+                      </div>
+                    </Popup>
+                  </Marker>
+                );
+              }
+            )}
           </MapContainer>
         </div>
         <div className="AdministratorDashboard-shutl-grid">
-          {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
-            const status = getShuttleStatus(shuttleId, data.lastUpdate);
+          {Object.entries(optimizedLocations || {}).map(([shuttleId, data]) => {
+            const status = data?.status || "unknown";
+            const lastUpdate = data?.lastUpdate
+              ? new Date(data.lastUpdate).toLocaleTimeString()
+              : "N/A";
 
             return (
-              <div key={shuttleId} className="shutl-status-card">
-                <h4>SHUTL{shuttleId}</h4>
+              <div key={shuttleId} className="shuttle-status-card">
+                <h4>SHUTL {shuttleId}</h4>
                 <p>
-                  Last Updated:{" "}
-                  {data.lastUpdate
-                    ? new Date(data.lastUpdate).toLocaleTimeString()
-                    : "N/A"}
-                </p>
-                <p className="status-indicator">
                   Status:{" "}
                   <span style={{ color: getStatusColor(status) }}>
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                    {formatStatus(status)}
                   </span>
                 </p>
+                <p>Last Updated: {lastUpdate}</p>
+                {data?.streetName && <p>Location: {data.streetName}</p>}
               </div>
             );
           })}

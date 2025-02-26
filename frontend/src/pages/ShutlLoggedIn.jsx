@@ -20,6 +20,7 @@ import {
 } from "../utils/websocketService";
 import { toast } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
+import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 
 // Fix for default Leaflet icons issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -106,6 +107,7 @@ const ShutlLoggedIn = () => {
   const [isLocationSharing, setIsLocationSharing] = useState(false);
   const hasShownToastRef = useRef(false);
   const [selectedDestination, setSelectedDestination] = useState(null);
+  const optimizedLocations = useOptimizedLocations(shuttleLocations);
 
   useEffect(() => {
     // Function to clean up stale locations
@@ -136,15 +138,32 @@ const ShutlLoggedIn = () => {
     // Fetch and track active shuttles
     const fetchAndTrackShuttles = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`);
-        const assignments = await response.json();
+        const token = getCookie("token");
+        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const assignments = Array.isArray(data) ? data : data.assignments || [];
 
         // Join tracking for each active shuttle
         assignments.forEach((assignment) => {
-          joinShuttleTracking(assignment.shuttleId);
+          if (assignment && assignment.shuttleId) {
+            joinShuttleTracking(assignment.shuttleId);
+          }
         });
       } catch (error) {
         console.error("Error fetching shuttle assignments:", error);
+        toast.error("Failed to fetch shuttle assignments");
       }
     };
 
@@ -447,8 +466,7 @@ const ShutlLoggedIn = () => {
             </Marker>
           )}
 
-          {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
-            // Location data is already filtered by the cleanup interval
+          {Object.entries(optimizedLocations).map(([shuttleId, data]) => {
             let distance = null;
             let eta = null;
             if (userLocation) {

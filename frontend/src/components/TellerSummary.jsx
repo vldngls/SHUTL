@@ -18,6 +18,7 @@ import { io } from "socket.io-client";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { connectSocket } from "../utils/websocketService";
 import { reverseGeocode } from "../utils/locationUtils";
+import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 
 ChartJS.register(
   CategoryScale,
@@ -52,6 +53,7 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
   });
   const [streetNames, setStreetNames] = useState({});
   const geocodeTimeoutRef = useRef(null);
+  const optimizedLocations = useOptimizedLocations(shuttleLocations);
 
   // Log the received locations for debugging
   useEffect(() => {
@@ -352,35 +354,29 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
         <div className="TellerSummary-section">
           <h3>Current Status</h3>
           <div className="TellerSummary-status">
-            {Object.entries(shuttleLocations).map(
-              ([shuttleId, locationData]) => {
-                const stats = shuttleStats[shuttleId] || {
-                  totalPassengers: 0,
-                  roundTrips: 0,
-                };
+            {Object.entries(optimizedLocations).map(([shuttleId, data]) => {
+              const stats = shuttleStats[shuttleId] || {
+                totalPassengers: 0,
+                roundTrips: 0,
+              };
 
-                return (
-                  <div className="status-item" key={shuttleId}>
-                    <strong>SHUTL {shuttleId}</strong>
-                    <p>
-                      Currently at{" "}
-                      {locationData
-                        ? streetNames[shuttleId] || "Fetching location..."
-                        : "Not transmitting location"}
-                    </p>
-                    <p>
-                      {stats.totalPassengers} Passengers | {stats.roundTrips}{" "}
-                      Trips
-                    </p>
-                    <button
-                      onClick={() => handleOpenShuttle({ id: shuttleId })}
-                    >
-                      Open
-                    </button>
-                  </div>
-                );
-              }
-            )}
+              return (
+                <div className="status-item" key={shuttleId}>
+                  <strong>SHUTL {shuttleId}</strong>
+                  <p>
+                    Currently at {data.streetName || "Fetching location..."}
+                  </p>
+                  <p>Last Updated: {data.lastUpdate.toLocaleTimeString()}</p>
+                  <p>
+                    {stats.totalPassengers} Passengers | {stats.roundTrips}{" "}
+                    Trips
+                  </p>
+                  <button onClick={() => handleOpenShuttle({ id: shuttleId })}>
+                    Open
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
 

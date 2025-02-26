@@ -17,6 +17,7 @@ import {
   disconnectSocket,
 } from "../utils/websocketService";
 import L from "leaflet";
+import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -51,6 +52,7 @@ const TellerMain = () => {
   const [activePopup, setActivePopup] = useState(null);
   const socket = useRef(null);
   const [shuttleLocations, setShuttleLocations] = useState({});
+  const optimizedLocations = useOptimizedLocations(shuttleLocations);
 
   // Modal/Popup States
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -330,11 +332,11 @@ const TellerMain = () => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
-          {Object.entries(shuttleLocations).map(([shuttleId, data]) => (
+          {Object.entries(optimizedLocations).map(([shuttleId, data]) => (
             <Marker key={shuttleId} position={data.coordinates} icon={carIcon}>
               <Popup>
                 <div className="TellerMain-shuttle-info">
-                  <h3>{shuttleId}</h3>
+                  <h3>SHUTL {shuttleId}</h3>
                   <p>Last updated: {data.lastUpdate.toLocaleTimeString()}</p>
                 </div>
               </Popup>
@@ -415,7 +417,7 @@ const TellerMain = () => {
       {isSummaryOpen && (
         <TellerSummary
           onClose={() => setIsSummaryOpen(false)}
-          shuttleLocations={shuttleLocations}
+          shuttleLocations={optimizedLocations}
         />
       )}
       {isProfileOpen && (
