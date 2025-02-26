@@ -92,8 +92,25 @@ const TellerMain = () => {
       setMessages((prev) => [...prev, message]);
     });
 
-    // Subscribe to location updates
-    subscribeToLocationUpdates((data) => {
+    // Join shuttle tracking rooms
+    ["SHUTL001", "SHUTL002", "SHUTL003"].forEach((shuttleId) => {
+      socket.current.emit("join_shuttle_tracking", { shuttleId });
+    });
+
+    // Listen for both types of location updates
+    socket.current.on("shuttle_location", (data) => {
+      console.log("Received shuttle location:", data);
+      setShuttleLocations((prev) => ({
+        ...prev,
+        [data.shuttleId]: {
+          coordinates: data.coordinates,
+          lastUpdate: new Date(data.timestamp),
+        },
+      }));
+    });
+
+    socket.current.on("shuttle_location_update", (data) => {
+      console.log("Received shuttle location update:", data);
       setShuttleLocations((prev) => ({
         ...prev,
         [data.shuttleId]: {
@@ -107,13 +124,18 @@ const TellerMain = () => {
     const cleanupInterval = setInterval(() => {
       setShuttleLocations((prev) => {
         const now = new Date();
-        const filtered = Object.entries(prev).reduce((acc, [id, data]) => {
+        const updatedLocations = {};
+
+        Object.entries(prev).forEach(([shuttleId, data]) => {
+          // Check if location is less than 3 seconds old
           if (now - new Date(data.lastUpdate) < 3000) {
-            acc[id] = data;
+            updatedLocations[shuttleId] = data;
+          } else {
+            console.log(`Removing stale location for ${shuttleId}`);
           }
-          return acc;
-        }, {});
-        return filtered;
+        });
+
+        return updatedLocations;
       });
     }, 3000);
 
@@ -135,10 +157,12 @@ const TellerMain = () => {
 
     return () => {
       if (socket.current) {
+        socket.current.off("shuttle_location");
+        socket.current.off("shuttle_location_update");
+        socket.current.off("new_notification");
         socket.current.disconnect();
       }
       clearInterval(cleanupInterval);
-      socket.current.off("new_notification");
       disconnectSocket();
     };
   }, []);
@@ -278,7 +302,7 @@ const TellerMain = () => {
       {/* Map Component */}
       <div className="TellerMain-map-container">
         <MapContainer
-          style={{ height: "100%", width: "100%" }}
+          style={{ height: "100vh", width: "100vw" }}
           center={userLocation}
           zoom={15.5}
           zoomControl={false}
@@ -288,32 +312,18 @@ const TellerMain = () => {
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
-
-          {/* Add shuttle markers */}
-          {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
-            const isRecent = new Date() - new Date(data.lastUpdate) < 3000; // 3 seconds threshold
-            if (!isRecent) return null;
-
-            return (
-              <Marker
-                key={shuttleId}
-                position={data.coordinates}
-                icon={carIcon}
-              >
-                <Popup>
-                  <div className="TellerMain-shuttle-info">
-                    <h3>{shuttleId}</h3>
-                    <p>
-                      Last updated:{" "}
-                      {new Date(data.lastUpdate).toLocaleTimeString()}
-                    </p>
-                  </div>
-                </Popup>
-              </Marker>
-            );
-          })}
+          {Object.entries(shuttleLocations).map(([shuttleId, data]) => (
+            <Marker key={shuttleId} position={data.coordinates} icon={carIcon}>
+              <Popup>
+                <div className="TellerMain-shuttle-info">
+                  <h3>{shuttleId}</h3>
+                  <p>Last updated: {data.lastUpdate.toLocaleTimeString()}</p>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
         </MapContainer>
       </div>
 

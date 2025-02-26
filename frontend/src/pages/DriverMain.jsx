@@ -231,7 +231,57 @@ const DriverMain = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Separate the start and stop functions
+  // Initialize location sharing on mount if it was previously active
+  useEffect(() => {
+    const initializeLocationSharing = async () => {
+      if (!hasInitialized.current) {
+        hasInitialized.current = true;
+        const wasSharing = localStorage.getItem("isLocationSharing") === "true";
+
+        if (wasSharing) {
+          // Set the state immediately to show the correct UI
+          setIsLocationSharing(true);
+        }
+
+        // Get actual location first
+        if (navigator.geolocation) {
+          try {
+            const position = await new Promise((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0,
+              });
+            });
+
+            const { latitude, longitude } = position.coords;
+            const userCoords = [latitude, longitude];
+            setUserLocation(userCoords);
+
+            // Only start sharing after we have the actual location
+            if (wasSharing) {
+              startLocationSharing();
+            }
+          } catch (error) {
+            console.error("Location error:", error);
+            toast.error(`Location error: ${error.message}`);
+            setUserLocation([14.377, 120.983]); // Set default only if error
+            if (wasSharing) {
+              cleanupLocationServices();
+            }
+          }
+        }
+      }
+    };
+
+    initializeLocationSharing();
+
+    return () => {
+      cleanupLocationServices();
+    };
+  }, []);
+
+  // Update the startLocationSharing function
   const startLocationSharing = () => {
     if (!navigator.geolocation) {
       toast.error("Geolocation is not supported by your browser.");
@@ -239,12 +289,7 @@ const DriverMain = () => {
     }
 
     // Clear any existing watchers/intervals first
-    if (watchIdRef.current) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-    }
-    if (locationUpdateInterval.current) {
-      clearInterval(locationUpdateInterval.current);
-    }
+    cleanupLocationServices();
 
     // Start watching location
     watchIdRef.current = navigator.geolocation.watchPosition(
@@ -252,6 +297,15 @@ const DriverMain = () => {
         const { latitude, longitude } = position.coords;
         const userCoords = [latitude, longitude];
         setUserLocation(userCoords);
+
+        // Send location update immediately when we get a new position
+        if (shuttleId) {
+          sendLocation({
+            shuttleId,
+            coordinates: userCoords,
+            timestamp: new Date().toISOString(),
+          });
+        }
 
         if (!hasShownToastRef.current) {
           hasShownToastRef.current = true;
@@ -321,43 +375,6 @@ const DriverMain = () => {
       startLocationSharing();
     }
   };
-
-  // Initialize location sharing on mount if it was previously active
-  useEffect(() => {
-    if (!hasInitialized.current) {
-      hasInitialized.current = true;
-      const wasSharing = localStorage.getItem("isLocationSharing") === "true";
-
-      // Get actual location first
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            const userCoords = [latitude, longitude];
-            setUserLocation(userCoords);
-
-            // Only start sharing after we have the actual location
-            if (wasSharing) {
-              startLocationSharing();
-            }
-          },
-          (error) => {
-            console.error("Location error:", error);
-            toast.error(`Location error: ${error.message}`);
-            setUserLocation([14.377, 120.983]); // Set default only if error
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0,
-          }
-        );
-      }
-    }
-    return () => {
-      cleanupLocationServices();
-    };
-  }, []);
 
   // Add this useEffect to fetch shuttle assignment
   useEffect(() => {

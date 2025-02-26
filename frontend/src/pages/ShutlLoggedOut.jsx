@@ -34,7 +34,7 @@ const ShutlLoggedOut = () => {
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
-  const [driverLocation, setDriverLocation] = useState(null);
+  const [shuttleLocations, setShuttleLocations] = useState({});
   const mapRef = useRef();
   const socket = useRef(null);
 
@@ -42,6 +42,28 @@ const ShutlLoggedOut = () => {
     const timer = setInterval(() => {
       setDateTime(new Date());
     }, 1000);
+
+    // Function to clean up stale locations
+    const cleanupStaleLocations = () => {
+      setShuttleLocations((prev) => {
+        const now = new Date();
+        const updatedLocations = {};
+
+        Object.entries(prev).forEach(([shuttleId, data]) => {
+          // Check if location is less than 3 seconds old
+          if (now - new Date(data.lastUpdate) < 3000) {
+            updatedLocations[shuttleId] = data;
+          } else {
+            console.log(`Removing stale location for ${shuttleId}`);
+          }
+        });
+
+        return updatedLocations;
+      });
+    };
+
+    // Run cleanup every 3 seconds
+    const cleanupInterval = setInterval(cleanupStaleLocations, 3000);
 
     // Initialize socket connection
     socket.current = io(SOCKET_URL, {
@@ -52,14 +74,40 @@ const ShutlLoggedOut = () => {
       path: "/socket.io",
     });
 
+    // Join shuttle tracking rooms
+    ["SHUTL001", "SHUTL002", "SHUTL003"].forEach((shuttleId) => {
+      socket.current.emit("join_shuttle_tracking", { shuttleId });
+    });
+
+    // Listen for both types of location updates
     socket.current.on("shuttle_location", (data) => {
       console.log("Received shuttle location:", data);
-      setDriverLocation(data.coordinates);
+      setShuttleLocations((prev) => ({
+        ...prev,
+        [data.shuttleId]: {
+          coordinates: data.coordinates,
+          lastUpdate: new Date(data.timestamp),
+        },
+      }));
+    });
+
+    socket.current.on("shuttle_location_update", (data) => {
+      console.log("Received shuttle location update:", data);
+      setShuttleLocations((prev) => ({
+        ...prev,
+        [data.shuttleId]: {
+          coordinates: data.coordinates,
+          lastUpdate: new Date(data.timestamp),
+        },
+      }));
     });
 
     return () => {
       clearInterval(timer);
+      clearInterval(cleanupInterval);
       if (socket.current) {
+        socket.current.off("shuttle_location");
+        socket.current.off("shuttle_location_update");
         socket.current.disconnect();
       }
     };
@@ -120,11 +168,20 @@ const ShutlLoggedOut = () => {
               <Popup>You are here.</Popup>
             </Marker>
           )}
-          {driverLocation && (
-            <Marker position={driverLocation} icon={driverIcon}>
-              <Popup>Driver's Location</Popup>
+          {Object.entries(shuttleLocations).map(([shuttleId, data]) => (
+            <Marker
+              key={shuttleId}
+              position={data.coordinates}
+              icon={driverIcon}
+            >
+              <Popup>
+                <div className="ShutlLoggedOut-shuttle-info">
+                  <h3>{shuttleId}</h3>
+                  <p>Last updated: {data.lastUpdate.toLocaleTimeString()}</p>
+                </div>
+              </Popup>
             </Marker>
-          )}
+          ))}
         </MapContainer>
       </div>
 
