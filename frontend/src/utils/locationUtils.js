@@ -1,5 +1,5 @@
 // Predefined locations for the service area
-const KNOWN_LOCATIONS = {
+export const KNOWN_LOCATIONS = {
   // Format: "lat,lon": "location name"
   "14.371742,120.992025": "Lessandra Heights Clubhouse",
   "14.376042,120.990944": "Camella Cerritos Heights Clubhouse",

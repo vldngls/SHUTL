@@ -19,10 +19,18 @@ const PickupRequestPopup = ({ requests, onClose, onAccept, onDecline }) => {
             requests.map((request, index) => (
               <div key={index} className="request-item">
                 <div className="request-info">
-                  <p className="request-message">{request.message}</p>
                   <p className="request-location">
-                    Location: {request.locationDescription}
+                    From: {request.location.streetName}
                   </p>
+                  <p className="request-destination">
+                    To: {request.destination}
+                  </p>
+                  <p className="request-passengers">
+                    Passengers: {request.passengers}
+                  </p>
+                  {request.notes && (
+                    <p className="request-notes">Notes: {request.notes}</p>
+                  )}
                   <p className="request-time">
                     {new Date(request.timestamp).toLocaleTimeString()}
                   </p>

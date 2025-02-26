@@ -55,6 +55,17 @@ const userIcon = new L.Icon({
   shadowAnchor: [12, 41],
 });
 
+const destinationIcon = new L.Icon({
+  iconUrl: "/destination.png",
+  iconRetinaUrl: "/destination.png",
+  iconAnchor: [25, 50],
+  popupAnchor: [0, -50],
+  iconSize: [50, 50],
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  shadowSize: [41, 41],
+  shadowAnchor: [12, 41],
+});
+
 const calculateETA = (distance) => {
   const speedKmH = 20; // Assuming average speed of 20 km/h in a subdivision
   const timeHours = distance / speedKmH;
@@ -94,6 +105,7 @@ const ShutlLoggedIn = () => {
   const locationUpdateInterval = useRef(null);
   const [isLocationSharing, setIsLocationSharing] = useState(false);
   const hasShownToastRef = useRef(false);
+  const [selectedDestination, setSelectedDestination] = useState(null);
 
   useEffect(() => {
     // Function to clean up stale locations
@@ -371,6 +383,9 @@ const ShutlLoggedIn = () => {
           coordinates: userLocation,
           streetName,
         },
+        destination: "Nearest Stop", // Default destination for marker click
+        passengers: 1, // Default passenger count
+        notes: "", // Default empty notes
         timestamp: new Date().toISOString(),
       };
 
@@ -417,20 +432,25 @@ const ShutlLoggedIn = () => {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
 
-          {userLocation &&
-            isLocationSharing && ( // Only show marker if location sharing is active
-              <Marker
-                position={userLocation}
-                icon={userIcon}
-                eventHandlers={{
-                  click: () => {
-                    setShowPickMeUp(true);
-                  },
-                }}
-              >
-                <Popup>Your Location</Popup>
-              </Marker>
-            )}
+          {userLocation && isLocationSharing && (
+            <Marker
+              position={userLocation}
+              icon={userIcon}
+              eventHandlers={{
+                click: () => {
+                  setShowPickMeUp(true);
+                },
+              }}
+            >
+              <Popup>Your Location</Popup>
+            </Marker>
+          )}
+
+          {selectedDestination && (
+            <Marker position={selectedDestination} icon={destinationIcon}>
+              <Popup>Pickup Point</Popup>
+            </Marker>
+          )}
 
           {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
             // Location data is already filtered by the cleanup interval
@@ -607,8 +627,11 @@ const ShutlLoggedIn = () => {
 
       {showPickMeUp && (
         <PickMeUp
-          onClose={() => setShowPickMeUp(false)}
-          userLocation={userLocation}
+          onClose={() => {
+            setShowPickMeUp(false);
+            setSelectedDestination(null);
+          }}
+          onDestinationSelect={setSelectedDestination}
         />
       )}
 
