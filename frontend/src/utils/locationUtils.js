@@ -5,6 +5,7 @@ const KNOWN_LOCATIONS = {
   "14.385152,120.9663488": "Molino Road",
   "14.385586,120.978863": "SOMO - A Vista Mall",
   "14.384981,120.979704": "SOMO Parking Entrance",
+  "14.374463, 120.991615": "Lessandra Gate"
   // Add more known locations in your service area
 };
 
