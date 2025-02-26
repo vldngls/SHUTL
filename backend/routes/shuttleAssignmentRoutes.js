@@ -6,14 +6,19 @@ import {
   updateAssignment,
   deleteAssignment,
 } from "../controllers/shuttleAssignmentController.js";
-import { authenticateToken } from '../middleware/authenticateToken.js';
+import { authenticateToken } from "../middleware/authenticateToken.js";
 
 const router = express.Router();
 
-router.get("/", authenticateToken, getAllAssignments);
-router.get("/driver", authenticateToken, getDriverAssignment);
-router.post("/", authenticateToken, createAssignment);
-router.put("/:id", authenticateToken, updateAssignment);
-router.delete("/:id", authenticateToken, deleteAssignment);
+// Add error handling middleware
+const asyncHandler = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
+router.get("/", authenticateToken, asyncHandler(getAllAssignments));
+router.get("/driver", authenticateToken, asyncHandler(getDriverAssignment));
+router.post("/", authenticateToken, asyncHandler(createAssignment));
+router.put("/:id", authenticateToken, asyncHandler(updateAssignment));
+router.delete("/:id", authenticateToken, asyncHandler(deleteAssignment));
 
 export default router;

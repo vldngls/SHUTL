@@ -343,15 +343,42 @@ const ShuttleTripTracking = ({ onClose }) => {
               />
             </div>
             <div className="form-group">
-              <label>Status:</label>
-              <select
-                name="status"
-                value={tripData.status}
+              <label>Passenger Count:</label>
+              <input
+                type="number"
+                name="passengerCount"
+                value={tripData.passengerCount}
                 onChange={handleChange}
-              >
-                <option value="Out">Out</option>
-                <option value="In">In</option>
-              </select>
+                required
+                min="0"
+              />
+            </div>
+            <div className="form-group">
+              <label>Status:</label>
+              <div className="status-buttons">
+                <button
+                  type="button"
+                  className={`status-button ${
+                    tripData.status === "Out" ? "active" : ""
+                  }`}
+                  onClick={() =>
+                    handleChange({ target: { name: "status", value: "Out" } })
+                  }
+                >
+                  Out
+                </button>
+                <button
+                  type="button"
+                  className={`status-button ${
+                    tripData.status === "In" ? "active" : ""
+                  }`}
+                  onClick={() =>
+                    handleChange({ target: { name: "status", value: "In" } })
+                  }
+                >
+                  In
+                </button>
+              </div>
               {tripData.status === "In" && (
                 <div className="pending-trips">
                   <label>Select Matching Out Trip:</label>
@@ -369,16 +396,6 @@ const ShuttleTripTracking = ({ onClose }) => {
                   </select>
                 </div>
               )}
-            </div>
-            <div className="form-group">
-              <label>Passenger Count:</label>
-              <input
-                type="number"
-                name="passengerCount"
-                value={tripData.passengerCount}
-                onChange={handleChange}
-                required
-              />
             </div>
             <button className="submit-button" type="submit">
               Add Shuttle Trip

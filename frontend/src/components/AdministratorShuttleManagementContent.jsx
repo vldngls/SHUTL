@@ -1,36 +1,104 @@
 import React, { useEffect, useState } from "react";
+import { getTokenFromCookies } from "../utils/tokenUtils";
 import "../css/AdministratorShuttleManagementContent.css";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 const AdministratorShuttleManagementContent = () => {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [drivers, setDrivers] = useState([]);
   const [shuttleId, setShuttleId] = useState("");
   const [selectedDriver, setSelectedDriver] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const fetchDrivers = async () => {
     try {
-      const driversResponse = await fetch(`${API_BASE_URL}/users/drivers`);
+      setLoading(true);
+      setError(null);
+      const token = getTokenFromCookies();
+
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      // First fetch drivers
+      const driversResponse = await fetch(`${API_BASE_URL}/users/drivers`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!driversResponse.ok) {
+        throw new Error(`Failed to fetch drivers: ${driversResponse.status}`);
+      }
+
       const driversData = await driversResponse.json();
 
+      // Then fetch assignments
       const assignmentsResponse = await fetch(
-        `${API_BASE_URL}/shuttle-assignments/assignments`
+        `${API_BASE_URL}/shuttle-assignments`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
+
+      if (!assignmentsResponse.ok) {
+        throw new Error(
+          `Failed to fetch assignments: ${assignmentsResponse.status}`
+        );
+      }
+
       const assignmentsData = await assignmentsResponse.json();
 
-      const driversWithShuttles = driversData.map((driver) => {
+      // Map drivers with their assignments
+      const driversWithAssignments = driversData.map((driver) => {
         const assignment = assignmentsData.find(
-          (a) => a.driverId._id === driver._id
+          (a) => a.driverEmail === driver.email
         );
         return {
           ...driver,
           shuttleId: assignment ? assignment.shuttleId : "Unassigned",
+          assignmentStatus: assignment ? assignment.status : null,
         };
       });
 
-      setDrivers(driversWithShuttles);
+      setDrivers(driversWithAssignments);
     } catch (error) {
       console.error("Error fetching drivers:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAssignShuttle = async (driver) => {
+    try {
+      const token = getTokenFromCookies();
+      const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          driverEmail: driver.email,
+          shuttleId,
+          status: "active",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to assign shuttle");
+      }
+
+      await fetchDrivers(); // Refresh the data
+      setShuttleId("");
+      setSelectedDriver(null);
+      alert("Shuttle assigned successfully");
+    } catch (error) {
+      console.error("Error assigning shuttle:", error);
+      alert(error.message);
     }
   };
 
@@ -38,82 +106,74 @@ const AdministratorShuttleManagementContent = () => {
     fetchDrivers();
   }, []);
 
-  const handleAssignShuttle = async (driverId) => {
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/shuttle-assignments/assign`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ driverId, shuttleId }),
-        }
-      );
+  if (loading) {
+    return <div className="loading">Loading...</div>;
+  }
 
-      if (response.ok) {
-        alert("Shuttle assigned successfully");
-        setShuttleId("");
-
-        setDrivers((prevDrivers) =>
-          prevDrivers.map((driver) =>
-            driver._id === driverId ? { ...driver, shuttleId } : driver
-          )
-        );
-
-        setSelectedDriver(null);
-      } else {
-        const errorData = await response.json();
-        alert(errorData.message || "Failed to assign shuttle");
-      }
-    } catch (error) {
-      console.error("Error assigning shuttle:", error);
-      alert("An error occurred while assigning the shuttle");
-    }
-  };
+  if (error) {
+    return <div className="error">Error: {error}</div>;
+  }
 
   return (
-    <div className="AdministratorShuttleManagement-shuttle-management-content">
-      <h3>Driver Management</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Username</th>
-            <th>Shuttle ID</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {drivers.map((driver) => (
-            <tr key={driver._id}>
-              <td>{driver.name}</td>
-              <td>{driver.username}</td>
-              <td>{driver.shuttleId || "Unassigned"}</td>
-              <td>
-                <button onClick={() => setSelectedDriver(driver)}>Edit</button>
-                <button onClick={() => handleAssignShuttle(driver._id)}>
-                  Assign Shuttle
-                </button>
-              </td>
+    <div className="shuttle-management-container">
+      <h2>Shuttle Management</h2>
+
+      <div className="assignment-section">
+        <h3>Driver Assignments</h3>
+        <table className="assignments-table">
+          <thead>
+            <tr>
+              <th>Driver Name</th>
+              <th>Email</th>
+              <th>Current Shuttle</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {drivers.map((driver) => (
+              <tr key={driver.email}>
+                <td>{driver.name}</td>
+                <td>{driver.email}</td>
+                <td>{driver.shuttleId}</td>
+                <td>{driver.assignmentStatus || "N/A"}</td>
+                <td>
+                  <button
+                    className="shuttle-assign-btn"
+                    onClick={() => setSelectedDriver(driver)}
+                  >
+                    Assign Shuttle
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {selectedDriver && (
-        <div>
-          <h4>Assign Shuttle to {selectedDriver.name}</h4>
-          <input
-            type="text"
-            value={shuttleId}
-            onChange={(e) => setShuttleId(e.target.value)}
-            placeholder="Enter Shuttle ID"
-          />
-          <button onClick={() => handleAssignShuttle(selectedDriver._id)}>
-            Assign
-          </button>
-          <button onClick={() => setSelectedDriver(null)}>Cancel</button>
+        <div className="assignment-form">
+          <h3>Assign Shuttle to {selectedDriver.name}</h3>
+          <div className="form-group">
+            <input
+              type="text"
+              value={shuttleId}
+              onChange={(e) => setShuttleId(e.target.value)}
+              placeholder="Enter Shuttle ID"
+            />
+            <button
+              className="shuttle-assign-btn"
+              onClick={() => handleAssignShuttle(selectedDriver)}
+            >
+              Assign
+            </button>
+            <button
+              className="shuttle-cancel-btn"
+              onClick={() => setSelectedDriver(null)}
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       )}
     </div>

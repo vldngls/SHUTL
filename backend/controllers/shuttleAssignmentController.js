@@ -3,8 +3,8 @@ import ShuttleAssignment from "../models/shuttleAssignment.model.js";
 // Assign a shuttle to a driver
 export const assignShuttle = async (req, res) => {
   try {
-    const { driverId, shuttleId } = req.body;
-    const existingAssignment = await ShuttleAssignment.findOne({ driverId });
+    const { driverEmail, shuttleId } = req.body;
+    const existingAssignment = await ShuttleAssignment.findOne({ driverEmail });
 
     if (existingAssignment) {
       existingAssignment.shuttleId = shuttleId;
@@ -12,10 +12,11 @@ export const assignShuttle = async (req, res) => {
       return res.status(200).json(existingAssignment);
     }
 
-    const assignment = new ShuttleAssignment({ driverId, shuttleId });
+    const assignment = new ShuttleAssignment({ driverEmail, shuttleId });
     await assignment.save();
     res.status(201).json(assignment);
   } catch (error) {
+    console.error("Error in assignShuttle:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -23,11 +24,10 @@ export const assignShuttle = async (req, res) => {
 // Get all shuttle assignments
 export const getAllAssignments = async (req, res) => {
   try {
-    const assignments = await ShuttleAssignment.find()
-      .populate("driverId", "name username")
-      .populate("shuttleId");
+    const assignments = await ShuttleAssignment.find();
     res.status(200).json(assignments);
   } catch (error) {
+    console.error("Error in getAllAssignments:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -65,27 +65,42 @@ export const deleteAssignment = async (req, res) => {
 export const getDriverAssignment = async (req, res) => {
   try {
     const driverEmail = req.user.email;
-    const assignment = await ShuttleAssignment.findOne({ 
-      driverEmail: driverEmail 
-    }).populate('shuttleId');
-    
+    const assignment = await ShuttleAssignment.findOne({
+      driverEmail: driverEmail,
+    }).populate("shuttleId");
+
     if (!assignment) {
       return res.status(404).json({ message: "No shuttle assigned" });
     }
-    
+
     res.status(200).json(assignment);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// Add the missing exports
+// Create assignment
 export const createAssignment = async (req, res) => {
   try {
-    const assignment = new ShuttleAssignment(req.body);
+    const { driverEmail, shuttleId, status } = req.body;
+
+    // Validate required fields
+    if (!driverEmail || !shuttleId) {
+      return res.status(400).json({
+        error: "driverEmail and shuttleId are required",
+      });
+    }
+
+    const assignment = new ShuttleAssignment({
+      driverEmail,
+      shuttleId,
+      status: status || "active",
+    });
+
     await assignment.save();
     res.status(201).json(assignment);
   } catch (error) {
+    console.error("Error in createAssignment:", error);
     res.status(500).json({ error: error.message });
   }
 };

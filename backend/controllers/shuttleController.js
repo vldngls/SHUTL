@@ -16,20 +16,27 @@ export const createTrip = async (req, res) => {
       });
     }
 
-    // Create a date object in local timezone
-    const [year, month, day] = tripData.date.split("-").map(Number);
-    const [hours, minutes] = tripData.time.split(":").map(Number);
+    // Ensure passengerCount is a number
+    tripData.passengerCount = Number(tripData.passengerCount);
 
-    // Convert to UTC while preserving the intended local time
-    const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+    // Parse the ISO date string directly
+    const date = new Date(tripData.date);
+    if (isNaN(date.getTime())) {
+      return res.status(400).json({
+        error: "Invalid date format",
+      });
+    }
 
-    // Update the tripData with the UTC date
-    tripData.date = utcDate;
+    // Create new trip with the parsed date
+    const trip = new ShuttleTrip({
+      ...tripData,
+      date: date,
+    });
 
-    const trip = new ShuttleTrip(tripData);
     await trip.save();
     res.status(201).json(trip);
   } catch (error) {
+    console.error("Error creating trip:", error);
     res.status(500).json({ error: error.message });
   }
 };
