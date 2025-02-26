@@ -18,7 +18,12 @@ import { io } from "socket.io-client";
 import { calculateDistance } from "../utils/locationUtils";
 import { getCookie } from "../utils/cookieUtils";
 import PaymentQR from "../components/PaymentQR";
-import { connectSocket, subscribeToLocation } from "../utils/websocketService";
+import {
+  connectSocket,
+  disconnectSocket,
+  subscribeToLocationUpdates,
+  joinShuttleTracking,
+} from "../utils/websocketService";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -95,48 +100,24 @@ const ShutlLoggedIn = () => {
   const locationUpdateInterval = useRef(null);
 
   useEffect(() => {
-    socket.current = connectSocket();
+    const socket = connectSocket();
 
-    // Join tracking for all shuttles
     ["SHUTL001", "SHUTL002", "SHUTL003"].forEach((shuttleId) => {
-      socket.current.emit("join_shuttle_tracking", shuttleId);
+      joinShuttleTracking(shuttleId);
     });
 
-    // Subscribe to location updates
-    subscribeToLocation((data) => {
-      console.log("Received location update:", data);
+    subscribeToLocationUpdates((data) => {
       setShuttleLocations((prev) => ({
         ...prev,
         [data.shuttleId]: {
           coordinates: data.coordinates,
-          lastUpdate: new Date(),
-          shuttleId: data.shuttleId,
+          lastUpdate: new Date(data.timestamp),
         },
       }));
     });
 
-    // Clean up stale locations every 5 seconds
-    locationUpdateInterval.current = setInterval(() => {
-      setShuttleLocations((prev) => {
-        const now = new Date();
-        const filtered = Object.entries(prev).reduce((acc, [id, data]) => {
-          if (now - new Date(data.lastUpdate) < 10000) {
-            // 10 seconds threshold
-            acc[id] = data;
-          }
-          return acc;
-        }, {});
-        return filtered;
-      });
-    }, 5000);
-
     return () => {
-      if (locationUpdateInterval.current) {
-        clearInterval(locationUpdateInterval.current);
-      }
-      if (socket.current) {
-        socket.current.disconnect();
-      }
+      disconnectSocket();
     };
   }, []);
 

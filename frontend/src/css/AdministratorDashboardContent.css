@@ -304,3 +304,11 @@
 .Toastify__close-button:hover {
   opacity: 1;
 }
+
+.shutl-status-card .status-indicator .active {
+  color: green;
+}
+
+.shutl-status-card .status-indicator .inactive {
+  color: gray;
+}

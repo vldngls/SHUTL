@@ -29,9 +29,8 @@ const DriverMessage = ({ onClose }) => {
   useEffect(() => {
     const initializeChat = async () => {
       try {
-        if (!socket.current) {
-          socket.current = connectSocket();
-        }
+        // Initialize socket connection
+        socket.current = connectSocket();
 
         const token = document.cookie
           .split("; ")
@@ -63,34 +62,13 @@ const DriverMessage = ({ onClose }) => {
           setCurrentRoom(globalRoom._id);
           setMessages(globalRoom.messages || []);
 
+          // Join the room
           socket.current.emit("join_room", globalRoom._id);
           console.log("Joined global room:", globalRoom._id);
         }
 
-        // Remove any existing listeners before adding a new one
-        socket.current.off("chat_message");
-
-        // Add new message listener
-        socket.current.on("chat_message", (message) => {
-          console.log("Received message:", message);
-          setMessages((prev) => {
-            // Check if message already exists
-            const messageExists = prev.some(
-              (m) =>
-                m.content === message.content &&
-                m.sender.email === message.sender.email &&
-                new Date(m.timestamp).getTime() ===
-                  new Date(message.timestamp).getTime()
-            );
-            if (messageExists) {
-              return prev;
-            }
-            const newMessages = [...prev, message];
-            // Scroll to bottom after messages update
-            setTimeout(() => scrollToBottom(), 100);
-            return newMessages;
-          });
-        });
+        // Set up message listener
+        setupMessageListener();
       } catch (error) {
         console.error("Error initializing chat:", error);
       }
@@ -145,19 +123,22 @@ const DriverMessage = ({ onClose }) => {
           userType: decodedToken.userType,
         },
         content: newMessage.trim(),
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(), // Ensure consistent timestamp format
       };
 
-      // First save to database
+      // Send message to server
       await sendChatMessage(currentRoom, messageData);
 
-      // Then emit socket event - this will trigger the chat_message event for all clients including sender
-      socket.current.emit("chat_message", {
-        roomId: currentRoom,
-        message: messageData,
-      });
+      // Emit to socket
+      if (socket.current && socket.current.connected) {
+        socket.current.emit("chat_message", {
+          roomId: currentRoom,
+          message: messageData,
+        });
+      } else {
+        console.error("Socket not connected");
+      }
 
-      // Clear input but don't update messages - let the socket event handle that
       setNewMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
@@ -221,8 +202,38 @@ const DriverMessage = ({ onClose }) => {
     }`;
   };
 
+  // Separate function to set up message listener
+  const setupMessageListener = () => {
+    if (!socket.current) return;
+
+    // Remove existing listeners
+    socket.current.off("chat_message");
+
+    // Add new message listener
+    socket.current.on("chat_message", (message) => {
+      console.log("Received message:", message);
+      setMessages((prev) => {
+        // Check if message already exists
+        const messageExists = prev.some(
+          (m) =>
+            m.content === message.content &&
+            m.sender.email === message.sender.email &&
+            new Date(m.timestamp).getTime() ===
+              new Date(message.timestamp).getTime()
+        );
+
+        if (messageExists) return prev;
+
+        const newMessages = [...prev, message];
+        // Scroll to bottom after messages update
+        setTimeout(scrollToBottom, 100);
+        return newMessages;
+      });
+    });
+  };
+
   const handleQuickReplyClick = async (replyText) => {
-    if (!currentRoom) return;
+    if (!currentRoom || !socket.current) return;
 
     try {
       const token = document.cookie
@@ -237,17 +248,19 @@ const DriverMessage = ({ onClose }) => {
           userType: decodedToken.userType,
         },
         content: replyText,
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
       };
 
       // Save to database
       await sendChatMessage(currentRoom, messageData);
 
-      // Emit socket event
-      socket.current.emit("chat_message", {
-        roomId: currentRoom,
-        message: messageData,
-      });
+      // Emit to socket
+      if (socket.current.connected) {
+        socket.current.emit("chat_message", {
+          roomId: currentRoom,
+          message: messageData,
+        });
+      }
     } catch (error) {
       console.error("Error sending quick reply:", error);
     }

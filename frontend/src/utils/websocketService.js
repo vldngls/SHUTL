@@ -6,7 +6,7 @@ const SOCKET_URL = API_BASE_URL.replace("/api", "");
 let socket = null;
 
 export const connectSocket = () => {
-  if (!socket || socket.disconnected) {
+  if (!socket) {
     socket = io(SOCKET_URL, {
       transports: ["websocket"],
       reconnection: true,
@@ -21,13 +21,26 @@ export const connectSocket = () => {
 
     socket.on("disconnect", (reason) => {
       console.log("Socket disconnected:", reason);
+      setTimeout(() => {
+        connectSocket();
+      }, 1000);
     });
 
     socket.on("connect_error", (error) => {
       console.error("Socket connection error:", error);
+      setTimeout(() => {
+        connectSocket();
+      }, 1000);
     });
   }
   return socket;
+};
+
+export const disconnectSocket = () => {
+  if (socket) {
+    socket.disconnect();
+    socket = null;
+  }
 };
 
 // Chat-specific socket events
@@ -43,43 +56,56 @@ export const leaveChatRoom = (roomId) => {
   }
 };
 
-export const sendMessage = (roomId, message) => {
-  if (socket && socket.connected) {
-    socket.emit("chat_message", { roomId, message });
+export const sendMessage = (message) => {
+  if (!socket || !socket.connected) {
+    socket = connectSocket();
   }
+  socket.emit("message", message);
 };
 
 export const subscribeToMessages = (callback) => {
-  if (socket) {
-    socket.on("chat_message", callback);
+  if (!socket || !socket.connected) {
+    socket = connectSocket();
   }
+  socket.on("message", callback);
 };
 
 // Location-specific socket events
 export const sendLocation = (locationData) => {
   if (!socket || !socket.connected) {
-    console.warn("Cannot send location: socket not connected");
-    return false;
+    socket = connectSocket();
   }
 
-  console.log("Sending location data:", locationData);
-  socket.emit("shuttle_location", locationData);
-  return true;
+  if (socket.connected) {
+    console.log("Socket connected, sending location data:", locationData);
+    socket.emit("shuttle_location", locationData);
+    return true;
+  } else {
+    console.log("Waiting for socket connection...");
+    socket.once("connect", () => {
+      console.log("Socket connected, now sending location data:", locationData);
+      socket.emit("shuttle_location", locationData);
+    });
+    return false;
+  }
 };
 
-export const subscribeToLocation = (callback) => {
-  if (!socket) return;
+export const subscribeToLocationUpdates = (callback) => {
+  if (!socket || !socket.connected) {
+    socket = connectSocket();
+  }
 
-  socket.on("shuttle_location", (data) => {
-    console.log("Received shuttle location:", data);
+  socket.off("shuttle_location_update");
+
+  socket.on("shuttle_location_update", (data) => {
+    console.log("Received shuttle location update:", data);
     callback(data);
   });
 };
 
 export const joinShuttleTracking = (shuttleId) => {
   if (!socket || !socket.connected) {
-    console.warn("Cannot join tracking: socket not connected");
-    return;
+    socket = connectSocket();
   }
 
   console.log("Joining tracking for shuttle:", shuttleId);

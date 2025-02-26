@@ -15,7 +15,8 @@ import {
   ArcElement,
 } from "chart.js";
 import { io } from "socket.io-client";
-import ChartDataLabels from 'chartjs-plugin-datalabels';
+import ChartDataLabels from "chartjs-plugin-datalabels";
+import { connectSocket } from "../utils/websocketService";
 
 ChartJS.register(
   CategoryScale,
@@ -29,7 +30,7 @@ ChartJS.register(
   ChartDataLabels
 );
 
-const TellerSummary = ({ onClose }) => {
+const TellerSummary = ({ onClose, shuttleLocations }) => {
   const [selectedShuttle, setSelectedShuttle] = useState(null); // State to handle open modal
   const [roundTrips, setRoundTrips] = useState(0);
   const [totalPassengers, setTotalPassengers] = useState(0);
@@ -38,125 +39,16 @@ const TellerSummary = ({ onClose }) => {
   const [hourlyPassengers, setHourlyPassengers] = useState(
     new Array(17).fill(0)
   );
-  const [shuttleLocations, setShuttleLocations] = useState({});
   const [shuttleStats, setShuttleStats] = useState({});
-  const socket = useRef(null);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  const SOCKET_URL = API_BASE_URL.replace("/api", "");
   const [operationalHours, setOperationalHours] = useState({
     startTime: "05:00",
     endTime: "22:00",
   });
-  const [earningsData, setEarningsData] = useState({ regular: 0, discounted: 0 });
-
-  // Shuttle data
-  const shuttles = [
-    {
-      id: "001",
-      roundTrips: 14,
-      regular: 0,
-      discounted: 0,
-      pickUpNotify: 32,
-      routeLog: [
-        { time: "12:00 PM", description: "Departed from VistaMall" },
-        { time: "12:15 PM", description: "Arrived at Camella Main Gate" },
-        { time: "12:21 PM", description: "Entered Cerritos Hills 2 Gate" },
-        { time: "12:38 PM", description: "Exited Cerritos Hills 2 Gate" },
-        { time: "12:40 PM", description: "Entered Lessandra Gate" },
-      ],
-    },
-    {
-      id: "002",
-      roundTrips: 12,
-      regular: 0,
-      discounted: 0,
-      pickUpNotify: 20,
-      routeLog: [
-        { time: "10:00 AM", description: "Departed from Acosta Street" },
-        { time: "10:15 AM", description: "Arrived at Madrid Street" },
-      ],
-    },
-    {
-      id: "003",
-      roundTrips: 15,
-      regular: 0,
-      discounted: 0,
-      pickUpNotify: 10,
-      routeLog: [
-        { time: "11:00 AM", description: "Idle at Lessandra Gate" },
-        { time: "12:00 PM", description: "Waiting for next trip" },
-      ],
-    },
-  ];
-
-  // Initialize socket connection
-  useEffect(() => {
-    socket.current = io(SOCKET_URL, {
-      transports: ["websocket"],
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
-
-    socket.current.on("connect_error", (error) => {
-      console.error("WebSocket connection error:", error);
-    });
-
-    // Join tracking for all shuttles
-    ["001", "002", "003"].forEach((shuttleId) => {
-      socket.current.emit("join_shuttle_tracking", `SHUTL${shuttleId}`);
-    });
-
-    socket.current.on("shuttle_location", async (data) => {
-      const streetName = await getStreetName(
-        data.coordinates[0],
-        data.coordinates[1]
-      );
-
-      setShuttleLocations((prev) => ({
-        ...prev,
-        [data.shuttleId]: {
-          coordinates: data.coordinates,
-          lastUpdate: new Date(),
-          streetName: streetName,
-        },
-      }));
-    });
-
-    // Cleanup stale locations
-    const cleanupInterval = setInterval(() => {
-      setShuttleLocations((prev) => {
-        const now = new Date();
-        return Object.entries(prev).reduce((acc, [id, data]) => {
-          if (now - new Date(data.lastUpdate) < 10000) {
-            acc[id] = data;
-          }
-          return acc;
-        }, {});
-      });
-    }, 5000);
-
-    return () => {
-      clearInterval(cleanupInterval);
-      if (socket.current) {
-        socket.current.disconnect();
-      }
-    };
-  }, []);
-
-  // Fetch shuttle statistics
-  useEffect(() => {
-    const fetchShuttleStats = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/shuttle/stats`);
-        setShuttleStats(response.data);
-      } catch (error) {
-        console.error("Error fetching shuttle stats:", error);
-      }
-    };
-
-    fetchShuttleStats();
-  }, []);
+  const [earningsData, setEarningsData] = useState({
+    regular: 0,
+    discounted: 0,
+  });
 
   // Function to get street name from coordinates
   const getStreetName = async (lat, lng) => {
@@ -171,6 +63,40 @@ const TellerSummary = ({ onClose }) => {
       return "Unknown location";
     }
   };
+
+  // Update street names when shuttle locations change
+  const [streetNames, setStreetNames] = useState({});
+  useEffect(() => {
+    const updateStreetNames = async () => {
+      const newStreetNames = {};
+      for (const [shuttleId, data] of Object.entries(shuttleLocations)) {
+        if (data.coordinates) {
+          const streetName = await getStreetName(
+            data.coordinates[0],
+            data.coordinates[1]
+          );
+          newStreetNames[shuttleId] = streetName;
+        }
+      }
+      setStreetNames(newStreetNames);
+    };
+
+    updateStreetNames();
+  }, [shuttleLocations]);
+
+  // Fetch shuttle statistics
+  useEffect(() => {
+    const fetchShuttleStats = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/shuttle/stats`);
+        setShuttleStats(response.data);
+      } catch (error) {
+        console.error("Error fetching shuttle stats:", error);
+      }
+    };
+
+    fetchShuttleStats();
+  }, []);
 
   useEffect(() => {
     const fetchSummaryData = async () => {
@@ -207,7 +133,9 @@ const TellerSummary = ({ onClose }) => {
   useEffect(() => {
     const fetchEarningsData = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/fare-transactions/earnings`);
+        const response = await axios.get(
+          `${API_BASE_URL}/fare-transactions/earnings`
+        );
         setEarningsData(response.data);
       } catch (error) {
         console.error("Error fetching earnings data:", error);
@@ -294,12 +222,12 @@ const TellerSummary = ({ onClose }) => {
 
   // Prepare data for the pie chart
   const pieChartData = {
-    labels: ['Regular', 'Discounted'],
+    labels: ["Regular", "Discounted"],
     datasets: [
       {
         data: [earningsData.regular || 0, earningsData.discounted || 0],
-        backgroundColor: ['#4A90E2', '#E27A4A'],
-        borderColor: ['#ffffff', '#ffffff'],
+        backgroundColor: ["#4A90E2", "#E27A4A"],
+        borderColor: ["#ffffff", "#ffffff"],
         borderWidth: 1,
       },
     ],
@@ -313,7 +241,7 @@ const TellerSummary = ({ onClose }) => {
     height: 200,
     plugins: {
       legend: {
-        position: 'bottom',
+        position: "bottom",
         labels: {
           padding: 10,
         },
@@ -321,28 +249,28 @@ const TellerSummary = ({ onClose }) => {
       tooltip: {
         enabled: true,
         callbacks: {
-          label: function(context) {
+          label: function (context) {
             const dataset = context.dataset;
             const total = dataset.data.reduce((acc, data) => acc + data, 0);
             const value = dataset.data[context.dataIndex];
             const percentage = ((value / total) * 100).toFixed(1);
             return `${context.label}: ${value} (${percentage}%)`;
-          }
-        }
+          },
+        },
       },
       datalabels: {
-        color: '#ffffff',
+        color: "#ffffff",
         font: {
-          weight: 'bold',
-          size: 12
+          weight: "bold",
+          size: 12,
         },
         formatter: (value, context) => {
           const dataset = context.dataset;
           const total = dataset.data.reduce((acc, data) => acc + data, 0);
           const percentage = ((value / total) * 100).toFixed(1);
           return `${percentage}%`;
-        }
-      }
+        },
+      },
     },
   };
 
@@ -421,8 +349,7 @@ const TellerSummary = ({ onClose }) => {
                 <div className="status-item" key={shuttleId}>
                   <strong>SHUTL {shuttleId}</strong>
                   <p>
-                    Currently at{" "}
-                    {locationData?.streetName || "Unknown Location"}
+                    Currently at {streetNames[fullId] || "Unknown Location"}
                   </p>
                   <p>
                     {stats.totalPassengers} Passengers | {stats.roundTrips}{" "}
@@ -441,9 +368,11 @@ const TellerSummary = ({ onClose }) => {
         <div className="TellerSummary-section">
           <h3>Fare Breakdown</h3>
           <p className="operational-hours-note">
-            (Data for operational hours: {earningsData.operationalHours?.startTime} - {earningsData.operationalHours?.endTime})
+            (Data for operational hours:{" "}
+            {earningsData.operationalHours?.startTime} -{" "}
+            {earningsData.operationalHours?.endTime})
           </p>
-          <div style={{ width: '300px', height: '300px', margin: 'auto' }}>
+          <div style={{ width: "300px", height: "300px", margin: "auto" }}>
             <Pie data={pieChartData} options={pieChartOptions} />
           </div>
           <div className="TellerSummary-fare">
@@ -454,7 +383,8 @@ const TellerSummary = ({ onClose }) => {
               Regular Passengers: <strong>{earningsData.regular || 0}</strong>
             </p>
             <p>
-              Discounted Passengers: <strong>{earningsData.discounted || 0}</strong>
+              Discounted Passengers:{" "}
+              <strong>{earningsData.discounted || 0}</strong>
             </p>
           </div>
         </div>

@@ -18,6 +18,7 @@ const AdministratorDashboardContent = () => {
     startTime: "05:00",
     endTime: "22:00",
   });
+  const [shuttleAssignments, setShuttleAssignments] = useState([]);
 
   useEffect(() => {
     // Function to fetch user counts (total & active)
@@ -117,6 +118,30 @@ const AdministratorDashboardContent = () => {
     };
 
     fetchOperationalHours();
+  }, []);
+
+  useEffect(() => {
+    const fetchShuttleAssignments = async () => {
+      try {
+        const token = getTokenFromCookies();
+        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setShuttleAssignments(data);
+      } catch (error) {
+        console.error("Error fetching shuttle assignments:", error);
+      }
+    };
+
+    fetchShuttleAssignments();
   }, []);
 
   // Function to handle sending notifications
@@ -229,21 +254,28 @@ const AdministratorDashboardContent = () => {
       <div className="AdministratorDashboard-shutl-tracking">
         <h3>SHUTL Tracking</h3>
         <div className="AdministratorDashboard-shutl-grid">
-          {shuttleLocations.map((shuttle) => (
-            <div key={shuttle.shuttleId} className="shutl-status-card">
-              <h4>{shuttle.shuttleId}</h4>
-              <p>
-                Currently at {shuttle.location.streetName || "Unknown Location"}
-              </p>
-              <p>Driver: {shuttle.driverName || "Unassigned"}</p>
-              <p className="status-indicator">
-                Status:{" "}
-                <span className={shuttle.status.toLowerCase()}>
-                  {shuttle.status}
-                </span>
-              </p>
-            </div>
-          ))}
+          {shuttleAssignments.map((assignment) => {
+            const locationData = shuttleLocations.find(
+              (loc) => loc.shuttleId === assignment.shuttleId
+            );
+
+            return (
+              <div key={assignment.shuttleId} className="shutl-status-card">
+                <h4>{assignment.shuttleId}</h4>
+                <p>
+                  Currently at{" "}
+                  {locationData?.location.streetName || "Unknown Location"}
+                </p>
+                <p>Driver: {assignment.driverName || "Unassigned"}</p>
+                <p className="status-indicator">
+                  Status:{" "}
+                  <span className={locationData ? "active" : "inactive"}>
+                    {locationData ? "Active" : "Inactive"}
+                  </span>
+                </p>
+              </div>
+            );
+          })}
         </div>
       </div>
 

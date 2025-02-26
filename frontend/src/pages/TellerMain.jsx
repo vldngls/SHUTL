@@ -13,6 +13,8 @@ import {
   connectSocket,
   sendMessage,
   subscribeToMessages,
+  subscribeToLocationUpdates,
+  disconnectSocket,
 } from "../utils/websocketService";
 import L from "leaflet";
 
@@ -90,23 +92,23 @@ const TellerMain = () => {
       setMessages((prev) => [...prev, message]);
     });
 
-    socket.current.on("shuttle_location", (data) => {
-      console.log("Received shuttle location:", data);
+    // Subscribe to location updates
+    subscribeToLocationUpdates((data) => {
       setShuttleLocations((prev) => ({
         ...prev,
         [data.shuttleId]: {
           coordinates: data.coordinates,
-          lastUpdate: new Date(),
+          lastUpdate: new Date(data.timestamp),
         },
       }));
     });
 
-    // Add cleanup interval for stale shuttle locations
+    // Clean up stale locations every 3 seconds
     const cleanupInterval = setInterval(() => {
       setShuttleLocations((prev) => {
         const now = new Date();
         const filtered = Object.entries(prev).reduce((acc, [id, data]) => {
-          if (now - data.lastUpdate < 10000) {
+          if (now - new Date(data.lastUpdate) < 3000) {
             acc[id] = data;
           }
           return acc;
@@ -129,6 +131,7 @@ const TellerMain = () => {
       }
       clearInterval(cleanupInterval);
       socket.current.off("new_notification");
+      disconnectSocket();
     };
   }, []);
 
@@ -282,7 +285,7 @@ const TellerMain = () => {
 
           {/* Add shuttle markers */}
           {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
-            const isRecent = new Date() - data.lastUpdate < 120000;
+            const isRecent = new Date() - new Date(data.lastUpdate) < 3000; // 3 seconds threshold
             if (!isRecent) return null;
 
             return (
@@ -294,7 +297,10 @@ const TellerMain = () => {
                 <Popup>
                   <div className="TellerMain-shuttle-info">
                     <h3>{shuttleId}</h3>
-                    <p>Last updated: {data.lastUpdate.toLocaleTimeString()}</p>
+                    <p>
+                      Last updated:{" "}
+                      {new Date(data.lastUpdate).toLocaleTimeString()}
+                    </p>
                   </div>
                 </Popup>
               </Marker>
@@ -373,7 +379,10 @@ const TellerMain = () => {
         />
       )}
       {isSummaryOpen && (
-        <TellerSummary onClose={() => setIsSummaryOpen(false)} />
+        <TellerSummary
+          onClose={() => setIsSummaryOpen(false)}
+          shuttleLocations={shuttleLocations}
+        />
       )}
       {isProfileOpen && (
         <TellerProfile

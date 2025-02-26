@@ -81,7 +81,6 @@ const setupSocket = (io, db) => {
       }
     });
 
-    // Merge shuttle_location event handlers
     socket.on("shuttle_location", (data) => {
       const { shuttleId, coordinates, timestamp } = data;
       console.log("📍 Received shuttle location:", data);
@@ -95,6 +94,13 @@ const setupSocket = (io, db) => {
 
       // Broadcast to all clients tracking this shuttle
       io.to(`shuttle_${shuttleId}`).emit("shuttle_location", {
+        shuttleId,
+        coordinates,
+        timestamp,
+      });
+
+      // Also broadcast to all ShutlLoggedIn clients
+      io.emit("shuttle_location_update", {
         shuttleId,
         coordinates,
         timestamp,

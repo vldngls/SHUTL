@@ -11,8 +11,8 @@ import ProfileIDCard from "../components/ProfileIDCard"; // Add this import
 import {
   connectSocket,
   subscribeToMessages,
-  subscribeToLocation,
   sendLocation,
+  subscribeToLocationUpdates,
 } from "../utils/websocketService";
 import L from "leaflet";
 import PickupRequestsPanel from "../components/PickupRequestsPanel";
@@ -153,7 +153,7 @@ const DriverMain = () => {
       setMessages((prev) => [...prev, incomingMessage]);
     });
 
-    subscribeToLocation((locationData) => {
+    subscribeToLocationUpdates((locationData) => {
       console.log("Received shuttle location:", locationData);
     });
 
@@ -237,6 +237,7 @@ const DriverMain = () => {
           timestamp: new Date().toISOString(),
         };
 
+        console.log("Sending location:", locationData);
         sendLocation(locationData);
       },
       (error) => {
