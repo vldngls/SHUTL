@@ -5,6 +5,9 @@ const SOCKET_URL = API_BASE_URL.replace("/api", "");
 
 let socket = null;
 
+// Add message queue for handling disconnections
+const messageQueue = [];
+
 export const connectSocket = () => {
   if (!socket) {
     socket = io(SOCKET_URL, {
@@ -13,10 +16,16 @@ export const connectSocket = () => {
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
       withCredentials: true,
+      timeout: 10000, // 10 second connection timeout
     });
 
     socket.on("connect", () => {
       console.log("Socket connected with ID:", socket.id);
+      // Emit any queued messages
+      while (messageQueue.length > 0) {
+        const { event, data } = messageQueue.shift();
+        socket.emit(event, data);
+      }
     });
 
     socket.on("disconnect", (reason) => {
@@ -71,23 +80,38 @@ export const subscribeToMessages = (callback) => {
 };
 
 // Location-specific socket events
-export const sendLocation = (locationData) => {
-  if (!socket || !socket.connected) {
+export const sendLocation = async (locationData) => {
+  if (!socket) {
     socket = connectSocket();
   }
 
-  if (socket.connected) {
-    console.log("Socket connected, sending location data:", locationData);
-    socket.emit("shuttle_location", locationData);
-    return true;
-  } else {
-    console.log("Waiting for socket connection...");
-    socket.once("connect", () => {
-      console.log("Socket connected, now sending location data:", locationData);
+  return new Promise((resolve) => {
+    if (socket.connected) {
+      console.log("Socket connected, sending location data:", locationData);
       socket.emit("shuttle_location", locationData);
-    });
-    return false;
-  }
+      resolve(true);
+    } else {
+      console.log("Socket disconnected, queuing location update");
+      messageQueue.push({ event: "shuttle_location", data: locationData });
+
+      // Attempt reconnection
+      socket.connect();
+
+      // Set a timeout for the connection attempt
+      setTimeout(() => {
+        if (!socket.connected) {
+          console.log("Connection attempt timed out, using fallback");
+          resolve(false);
+        }
+      }, 5000);
+
+      // Handle successful connection
+      socket.once("connect", () => {
+        console.log("Socket reconnected, sending queued location");
+        resolve(true);
+      });
+    }
+  });
 };
 
 export const subscribeToLocationUpdates = (callback) => {

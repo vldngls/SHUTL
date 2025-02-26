@@ -17,6 +17,7 @@ import {
 import { io } from "socket.io-client";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { connectSocket } from "../utils/websocketService";
+import { reverseGeocode } from "../utils/locationUtils";
 
 ChartJS.register(
   CategoryScale,
@@ -49,39 +50,53 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
     regular: 0,
     discounted: 0,
   });
+  const [streetNames, setStreetNames] = useState({});
+  const geocodeTimeoutRef = useRef(null);
 
-  // Function to get street name from coordinates
-  const getStreetName = async (lat, lng) => {
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
-      );
-      const data = await response.json();
-      return data.address.road || "Unknown location";
-    } catch (error) {
-      console.error("Error getting street name:", error);
-      return "Unknown location";
-    }
-  };
+  // Log the received locations for debugging
+  useEffect(() => {
+    console.log("TellerSummary received locations:", shuttleLocations);
+  }, [shuttleLocations]);
 
   // Update street names when shuttle locations change
-  const [streetNames, setStreetNames] = useState({});
   useEffect(() => {
-    const updateStreetNames = async () => {
-      const newStreetNames = {};
-      for (const [shuttleId, data] of Object.entries(shuttleLocations)) {
-        if (data.coordinates) {
-          const streetName = await getStreetName(
-            data.coordinates[0],
-            data.coordinates[1]
-          );
-          newStreetNames[shuttleId] = streetName;
-        }
-      }
-      setStreetNames(newStreetNames);
-    };
+    // Clear previous timeout
+    if (geocodeTimeoutRef.current) {
+      clearTimeout(geocodeTimeoutRef.current);
+    }
 
-    updateStreetNames();
+    // Add a small delay to prevent too frequent updates
+    geocodeTimeoutRef.current = setTimeout(async () => {
+      const updateStreetNames = async () => {
+        const newStreetNames = {};
+        for (const [shuttleId, data] of Object.entries(shuttleLocations)) {
+          if (data.coordinates) {
+            try {
+              const streetName = await reverseGeocode(
+                data.coordinates[0],
+                data.coordinates[1]
+              );
+              newStreetNames[shuttleId] = streetName;
+            } catch (error) {
+              console.error(
+                `Error getting street name for shuttle ${shuttleId}:`,
+                error
+              );
+              newStreetNames[shuttleId] = "Location available";
+            }
+          }
+        }
+        setStreetNames(newStreetNames);
+      };
+
+      updateStreetNames();
+    }, 1000); // 1 second delay
+
+    return () => {
+      if (geocodeTimeoutRef.current) {
+        clearTimeout(geocodeTimeoutRef.current);
+      }
+    };
   }, [shuttleLocations]);
 
   // Fetch shuttle statistics
@@ -338,8 +353,7 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
           <h3>Current Status</h3>
           <div className="TellerSummary-status">
             {["001", "002", "003"].map((shuttleId) => {
-              const fullId = `SHUTL${shuttleId}`;
-              const locationData = shuttleLocations[fullId];
+              const locationData = shuttleLocations[shuttleId];
               const stats = shuttleStats[shuttleId] || {
                 totalPassengers: 0,
                 roundTrips: 0,
@@ -349,7 +363,10 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
                 <div className="status-item" key={shuttleId}>
                   <strong>SHUTL {shuttleId}</strong>
                   <p>
-                    Currently at {streetNames[fullId] || "Unknown Location"}
+                    Currently at{" "}
+                    {locationData
+                      ? streetNames[shuttleId] || "Fetching location..."
+                      : "Not transmitting location"}
                   </p>
                   <p>
                     {stats.totalPassengers} Passengers | {stats.roundTrips}{" "}

@@ -153,10 +153,6 @@ const DriverMain = () => {
       setMessages((prev) => [...prev, incomingMessage]);
     });
 
-    subscribeToLocationUpdates((locationData) => {
-      console.log("Received shuttle location:", locationData);
-    });
-
     socket.current.on("new_notification", (notification) => {
       setNotifications((prev) => {
         const updatedNotifications = [notification, ...prev];
@@ -217,7 +213,7 @@ const DriverMain = () => {
   }, []);
 
   // Handle location sharing
-  const updateLocation = useCallback(() => {
+  const updateLocation = useCallback(async () => {
     if (!navigator.geolocation || !shuttleId) {
       console.warn("Cannot update location:", {
         hasGeolocation: !!navigator.geolocation,
@@ -226,43 +222,48 @@ const DriverMain = () => {
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setUserLocation([latitude, longitude]);
+    try {
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
+        });
+      });
 
-        const locationData = {
-          coordinates: [latitude, longitude],
-          shuttleId: shuttleId,
-          timestamp: new Date().toISOString(),
-        };
+      const { latitude, longitude } = position.coords;
+      setUserLocation([latitude, longitude]);
 
-        console.log("Sending location:", locationData);
-        sendLocation(locationData);
-      },
-      (error) => {
-        console.error("Error getting location:", error);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0,
+      const locationData = {
+        coordinates: [latitude, longitude],
+        shuttleId: shuttleId,
+        timestamp: new Date().toISOString(),
+      };
+
+      console.log("Sending location:", locationData);
+      const sent = await sendLocation(locationData);
+
+      if (!sent) {
+        console.warn("Failed to send location update");
       }
-    );
+    } catch (error) {
+      console.error("Error updating location:", error);
+    }
   }, [shuttleId]);
 
   useEffect(() => {
+    let interval;
+
     if (isLocationSharing) {
       console.log("Starting location sharing for shuttle:", shuttleId);
       updateLocation(); // Initial update
-      locationUpdateInterval.current = setInterval(updateLocation, 3000);
+      interval = setInterval(updateLocation, 3000);
     }
 
     return () => {
-      if (locationUpdateInterval.current) {
+      if (interval) {
         console.log("Stopping location sharing");
-        clearInterval(locationUpdateInterval.current);
-        locationUpdateInterval.current = null;
+        clearInterval(interval);
       }
     };
   }, [isLocationSharing, updateLocation]);
