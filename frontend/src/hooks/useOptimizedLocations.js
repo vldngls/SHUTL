@@ -180,24 +180,3 @@ export const useOptimizedLocations = (locations) => {
 
   return optimizedLocations;
 };
-
-// Helper function to determine shuttle status
-const getShuttleStatus = (shuttleId, lastUpdate) => {
-  if (!lastUpdate) return "offline";
-
-  try {
-    const now = new Date();
-    const lastUpdateTime = new Date(lastUpdate);
-    const timeDiff = now - lastUpdateTime;
-
-    if (timeDiff < 30 * 1000) {
-      return "active";
-    } else if (timeDiff < 5 * 60 * 1000) {
-      return "idle";
-    }
-  } catch (error) {
-    console.error(`Error calculating status for shuttle ${shuttleId}:`, error);
-  }
-
-  return "offline";
-};
