@@ -127,11 +127,15 @@ const ShutlLoggedIn = () => {
         const updatedLocations = {};
 
         Object.entries(prev).forEach(([shuttleId, data]) => {
-          // Check if location is less than 3 seconds old
-          if (now - new Date(data.lastUpdate) < 3000) {
+          const timeSinceUpdate = now - new Date(data.lastUpdate);
+
+          // Only remove if beyond MAX_PREDICTION_TIME (30 seconds)
+          if (timeSinceUpdate < 30000) {
             updatedLocations[shuttleId] = data;
           } else {
-            console.log(`Removing stale location for ${shuttleId}`);
+            console.log(
+              `Removing stale location for ${shuttleId} after 30 seconds`
+            );
           }
         });
 
@@ -139,8 +143,8 @@ const ShutlLoggedIn = () => {
       });
     };
 
-    // Run cleanup every 3 seconds
-    const cleanupInterval = setInterval(cleanupStaleLocations, 3000);
+    // Run cleanup every 10 seconds instead of 3
+    const cleanupInterval = setInterval(cleanupStaleLocations, 10000);
 
     // Initialize socket connection
     socket.current = connectSocket();
@@ -181,29 +185,55 @@ const ShutlLoggedIn = () => {
 
     // Listen for both types of location updates
     socket.current.on("shuttle_location", (data) => {
-      setShuttleLocations((prev) => ({
-        ...prev,
-        [data.shuttleId]: {
-          coordinates: data.coordinates || null,
-          lastUpdate: new Date(data.timestamp || Date.now()),
-          speed: data.metadata?.speed ?? 0,
-          heading: data.metadata?.heading ?? 0,
-          accuracy: data.metadata?.accuracy ?? 0,
-        },
-      }));
+      setShuttleLocations((prev) => {
+        const now = new Date();
+        const lastUpdate = new Date(data.timestamp || Date.now());
+        const timeSinceUpdate = now - lastUpdate;
+
+        // If the update is too old, keep the previous predicted position
+        if (timeSinceUpdate > 5000 && prev[data.shuttleId]?.isPredicted) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          [data.shuttleId]: {
+            coordinates: data.coordinates || null,
+            lastUpdate: lastUpdate,
+            speed: data.metadata?.speed ?? 0,
+            heading: data.metadata?.heading ?? 0,
+            accuracy: data.metadata?.accuracy ?? 0,
+            isPredicted: false,
+            lastKnownCoordinates: data.coordinates || null,
+          },
+        };
+      });
     });
 
     socket.current.on("shuttle_location_update", (data) => {
-      setShuttleLocations((prev) => ({
-        ...prev,
-        [data.shuttleId]: {
-          coordinates: data.coordinates || null,
-          lastUpdate: new Date(data.timestamp || Date.now()),
-          speed: data.metadata?.speed ?? 0,
-          heading: data.metadata?.heading ?? 0,
-          accuracy: data.metadata?.accuracy ?? 0,
-        },
-      }));
+      setShuttleLocations((prev) => {
+        const now = new Date();
+        const lastUpdate = new Date(data.timestamp || Date.now());
+        const timeSinceUpdate = now - lastUpdate;
+
+        // If the update is too old, keep the previous predicted position
+        if (timeSinceUpdate > 5000 && prev[data.shuttleId]?.isPredicted) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          [data.shuttleId]: {
+            coordinates: data.coordinates || null,
+            lastUpdate: lastUpdate,
+            speed: data.metadata?.speed ?? 0,
+            heading: data.metadata?.heading ?? 0,
+            accuracy: data.metadata?.accuracy ?? 0,
+            isPredicted: false,
+            lastKnownCoordinates: data.coordinates || null,
+          },
+        };
+      });
     });
 
     // Add socket event listeners for pickup request responses
@@ -462,6 +492,91 @@ const ShutlLoggedIn = () => {
     });
   }, []);
 
+  // Add prediction update effect
+  useEffect(() => {
+    // Function to update predicted positions
+    const updatePredictions = () => {
+      setShuttleLocations((prev) => {
+        const now = new Date();
+        const updatedLocations = { ...prev };
+        let hasUpdates = false;
+
+        Object.entries(prev).forEach(([shuttleId, data]) => {
+          const timeSinceUpdate = now - new Date(data.lastUpdate);
+
+          // Start predicting after 5 seconds of no updates
+          if (
+            timeSinceUpdate > 5000 &&
+            timeSinceUpdate < 30000 &&
+            data.speed > 0
+          ) {
+            // Calculate new position based on last known values
+            const predictedCoordinates = predictNewPosition(
+              data.lastKnownCoordinates || data.coordinates,
+              data.speed,
+              data.heading,
+              timeSinceUpdate
+            );
+
+            if (predictedCoordinates) {
+              updatedLocations[shuttleId] = {
+                ...data,
+                coordinates: predictedCoordinates,
+                lastKnownCoordinates:
+                  data.lastKnownCoordinates || data.coordinates,
+                isPredicted: true,
+              };
+              hasUpdates = true;
+            }
+          }
+        });
+
+        return hasUpdates ? updatedLocations : prev;
+      });
+    };
+
+    // Update predictions every second
+    const predictionInterval = setInterval(updatePredictions, 1000);
+
+    return () => {
+      clearInterval(predictionInterval);
+    };
+  }, []);
+
+  // Helper function to calculate new position
+  const predictNewPosition = (coordinates, speed, heading, timeDelta) => {
+    if (!coordinates || speed <= 0) return coordinates;
+
+    // Convert speed from km/h to meters per second
+    const speedMps = (speed * 1000) / 3600;
+
+    // Calculate distance traveled in meters
+    const distance = speedMps * (timeDelta / 1000);
+
+    // Convert heading to radians (heading is in degrees clockwise from north)
+    const headingRad = (heading * Math.PI) / 180;
+
+    // Current position (coordinates are in [latitude, longitude] format)
+    const lat = coordinates[0]; // Latitude is first
+    const lon = coordinates[1]; // Longitude is second
+
+    // Earth's radius in meters
+    const R = 6378137;
+
+    // Calculate changes in latitude and longitude
+    // For small distances, we can use a flat Earth approximation
+    const latChange = (distance * Math.cos(headingRad)) / ((R * Math.PI) / 180);
+    const lonChange =
+      (distance * Math.sin(headingRad)) /
+      ((R * Math.cos((lat * Math.PI) / 180) * Math.PI) / 180);
+
+    // Return new coordinates in [latitude, longitude] format with minimal precision
+    return [
+      Number((lat + latChange).toFixed(6)), // Latitude first
+      Number((lon + lonChange).toFixed(6)), // Longitude second
+    ];
+  };
+
   return (
     <>
       <div className="ShutlLoggedIn-map-container">
@@ -520,6 +635,9 @@ const ShutlLoggedIn = () => {
                 key={shuttleId}
                 position={data.coordinates}
                 icon={carIcon}
+                rotationAngle={data.heading || 0}
+                duration={1000}
+                className={data.isPredicted ? "predicted-marker" : ""}
               >
                 <Popup>
                   <div className="ShutlLoggedIn-shuttle-info">
@@ -536,6 +654,11 @@ const ShutlLoggedIn = () => {
                     <p style={{ color: trafficCondition.color }}>
                       Traffic: {trafficCondition.status}
                     </p>
+                    {data.isPredicted && (
+                      <p style={{ color: "orange" }}>
+                        ⚠️ Predicted Position (Signal Lost)
+                      </p>
+                    )}
                     {distance !== null && (
                       <>
                         <p>Distance: {distance.toFixed(2)} km</p>
@@ -551,7 +674,7 @@ const ShutlLoggedIn = () => {
                   </div>
                 </Popup>
                 <Tooltip direction="right" offset={[10, 0]} permanent>
-                  Shuttle {shuttleId}
+                  {data.isPredicted ? "📡 " : ""}Shuttle {shuttleId}
                 </Tooltip>
               </MovingMarker>
             );
