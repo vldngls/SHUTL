@@ -5,10 +5,11 @@ import { userService } from "../services/api/users";
 import { shuttleService } from "../services/api/shuttles";
 import { notificationService } from "../services/api/notifications";
 import { operationsService } from "../services/api/operations";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
+import MovingMarker from "../components/MovingMarker";
 
 // Fix for default Leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -30,7 +31,14 @@ const carIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
-const AdministratorDashboardContent = ({ shuttleLocations }) => {
+const getTrafficCondition = (speed) => {
+  if (!speed || speed < 1) return { status: "Unknown", color: "gray" };
+  if (speed < 10) return { status: "Heavy Traffic", color: "red" };
+  if (speed < 20) return { status: "Moderate Traffic", color: "orange" };
+  return { status: "Light Traffic", color: "green" };
+};
+
+const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
   const [totalUsers, setTotalUsers] = useState(0); // State for total registered users
   const [activeUsers, setActiveUsers] = useState(0); // State for active (online) users
   const [notificationMessage, setNotificationMessage] = useState(""); // State for notification message
@@ -42,6 +50,8 @@ const AdministratorDashboardContent = ({ shuttleLocations }) => {
     endTime: "22:00",
   });
   const [shuttleAssignments, setShuttleAssignments] = useState([]);
+  const [shuttleSpeeds, setShuttleSpeeds] = useState({});
+  const [shuttleLocations, setShuttleLocations] = useState({});
 
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
 
@@ -111,8 +121,40 @@ const AdministratorDashboardContent = ({ shuttleLocations }) => {
   }, []);
 
   useEffect(() => {
-    console.log("AdministratorDashboard received locations:", shuttleLocations);
-  }, [shuttleLocations]);
+    console.log(
+      "AdministratorDashboard received locations:",
+      initialShuttleLocations
+    );
+    const updatedLocations = {};
+    Object.entries(initialShuttleLocations || {}).forEach(
+      ([shuttleId, data]) => {
+        if (data.coordinates) {
+          updatedLocations[shuttleId] = {
+            ...data,
+            speed: data.metadata?.speed || 0,
+            heading: data.metadata?.heading,
+            accuracy: data.metadata?.accuracy,
+          };
+        }
+      }
+    );
+    setOptimizedLocations(updatedLocations);
+  }, [initialShuttleLocations]);
+
+  useEffect(() => {
+    subscribeToLocationUpdates((data) => {
+      const { shuttleId, coordinates, metadata } = data;
+      setShuttleLocations((prev) => ({
+        ...prev,
+        [shuttleId]: {
+          coordinates,
+          speed: metadata.speed || 0,
+          heading: metadata.heading || 0,
+          lastUpdate: new Date(),
+        },
+      }));
+    });
+  }, []);
 
   const handleSendNotification = async () => {
     try {
@@ -203,46 +245,44 @@ const AdministratorDashboardContent = ({ shuttleLocations }) => {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             />
 
-            {Object.entries(optimizedLocations || {}).map(
-              ([shuttleId, data]) => {
-                if (!data?.coordinates) return null;
+            {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
+              const speed = data.speed;
+              const trafficCondition = getTrafficCondition(speed);
 
-                const status = data?.status || "unknown";
-                const lastUpdate = data?.lastUpdate
-                  ? new Date(data.lastUpdate).toLocaleTimeString()
-                  : "N/A";
-
-                return (
-                  <Marker
-                    key={shuttleId}
-                    position={data.coordinates}
-                    icon={carIcon}
-                  >
-                    <Popup>
-                      <div className="AdministratorDashboard-shuttle-info">
-                        <h3>SHUTL {shuttleId}</h3>
-                        <p>Last updated: {lastUpdate}</p>
-                        <p>
-                          Status:{" "}
-                          <span style={{ color: getStatusColor(status) }}>
-                            {formatStatus(status)}
-                          </span>
-                        </p>
-                        {data?.streetName && <p>Location: {data.streetName}</p>}
-                      </div>
-                    </Popup>
-                  </Marker>
-                );
-              }
-            )}
+              return (
+                <MovingMarker
+                  key={shuttleId}
+                  position={data.coordinates}
+                  icon={carIcon}
+                >
+                  <Popup>
+                    <div className="AdministratorDashboard-shuttle-info">
+                      <h3>SHUTL {shuttleId}</h3>
+                      <p>
+                        Last updated: {data.lastUpdate.toLocaleTimeString()}
+                      </p>
+                      <p>Speed: {speed.toFixed(1)} km/h</p>
+                      <p style={{ color: trafficCondition.color }}>
+                        Traffic: {trafficCondition.status}
+                      </p>
+                    </div>
+                  </Popup>
+                  <Tooltip direction="right" offset={[10, 0]} permanent>
+                    Shuttle {shuttleId}
+                  </Tooltip>
+                </MovingMarker>
+              );
+            })}
           </MapContainer>
         </div>
         <div className="AdministratorDashboard-shutl-grid">
-          {Object.entries(optimizedLocations || {}).map(([shuttleId, data]) => {
+          {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
             const status = data?.status || "unknown";
             const lastUpdate = data?.lastUpdate
               ? new Date(data.lastUpdate).toLocaleTimeString()
               : "N/A";
+            const speed = data.speed;
+            const trafficCondition = getTrafficCondition(speed);
 
             return (
               <div key={shuttleId} className="shuttle-status-card">
@@ -254,6 +294,10 @@ const AdministratorDashboardContent = ({ shuttleLocations }) => {
                   </span>
                 </p>
                 <p>Last Updated: {lastUpdate}</p>
+                <p>Speed: {speed ? `${speed.toFixed(1)} km/h` : "0.0 km/h"}</p>
+                <p style={{ color: trafficCondition.color }}>
+                  Traffic: {trafficCondition.status}
+                </p>
                 {data?.streetName && <p>Location: {data.streetName}</p>}
               </div>
             );

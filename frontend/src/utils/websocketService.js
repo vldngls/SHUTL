@@ -44,11 +44,34 @@ export const connectSocket = () => {
 
     socket.on("connect", () => {
       console.log("Socket connected with ID:", socket.id);
-      // Process queued messages
-      while (messageQueue.length > 0) {
-        const { event, data } = messageQueue.shift();
-        socket.emit(event, data);
-      }
+
+      // Process location updates first
+      const locationUpdates = messageQueue.filter(
+        (msg) => msg.event === "shuttle_location"
+      );
+      const otherMessages = messageQueue.filter(
+        (msg) => msg.event !== "shuttle_location"
+      );
+
+      // Only process recent location updates
+      const now = Date.now();
+      locationUpdates.forEach((msg) => {
+        if (now - msg.queuedAt < 10000) {
+          // Only send if less than 10 seconds old
+          socket.emit(msg.event, {
+            ...msg.data,
+            timestamp: new Date().toISOString(),
+          });
+        }
+      });
+
+      // Process other messages
+      otherMessages.forEach((msg) => {
+        socket.emit(msg.event, msg.data);
+      });
+
+      // Clear the queue
+      messageQueue = [];
     });
 
     socket.on("disconnect", (reason) => {
@@ -114,30 +137,57 @@ export const sendLocation = async (locationData) => {
   }
 
   return new Promise((resolve) => {
+    const sendData = {
+      ...locationData,
+      timestamp: new Date().toISOString(),
+    };
+
+    const emitLocation = () => {
+      console.log("Emitting location data:", sendData);
+      socket.emit("shuttle_location", sendData);
+    };
+
     if (socket.connected) {
-      console.log("Socket connected, sending location data:", locationData);
-      socket.emit("shuttle_location", locationData);
+      emitLocation();
       resolve(true);
     } else {
-      console.log("Socket disconnected, queuing location update");
-      messageQueue.push({ event: "shuttle_location", data: locationData });
+      console.log("Socket disconnected, attempting immediate reconnect");
 
-      // Attempt reconnection
+      // Store in queue with timestamp
+      messageQueue.push({
+        event: "shuttle_location",
+        data: sendData,
+        queuedAt: Date.now(),
+      });
+
+      // Attempt immediate reconnection
       socket.connect();
 
-      // Set a timeout for the connection attempt
-      setTimeout(() => {
-        if (!socket.connected) {
-          console.log("Connection attempt timed out, using fallback");
-          resolve(false);
-        }
-      }, 5000);
-
-      // Handle successful connection
+      // Handle reconnection
       socket.once("connect", () => {
-        console.log("Socket reconnected, sending queued location");
+        console.log("Socket reconnected, sending queued locations");
+        // Process queue, only sending recent locations
+        const now = Date.now();
+        while (messageQueue.length > 0) {
+          const msg = messageQueue.shift();
+          if (now - msg.queuedAt < 10000) {
+            // Only send if less than 10 seconds old
+            socket.emit(msg.event, {
+              ...msg.data,
+              timestamp: new Date().toISOString(), // Fresh timestamp
+            });
+          }
+        }
         resolve(true);
       });
+
+      // Set timeout for the reconnection attempt
+      setTimeout(() => {
+        if (!socket.connected) {
+          console.log("Reconnection attempt timed out");
+          resolve(false);
+        }
+      }, 3000);
     }
   });
 };

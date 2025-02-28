@@ -134,6 +134,123 @@ const createPickupMarkerStyle = (count) => ({
   iconAnchor: [15, 15],
 });
 
+// Add this new component for the animated marker
+const MovingMarker = ({ position, icon, children }) => {
+  const markerRef = useRef(null);
+  const animationRef = useRef(null);
+  const lastPosition = useRef(position);
+
+  useEffect(() => {
+    const marker = markerRef.current;
+    if (marker && position) {
+      // Get the current position of the marker
+      const currentPos = marker.getLatLng();
+
+      // Only animate if we have a previous position and it's different
+      if (
+        currentPos &&
+        (currentPos.lat !== position[0] || currentPos.lng !== position[1])
+      ) {
+        // Cancel any ongoing animation
+        if (animationRef.current) {
+          cancelAnimationFrame(animationRef.current);
+        }
+
+        const startTime = performance.now();
+        const duration = 3000; // Match the update interval
+        const startLat = currentPos.lat;
+        const startLng = currentPos.lng;
+        const endLat = position[0];
+        const endLng = position[1];
+
+        const animate = (currentTime) => {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+
+          // Ease the animation using quadratic easing
+          const easeProgress =
+            progress < 0.5
+              ? 2 * progress * progress
+              : -1 + (4 - 2 * progress) * progress;
+
+          const newLat = startLat + (endLat - startLat) * easeProgress;
+          const newLng = startLng + (endLng - startLng) * easeProgress;
+
+          marker.setLatLng([newLat, newLng]);
+
+          if (progress < 1) {
+            animationRef.current = requestAnimationFrame(animate);
+          }
+        };
+
+        animationRef.current = requestAnimationFrame(animate);
+      } else if (!currentPos) {
+        // First position, just set it without animation
+        marker.setLatLng(position);
+      }
+
+      lastPosition.current = position;
+    }
+
+    // Cleanup animation on unmount or position change
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [position]);
+
+  return (
+    <Marker ref={markerRef} position={position} icon={icon}>
+      {children}
+    </Marker>
+  );
+};
+
+const calculateSpeed = (prevPosition, currentPosition, timeElapsedSeconds) => {
+  if (!prevPosition || !currentPosition || !timeElapsedSeconds) return 0;
+  if (timeElapsedSeconds <= 0) return 0;
+
+  // Haversine formula to calculate distance in kilometers
+  const R = 6371; // Earth's radius in km
+  const [lat1, lon1] = prevPosition;
+  const [lat2, lon2] = currentPosition;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c;
+
+  // Calculate speed in km/h
+  const speedKmH = (distance / timeElapsedSeconds) * 3600;
+
+  // Return 0 if speed is too small (likely noise) or too large (likely error)
+  if (speedKmH < 0.1 || speedKmH > 150) return 0;
+  return speedKmH;
+};
+
+const calculateHeading = (prevPosition, currentPosition) => {
+  if (!prevPosition || !currentPosition) return 0;
+
+  const [lat1, lon1] = prevPosition;
+  const [lat2, lon2] = currentPosition;
+
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const y = Math.sin(dLon) * Math.cos((lat2 * Math.PI) / 180);
+  const x =
+    Math.cos((lat1 * Math.PI) / 180) * Math.sin((lat2 * Math.PI) / 180) -
+    Math.sin((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.cos(dLon);
+  const heading = (Math.atan2(y, x) * 180) / Math.PI;
+  return (heading + 360) % 360; // Normalize to 0-360 degrees
+};
+
 const DriverMain = () => {
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
@@ -155,6 +272,8 @@ const DriverMain = () => {
   const hasInitialized = useRef(false);
   const hasShownToastRef = useRef(false);
   const watchIdRef = useRef(null);
+  const lastLocationRef = useRef(null);
+  const lastUpdateTimeRef = useRef(null);
 
   // Initialize socket and handle events
   useEffect(() => {
@@ -288,109 +407,133 @@ const DriverMain = () => {
       return;
     }
 
-    // Clear any existing watchers/intervals first
+    // Clear any existing intervals first
     cleanupLocationServices();
 
-    // Start watching location with better error handling
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        const userCoords = [latitude, longitude];
-        setUserLocation(userCoords);
-
-        // Send location update immediately when we get a new position
-        if (shuttleId) {
-          sendLocation({
-            shuttleId,
-            coordinates: userCoords,
-            timestamp: new Date().toISOString(),
+    const updateLocation = async () => {
+      try {
+        // Get current position with high accuracy
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0,
           });
+        });
+
+        const { latitude, longitude } = position.coords;
+        const currentTime = Date.now();
+        const userCoords = [latitude, longitude];
+
+        // Calculate speed and heading only if we have moved
+        let speed = 0;
+        let heading = 0;
+
+        if (lastLocationRef.current && lastUpdateTimeRef.current) {
+          const timeElapsedSeconds =
+            (currentTime - lastUpdateTimeRef.current) / 1000;
+
+          // Only calculate if we've actually moved
+          const hasMoved =
+            lastLocationRef.current[0] !== latitude ||
+            lastLocationRef.current[1] !== longitude;
+
+          if (hasMoved && timeElapsedSeconds > 0) {
+            speed = calculateSpeed(
+              lastLocationRef.current,
+              userCoords,
+              timeElapsedSeconds
+            );
+            heading = calculateHeading(lastLocationRef.current, userCoords);
+
+            // Log the calculations for debugging
+            console.log("Movement detected:", {
+              prevPos: lastLocationRef.current,
+              currentPos: userCoords,
+              timeElapsed: timeElapsedSeconds,
+              calculatedSpeed: speed,
+              calculatedHeading: heading,
+            });
+          }
         }
 
+        // Update local state
+        setUserLocation(userCoords);
+
+        // Send to server if we have shuttleId
+        if (shuttleId) {
+          const locationData = {
+            shuttleId,
+            coordinates: userCoords,
+            metadata: {
+              speed: speed,
+              heading: heading,
+              accuracy: position.coords.accuracy,
+            },
+            timestamp: new Date().toISOString(),
+          };
+
+          // Log the data being sent
+          console.log("Sending location data:", locationData);
+
+          await sendLocation(locationData);
+        }
+
+        // Update refs for next calculation
+        lastLocationRef.current = userCoords;
+        lastUpdateTimeRef.current = currentTime;
+
+        // Show success toast only on first update
         if (!hasShownToastRef.current) {
           hasShownToastRef.current = true;
           toast.success("Location sharing started", {
             duration: 2000,
           });
         }
-
-        if (mapRef.current) {
-          mapRef.current.setView(userCoords, 15.5, { animate: true });
-        }
-      },
-      (error) => {
+      } catch (error) {
         console.error("Location error:", error);
         let errorMessage = "Unknown location error occurred";
 
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            errorMessage =
-              "Location permission was denied. Please enable location services in your browser settings.";
-            break;
-          case error.POSITION_UNAVAILABLE:
-            errorMessage =
-              "Location information is unavailable. Please check your device's location services and try again.";
-            break;
-          case error.TIMEOUT:
-            errorMessage =
-              "Location request timed out. Please check your internet connection and try again.";
-            break;
+        if (error.code === 1) {
+          errorMessage =
+            "Location permission denied. Please enable location services.";
+          cleanupLocationServices();
+        } else if (error.code === 2) {
+          errorMessage = "Location information temporarily unavailable.";
+        } else if (error.code === 3) {
+          errorMessage = "Location request timed out.";
         }
 
-        toast.error(errorMessage);
-        cleanupLocationServices();
-
-        // Set default location as fallback
-        setUserLocation([14.377, 120.983]);
-
-        // Try to get location again after 5 seconds if it was a timeout or unavailable error
-        if (
-          error.code === error.POSITION_UNAVAILABLE ||
-          error.code === error.TIMEOUT
-        ) {
-          setTimeout(() => {
-            toast.info("Retrying location services...");
-            startLocationSharing();
-          }, 5000);
-        }
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000, // Increased timeout to 10 seconds
-        maximumAge: 0,
+        toast.error(errorMessage, { duration: 4000 });
       }
-    );
+    };
 
-    // Set up interval to send location updates with error handling
-    locationUpdateInterval.current = setInterval(() => {
-      if (shuttleId && userLocation) {
-        try {
-          sendLocation({
-            shuttleId,
-            coordinates: userLocation,
-            timestamp: new Date().toISOString(),
-          });
-        } catch (error) {
-          console.error("Error sending location update:", error);
-          toast.error("Failed to send location update. Retrying...");
-        }
-      }
-    }, 3000);
+    // Run first update immediately
+    updateLocation();
+
+    // Set up interval for continuous updates
+    locationUpdateInterval.current = setInterval(updateLocation, 3000);
 
     setIsLocationSharing(true);
     localStorage.setItem("isLocationSharing", "true");
   };
 
+  // Helper function to calculate distance between two points
+  const calculateDistance = (point1, point2) => {
+    if (!point1 || !point2) return 0;
+    const [lat1, lon1] = point1;
+    const [lat2, lon2] = point2;
+    return Math.sqrt(Math.pow(lat2 - lat1, 2) + Math.pow(lon2 - lon1, 2));
+  };
+
   const cleanupLocationServices = () => {
-    if (watchIdRef.current) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
-    }
     if (locationUpdateInterval.current) {
       clearInterval(locationUpdateInterval.current);
       locationUpdateInterval.current = null;
     }
     hasShownToastRef.current = false;
+    lastLocationRef.current = null;
+    lastUpdateTimeRef.current = null;
     setIsLocationSharing(false);
     localStorage.removeItem("isLocationSharing");
   };
@@ -690,12 +833,12 @@ const DriverMain = () => {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           />
           {userLocation && isLocationSharing && (
-            <Marker position={userLocation} icon={carIcon}>
+            <MovingMarker position={userLocation} icon={carIcon}>
               <Popup>You are here.</Popup>
               <Tooltip direction="right" offset={[12, 0]} permanent>
                 {shuttleId}
               </Tooltip>
-            </Marker>
+            </MovingMarker>
           )}
 
           {/* Updated grouped markers with Complete All button */}

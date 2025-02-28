@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "../css/LoggedIn.css";
 import NotificationPop from "../components/NotificationPop";
@@ -21,6 +21,7 @@ import {
 import { toast } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
+import MovingMarker from "../components/MovingMarker";
 
 // Fix for default Leaflet icons issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -67,11 +68,19 @@ const destinationIcon = new L.Icon({
   shadowAnchor: [12, 41],
 });
 
-const calculateETA = (distance) => {
-  const speedKmH = 20; // Assuming average speed of 20 km/h in a subdivision
-  const timeHours = distance / speedKmH;
+const calculateETA = (distance, speed) => {
+  // If speed is too low or not available, use default speed of 20 km/h
+  const effectiveSpeed = speed && speed > 1 ? speed : 20;
+  const timeHours = distance / effectiveSpeed;
   const timeMinutes = Math.round(timeHours * 60);
   return timeMinutes;
+};
+
+const getTrafficCondition = (speed) => {
+  if (!speed || speed < 1) return { status: "Unknown", color: "gray" };
+  if (speed < 10) return { status: "Heavy Traffic", color: "red" };
+  if (speed < 20) return { status: "Moderate Traffic", color: "orange" };
+  return { status: "Light Traffic", color: "green" };
 };
 
 const getStreetName = async (lat, lng) => {
@@ -108,6 +117,7 @@ const ShutlLoggedIn = () => {
   const hasShownToastRef = useRef(false);
   const [selectedDestination, setSelectedDestination] = useState(null);
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
+  const [shuttleSpeeds, setShuttleSpeeds] = useState({});
 
   useEffect(() => {
     // Function to clean up stale locations
@@ -174,8 +184,11 @@ const ShutlLoggedIn = () => {
       setShuttleLocations((prev) => ({
         ...prev,
         [data.shuttleId]: {
-          coordinates: data.coordinates,
-          lastUpdate: new Date(data.timestamp),
+          coordinates: data.coordinates || null,
+          lastUpdate: new Date(data.timestamp || Date.now()),
+          speed: data.metadata?.speed ?? 0,
+          heading: data.metadata?.heading ?? 0,
+          accuracy: data.metadata?.accuracy ?? 0,
         },
       }));
     });
@@ -184,8 +197,11 @@ const ShutlLoggedIn = () => {
       setShuttleLocations((prev) => ({
         ...prev,
         [data.shuttleId]: {
-          coordinates: data.coordinates,
-          lastUpdate: new Date(data.timestamp),
+          coordinates: data.coordinates || null,
+          lastUpdate: new Date(data.timestamp || Date.now()),
+          speed: data.metadata?.speed ?? 0,
+          heading: data.metadata?.heading ?? 0,
+          accuracy: data.metadata?.accuracy ?? 0,
         },
       }));
     });
@@ -431,6 +447,21 @@ const ShutlLoggedIn = () => {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    subscribeToLocationUpdates((data) => {
+      const { shuttleId, coordinates, metadata } = data;
+      setShuttleLocations((prev) => ({
+        ...prev,
+        [shuttleId]: {
+          coordinates,
+          speed: metadata.speed || 0,
+          heading: metadata.heading || 0,
+          lastUpdate: new Date(),
+        },
+      }));
+    });
+  }, []);
+
   return (
     <>
       <div className="ShutlLoggedIn-map-container">
@@ -467,8 +498,13 @@ const ShutlLoggedIn = () => {
           )}
 
           {Object.entries(optimizedLocations).map(([shuttleId, data]) => {
+            if (!data || !data.coordinates) return null;
+
             let distance = null;
             let eta = null;
+            const speed = data.speed || 0;
+            const trafficCondition = getTrafficCondition(speed);
+
             if (userLocation) {
               distance = calculateDistance(
                 userLocation[0],
@@ -476,11 +512,11 @@ const ShutlLoggedIn = () => {
                 data.coordinates[0],
                 data.coordinates[1]
               );
-              eta = calculateETA(distance);
+              eta = calculateETA(distance, speed);
             }
 
             return (
-              <Marker
+              <MovingMarker
                 key={shuttleId}
                 position={data.coordinates}
                 icon={carIcon}
@@ -488,7 +524,18 @@ const ShutlLoggedIn = () => {
                 <Popup>
                   <div className="ShutlLoggedIn-shuttle-info">
                     <h3>{shuttleId}</h3>
-                    <p>Last updated: {data.lastUpdate.toLocaleTimeString()}</p>
+                    <p>
+                      Last updated:{" "}
+                      {data.lastUpdate
+                        ? data.lastUpdate.toLocaleTimeString()
+                        : "N/A"}
+                    </p>
+                    <p>
+                      Speed: {speed ? `${speed.toFixed(1)} km/h` : "0.0 km/h"}
+                    </p>
+                    <p style={{ color: trafficCondition.color }}>
+                      Traffic: {trafficCondition.status}
+                    </p>
                     {distance !== null && (
                       <>
                         <p>Distance: {distance.toFixed(2)} km</p>
@@ -503,7 +550,10 @@ const ShutlLoggedIn = () => {
                     )}
                   </div>
                 </Popup>
-              </Marker>
+                <Tooltip direction="right" offset={[10, 0]} permanent>
+                  Shuttle {shuttleId}
+                </Tooltip>
+              </MovingMarker>
             );
           })}
         </MapContainer>

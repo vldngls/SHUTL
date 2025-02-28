@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import { useNavigate } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 import "../css/TellerMain.css";
@@ -18,6 +18,7 @@ import {
 } from "../utils/websocketService";
 import L from "leaflet";
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
+import MovingMarker from "../components/MovingMarker";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -40,6 +41,13 @@ const carIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
+const getTrafficCondition = (speed) => {
+  if (!speed || speed < 1) return { status: "Unknown", color: "gray" };
+  if (speed < 10) return { status: "Heavy Traffic", color: "red" };
+  if (speed < 20) return { status: "Moderate Traffic", color: "orange" };
+  return { status: "Light Traffic", color: "green" };
+};
+
 const TellerMain = () => {
   const navigate = useNavigate();
 
@@ -52,6 +60,7 @@ const TellerMain = () => {
   const [activePopup, setActivePopup] = useState(null);
   const socket = useRef(null);
   const [shuttleLocations, setShuttleLocations] = useState({});
+  const [shuttleSpeeds, setShuttleSpeeds] = useState({});
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
 
   // Modal/Popup States
@@ -123,6 +132,9 @@ const TellerMain = () => {
         [data.shuttleId]: {
           coordinates: data.coordinates,
           lastUpdate: new Date(data.timestamp),
+          speed: data.metadata?.speed || 0,
+          heading: data.metadata?.heading,
+          accuracy: data.metadata?.accuracy,
         },
       }));
     });
@@ -134,6 +146,9 @@ const TellerMain = () => {
         [data.shuttleId]: {
           coordinates: data.coordinates,
           lastUpdate: new Date(data.timestamp),
+          speed: data.metadata?.speed || 0,
+          heading: data.metadata?.heading,
+          accuracy: data.metadata?.accuracy,
         },
       }));
     });
@@ -315,6 +330,21 @@ const TellerMain = () => {
     };
   }, [isMessageBoxOpen]);
 
+  useEffect(() => {
+    subscribeToLocationUpdates((data) => {
+      const { shuttleId, coordinates, metadata } = data;
+      setShuttleLocations((prev) => ({
+        ...prev,
+        [shuttleId]: {
+          coordinates,
+          speed: metadata.speed || 0,
+          heading: metadata.heading || 0,
+          lastUpdate: new Date(),
+        },
+      }));
+    });
+  }, []);
+
   return (
     <>
       {/* Map Component */}
@@ -332,15 +362,25 @@ const TellerMain = () => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
-          {Object.entries(optimizedLocations).map(([shuttleId, data]) => (
-            <Marker key={shuttleId} position={data.coordinates} icon={carIcon}>
+          {Object.entries(shuttleLocations).map(([shuttleId, data]) => (
+            <MovingMarker
+              key={shuttleId}
+              position={data.coordinates}
+              icon={carIcon}
+            >
               <Popup>
-                <div className="TellerMain-shuttle-info">
-                  <h3>SHUTL {shuttleId}</h3>
-                  <p>Last updated: {data.lastUpdate.toLocaleTimeString()}</p>
+                <div>
+                  <strong>Shuttle {shuttleId}</strong>
+                  <br />
+                  Speed: {data.speed.toFixed(1)} km/h
+                  <br />
+                  Last Update: {data.lastUpdate.toLocaleTimeString()}
                 </div>
               </Popup>
-            </Marker>
+              <Tooltip direction="right" offset={[10, 0]} permanent>
+                Shuttle {shuttleId}
+              </Tooltip>
+            </MovingMarker>
           ))}
         </MapContainer>
       </div>

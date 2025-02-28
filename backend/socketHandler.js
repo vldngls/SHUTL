@@ -77,18 +77,20 @@ const setupSocket = (io, db) => {
           shuttleId,
           coordinates: currentLocation.coordinates,
           timestamp: currentLocation.timestamp,
+          metadata: currentLocation.metadata,
         });
       }
     });
 
     socket.on("shuttle_location", (data) => {
-      const { shuttleId, coordinates, timestamp } = data;
+      const { shuttleId, coordinates, timestamp, metadata } = data;
       console.log("📍 Received shuttle location:", data);
 
-      // Store the location
+      // Store the location with metadata
       shuttleLocations.set(shuttleId, {
         coordinates,
         timestamp,
+        metadata,
         socketId: socket.id,
       });
 
@@ -97,6 +99,7 @@ const setupSocket = (io, db) => {
         shuttleId,
         coordinates,
         timestamp,
+        metadata,
       });
 
       // Also broadcast to all ShutlLoggedIn clients
@@ -104,6 +107,7 @@ const setupSocket = (io, db) => {
         shuttleId,
         coordinates,
         timestamp,
+        metadata,
       });
     });
 
