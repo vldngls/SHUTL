@@ -25,8 +25,8 @@ export const connectSocket = () => {
     socket = io(SOCKET_URL, {
       transports: ["websocket"],
       reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 500,
       withCredentials: true,
       timeout: 10000, // 10 second connection timeout
       auth: { token }, // Send token in auth
@@ -76,16 +76,12 @@ export const connectSocket = () => {
 
     socket.on("disconnect", (reason) => {
       console.log("Socket disconnected:", reason);
-      setTimeout(() => {
-        connectSocket();
-      }, 1000);
+      socket.connect(); // Attempt immediate reconnection
     });
 
     socket.on("connect_error", (error) => {
       console.error("Socket connection error:", error);
-      setTimeout(() => {
-        connectSocket();
-      }, 1000);
+      socket.connect(); // Attempt immediate reconnection
     });
 
     // Add memory monitoring

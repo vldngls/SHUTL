@@ -129,12 +129,12 @@ const ShutlLoggedIn = () => {
         Object.entries(prev).forEach(([shuttleId, data]) => {
           const timeSinceUpdate = now - new Date(data.lastUpdate);
 
-          // Only remove if beyond MAX_PREDICTION_TIME (30 seconds)
-          if (timeSinceUpdate < 30000) {
+          // Only remove if beyond MAX_PREDICTION_TIME (1 minute)
+          if (timeSinceUpdate < 60000) {
             updatedLocations[shuttleId] = data;
           } else {
             console.log(
-              `Removing stale location for ${shuttleId} after 30 seconds`
+              `Removing stale location for ${shuttleId} after 1 minute`
             );
           }
         });
@@ -186,25 +186,19 @@ const ShutlLoggedIn = () => {
     // Listen for both types of location updates
     socket.current.on("shuttle_location", (data) => {
       setShuttleLocations((prev) => {
-        const now = new Date();
-        const lastUpdate = new Date(data.timestamp || Date.now());
-        const timeSinceUpdate = now - lastUpdate;
-
-        // If the update is too old, keep the previous predicted position
-        if (timeSinceUpdate > 5000 && prev[data.shuttleId]?.isPredicted) {
-          return prev;
-        }
-
+        // Always update with real data when received
         return {
           ...prev,
           [data.shuttleId]: {
             coordinates: data.coordinates || null,
-            lastUpdate: lastUpdate,
+            lastUpdate: new Date(data.timestamp || Date.now()),
             speed: data.metadata?.speed ?? 0,
             heading: data.metadata?.heading ?? 0,
             accuracy: data.metadata?.accuracy ?? 0,
             isPredicted: false,
             lastKnownCoordinates: data.coordinates || null,
+            lastKnownSpeed: data.metadata?.speed ?? 0,
+            lastKnownHeading: data.metadata?.heading ?? 0,
           },
         };
       });
@@ -212,25 +206,19 @@ const ShutlLoggedIn = () => {
 
     socket.current.on("shuttle_location_update", (data) => {
       setShuttleLocations((prev) => {
-        const now = new Date();
-        const lastUpdate = new Date(data.timestamp || Date.now());
-        const timeSinceUpdate = now - lastUpdate;
-
-        // If the update is too old, keep the previous predicted position
-        if (timeSinceUpdate > 5000 && prev[data.shuttleId]?.isPredicted) {
-          return prev;
-        }
-
+        // Always update with real data when received
         return {
           ...prev,
           [data.shuttleId]: {
             coordinates: data.coordinates || null,
-            lastUpdate: lastUpdate,
+            lastUpdate: new Date(data.timestamp || Date.now()),
             speed: data.metadata?.speed ?? 0,
             heading: data.metadata?.heading ?? 0,
             accuracy: data.metadata?.accuracy ?? 0,
             isPredicted: false,
             lastKnownCoordinates: data.coordinates || null,
+            lastKnownSpeed: data.metadata?.speed ?? 0,
+            lastKnownHeading: data.metadata?.heading ?? 0,
           },
         };
       });
@@ -504,27 +492,40 @@ const ShutlLoggedIn = () => {
         Object.entries(prev).forEach(([shuttleId, data]) => {
           const timeSinceUpdate = now - new Date(data.lastUpdate);
 
-          // Start predicting after 5 seconds of no updates
-          if (
-            timeSinceUpdate > 5000 &&
-            timeSinceUpdate < 30000 &&
-            data.speed > 0
-          ) {
-            // Calculate new position based on last known values
-            const predictedCoordinates = predictNewPosition(
-              data.lastKnownCoordinates || data.coordinates,
-              data.speed,
-              data.heading,
+          // Switch to prediction mode after 5 seconds of no updates
+          if (timeSinceUpdate > 5000 && !data.isPredicted && data.lastKnownSpeed > 0) {
+            // Start prediction using last known values
+            const predictedPosition = predictNewPosition(
+              data.lastKnownCoordinates,
+              data.lastKnownSpeed,
+              data.lastKnownHeading,
               timeSinceUpdate
             );
 
-            if (predictedCoordinates) {
+            if (predictedPosition) {
               updatedLocations[shuttleId] = {
                 ...data,
-                coordinates: predictedCoordinates,
-                lastKnownCoordinates:
-                  data.lastKnownCoordinates || data.coordinates,
-                isPredicted: true,
+                coordinates: predictedPosition,
+                speed: data.lastKnownSpeed,
+                heading: data.lastKnownHeading,
+                isPredicted: true
+              };
+              hasUpdates = true;
+            }
+          } else if (data.isPredicted && data.lastKnownSpeed > 0) {
+            // Continue prediction for already predicted locations
+            const predictedPosition = predictNewPosition(
+              data.coordinates,
+              data.lastKnownSpeed,
+              data.lastKnownHeading,
+              1000 // Update every second
+            );
+
+            if (predictedPosition) {
+              updatedLocations[shuttleId] = {
+                ...data,
+                coordinates: predictedPosition,
+                isPredicted: true
               };
               hasUpdates = true;
             }
@@ -535,7 +536,7 @@ const ShutlLoggedIn = () => {
       });
     };
 
-    // Update predictions every second
+    // Update predictions every second for smooth movement
     const predictionInterval = setInterval(updatePredictions, 1000);
 
     return () => {
@@ -545,7 +546,7 @@ const ShutlLoggedIn = () => {
 
   // Helper function to calculate new position
   const predictNewPosition = (coordinates, speed, heading, timeDelta) => {
-    if (!coordinates || speed <= 0) return coordinates;
+    if (!coordinates || !Array.isArray(coordinates) || speed <= 0) return null;
 
     // Convert speed from km/h to meters per second
     const speedMps = (speed * 1000) / 3600;
@@ -554,26 +555,26 @@ const ShutlLoggedIn = () => {
     const distance = speedMps * (timeDelta / 1000);
 
     // Convert heading to radians (heading is in degrees clockwise from north)
-    const headingRad = (heading * Math.PI) / 180;
+    const headingRad = ((90 - heading) * Math.PI) / 180; // Adjust heading to match map orientation
 
-    // Current position (coordinates are in [latitude, longitude] format)
-    const lat = coordinates[0]; // Latitude is first
-    const lon = coordinates[1]; // Longitude is second
+    // Current position
+    const lat = coordinates[0];
+    const lon = coordinates[1];
 
     // Earth's radius in meters
     const R = 6378137;
 
-    // Calculate changes in latitude and longitude
-    // For small distances, we can use a flat Earth approximation
-    const latChange = (distance * Math.cos(headingRad)) / ((R * Math.PI) / 180);
-    const lonChange =
-      (distance * Math.sin(headingRad)) /
-      ((R * Math.cos((lat * Math.PI) / 180) * Math.PI) / 180);
+    // Calculate new position using haversine formula
+    const dLat = (distance * Math.cos(headingRad)) / R;
+    const dLon = (distance * Math.sin(headingRad)) / (R * Math.cos(lat * Math.PI / 180));
 
-    // Return new coordinates in [latitude, longitude] format with minimal precision
+    // Convert back to degrees
+    const newLat = lat + (dLat * 180 / Math.PI);
+    const newLon = lon + (dLon * 180 / Math.PI);
+
     return [
-      Number((lat + latChange).toFixed(6)), // Latitude first
-      Number((lon + lonChange).toFixed(6)), // Longitude second
+      Number(newLat.toFixed(6)),
+      Number(newLon.toFixed(6))
     ];
   };
 

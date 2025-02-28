@@ -4,13 +4,13 @@ import { useMemo, useEffect, useRef } from "react";
 // Smoothing factor (alpha) for EMA - lower means more smoothing
 const SMOOTHING_FACTOR = 0.3;
 // Maximum time to predict location (in milliseconds)
-const MAX_PREDICTION_TIME = 30000; // 30 seconds
+const MAX_PREDICTION_TIME = 60000; // 1 minute
 // Update interval for predictions (in milliseconds)
 const PREDICTION_INTERVAL = 1000; // 1 second
 
 // Helper function to calculate new coordinates based on speed, heading and time
 const predictNewPosition = (coordinates, speed, heading, timeDelta) => {
-  if (!coordinates || speed <= 0) return coordinates;
+  if (!coordinates || !Array.isArray(coordinates) || speed <= 0) return null;
 
   // Convert speed from km/h to meters per second
   const speedMps = (speed * 1000) / 3600;
@@ -18,45 +18,38 @@ const predictNewPosition = (coordinates, speed, heading, timeDelta) => {
   // Calculate distance traveled in meters
   const distance = speedMps * (timeDelta / 1000);
 
-  // Convert heading to radians (heading is in degrees from north clockwise)
+  // Convert heading to radians (heading is in degrees clockwise from north)
   const headingRad = ((90 - heading) * Math.PI) / 180;
+
+  // Current position
+  const lat = coordinates[0];
+  const lon = coordinates[1];
 
   // Earth's radius in meters
   const R = 6378137;
 
-  // Current position in radians
-  const lat1 = (coordinates[1] * Math.PI) / 180;
-  const lon1 = (coordinates[0] * Math.PI) / 180;
-
-  // Calculate new position
-  const lat2 = Math.asin(
-    Math.sin(lat1) * Math.cos(distance / R) +
-      Math.cos(lat1) * Math.sin(distance / R) * Math.cos(headingRad)
-  );
-
-  const lon2 =
-    lon1 +
-    Math.atan2(
-      Math.sin(headingRad) * Math.sin(distance / R) * Math.cos(lat1),
-      Math.cos(distance / R) - Math.sin(lat1) * Math.sin(lat2)
-    );
+  // Calculate new position using haversine formula
+  const dLat = (distance * Math.cos(headingRad)) / R;
+  const dLon = (distance * Math.sin(headingRad)) / (R * Math.cos(lat * Math.PI / 180));
 
   // Convert back to degrees
-  return [(lon2 * 180) / Math.PI, (lat2 * 180) / Math.PI];
+  const newLat = lat + (dLat * 180 / Math.PI);
+  const newLon = lon + (dLon * 180 / Math.PI);
+
+  return [
+    Number(newLat.toFixed(6)),
+    Number(newLon.toFixed(6))
+  ];
 };
 
 export const useOptimizedLocations = (locations) => {
   const locationCache = useRef(new WeakMap());
   const cleanupTimeRef = useRef(null);
-  const previousValuesRef = useRef({}); // Store previous smoothed values
-  const predictionIntervalsRef = useRef({}); // Store prediction interval timers
+  const previousValuesRef = useRef({});
+  const predictionIntervalsRef = useRef({});
 
   // Helper function for EMA smoothing
-  const smoothValue = (
-    newValue,
-    previousValue,
-    smoothingFactor = SMOOTHING_FACTOR
-  ) => {
+  const smoothValue = (newValue, previousValue, smoothingFactor = SMOOTHING_FACTOR) => {
     if (previousValue === undefined) return newValue;
     if (newValue === 0 && previousValue > 0) return previousValue * 0.8;
     return smoothingFactor * newValue + (1 - smoothingFactor) * previousValue;
@@ -66,7 +59,7 @@ export const useOptimizedLocations = (locations) => {
   useEffect(() => {
     // Cleanup function to clear all prediction intervals
     const cleanupPredictions = () => {
-      Object.values(predictionIntervalsRef.current).forEach((interval) => {
+      Object.values(predictionIntervalsRef.current).forEach(interval => {
         clearInterval(interval);
       });
       predictionIntervalsRef.current = {};
@@ -79,16 +72,10 @@ export const useOptimizedLocations = (locations) => {
   const optimizedLocations = useMemo(() => {
     if (!locations) return {};
 
+    const now = new Date();
     return Object.entries(locations).reduce((acc, [id, data]) => {
-      if (!data) return acc;
+      if (!data || !data.coordinates) return acc;
 
-      // Check cache first
-      if (locationCache.current.has(data)) {
-        acc[id] = locationCache.current.get(data);
-        return acc;
-      }
-
-      const now = new Date();
       const lastUpdate = data.lastUpdate ? new Date(data.lastUpdate) : now;
       const timeSinceUpdate = now - lastUpdate;
 
@@ -96,8 +83,8 @@ export const useOptimizedLocations = (locations) => {
       const prevValues = previousValuesRef.current[id] || {};
 
       // Get raw values
-      const rawSpeed = data.metadata?.speed ?? data.speed ?? 0;
-      const rawHeading = data.metadata?.heading ?? data.heading ?? 0;
+      const rawSpeed = data.speed ?? 0;
+      const rawHeading = data.heading ?? 0;
 
       // Apply smoothing
       const smoothedSpeed = smoothValue(rawSpeed, prevValues.speed);
@@ -107,72 +94,63 @@ export const useOptimizedLocations = (locations) => {
       previousValuesRef.current[id] = {
         speed: smoothedSpeed,
         heading: smoothedHeading,
-        lastKnownCoordinates:
-          data.coordinates || prevValues.lastKnownCoordinates,
-        lastUpdate: lastUpdate,
+        lastKnownCoordinates: data.coordinates,
+        lastUpdate: lastUpdate
       };
 
-      // Predict position if signal is lost (status is idle or offline)
       let predictedCoordinates = data.coordinates;
-      if (
-        timeSinceUpdate > 5000 &&
-        timeSinceUpdate < MAX_PREDICTION_TIME &&
-        prevValues.speed > 0
-      ) {
+      let isPredicted = false;
+
+      // Start prediction after 5 seconds of no updates
+      if (timeSinceUpdate > 5000 && timeSinceUpdate < MAX_PREDICTION_TIME && smoothedSpeed > 0) {
         predictedCoordinates = predictNewPosition(
-          prevValues.lastKnownCoordinates,
-          prevValues.speed,
-          prevValues.heading,
+          data.coordinates,
+          smoothedSpeed,
+          smoothedHeading,
           timeSinceUpdate
         );
+        isPredicted = true;
 
-        // Setup or update prediction interval
-        if (predictionIntervalsRef.current[id]) {
-          clearInterval(predictionIntervalsRef.current[id]);
-        }
-        predictionIntervalsRef.current[id] = setInterval(() => {
-          const newNow = new Date();
-          const newTimeSinceUpdate = newNow - lastUpdate;
-          if (newTimeSinceUpdate < MAX_PREDICTION_TIME) {
-            const newPredictedCoordinates = predictNewPosition(
-              prevValues.lastKnownCoordinates,
-              prevValues.speed,
-              prevValues.heading,
-              newTimeSinceUpdate
-            );
-            if (newPredictedCoordinates) {
-              acc[id] = {
-                ...acc[id],
-                coordinates: newPredictedCoordinates,
-                isPredicted: true,
-              };
+        // Setup continuous prediction updates
+        if (!predictionIntervalsRef.current[id]) {
+          predictionIntervalsRef.current[id] = setInterval(() => {
+            const currentTime = new Date();
+            const currentTimeSinceUpdate = currentTime - lastUpdate;
+
+            if (currentTimeSinceUpdate < MAX_PREDICTION_TIME) {
+              const newPredictedCoordinates = predictNewPosition(
+                data.coordinates,
+                smoothedSpeed,
+                smoothedHeading,
+                currentTimeSinceUpdate
+              );
+
+              if (newPredictedCoordinates) {
+                acc[id] = {
+                  ...acc[id],
+                  coordinates: newPredictedCoordinates,
+                  isPredicted: true
+                };
+              }
+            } else {
+              // Clear interval if we've reached max prediction time
+              clearInterval(predictionIntervalsRef.current[id]);
+              delete predictionIntervalsRef.current[id];
             }
-          } else {
-            clearInterval(predictionIntervalsRef.current[id]);
-            delete predictionIntervalsRef.current[id];
-          }
-        }, PREDICTION_INTERVAL);
+          }, PREDICTION_INTERVAL);
+        }
       }
 
       // Create optimized data structure
-      const optimized = {
-        coordinates: predictedCoordinates || data.coordinates || null,
+      acc[id] = {
+        coordinates: predictedCoordinates || data.coordinates,
         lastUpdate: lastUpdate,
-        status: getShuttleStatus(id, data.lastUpdate),
-        streetName: data.streetName || null,
         speed: smoothedSpeed,
         heading: smoothedHeading,
-        accuracy: data.metadata?.accuracy ?? data.accuracy ?? 0,
-        isPredicted: Boolean(
-          predictedCoordinates && predictedCoordinates !== data.coordinates
-        ),
+        isPredicted: isPredicted,
+        status: timeSinceUpdate < 30000 ? 'active' : timeSinceUpdate < MAX_PREDICTION_TIME ? 'predicted' : 'offline'
       };
 
-      // Only cache valid data
-      if (optimized.coordinates) {
-        locationCache.current.set(data, optimized);
-      }
-      acc[id] = optimized;
       return acc;
     }, {});
   }, [locations]);
@@ -182,8 +160,7 @@ export const useOptimizedLocations = (locations) => {
     const cleanup = () => {
       locationCache.current = new WeakMap();
       previousValuesRef.current = {};
-      // Clear all prediction intervals
-      Object.values(predictionIntervalsRef.current).forEach((interval) => {
+      Object.values(predictionIntervalsRef.current).forEach(interval => {
         clearInterval(interval);
       });
       predictionIntervalsRef.current = {};
@@ -195,8 +172,7 @@ export const useOptimizedLocations = (locations) => {
       if (cleanupTimeRef.current) {
         clearInterval(cleanupTimeRef.current);
       }
-      // Clear all prediction intervals
-      Object.values(predictionIntervalsRef.current).forEach((interval) => {
+      Object.values(predictionIntervalsRef.current).forEach(interval => {
         clearInterval(interval);
       });
     };

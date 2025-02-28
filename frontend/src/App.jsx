@@ -86,7 +86,7 @@ function App() {
           },
         }}
       />
-      {process.env.NODE_ENV === "development" && <MemoryMonitoringDashboard />}
+      {/* {process.env.NODE_ENV === "development" && <MemoryMonitoringDashboard />} */}
     </div>
   );
 }

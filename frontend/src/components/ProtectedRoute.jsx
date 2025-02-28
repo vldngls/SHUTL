@@ -30,9 +30,10 @@ const ProtectedRoute = ({ element, allowedRoles }) => {
     };
 
     if (token) fetchUserType();
+    else setLoading(false); // Set loading to false if no token is present
   }, [token]);
 
-  if (loading) return null;
+  if (loading) return <div>Loading...</div>; // Show a loading indicator
 
   // Allow admin access to all routes
   if (userType === "Admin") {
