@@ -10,6 +10,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 import MovingMarker from "../components/MovingMarker";
+import { subscribeToLocationUpdates } from "../utils/websocketService";
 
 // Fix for default Leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -52,8 +53,6 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
   const [shuttleAssignments, setShuttleAssignments] = useState([]);
   const [shuttleSpeeds, setShuttleSpeeds] = useState({});
   const [shuttleLocations, setShuttleLocations] = useState({});
-
-  const optimizedLocations = useOptimizedLocations(shuttleLocations);
 
   useEffect(() => {
     const fetchUserCounts = async () => {
@@ -125,9 +124,9 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
       "AdministratorDashboard received locations:",
       initialShuttleLocations
     );
-    const updatedLocations = {};
-    Object.entries(initialShuttleLocations || {}).forEach(
-      ([shuttleId, data]) => {
+    if (initialShuttleLocations) {
+      const updatedLocations = {};
+      Object.entries(initialShuttleLocations).forEach(([shuttleId, data]) => {
         if (data.coordinates) {
           updatedLocations[shuttleId] = {
             ...data,
@@ -136,25 +135,13 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
             accuracy: data.metadata?.accuracy,
           };
         }
-      }
-    );
-    setOptimizedLocations(updatedLocations);
+      });
+      setShuttleLocations(updatedLocations);
+    }
   }, [initialShuttleLocations]);
 
-  useEffect(() => {
-    subscribeToLocationUpdates((data) => {
-      const { shuttleId, coordinates, metadata } = data;
-      setShuttleLocations((prev) => ({
-        ...prev,
-        [shuttleId]: {
-          coordinates,
-          speed: metadata.speed || 0,
-          heading: metadata.heading || 0,
-          lastUpdate: new Date(),
-        },
-      }));
-    });
-  }, []);
+  // Use optimizedLocations from the hook for rendering
+  const optimizedLocations = useOptimizedLocations(shuttleLocations);
 
   const handleSendNotification = async () => {
     try {
@@ -245,7 +232,7 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             />
 
-            {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
+            {Object.entries(optimizedLocations).map(([shuttleId, data]) => {
               const speed = data.speed;
               const trafficCondition = getTrafficCondition(speed);
 

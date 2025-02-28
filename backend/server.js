@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 import cors from "cors";
 import { Server } from "socket.io";
 import http from "http";
+import mongoose from "mongoose";
 
 import connectDB from "./config/db.js";
 import fareRoutes from "./routes/fareRoutes.js";
@@ -24,6 +25,7 @@ import setupSocket from "./socketHandler.js";
 import driverProfileRoutes from "./routes/driverProfileRoutes.js";
 import suggestionRoutes from "./routes/suggestionRoutes.js";
 import operationalHoursRoutes from "./routes/operationalHoursRoutes.js";
+import maintenanceRoutes from "./routes/maintenanceRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -67,6 +69,7 @@ app.use("/api/onfieldshuttles", onfieldShuttleRoutes);
 app.use("/api/driver-profiles", driverProfileRoutes);
 app.use("/api/suggestions", suggestionRoutes);
 app.use("/api/operational-hours", operationalHoursRoutes);
+app.use("/api/maintenance", maintenanceRoutes);
 
 connectDB();
 

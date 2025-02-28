@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS maintenance_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  action VARCHAR(255) NOT NULL,
+  status ENUM('pending', 'success', 'error') NOT NULL,
+  details TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  user_id INT,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+); 

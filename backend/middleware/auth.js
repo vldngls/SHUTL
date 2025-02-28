@@ -1,29 +1,39 @@
 import jwt from "jsonwebtoken";
+import User from '../models/user.model.js';
 
 // Main authentication middleware
-export const authenticateToken = (req, res, next) => {
+export const authenticateToken = async (req, res, next) => {
   try {
-    // Check for token in both Authorization header and cookies
-    const authHeader = req.headers.authorization;
-    const cookieToken = req.cookies.token;
-    const token = (authHeader && authHeader.split(" ")[1]) || cookieToken;
+    // First try to get token from cookies
+    let token = req.cookies.token;
+    
+    // If no token in cookies, try Authorization header
+    if (!token) {
+      const authHeader = req.headers['authorization'];
+      token = authHeader && authHeader.split(' ')[1];
+    }
 
     if (!token) {
-      return res.status(401).json({ message: "No token provided" });
+      return res.status(401).json({ error: 'Access denied. No token provided.' });
     }
 
+    console.log('Token received:', token.substring(0, 20) + '...');
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    console.log('Decoded token:', decoded);
 
-    // If user is admin, always allow access
-    if (decoded.userType === "Admin") {
-      return next();
+    const user = await User.findById(decoded.id);
+    console.log('User found:', user ? 'Yes' : 'No');
+
+    if (!user) {
+      console.log('User not found for ID:', decoded.id);
+      return res.status(404).json({ error: 'User not found.' });
     }
 
+    req.user = user;
     next();
   } catch (error) {
-    console.error("Auth middleware error:", error);
-    res.status(403).json({ message: "Invalid or expired token" });
+    console.error('Auth error:', error);
+    res.status(401).json({ error: 'Invalid token.' });
   }
 };
 
@@ -47,4 +57,21 @@ export const authorizeRoles = (...allowedRoles) => {
 
     next();
   };
+};
+
+export const isAdmin = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: 'User not authenticated.' });
+    }
+
+    if (req.user.userType !== 'Admin') {
+      return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
+    }
+
+    next();
+  } catch (error) {
+    console.error('Admin check error:', error);
+    res.status(500).json({ error: 'Error checking admin privileges.' });
+  }
 };

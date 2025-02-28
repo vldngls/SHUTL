@@ -1,14 +1,65 @@
 .AdministratorMaintenance-maintenance-content {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 20px;
   padding: 20px;
 }
 
+/* System Health Panel */
+.AdministratorMaintenance-health-panel {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.AdministratorMaintenance-health-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 15px;
+}
+
+.health-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.health-metric label {
+  font-weight: 500;
+  color: #666;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress {
+  height: 100%;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.uptime {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9em;
+}
+
+.uptime label {
+  font-weight: 500;
+  color: #666;
+}
+
 /* Top Panels Layout */
 .AdministratorMaintenance-top-panels {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
   gap: 20px;
 }
 
@@ -18,12 +69,12 @@
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  flex: 1;
 }
 
 .AdministratorMaintenance-api-stats {
   display: flex;
   justify-content: space-between;
+  margin: 15px 0;
 }
 
 .AdministratorMaintenance-api-stats div {
@@ -34,20 +85,22 @@
   display: block;
   font-size: 24px;
   font-weight: bold;
+  color: #2196f3;
 }
 
 .AdministratorMaintenance-api-log {
-  margin-top: 10px;
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  max-height: 150px;
+  overflow-y: auto;
 }
 
 .AdministratorMaintenance-api-log p {
-  margin: 0;
-}
-
-.AdministratorMaintenance-last-update {
-  margin-top: 10px;
-  font-size: 12px;
-  color: gray;
+  margin: 5px 0;
+  font-size: 0.9em;
+  color: #666;
 }
 
 /* Stats Panel */
@@ -56,57 +109,182 @@
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  flex: 1;
 }
 
 .AdministratorMaintenance-stats-details {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 15px;
 }
 
 .AdministratorMaintenance-stats-details div {
   text-align: center;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
 }
 
 .AdministratorMaintenance-stats-details span {
   display: block;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: bold;
+  color: #4caf50;
 }
 
 /* Control Panel */
 .AdministratorMaintenance-control-panel {
-  display: flex;
-  justify-content: space-between;
-  flex-direction: column;
-  gap: 10px;
   background-color: white;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  flex: 0.3;
 }
 
-.AdministratorMaintenance-control-btn {
-  background-color: #ff6b35;
-  color: white;
+.control-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.control-btn {
+  padding: 12px;
   border: none;
-  padding: 10px;
   border-radius: 5px;
+  color: white;
+  font-weight: 500;
   cursor: pointer;
-  font-size: 18px;
+  transition: background-color 0.3s ease;
 }
 
-.AdministratorMaintenance-control-btn:hover {
-  background-color: #e05d2b;
+.control-btn.backup {
+  background-color: #2196f3;
 }
 
-/* Bottom Panels Layout */
-.AdministratorMaintenance-bottom-panels {
+.control-btn.clear {
+  background-color: #ff9800;
+}
+
+.control-btn.optimize {
+  background-color: #4caf50;
+}
+
+.control-btn.update {
+  background-color: #9c27b0;
+}
+
+.control-btn:hover {
+  filter: brightness(1.1);
+}
+
+.control-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+/* Maintenance Logs Panel */
+.AdministratorMaintenance-logs-panel {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.maintenance-logs {
+  margin-top: 15px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.log-entry {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  margin: 5px 0;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  font-size: 0.9em;
+}
+
+.log-time {
+  color: #666;
+  min-width: 80px;
+}
+
+.log-action {
+  flex: 1;
+  margin: 0 15px;
+}
+
+.log-status {
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 0.8em;
+  text-transform: capitalize;
+}
+
+.log-status.success {
+  background-color: #4caf50;
+  color: white;
+}
+
+.log-status.pending {
+  background-color: #ff9800;
+  color: white;
+}
+
+.log-status.error {
+  background-color: #f44336;
+  color: white;
+}
+
+.log-details {
+  color: #666;
+  font-size: 0.9em;
+  font-style: italic;
+}
+
+/* Loading animation for buttons */
+.control-btn:disabled::after {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-left: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error state for log entries */
+.log-status.error {
+  background-color: #f44336;
+  color: white;
+}
+
+/* Hover effect for log entries */
+.log-entry:hover {
+  transform: translateX(5px);
+  transition: transform 0.2s ease;
+}
+
+/* Add transition for progress bars */
+.progress {
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+/* Bottom Panels */
+.AdministratorMaintenance-bottom-panels {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
   gap: 20px;
-  margin-top: 20px;
 }
 
 /* Users Panel */
@@ -115,26 +293,32 @@
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  flex: 1;
 }
 
 .AdministratorMaintenance-user-list {
-  max-height: 200px; /* Limit height */
-  overflow-y: auto; /* Enable vertical scrolling */
-  padding-right: 10px; /* Add padding for scrollbar */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .AdministratorMaintenance-user-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  text-align: center;
 }
 
 .AdministratorMaintenance-user-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  margin-right: 10px;
+  margin-bottom: 5px;
 }
 
 /* Group Panel */
@@ -143,21 +327,50 @@
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  flex: 0.6;
 }
 
 .AdministratorMaintenance-group-panel ul {
-  list-style-type: none;
+  list-style: none;
   padding: 0;
+  margin: 15px 0 0 0;
 }
 
 .AdministratorMaintenance-group-panel li {
-  margin-bottom: 10px;
   display: flex;
   align-items: center;
+  gap: 10px;
+  padding: 10px;
+  margin: 5px 0;
+  background-color: #f8f9fa;
+  border-radius: 5px;
 }
 
 .AdministratorMaintenance-group-icon {
-  margin-right: 10px;
-  font-size: 24px;
+  font-size: 1.2em;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .AdministratorMaintenance-top-panels {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .AdministratorMaintenance-control-panel {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .AdministratorMaintenance-top-panels,
+  .AdministratorMaintenance-bottom-panels {
+    grid-template-columns: 1fr;
+  }
+  
+  .AdministratorMaintenance-control-panel {
+    grid-column: auto;
+  }
+  
+  .AdministratorMaintenance-health-metrics {
+    grid-template-columns: 1fr;
+  }
 }

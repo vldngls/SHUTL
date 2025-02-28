@@ -19,6 +19,7 @@ import {
 import L from "leaflet";
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 import MovingMarker from "../components/MovingMarker";
+import { toast } from "react-hot-toast";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -53,7 +54,7 @@ const TellerMain = () => {
 
   // State Management
   const [dateTime, setDateTime] = useState(new Date());
-  const [userLocation, setUserLocation] = useState([14.377, 120.983]);
+  const [userLocation, setUserLocation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [profileImage, setProfileImage] = useState("/teller-profile.png");
   const [notifications, setNotifications] = useState([]);
@@ -62,6 +63,9 @@ const TellerMain = () => {
   const [shuttleLocations, setShuttleLocations] = useState({});
   const [shuttleSpeeds, setShuttleSpeeds] = useState({});
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
+  const [isLocationSharing, setIsLocationSharing] = useState(false);
+  const watchIdRef = useRef(null);
+  const hasShownToastRef = useRef(false);
 
   // Modal/Popup States
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -345,6 +349,75 @@ const TellerMain = () => {
     });
   }, []);
 
+  // Update location handling
+  const updateUserLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    // If already watching location, stop sharing
+    if (watchIdRef.current) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+      setIsLocationSharing(false);
+      setUserLocation(null);
+      hasShownToastRef.current = false;
+      toast("Location sharing stopped", {
+        icon: "🚫",
+        duration: 2000,
+      });
+      return;
+    }
+
+    // Start watching location
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const userCoords = [latitude, longitude];
+        setUserLocation(userCoords);
+
+        if (!hasShownToastRef.current) {
+          setIsLocationSharing(true);
+          hasShownToastRef.current = true;
+          toast.success("Location sharing started", {
+            icon: "📍",
+            duration: 2000,
+          });
+        }
+
+        if (mapRef.current) {
+          mapRef.current.setView(userCoords, 15.5, { animate: true });
+        }
+      },
+      (error) => {
+        console.error("Location error:", error);
+        toast.error(`Location error: ${error.message}`);
+        setIsLocationSharing(false);
+        setUserLocation(null);
+        watchIdRef.current = null;
+        hasShownToastRef.current = false;
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      }
+    );
+  };
+
+  // Clean up location watching on unmount
+  useEffect(() => {
+    return () => {
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+        setUserLocation(null);
+        hasShownToastRef.current = false;
+      }
+    };
+  }, []);
+
   return (
     <>
       {/* Map Component */}
@@ -419,6 +492,33 @@ const TellerMain = () => {
                 src="/trip.png"
                 alt="Trip Icon"
                 className="TellerMain-icon-image"
+              />
+            </button>
+            <button
+              className="TellerMain-update-location-btn"
+              onClick={updateUserLocation}
+              style={{
+                backgroundColor: isLocationSharing ? "#4CAF50" : "white",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                border: "none",
+                borderRadius: "50%",
+                padding: "10px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "background-color 0.3s ease",
+              }}
+            >
+              <img
+                src="/locup.png"
+                alt={isLocationSharing ? "Stop Sharing Location" : "Share Location"}
+                className="TellerMain-update-location-icon"
+                style={{
+                  width: "24px",
+                  height: "24px",
+                  filter: isLocationSharing ? "brightness(0) invert(1)" : "none",
+                }}
               />
             </button>
             <button className="TellerMain-icon-btn" onClick={toggleSettings}>

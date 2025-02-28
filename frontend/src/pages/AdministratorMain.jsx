@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import ShutlNotificationPop from "../components/NotificationPop";
 import "../css/AdministratorMain.css";
 import AdministratorDashboardContent from "@components/AdministratorDashboardContent.jsx";
 import AdministratorMaintenanceContent from "@components/AdministratorMaintenanceContent.jsx";
@@ -10,24 +9,29 @@ import AdministratorShuttleManagementContent from "@components/AdministratorShut
 import AdministratorTransactionsContent from "@components/AdministratorTransactionsContent.jsx";
 import AccountManagement from "@components/AccountManagement.jsx";
 import NotificationPop from "../components/NotificationPop";
-import { getCookie } from "../utils/cookieUtils";
+import { toast } from "react-hot-toast";
 import {
   connectSocket,
   disconnectSocket,
   subscribeToLocationUpdates,
-  joinShuttleTracking,
 } from "../utils/websocketService";
+import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const AdministratorMain = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("Dashboard");
   const [dateTime, setDateTime] = useState(new Date());
   const [notifications, setNotifications] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
+  const [isLocationSharing, setIsLocationSharing] = useState(false);
   const [shuttleLocations, setShuttleLocations] = useState({});
-
-  const navigate = useNavigate();
+  const optimizedLocations = useOptimizedLocations(shuttleLocations);
+  const watchIdRef = useRef(null);
+  const hasShownToastRef = useRef(false);
+  const socket = useRef(null);
 
   const handleLogout = () => {
     document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
@@ -40,184 +44,228 @@ const AdministratorMain = () => {
   }, []);
 
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/notifications/user`, {
-          headers: {
-            Authorization: `Bearer ${getCookie("token")}`,
-          },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setNotifications(data);
-        } else {
-          console.error("Error fetching notifications:", response.statusText);
-        }
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-      }
-    };
-    fetchNotifications();
-  }, []);
+    socket.current = connectSocket();
 
-  useEffect(() => {
-    // Initialize socket connection
-    const socket = connectSocket();
-
-    // Fetch and track all active shuttles
-    const fetchAndTrackShuttles = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
-          headers: {
-            Authorization: `Bearer ${getCookie("token")}`,
-          },
-        });
-        const assignments = await response.json();
-
-        // Join tracking for each active shuttle
-        assignments.forEach((assignment) => {
-          joinShuttleTracking(assignment.shuttleId);
-        });
-      } catch (error) {
-        console.error("Error fetching shuttle assignments:", error);
-      }
-    };
-
-    fetchAndTrackShuttles();
-
-    // Subscribe to location updates
     subscribeToLocationUpdates((data) => {
-      console.log("Received location update:", data);
+      const { shuttleId, coordinates, metadata } = data;
       setShuttleLocations((prev) => ({
         ...prev,
-        [data.shuttleId]: {
-          coordinates: data.coordinates,
-          lastUpdate: new Date(data.timestamp),
+        [shuttleId]: {
+          coordinates,
+          speed: metadata.speed || 0,
+          heading: metadata.heading || 0,
+          lastUpdate: new Date(),
         },
       }));
     });
 
-    // Handle notifications
-    socket.on("new_notification", (notification) => {
-      setNotifications((prevNotifications) => [
-        notification,
-        ...prevNotifications,
-      ]);
-      setShowPopup(true);
-
-      // Auto-hide after 5 seconds
-      setTimeout(() => {
-        setShowPopup(false);
-      }, 5000);
-    });
-
     return () => {
-      disconnectSocket();
+      if (socket.current) {
+        disconnectSocket();
+      }
     };
   }, []);
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case "Dashboard":
-        return (
-          <AdministratorDashboardContent shuttleLocations={shuttleLocations} />
-        );
-      case "Maintenance":
-        return <AdministratorMaintenanceContent />;
-      case "Fare":
-        return <AdministratorFareContent />;
-      case "ShuttlesRoutes":
-        return <AdministratorShuttlesRoutesContent />;
-      case "ShuttleManagement":
-        return <AdministratorShuttleManagementContent />;
-      case "Transactions":
-        return <AdministratorTransactionsContent />;
-      case "AccountManagement":
-        return <AccountManagement />;
-      default:
-        return <AdministratorDashboardContent />;
+  const updateUserLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser.");
+      return;
     }
+
+    // If already watching location, stop sharing
+    if (watchIdRef.current) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+      setIsLocationSharing(false);
+      setUserLocation(null);
+      hasShownToastRef.current = false;
+      toast("Location sharing stopped", {
+        icon: "🚫",
+        duration: 2000,
+      });
+      return;
+    }
+
+    // Start watching location
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const userCoords = [latitude, longitude];
+        setUserLocation(userCoords);
+
+        if (!hasShownToastRef.current) {
+          setIsLocationSharing(true);
+          hasShownToastRef.current = true;
+          toast.success("Location sharing started", {
+            icon: "📍",
+            duration: 2000,
+          });
+        }
+      },
+      (error) => {
+        console.error("Location error:", error);
+        toast.error(`Location error: ${error.message}`);
+        setIsLocationSharing(false);
+        setUserLocation(null);
+        watchIdRef.current = null;
+        hasShownToastRef.current = false;
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      }
+    );
   };
 
+  // Clean up location watching on unmount
+  useEffect(() => {
+    return () => {
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+        setUserLocation(null);
+        hasShownToastRef.current = false;
+      }
+    };
+  }, []);
+
   return (
-    <div className="AdministratorMain-admin-container">
-      <div className="AdministratorMain-sidebar">
-        <div className="AdministratorMain-logo">SHUTL</div>
-        <nav className="AdministratorMain-menu">
+    <div className="AdministratorMain-container">
+      <div className="AdministratorMain-navbar">
+        <div className="AdministratorMain-logo">SHU TL.</div>
+        <div className="AdministratorMain-navbar-buttons">
           <button
-            className={activeTab === "Dashboard" ? "active" : ""}
+            className={`AdministratorMain-nav-btn ${
+              activeTab === "Dashboard" ? "active" : ""
+            }`}
             onClick={() => setActiveTab("Dashboard")}
           >
             Dashboard
           </button>
           <button
-            className={activeTab === "Maintenance" ? "active" : ""}
+            className={`AdministratorMain-nav-btn ${
+              activeTab === "Maintenance" ? "active" : ""
+            }`}
             onClick={() => setActiveTab("Maintenance")}
           >
             Maintenance
           </button>
           <button
-            className={activeTab === "Fare" ? "active" : ""}
+            className={`AdministratorMain-nav-btn ${
+              activeTab === "Fare" ? "active" : ""
+            }`}
             onClick={() => setActiveTab("Fare")}
           >
             Fare
           </button>
           <button
-            className={activeTab === "ShuttlesRoutes" ? "active" : ""}
+            className={`AdministratorMain-nav-btn ${
+              activeTab === "ShuttlesRoutes" ? "active" : ""
+            }`}
             onClick={() => setActiveTab("ShuttlesRoutes")}
           >
             Shuttles & Routes
           </button>
           <button
-            className={activeTab === "ShuttleManagement" ? "active" : ""}
+            className={`AdministratorMain-nav-btn ${
+              activeTab === "ShuttleManagement" ? "active" : ""
+            }`}
             onClick={() => setActiveTab("ShuttleManagement")}
           >
             Shuttle Management
           </button>
           <button
-            className={activeTab === "Transactions" ? "active" : ""}
+            className={`AdministratorMain-nav-btn ${
+              activeTab === "Transactions" ? "active" : ""
+            }`}
             onClick={() => setActiveTab("Transactions")}
           >
             Transactions
           </button>
           <button
-            className={activeTab === "AccountManagement" ? "active" : ""}
+            className={`AdministratorMain-nav-btn ${
+              activeTab === "AccountManagement" ? "active" : ""
+            }`}
             onClick={() => setActiveTab("AccountManagement")}
           >
             Account Management
           </button>
-        </nav>
-        <div className="AdministratorMain-footer-menu">
-          <button onClick={() => alert("Help Center coming soon!")}>
-            Help Center
+        </div>
+        <div className="AdministratorMain-bottom-buttons">
+          <button
+            className="AdministratorMain-notif-btn"
+            onClick={() => setShowPopup(!showPopup)}
+          >
+            <img src="/notif.png" alt="Notifications" />
           </button>
-          <button onClick={() => alert("Settings coming soon!")}>
-            Settings
+          <button className="AdministratorMain-logout-btn" onClick={handleLogout}>
+            Logout
           </button>
-          <button onClick={handleLogout}>Sign Out</button>
         </div>
       </div>
 
-      <div className="AdministratorMain-main-content">
-        <div className="AdministratorMain-admin-header">
-          <h1>{activeTab}</h1>
-          <div className="AdministratorMain-datetime">
-            <p>{dateTime.toLocaleDateString()}</p>
-            <p>{dateTime.toLocaleTimeString()}</p>
-          </div>
-        </div>
+      <button
+        className="AdministratorMain-update-location-btn"
+        onClick={updateUserLocation}
+        style={{
+          backgroundColor: isLocationSharing ? "#4CAF50" : "white",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+          border: "none",
+          borderRadius: "50%",
+          padding: "10px",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "background-color 0.3s ease",
+        }}
+      >
+        <img
+          src="/locup.png"
+          alt={isLocationSharing ? "Stop Sharing Location" : "Share Location"}
+          className="AdministratorMain-update-location-icon"
+          style={{
+            width: "24px",
+            height: "24px",
+            filter: isLocationSharing ? "brightness(0) invert(1)" : "none",
+          }}
+        />
+      </button>
 
-        {renderContent()}
-
-        {/* Notification popup for new notifications */}
-        {showPopup && (
-          <NotificationPop
-            notifications={notifications}
-            onClose={() => setShowPopup(false)}
-            show={true}
+      <div className="AdministratorMain-content">
+        {activeTab === "Dashboard" && (
+          <AdministratorDashboardContent
+            initialShuttleLocations={shuttleLocations}
           />
         )}
+        {activeTab === "Maintenance" && <AdministratorMaintenanceContent />}
+        {activeTab === "Fare" && <AdministratorFareContent />}
+        {activeTab === "ShuttlesRoutes" && <AdministratorShuttlesRoutesContent />}
+        {activeTab === "ShuttleManagement" && (
+          <AdministratorShuttleManagementContent />
+        )}
+        {activeTab === "Transactions" && <AdministratorTransactionsContent />}
+        {activeTab === "AccountManagement" && <AccountManagement />}
       </div>
+
+      <div className="AdministratorMain-taskbar">
+        {dateTime.toLocaleDateString("en-PH", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })}{" "}
+        - {dateTime.toLocaleTimeString("en-PH")}
+      </div>
+
+      {showPopup && (
+        <NotificationPop
+          notifications={notifications}
+          onClose={() => setShowPopup(false)}
+          show={true}
+        />
+      )}
     </div>
   );
 };

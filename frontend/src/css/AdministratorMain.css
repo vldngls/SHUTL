@@ -1,152 +1,221 @@
-/* Overall container for the admin page */
-.AdministratorMain-admin-container {
+/* Base Layout */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
+
+.AdministratorMain-container {
   display: flex;
   height: 100vh;
-  overflow: hidden;
+  position: relative;
 }
 
-/* Sidebar styling */
-.AdministratorMain-sidebar {
-  background-color: #232323;
-  color: white;
-  width: 250px;
-  padding: 20px;
+/* Navbar */
+.AdministratorMain-navbar {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  align-items: center;
+  width: 200px;
+  height: 100vh;
+  background-color: #232323;
+  color: white;
+  border-top-right-radius: 38.5px;
+  border-bottom-right-radius: 38.5px;
+  padding: 16px;
   position: fixed;
-  top: 0;
-  bottom: 0;
   left: 0;
+  top: 0;
+  z-index: 3;
+  box-sizing: border-box;
+  justify-content: space-between;
 }
 
+/* Logo */
 .AdministratorMain-logo {
-  font-size: 24px;
+  font-size: 1.4em;
   font-weight: bold;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
+  margin-top: 8px;
+  text-align: center;
+  width: 100%;
 }
 
-.AdministratorMain-menu {
+/* Navigation Buttons */
+.AdministratorMain-navbar-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
   flex-grow: 1;
+  width: 100%;
 }
 
-.AdministratorMain-menu button,
-.AdministratorMain-footer-menu button {
+.AdministratorMain-nav-btn {
   background: none;
   border: none;
   color: white;
-  text-align: left;
-  font-size: 18px;
-  margin: 10px 0;
-  padding: 10px;
+  padding: 12px 16px;
   cursor: pointer;
-  display: block;
+  font-size: 0.9em;
+  text-align: left;
   width: 100%;
-  border-radius: 8px;
   transition: background-color 0.3s ease;
+  border-radius: 8px;
+  white-space: normal;
+  line-height: 1.2;
 }
 
-.AdministratorMain-menu button:hover,
-.AdministratorMain-footer-menu button:hover {
-  background-color: #ff6b35;
+.AdministratorMain-nav-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
-.AdministratorMain-menu button.active {
-  background-color: #ff6b35;
-}
-
-.AdministratorMain-footer-menu {
-  padding-top: 20px;
-}
-
-.AdministratorMain-footer-menu button {
-  font-size: 16px;
-  margin-top: 20px;
-}
-
-/* Main content styling */
-.AdministratorMain-main-content {
-  margin-left: 300px; /* Account for the fixed sidebar */
-  flex-grow: 1;
-  padding: 20px;
-  background-color: #f5f5f5;
-  height: 100vh;
-  overflow-y: auto;
-}
-
-/* Header styling */
-.AdministratorMain-admin-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #e0e0e0;
-}
-
-.AdministratorMain-admin-header h1 {
-  font-size: 24px;
+.AdministratorMain-nav-btn.active {
+  background-color: rgba(255, 255, 255, 0.2);
   font-weight: bold;
 }
 
-.AdministratorMain-datetime {
-  font-size: 14px;
-  text-align: right;
-}
-
-.AdministratorMain-datetime p {
-  margin: 0;
-  color: #777;
-}
-
-/* Styling for buttons in the sidebar */
-.AdministratorMain-menu button {
-  background-color: transparent;
-  border: none;
-  color: white;
-  text-align: left;
-  font-size: 18px;
-  margin-bottom: 20px;
-  cursor: pointer;
-  width: 100%;
-}
-
-.AdministratorMain-menu button:hover {
-  background-color: #3a3a3a;
-}
-
-.AdministratorMain-menu button.active {
-  background-color: #ff6b35;
-}
-
-/* Style the buttons for Help Center, Settings, and Sign Out in the footer */
-.AdministratorMain-footer-menu {
+/* Bottom Buttons */
+.AdministratorMain-bottom-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   margin-top: auto;
 }
 
-.AdministratorMain-footer-menu button {
-  font-size: 16px;
-  color: white;
-  background-color: transparent;
+.AdministratorMain-notif-btn,
+.AdministratorMain-logout-btn {
+  background: none;
   border: none;
+  padding: 8px;
   cursor: pointer;
-  padding: 10px 0;
+  color: white;
+  font-size: 0.9em;
+  transition: background-color 0.3s ease;
 }
 
-.AdministratorMain-footer-menu button:hover {
-  color: #ff6b35;
-  background-color: transparent;
+.AdministratorMain-notif-btn img {
+  width: 24px;
+  height: 24px;
 }
 
-/* Scrollbar styling for main content */
-.AdministratorMain-main-content::-webkit-scrollbar {
-  width: 8px;
+.AdministratorMain-notif-btn:hover,
+.AdministratorMain-logout-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
-.AdministratorMain-main-content::-webkit-scrollbar-thumb {
-  background-color: #b3b3b3;
-  border-radius: 8px;
+/* Content Area */
+.AdministratorMain-content {
+  flex: 1;
+  margin-left: 200px;
+  padding: 20px;
+  overflow-y: auto;
+  z-index: 2;
+  background-color: #fff;
 }
 
-.AdministratorMain-main-content::-webkit-scrollbar-track {
-  background-color: #f0f0f0;
+/* Taskbar */
+.AdministratorMain-taskbar {
+  position: fixed;
+  height: 32px;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #f5f5f5;
+  color: #333;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 10px 20px;
+  border-top: 2px solid #e0e0e0;
+  font-size: 0.8em;
+  z-index: 2;
+  box-sizing: border-box;
+  margin-left: 0;
+}
+
+/* Location Button */
+.AdministratorMain-update-location-btn {
+  position: fixed;
+  right: 16px;
+  bottom: 60px;
+  z-index: 1000;
+  width: 44px;
+  height: 44px;
+  transition: all 0.3s ease;
+}
+
+.AdministratorMain-update-location-btn:hover {
+  transform: scale(1.1);
+}
+
+.AdministratorMain-update-location-icon {
+  transition: filter 0.3s ease;
+}
+
+/* Shuttle Info */
+.AdministratorMain-shuttle-info {
+  padding: 10px;
+  text-align: center;
+}
+
+.AdministratorMain-shuttle-info h3 {
+  margin: 0 0 5px 0;
+  color: #333;
+}
+
+.AdministratorMain-shuttle-info p {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .AdministratorMain-navbar {
+    width: 160px;
+    padding: 12px;
+  }
+
+  .AdministratorMain-content {
+    margin-left: 160px;
+  }
+
+  .AdministratorMain-nav-btn {
+    font-size: 0.85em;
+    padding: 10px 12px;
+  }
+
+  .AdministratorMain-update-location-btn {
+    right: 10px;
+    bottom: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .AdministratorMain-navbar {
+    width: 140px;
+    padding: 8px;
+  }
+
+  .AdministratorMain-content {
+    margin-left: 140px;
+  }
+
+  .AdministratorMain-logo {
+    font-size: 1.2em;
+  }
+
+  .AdministratorMain-nav-btn {
+    font-size: 0.8em;
+    padding: 8px 10px;
+  }
+
+  .AdministratorMain-update-location-btn {
+    right: 8px;
+    bottom: 45px;
+  }
 }
