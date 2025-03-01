@@ -213,8 +213,8 @@ body {
   right: 16px;
   bottom: 60px;
   z-index: 1000;
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   transition: all 0.3s ease;
 }
 
@@ -223,6 +223,8 @@ body {
 }
 
 .ShutlLoggedIn-update-location-icon {
+  width: 20px;
+  height: 20px;
   transition: filter 0.3s ease;
 }
 
