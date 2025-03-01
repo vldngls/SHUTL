@@ -93,9 +93,11 @@ const ShutlLoggedIn = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileEditMode, setIsProfileEditMode] = useState(false);
   const [showPaymentQR, setShowPaymentQR] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const socket = useRef(null);
   const watchIdRef = useRef(null);
   const popupRef = useRef(null);
+  const sidebarRef = useRef(null);
   const [isLocationSharing, setIsLocationSharing] = useState(false);
   const hasShownToastRef = useRef(false);
   const [selectedDestination, setSelectedDestination] = useState(null);
@@ -591,6 +593,25 @@ const ShutlLoggedIn = () => {
     }
   };
 
+  // Add toggle function for sidebar
+  const toggleSidebar = () => {
+    setIsSidebarExpanded(!isSidebarExpanded);
+  };
+
+  // Add useEffect for click outside handling
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+        setIsSidebarExpanded(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className="ShutlLoggedIn-container">
       <div className="ShutlLoggedIn-map-container">
@@ -696,26 +717,45 @@ const ShutlLoggedIn = () => {
         </MapContainer>
       </div>
 
-      <div className="ShutlLoggedIn-navbar">
+      <div 
+        ref={sidebarRef}
+        className={`ShutlLoggedIn-navbar ${isSidebarExpanded ? 'expanded' : ''}`} 
+        onClick={(e) => {
+          e.stopPropagation();
+          toggleSidebar();
+        }}
+      >
         <div className="ShutlLoggedIn-logo">SHU TL.</div>
         <div className="ShutlLoggedIn-navbar-buttons">
           <button
             className="ShutlLoggedIn-notif-btn"
-            onClick={() => setActivePopup(activePopup === "notifications" ? null : "notifications")}
+            onClick={(e) => {
+              e.stopPropagation();
+              setActivePopup(activePopup === "notifications" ? null : "notifications");
+            }}
           >
             <img src="/notif.png" alt="Notification Icon" className="ShutlLoggedIn-notif-icon" />
+            {isSidebarExpanded && <span className="button-label">Notifications</span>}
           </button>
           <button
             className="ShutlLoggedIn-money-btn"
-            onClick={() => setShowPaymentQR(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowPaymentQR(true);
+            }}
           >
             <img src="/money.png" alt="Money Icon" className="ShutlLoggedIn-money-icon" />
+            {isSidebarExpanded && <span className="button-label">Payment</span>}
           </button>
           <button
             className="ShutlLoggedIn-setting-btn"
-            onClick={handleSettingsClick}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSettingsClick();
+            }}
           >
             <img src="/settings.png" alt="Settings Icon" className="ShutlLoggedIn-setting-icon" />
+            {isSidebarExpanded && <span className="button-label">Settings</span>}
           </button>
         </div>
 
@@ -725,11 +765,13 @@ const ShutlLoggedIn = () => {
             src={profilePicture}
             alt="Navigation Icon"
             className="ShutlLoggedIn-nav-icon"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               setIsProfileEditMode(false);
               setActivePopup("profile");
             }}
           />
+          {isSidebarExpanded && <span className="button-label">Profile</span>}
         </div>
         <button 
           className={`ShutlLoggedIn-hamburger ${isMobileMenuOpen ? 'active' : ''}`}
