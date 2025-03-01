@@ -98,12 +98,14 @@ body {
   height: 100vh;
   height: 100dvh; /* Dynamic viewport height */
   z-index: 1;
+  pointer-events: auto;
 }
 
 /* Make sure the map takes up the full container */
 .leaflet-container {
   width: 100%;
   height: 100%;
+  z-index: 1;
 }
 
 /* Navbar */
@@ -121,9 +123,164 @@ body {
   position: fixed;
   left: 0;
   top: 0;
-  z-index: 3;
+  z-index: 1000;
   box-sizing: border-box;
   justify-content: space-between;
+  transition: width 0.3s ease;
+  cursor: pointer;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Expanded state */
+.ShutlLoggedIn-navbar.expanded {
+  width: 200px;
+  align-items: flex-start;
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Button label styles */
+.button-label {
+  margin-left: 12px;
+  font-size: 14px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  color: white;
+}
+
+.ShutlLoggedIn-navbar.expanded .button-label {
+  opacity: 1;
+  margin-left: 0;
+  padding: 8px 0;
+  color: white;
+}
+
+/* Notification, settings, and money buttons */
+.ShutlLoggedIn-notif-btn,
+.ShutlLoggedIn-setting-btn,
+.ShutlLoggedIn-money-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Make buttons clickable on hover in expanded state */
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-notif-btn,
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-setting-btn,
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-money-btn {
+  pointer-events: auto;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+/* Profile icon container - always clickable */
+.ShutlLoggedIn-icon-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 8px;
+  cursor: pointer;
+  pointer-events: auto;
+  margin-top: auto;
+  padding-bottom: 24px; /* Increased bottom padding */
+}
+
+/* Profile section adjustments in expanded state */
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-icon-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 8px 16px;
+  margin-top: auto;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* Line styling */
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-line {
+  width: calc(100% - 32px);
+  height: 1px;
+  background-color: white;
+  opacity: 0.2;
+  margin: 16px 0;
+  position: absolute;
+  top: -8px;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+/* Profile hover effect */
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-icon-container:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-icon-container:hover .ShutlLoggedIn-line {
+  top: 8px;
+  opacity: 0.4;
+}
+
+/* Profile text label adjustment */
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-icon-container .button-label {
+  padding: 8px 0;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-icon-container:hover .button-label {
+  transform: translateY(-16px);
+}
+
+/* Adjust navbar buttons container in expanded state */
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-navbar-buttons {
+  width: 100%;
+}
+
+/* Adjust icons in expanded state */
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-notif-icon,
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-setting-icon,
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-money-icon,
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-nav-icon {
+  width: 0;
+  height: 0;
+  opacity: 0;
+  margin: 0;
+  transition: all 0.2s ease;
+}
+
+/* Media query adjustments */
+@media (max-width: 768px) {
+  .ShutlLoggedIn-navbar.expanded {
+    width: 180px;
+  }
+  
+  .ShutlLoggedIn-navbar.expanded .button-label {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ShutlLoggedIn-navbar.expanded {
+    width: 100%;
+  }
+  
+  .ShutlLoggedIn-navbar.expanded .button-label {
+    font-size: 14px;
+  }
 }
 
 /* Logo at the top */
@@ -139,37 +296,16 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
-  flex-grow: 1;
+  gap: 40px;
+  flex-grow: 0;
   justify-content: center;
-}
-
-.ShutlLoggedIn-setting-btn,
-.ShutlLoggedIn-notif-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  border-radius: 50%;
-  width: 42px;
-  height: 42px;
-  z-index: 3;
+  margin-bottom: 150px; /* Increased from 100px to create more space */
 }
 
 .ShutlLoggedIn-setting-icon,
 .ShutlLoggedIn-notif-icon {
   width: 100%;
   height: auto;
-}
-
-/* Profile icon at the bottom */
-.ShutlLoggedIn-icon-container {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-evenly;
-  gap: 8px;
 }
 
 .ShutlLoggedIn-line {
@@ -524,17 +660,6 @@ hr {
   }
 }
 
-.ShutlLoggedIn-money-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  border-radius: 50%;
-  width: 42px;
-  height: 42px;
-  z-index: 3;
-}
-
 .ShutlLoggedIn-money-icon {
   width: 100%;
   height: auto;
@@ -560,7 +685,7 @@ hr {
   flex-direction: column;
   align-items: center;
   gap: 20px;
-  margin-top: 40px;
+  margin-top: 300px; /* Increased from 200px to push buttons even lower */
 }
 
 @media (max-width: 768px) {
@@ -882,4 +1007,29 @@ hr {
   :root {
     --toaster-margin: 80px;
   }
+}
+
+/* Show text labels in expanded state */
+.ShutlLoggedIn-navbar.expanded .button-label {
+  margin-left: 12px;
+  font-size: 14px;
+  white-space: nowrap;
+  opacity: 1;
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+/* Logo adjustments */
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-logo {
+  width: 100%;
+  text-align: left;
+  padding-left: 16px;
+}
+
+/* Hover effects for all buttons */
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-notif-btn:hover,
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-setting-btn:hover,
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-money-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
 }
