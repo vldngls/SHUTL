@@ -108,7 +108,7 @@ body {
   z-index: 1;
 }
 
-/* Navbar */
+/* Navbar - Base Styles */
 .ShutlLoggedIn-navbar {
   display: flex;
   flex-direction: column;
@@ -119,7 +119,7 @@ body {
   color: white;
   border-top-right-radius: 38.5px;
   border-bottom-right-radius: 38.5px;
-  padding: 16px;
+  padding: 16px 8px;
   position: fixed;
   left: 0;
   top: 0;
@@ -131,164 +131,198 @@ body {
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Expanded state */
-.ShutlLoggedIn-navbar.expanded {
-  width: 200px;
-  align-items: flex-start;
-  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+/* Logo */
+.ShutlLoggedIn-logo {
+  font-size: 1.4em;
+  font-weight: bold;
+  margin-bottom: 40px;
+  text-align: center;
+  width: 100%;
 }
 
-/* Button label styles */
-.button-label {
-  margin-left: 12px;
-  font-size: 14px;
-  white-space: nowrap;
-  opacity: 0;
-  transition: all 0.2s ease;
-  pointer-events: none;
-  color: white;
+/* Navbar Buttons Container */
+.ShutlLoggedIn-navbar-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  width: 100%;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
-.ShutlLoggedIn-navbar.expanded .button-label {
-  opacity: 1;
-  margin-left: 0;
-  padding: 8px 0;
-  color: white;
-}
-
-/* Notification, settings, and money buttons */
+/* Individual Buttons */
 .ShutlLoggedIn-notif-btn,
 .ShutlLoggedIn-setting-btn,
 .ShutlLoggedIn-money-btn {
+  width: 42px;
+  height: 42px;
   background: none;
   border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 0;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  pointer-events: auto;
+  z-index: 3;
+}
+
+/* Button Icons */
+.ShutlLoggedIn-notif-icon,
+.ShutlLoggedIn-setting-icon,
+.ShutlLoggedIn-money-icon {
+  width: 42px;
+  height: 42px;
+}
+
+/* Button Labels */
+.button-label {
+  display: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  color: white;
+  font-size: 14px;
+}
+
+/* Profile Container */
+.ShutlLoggedIn-icon-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 20px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+/* Profile Divider Line */
+.ShutlLoggedIn-line {
+  width: 42px;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.3);
+  margin-bottom: 20px;
+}
+
+/* Profile Icon */
+.ShutlLoggedIn-nav-icon {
   border-radius: 50%;
   width: 42px;
   height: 42px;
-  z-index: 3;
-  pointer-events: none;
+  cursor: pointer;
 }
 
-/* Make buttons clickable on hover in expanded state */
+/* EXPANDED STATE STYLES */
+.ShutlLoggedIn-navbar.expanded {
+  width: 200px;
+  align-items: flex-start;
+  padding: 16px;
+}
+
+/* Logo in Expanded State */
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-logo {
+  text-align: left;
+  padding-left: 8px;
+  margin-bottom: 40px;
+}
+
+/* Buttons in Expanded State */
 .ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-notif-btn,
 .ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-setting-btn,
 .ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-money-btn {
-  pointer-events: auto;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
   width: 100%;
+  justify-content: flex-start;
   padding: 8px 16px;
   border-radius: 8px;
-  transition: all 0.3s ease;
 }
 
-/* Profile icon container - always clickable */
-.ShutlLoggedIn-icon-container {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-evenly;
-  gap: 8px;
-  cursor: pointer;
-  pointer-events: auto;
-  margin-top: auto;
-  padding-bottom: 24px; /* Increased bottom padding */
-}
-
-/* Profile section adjustments in expanded state */
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-icon-container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  width: 100%;
-  padding: 8px 16px;
-  margin-top: auto;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-/* Line styling */
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-line {
-  width: calc(100% - 32px);
-  height: 1px;
-  background-color: white;
-  opacity: 0.2;
-  margin: 16px 0;
-  position: absolute;
-  top: -8px;
-  transition: all 0.3s ease;
-  pointer-events: none;
-}
-
-/* Profile hover effect */
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-icon-container:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-}
-
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-icon-container:hover .ShutlLoggedIn-line {
-  top: 8px;
-  opacity: 0.4;
-}
-
-/* Profile text label adjustment */
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-icon-container .button-label {
-  padding: 8px 0;
-  transition: all 0.3s ease;
-  pointer-events: none;
-}
-
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-icon-container:hover .button-label {
-  transform: translateY(-16px);
-}
-
-/* Adjust navbar buttons container in expanded state */
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-navbar-buttons {
-  width: 100%;
-}
-
-/* Adjust icons in expanded state */
+/* Button Icons in Expanded State */
 .ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-notif-icon,
 .ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-setting-icon,
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-money-icon,
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-nav-icon {
-  width: 0;
-  height: 0;
-  opacity: 0;
-  margin: 0;
-  transition: all 0.2s ease;
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-money-icon {
+  width: 24px;
+  height: 24px;
 }
 
-/* Media query adjustments */
+/* Button Labels in Expanded State */
+.ShutlLoggedIn-navbar.expanded .button-label {
+  display: inline;
+  margin-left: 12px;
+  opacity: 1;
+}
+
+/* Profile Container in Expanded State */
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-icon-container {
+  align-items: flex-start;
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+
+/* Profile Line in Expanded State */
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-line {
+  width: 100%;
+  margin: 16px 0;
+}
+
+/* Hover Effects for Expanded State */
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-notif-btn:hover,
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-setting-btn:hover,
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-money-btn:hover,
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-icon-container:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* MEDIA QUERIES */
 @media (max-width: 768px) {
   .ShutlLoggedIn-navbar.expanded {
     width: 180px;
   }
-  
+
   .ShutlLoggedIn-navbar.expanded .button-label {
     font-size: 13px;
   }
 }
 
 @media (max-width: 480px) {
-  .ShutlLoggedIn-navbar.expanded {
+  .ShutlLoggedIn-navbar {
     width: 100%;
+    height: 60px;
+    min-height: auto;
+    padding: 0 16px;
+    border-radius: 0;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    top: 0;
+    left: 0;
   }
-  
-  .ShutlLoggedIn-navbar.expanded .button-label {
-    font-size: 14px;
-  }
-}
 
-/* Logo at the top */
-.ShutlLoggedIn-logo {
-  font-size: 1.4em;
-  font-weight: bold;
-  margin-bottom: 20px;
-  margin-top: 8px;
+  .ShutlLoggedIn-logo {
+    margin-bottom: 0;
+    order: 1;
+  }
+
+  .ShutlLoggedIn-navbar-buttons {
+    display: none;
+  }
+
+  .ShutlLoggedIn-icon-container {
+    display: none;
+  }
+
+  .ShutlLoggedIn-hamburger {
+    display: flex;
+    order: 3;
+    margin-bottom: 0;
+  }
 }
 
 /* Notification and settings buttons centered */
@@ -309,9 +343,10 @@ body {
 }
 
 .ShutlLoggedIn-line {
-  width: 58px;
+  width: 42px;
   height: 1px;
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.2);
+  margin: 8px 0;
 }
 
 .ShutlLoggedIn-nav-icon {
@@ -685,38 +720,34 @@ hr {
   flex-direction: column;
   align-items: center;
   gap: 20px;
-  margin-top: 300px; /* Increased from 200px to push buttons even lower */
+  width: 100%;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
-@media (max-width: 768px) {
-  .ShutlLoggedIn-navbar-buttons {
-    gap: 15px;
-    margin-top: 30px;
-  }
+.ShutlLoggedIn-navbar-buttons button {
+  width: 100%;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px;
+  text-align: center;
+  transition: background-color 0.2s ease;
 }
 
-@media (max-width: 480px) {
-  .ShutlLoggedIn-navbar {
-    justify-content: space-between;
-  }
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-navbar-buttons button {
+  justify-content: flex-start;
+  padding: 12px 20px;
+}
 
-  .ShutlLoggedIn-navbar-buttons {
-    flex: 1;
-    justify-content: center;
-    margin-top: 0;
-    gap: 12px;
-  }
-
-  .ShutlLoggedIn-notif-btn,
-  .ShutlLoggedIn-setting-btn,
-  .ShutlLoggedIn-money-btn {
-    width: 30px;
-    height: 30px;
-  }
-
-  .ShutlLoggedIn-icon-container {
-    margin-top: auto;
-  }
+.ShutlLoggedIn-navbar-buttons img {
+  width: 42px;
+  height: 42px;
 }
 
 .predicted-marker {
@@ -817,9 +848,6 @@ hr {
     justify-content: space-between;
     top: 0;
     left: 0;
-    z-index: 3;
-    background-color: #232323;
-    position: fixed;
   }
 
   .ShutlLoggedIn-hamburger {
@@ -918,13 +946,23 @@ hr {
 
   @media (max-width: 480px) {
     .ShutlLoggedIn-map-container {
-      height: calc(100dvh - 60px - 56px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-      min-height: calc(100dvh - 60px - 56px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      height: calc(
+        100dvh - 60px - 56px - env(safe-area-inset-top) -
+          env(safe-area-inset-bottom)
+      );
+      min-height: calc(
+        100dvh - 60px - 56px - env(safe-area-inset-top) -
+          env(safe-area-inset-bottom)
+      );
     }
 
     .ShutlLoggedIn-mobile-menu {
-      height: calc(100dvh - 60px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-      min-height: calc(100dvh - 60px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      height: calc(
+        100dvh - 60px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+      );
+      min-height: calc(
+        100dvh - 60px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+      );
     }
 
     /* Bottom actions bar adjustments */
@@ -982,13 +1020,13 @@ hr {
   }
 
   .ShutlLoggedIn-mobile-menu button.settings-expanded::after {
-    content: '▼';
+    content: "▼";
     float: right;
     transition: transform 0.3s ease;
   }
 
   .ShutlLoggedIn-mobile-menu button.settings-collapsed::after {
-    content: '▼';
+    content: "▼";
     float: right;
     transform: rotate(-90deg);
   }
@@ -1024,6 +1062,7 @@ hr {
   width: 100%;
   text-align: left;
   padding-left: 16px;
+  margin-bottom: 20px;
 }
 
 /* Hover effects for all buttons */
