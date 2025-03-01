@@ -254,6 +254,9 @@ const DriverMessage = ({ onClose }) => {
         timestamp: new Date().toISOString(),
       };
 
+      // Add message to local state immediately for instant feedback
+      setMessages((prev) => [...prev, messageData]);
+
       // Save to database
       await sendChatMessage(currentRoom, messageData);
 
@@ -264,6 +267,9 @@ const DriverMessage = ({ onClose }) => {
           message: messageData,
         });
       }
+
+      // Scroll to bottom
+      setTimeout(scrollToBottom, 100);
     } catch (error) {
       console.error("Error sending quick reply:", error);
     }
