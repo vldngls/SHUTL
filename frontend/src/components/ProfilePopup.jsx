@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-hot-toast";
+import ReactCrop from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 import "../css/ProfilePopup.css";
 
 const DISCOUNT_TYPES = {
@@ -18,6 +20,17 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
   const [editedData, setEditedData] = useState({});
   const [profileImage, setProfileImage] = useState(null);
   const [transactions, setTransactions] = useState([]);
+  const [crop, setCrop] = useState({
+    unit: '%',
+    width: 90,
+    aspect: 1,
+    x: 5,
+    y: 5
+  });
+  const [imageSrc, setImageSrc] = useState(null);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const imageRef = useRef(null);
+  const [completedCrop, setCompletedCrop] = useState(null);
 
   // Get email from JWT token
   const getEmailFromToken = () => {
@@ -119,50 +132,109 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
     setEditedData({ ...editedData, [name]: value });
   };
 
-  // Handle image resizing and cropping
-  const resizeAndCropImage = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
+  const resizeAndCropImage = async (image, crop) => {
+    if (!crop || !image) return null;
 
-          // Set canvas dimensions to 150x150
-          canvas.width = 150;
-          canvas.height = 150;
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set the canvas size to our desired output size
+    canvas.width = 120;
+    canvas.height = 120;
 
-          // Calculate the square cropping area
-          const minDim = Math.min(img.width, img.height);
-          const cropX = (img.width - minDim) / 2;
-          const cropY = (img.height - minDim) / 2;
+    // Draw the cropped image
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    
+    const pixelCrop = {
+      x: crop.x * scaleX,
+      y: crop.y * scaleY,
+      width: crop.width * scaleX,
+      height: crop.height * scaleY,
+    };
 
-          // Draw the cropped and resized image on the canvas
-          ctx.drawImage(img, cropX, cropY, minDim, minDim, 0, 0, 150, 150);
+    ctx.drawImage(
+      image,
+      pixelCrop.x,
+      pixelCrop.y,
+      pixelCrop.width,
+      pixelCrop.height,
+      0,
+      0,
+      120,
+      120
+    );
 
-          // Convert canvas to base64 image
-          resolve(canvas.toDataURL());
+    // Convert to blob and then to data URL
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          resolve(reader.result);
         };
-        img.onerror = reject;
-        img.src = event.target.result;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
+        reader.readAsDataURL(blob);
+      }, 'image/jpeg', 0.95);
     });
   };
 
   const handleImageChange = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        setImageSrc(reader.result);
+        setShowCropModal(true);
+      };
+
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCropComplete = async () => {
+    if (imageRef.current && completedCrop?.width && completedCrop?.height) {
       try {
-        const resizedImage = await resizeAndCropImage(file);
-        setProfileImage(resizedImage);
-        setEditedData({ ...editedData, profilePicture: resizedImage });
+        const croppedImageUrl = await resizeAndCropImage(imageRef.current, completedCrop);
+        setProfileImage(croppedImageUrl);
+        setEditedData({ ...editedData, profilePicture: croppedImageUrl });
+        setShowCropModal(false);
       } catch (error) {
-        console.error("Error resizing and cropping image:", error);
+        console.error('Error cropping image:', error);
+        toast.error('Failed to crop image. Please try again.');
       }
     }
+  };
+
+  const CropModal = () => {
+    if (!showCropModal) return null;
+
+    return (
+      <div className="crop-modal">
+        <div className="crop-container">
+          <h3>Crop Your Profile Picture</h3>
+          <ReactCrop
+            crop={crop}
+            onChange={(c) => setCrop(c)}
+            onComplete={(c) => setCompletedCrop(c)}
+            aspect={1}
+            circularCrop
+          >
+            <img
+              ref={imageRef}
+              src={imageSrc}
+              style={{ maxHeight: '70vh' }}
+              onLoad={(e) => {
+                imageRef.current = e.target;
+              }}
+            />
+          </ReactCrop>
+          <div className="crop-actions">
+            <button onClick={() => setShowCropModal(false)}>Cancel</button>
+            <button onClick={handleCropComplete}>Apply</button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const handleSave = async () => {
@@ -386,6 +458,7 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
           )}
         </div>
       </div>
+      <CropModal />
     </div>
   );
 };
