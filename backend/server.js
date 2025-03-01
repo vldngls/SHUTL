@@ -50,7 +50,17 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_ORIGIN || "http://localhost:5173",
+    origin: function (origin, callback) {
+      // Remove trailing slash from origin if it exists
+      const normalizedOrigin = origin?.endsWith("/")
+        ? origin.slice(0, -1)
+        : origin;
+      const allowedOrigin = process.env.FRONTEND_ORIGIN?.endsWith("/")
+        ? process.env.FRONTEND_ORIGIN.slice(0, -1)
+        : process.env.FRONTEND_ORIGIN || "http://localhost:5173";
+
+      callback(null, normalizedOrigin);
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
   })
@@ -76,8 +86,6 @@ app.use("/api/maintenance", maintenanceRoutes);
 app.get("/api", (req, res) => {
   res.json({ message: "API is working!" });
 });
-
-
 
 connectDB();
 

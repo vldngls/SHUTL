@@ -30,7 +30,12 @@ const DriverMessage = ({ onClose }) => {
     const initializeChat = async () => {
       try {
         // Initialize socket connection
-        socket.current = connectSocket();
+        const socketInstance = await connectSocket();
+        if (!socketInstance) {
+          console.error("Failed to connect socket");
+          return;
+        }
+        socket.current = socketInstance;
 
         const token = document.cookie
           .split("; ")
@@ -76,12 +81,13 @@ const DriverMessage = ({ onClose }) => {
 
     initializeChat();
 
+    // Cleanup function
     return () => {
       if (socket.current) {
-        socket.current.off("chat_message");
         if (currentRoom) {
           socket.current.emit("leave_room", currentRoom);
         }
+        socket.current.disconnect();
       }
     };
   }, []);
@@ -206,10 +212,6 @@ const DriverMessage = ({ onClose }) => {
   const setupMessageListener = () => {
     if (!socket.current) return;
 
-    // Remove existing listeners
-    socket.current.off("chat_message");
-
-    // Add new message listener
     socket.current.on("chat_message", (message) => {
       console.log("Received message:", message);
       setMessages((prev) => {
