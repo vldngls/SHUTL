@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import "../css/SettingsDropdown.css";
 
 const SettingsDropdown = ({ onClose, onProfileSettings }) => {
   const navigate = useNavigate();
@@ -11,37 +12,40 @@ const SettingsDropdown = ({ onClose, onProfileSettings }) => {
   };
 
   const handleOptionClick = (action) => {
-    if (action === 'logout') {
+    if (action === "logout") {
       handleLogout();
-    } else if (action === 'profile') {
+    } else if (action === "profile") {
       onProfileSettings();
     }
     onClose();
   };
 
   return (
-    <div 
-      className="ShutlLoggedIn-settings-dropdown"
-      onClick={(e) => e.stopPropagation()}
+    <div
+      className="settings-dropdown"
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+      }}
     >
-      <div className="ShutlLoggedIn-settings-content">
-        <button 
-          className="settings-option" 
-          onClick={() => handleOptionClick('profile')}
+      <div className="settings-dropdown-content">
+        <button
+          className="settings-option"
+          onClick={() => handleOptionClick("profile")}
         >
           Profile Settings
         </button>
         <hr />
-        <button 
-          className="settings-option" 
-          onClick={() => handleOptionClick('notifications')}
+        <button
+          className="settings-option"
+          onClick={() => handleOptionClick("notifications")}
         >
           Notification Settings
         </button>
         <hr />
-        <button 
-          className="settings-option" 
-          onClick={() => handleOptionClick('logout')}
+        <button
+          className="settings-option"
+          onClick={() => handleOptionClick("logout")}
         >
           Logout
         </button>

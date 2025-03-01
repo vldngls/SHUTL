@@ -1,4 +1,8 @@
 /* NotificationPop.css */
+:root {
+  --vh: 1vh;
+}
+
 .ShutlNotificationPop-popup {
   position: fixed; /* Use fixed positioning to keep it on top */
   top: 20px; /* Space from the top */
@@ -14,6 +18,9 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-height: 80vh; /* Limit height on larger screens */
+  max-height: calc(var(--vh, 1vh) * 80); /* Dynamic height for mobile */
+  overflow-y: auto; /* Allow scrolling if many notifications */
 }
 
 .ShutlNotificationPop-list {
@@ -47,6 +54,7 @@
   font-size: 1.2em;
   cursor: pointer;
   transition: color 0.3s ease;
+  padding: 5px;
 }
 
 .ShutlNotificationPop-close:hover {
@@ -57,4 +65,34 @@
   font-size: 0.8em;
   color: #ccc;
   white-space: nowrap;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .ShutlNotificationPop-popup {
+    top: 70px; /* Adjust for mobile navbar */
+    right: 10px;
+    max-width: 280px;
+    padding: 12px 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ShutlNotificationPop-popup {
+    top: 70px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+    width: auto;
+    padding: 10px;
+    font-size: 0.9em;
+  }
+
+  .ShutlNotificationPop-item {
+    padding: 8px 0;
+  }
+
+  .ShutlNotificationPop-close {
+    font-size: 1.1em;
+  }
 }
