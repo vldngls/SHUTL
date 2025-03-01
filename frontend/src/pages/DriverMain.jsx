@@ -276,6 +276,49 @@ const DriverMain = () => {
   const watchIdRef = useRef(null);
   const lastLocationRef = useRef(null);
   const lastUpdateTimeRef = useRef(null);
+  const recenterTimeoutRef = useRef(null);
+  const [shouldRecenter, setShouldRecenter] = useState(true);
+
+  // Add effect to handle recentering when shouldRecenter changes
+  useEffect(() => {
+    if (shouldRecenter && mapRef.current && userLocation) {
+      mapRef.current.setView(userLocation, mapRef.current.getZoom(), {
+        animate: true,
+        duration: 0.5,
+      });
+    }
+  }, [shouldRecenter, userLocation]);
+
+  // Modify handleMapMove
+  const handleMapMove = useCallback(() => {
+    setShouldRecenter(false);
+
+    // Clear any existing timeout
+    if (recenterTimeoutRef.current) {
+      clearTimeout(recenterTimeoutRef.current);
+    }
+
+    // Set new timeout to re-enable recentering after 5 seconds
+    recenterTimeoutRef.current = setTimeout(() => {
+      setShouldRecenter(true);
+      // Force an immediate recenter if we have a location
+      if (mapRef.current && userLocation) {
+        mapRef.current.setView(userLocation, mapRef.current.getZoom(), {
+          animate: true,
+          duration: 0.5,
+        });
+      }
+    }, 5000);
+  }, [userLocation]);
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (recenterTimeoutRef.current) {
+        clearTimeout(recenterTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Initialize socket and handle events
   useEffect(() => {
@@ -661,20 +704,19 @@ const DriverMain = () => {
               timeElapsedSeconds
             );
             heading = calculateHeading(lastLocationRef.current, userCoords);
-
-            // Log the calculations for debugging
-            console.log("Movement detected:", {
-              prevPos: lastLocationRef.current,
-              currentPos: userCoords,
-              timeElapsed: timeElapsedSeconds,
-              calculatedSpeed: speed,
-              calculatedHeading: heading,
-            });
           }
         }
 
         // Update local state
         setUserLocation(userCoords);
+
+        // Always force center map on new location when location sharing is active and recentering is enabled
+        if (mapRef.current && isLocationSharing && shouldRecenter) {
+          mapRef.current.setView(userCoords, mapRef.current.getZoom(), {
+            animate: true,
+            duration: 0.5,
+          });
+        }
 
         // Use shuttleIdRef.current instead of shuttleId state
         const currentShuttleId = shuttleIdRef.current;
@@ -691,9 +733,6 @@ const DriverMain = () => {
             },
             timestamp: new Date().toISOString(),
           };
-
-          // Log the data being sent
-          console.log("Sending location data:", locationData);
 
           const success = await sendLocation(locationData);
           if (!success) {
@@ -806,6 +845,14 @@ const DriverMain = () => {
 
     // Run first update immediately
     updateLocation();
+
+    // Center map on initial location if available
+    if (userLocation && mapRef.current) {
+      mapRef.current.setView(userLocation, 15.5, {
+        animate: true,
+        duration: 1,
+      });
+    }
 
     // Import the interval constant from websocketService
     const LOCATION_UPDATE_INTERVAL = getLocationUpdateInterval();
@@ -1104,8 +1151,9 @@ const DriverMain = () => {
           center={userLocation || [14.377, 120.983]}
           zoom={15.5}
           zoomControl={false}
-          whenCreated={(mapInstance) => {
-            mapRef.current = mapInstance;
+          ref={mapRef}
+          whenReady={(map) => {
+            map.target.on("movestart", handleMapMove);
           }}
         >
           <TileLayer
