@@ -418,52 +418,123 @@
   }
 }
 
+/* Crop modal styles */
 .crop-modal {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 2000; /* Higher than the profile popup */
 }
 
 .crop-container {
   background-color: white;
   padding: 20px;
   border-radius: 8px;
-  max-width: 90vw;
+  width: 90%;
+  max-width: 500px;
   max-height: 90vh;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .crop-container h3 {
-  margin-bottom: 20px;
+  margin: 0;
   text-align: center;
+  color: #333;
 }
 
+/* Cropper container */
+.reactEasyCrop_Container {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  background-color: #333;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* Zoom control */
+.crop-controls {
+  padding: 10px 0;
+}
+
+.zoom-range {
+  width: 100%;
+  height: 24px;
+  -webkit-appearance: none;
+  background: transparent;
+}
+
+.zoom-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: #4caf50;
+  cursor: pointer;
+  margin-top: -6px;
+}
+
+.zoom-range::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 4px;
+  background: #ddd;
+  border-radius: 2px;
+}
+
+.zoom-range::-moz-range-thumb {
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: #4caf50;
+  cursor: pointer;
+  border: none;
+}
+
+.zoom-range::-moz-range-track {
+  width: 100%;
+  height: 4px;
+  background: #ddd;
+  border-radius: 2px;
+}
+
+/* Action buttons */
 .crop-actions {
-  margin-top: 20px;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+  margin-top: 10px;
 }
 
 .crop-actions button {
   padding: 8px 16px;
+  border: none;
   border-radius: 4px;
   cursor: pointer;
-  border: none;
+  font-size: 14px;
+  transition: background-color 0.2s;
 }
 
 .crop-actions button:first-child {
   background-color: #e0e0e0;
 }
 
+.crop-actions button:first-child:hover {
+  background-color: #d0d0d0;
+}
+
 .crop-actions button:last-child {
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
+}
+
+.crop-actions button:last-child:hover {
+  background-color: #45a049;
 }
