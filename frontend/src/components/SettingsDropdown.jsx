@@ -12,16 +12,16 @@ const SettingsDropdown = ({ onClose, onProfileSettings }) => {
   };
 
   const handleOptionClick = (action) => {
-    if (action === "logout") {
+    if (action === 'logout') {
       handleLogout();
-    } else if (action === "profile") {
+    } else if (action === 'profile') {
       onProfileSettings();
     }
     onClose();
   };
 
   return (
-    <div
+    <div 
       className="settings-dropdown"
       onClick={(e) => {
         e.stopPropagation();
@@ -29,23 +29,23 @@ const SettingsDropdown = ({ onClose, onProfileSettings }) => {
       }}
     >
       <div className="settings-dropdown-content">
-        <button
-          className="settings-option"
-          onClick={() => handleOptionClick("profile")}
+        <button 
+          className="settings-option" 
+          onClick={() => handleOptionClick('profile')}
         >
           Profile Settings
         </button>
         <hr />
-        <button
-          className="settings-option"
-          onClick={() => handleOptionClick("notifications")}
+        <button 
+          className="settings-option" 
+          onClick={() => handleOptionClick('notifications')}
         >
           Notification Settings
         </button>
         <hr />
-        <button
-          className="settings-option"
-          onClick={() => handleOptionClick("logout")}
+        <button 
+          className="settings-option" 
+          onClick={() => handleOptionClick('logout')}
         >
           Logout
         </button>
