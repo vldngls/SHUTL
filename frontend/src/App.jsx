@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { MemoryMonitor } from "./utils/memoryMonitor";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ResetPassword from "./components/ResetPassword";
 // import { MemoryMonitoringDashboard } from "./components/MemoryMonitoringDashboard";
 
 // Lazy load components
@@ -100,6 +101,7 @@ function App() {
               />
             }
           />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

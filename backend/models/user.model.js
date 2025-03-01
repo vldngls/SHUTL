@@ -22,13 +22,13 @@ const userSchema = new mongoose.Schema(
     },
     userType: {
       type: String,
+      enum: ["Commuter", "Driver", "Admin", "Teller"],
       default: "Commuter",
-      enum: ["Commuter", "Driver", "Teller", "Admin"],
     },
     status: {
       type: String,
-      enum: ["active", "idle", "offline"],
-      default: "offline",
+      enum: ["active", "inactive", "suspended"],
+      default: "active",
     },
     duty_status: {
       type: String,
@@ -43,12 +43,20 @@ const userSchema = new mongoose.Schema(
       type: String,
       sparse: true,
     },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
+    resetOTP: {
+      type: String,
+    },
+    resetOTPExpires: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-export const User = mongoose.model("User", userSchema);
+const User = mongoose.model("User", userSchema);
 
 export default User;

@@ -3,6 +3,8 @@ import User from "../models/user.model.js";
 import UserData from "../models/userData.model.js";
 import jwt from "jsonwebtoken";
 import MaintenanceLog from "../models/maintenanceLog.js";
+import nodemailer from "nodemailer";
+import crypto from "crypto";
 
 export const registerUser = async (req, res) => {
   try {
@@ -72,13 +74,20 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
-    const user = await User.findOne({ username });
+
+    // Check if input is email or username
+    const user = await User.findOne({
+      $or: [
+        { email: username }, // try matching with email
+        { username: username }, // try matching with username
+      ],
+    });
 
     if (!user) {
       await MaintenanceLog.create({
         action: "User login attempt",
         status: "error",
-        details: `Failed login attempt for username: ${username} - User not found`,
+        details: `Failed login attempt for identifier: ${username} - User not found`,
       });
       return res.status(404).json({ message: "User not found" });
     }
@@ -216,5 +225,153 @@ export const getLoginHistory = async (req, res) => {
   } catch (error) {
     console.error("Error fetching login history:", error);
     res.status(500).json({ message: "Error fetching login history" });
+  }
+};
+
+// Generate OTP
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+// Forgot Password with OTP
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Generate 6-digit OTP
+    const otp = generateOTP();
+    const otpExpiry = Date.now() + 600000; // OTP expires in 10 minutes
+
+    // Save OTP to user
+    user.resetOTP = otp;
+    user.resetOTPExpires = otpExpiry;
+    await user.save();
+
+    // Create email transporter
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+
+    // Email content
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: user.email,
+      subject: "Password Reset OTP",
+      html: `
+        <h1>Password Reset OTP</h1>
+        <p>You requested a password reset. Here is your One-Time Password (OTP):</p>
+        <h2 style="font-size: 24px; padding: 10px; background-color: #f5f5f5; border-radius: 5px; letter-spacing: 5px;">${otp}</h2>
+        <p>This OTP will expire in 10 minutes.</p>
+        <p>If you didn't request this, please ignore this email.</p>
+      `,
+    };
+
+    // Send email
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({
+      message: "OTP has been sent to your email",
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ message: "Error processing your request" });
+  }
+};
+
+// Verify OTP and Reset Password
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword, verifyOnly } = req.body;
+
+    const user = await User.findOne({
+      email,
+      resetOTP: otp,
+      resetOTPExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalid or expired OTP",
+      });
+    }
+
+    // If verifyOnly flag is true, just verify OTP without resetting password
+    if (verifyOnly) {
+      return res.status(200).json({
+        message: "OTP verified successfully",
+      });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update user password and clear OTP
+    user.password = hashedPassword;
+    user.resetOTP = undefined;
+    user.resetOTPExpires = undefined;
+    await user.save();
+
+    // Log the password reset
+    await MaintenanceLog.create({
+      action: "Password reset",
+      status: "success",
+      details: `Password reset for user: ${user.email}`,
+      userId: user._id,
+    });
+
+    res.status(200).json({ message: "Password has been reset successfully" });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({ message: "Error resetting password" });
+  }
+};
+
+// Change Password (for logged-in users)
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update password
+    user.password = hashedPassword;
+    await user.save();
+
+    // Log the password change
+    await MaintenanceLog.create({
+      action: "Password change",
+      status: "success",
+      details: `Password changed for user: ${user.email}`,
+      userId: user._id,
+    });
+
+    res.status(200).json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.error("Change password error:", error);
+    res.status(500).json({ message: "Error changing password" });
   }
 };

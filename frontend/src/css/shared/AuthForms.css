@@ -212,3 +212,82 @@
   font-size: 14px;
   color: #666;
 }
+
+/* Password Input Container */
+.password-input-container {
+  position: relative;
+  width: 100%;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-toggle-btn:hover {
+  color: #232323;
+}
+
+/* Success Message */
+.auth-success {
+  color: #28a745;
+  font-size: 14px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* Forgot Password Link */
+.auth-forgot-password {
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* OTP Input Styles */
+.otp-input-container {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 10px 0;
+}
+
+.otp-input {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  font-size: 20px;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #232323;
+  transition: border-color 0.2s ease;
+}
+
+.otp-input:focus {
+  border-color: #232323;
+  outline: none;
+}
+
+.otp-input::-webkit-inner-spin-button,
+.otp-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Success Message Style */
+.auth-success {
+  color: #28a745;
+  font-size: 14px;
+  margin: 8px 0;
+  text-align: center;
+}

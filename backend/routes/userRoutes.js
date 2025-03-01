@@ -7,6 +7,9 @@ import {
   getAllDrivers,
   getUsers,
   getActiveUsers, // ✅ Import active users function
+  forgotPassword,
+  resetPassword,
+  changePassword,
 } from "../controllers/userController.js";
 import { authenticateToken } from "../middleware/authenticateToken.js";
 import User from "../models/user.model.js";
@@ -151,7 +154,7 @@ router.post("/google-auth", async (req, res) => {
         googleId,
       });
 
-      // Create corresponding userData
+      // Create corresponding userData for new user only
       userData = await UserData.create({
         email: user.email,
         name: user.name,
@@ -160,12 +163,8 @@ router.post("/google-auth", async (req, res) => {
         discount: 0,
       });
     } else {
-      // Update existing user's profile picture in userData
+      // For existing users, just get their userData without updating the picture
       userData = await UserData.findOne({ email: user.email });
-      if (userData && picture) {
-        userData.profilePicture = picture;
-        await userData.save();
-      }
     }
 
     // Generate JWT token
@@ -199,5 +198,10 @@ router.post("/google-auth", async (req, res) => {
     res.status(500).json({ message: "Authentication failed" });
   }
 });
+
+// Password reset routes
+router.post("/forgot-password", forgotPassword);
+router.post("/verify-otp", resetPassword);
+router.post("/change-password", authenticateToken, changePassword);
 
 export default router;

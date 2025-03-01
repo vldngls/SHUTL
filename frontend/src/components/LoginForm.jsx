@@ -4,6 +4,7 @@ import "../css/shared/AuthForms.css";
 import RegisterForm from "./RegisterForm";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const LoginForm = ({ onClose }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -12,6 +13,18 @@ const LoginForm = ({ onClose }) => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetMessage, setResetMessage] = useState("");
+  const [showOTPInput, setShowOTPInput] = useState(false);
+  const [otpValues, setOtpValues] = useState(Array(6).fill(""));
+  const [isOTPVerified, setIsOTPVerified] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const otpRefs = useRef([]);
   const navigate = useNavigate();
 
   const formRef = useRef();
@@ -112,8 +125,277 @@ const LoginForm = ({ onClose }) => {
     }
   };
 
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resetEmail }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setResetMessage("OTP has been sent to your email");
+        setShowOTPInput(true);
+        setError("");
+      } else {
+        setError(data.message || "Failed to process password reset request");
+        setResetMessage("");
+      }
+    } catch (error) {
+      setError("An error occurred while processing your request");
+      setResetMessage("");
+    }
+  };
+
+  const handleOTPChange = (index, value) => {
+    if (value.length > 1) {
+      value = value[0];
+    }
+
+    if (!/^\d*$/.test(value)) {
+      return;
+    }
+
+    const newOTPValues = [...otpValues];
+    newOTPValues[index] = value;
+    setOtpValues(newOTPValues);
+
+    // Auto-focus next input
+    if (value && index < 5) {
+      otpRefs.current[index + 1].focus();
+    }
+  };
+
+  const handleOTPKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !otpValues[index] && index > 0) {
+      otpRefs.current[index - 1].focus();
+    }
+  };
+
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+    const otp = otpValues.join("");
+
+    if (otp.length !== 6) {
+      setError("Please enter all 6 digits of the OTP");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: resetEmail,
+          otp,
+          verifyOnly: true,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setIsOTPVerified(true);
+        setResetMessage(
+          "OTP verified successfully. Please set your new password."
+        );
+        setError("");
+      } else {
+        setError(data.message || "Invalid OTP");
+        setResetMessage("");
+      }
+    } catch (error) {
+      setError("An error occurred while verifying OTP");
+      setResetMessage("");
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+
+    if (!isOTPVerified) {
+      setError("Please verify OTP first");
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: resetEmail,
+          otp: otpValues.join(""),
+          newPassword,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setResetMessage("Password has been reset successfully");
+        setError("");
+        // Return to login form after 3 seconds
+        setTimeout(() => {
+          setShowForgotPassword(false);
+          setShowOTPInput(false);
+          setOtpValues(Array(6).fill(""));
+          setIsOTPVerified(false);
+          setNewPassword("");
+          setConfirmNewPassword("");
+        }, 3000);
+      } else {
+        setError(data.message);
+        setResetMessage("");
+      }
+    } catch (error) {
+      setError("An error occurred while resetting your password");
+      setResetMessage("");
+    }
+  };
+
   if (isRegistering) {
     return <RegisterForm onClose={() => setIsRegistering(false)} />;
+  }
+
+  if (showForgotPassword) {
+    return (
+      <div className="auth-form-overlay">
+        <div className="auth-form-container" ref={formRef}>
+          <h2 className="auth-form-title">Reset Password</h2>
+          <p className="auth-form-subtitle">
+            {!showOTPInput
+              ? "Enter your email to receive OTP"
+              : isOTPVerified
+              ? "Enter your new password"
+              : "Enter the OTP sent to your email"}
+          </p>
+
+          <form
+            onSubmit={
+              !showOTPInput
+                ? handleForgotPassword
+                : isOTPVerified
+                ? handleResetPassword
+                : handleVerifyOTP
+            }
+            className="auth-form"
+          >
+            {!showOTPInput ? (
+              <div className="auth-input-group">
+                <input
+                  type="email"
+                  className="auth-input"
+                  placeholder="Email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  required
+                />
+              </div>
+            ) : !isOTPVerified ? (
+              <div className="otp-input-container">
+                {otpValues.map((value, index) => (
+                  <input
+                    key={index}
+                    ref={(el) => (otpRefs.current[index] = el)}
+                    type="text"
+                    className="otp-input"
+                    value={value}
+                    onChange={(e) => handleOTPChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOTPKeyDown(index, e)}
+                    maxLength={1}
+                    required
+                  />
+                ))}
+              </div>
+            ) : (
+              <>
+                <div className="auth-input-group">
+                  <div className="password-input-container">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      className="auth-input"
+                      placeholder="New Password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                    >
+                      {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="auth-input-group">
+                  <div className="password-input-container">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      className="auth-input"
+                      placeholder="Confirm New Password"
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                    >
+                      {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {error && <div className="auth-error">{error}</div>}
+            {resetMessage && <div className="auth-success">{resetMessage}</div>}
+
+            <button type="submit" className="auth-submit-button">
+              {!showOTPInput
+                ? "Send OTP"
+                : isOTPVerified
+                ? "Reset Password"
+                : "Verify OTP"}
+            </button>
+
+            <button
+              type="button"
+              className="auth-link-button"
+              onClick={() => {
+                if (isOTPVerified) {
+                  setIsOTPVerified(false);
+                  setOtpValues(Array(6).fill(""));
+                } else if (showOTPInput) {
+                  setShowOTPInput(false);
+                  setOtpValues(Array(6).fill(""));
+                } else {
+                  setShowForgotPassword(false);
+                }
+                setError("");
+                setResetMessage("");
+              }}
+            >
+              {isOTPVerified
+                ? "Back to OTP"
+                : showOTPInput
+                ? "Back to Email"
+                : "Back to Login"}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -127,7 +409,7 @@ const LoginForm = ({ onClose }) => {
             <input
               type="text"
               className="auth-input"
-              placeholder="Username"
+              placeholder="Email or Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
@@ -135,20 +417,37 @@ const LoginForm = ({ onClose }) => {
           </div>
 
           <div className="auth-input-group">
-            <input
-              type="password"
-              className="auth-input"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className="password-input-container">
+              <input
+                type={showPassword ? "text" : "password"}
+                className="auth-input"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                className="password-toggle-btn"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
           </div>
 
           {error && <div className="auth-error">{error}</div>}
 
           <button type="submit" className="auth-submit-button">
             Login
+          </button>
+
+          <button
+            type="button"
+            className="auth-link-button"
+            onClick={() => setShowForgotPassword(true)}
+          >
+            Forgot Password?
           </button>
         </form>
 
