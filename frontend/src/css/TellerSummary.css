@@ -329,7 +329,10 @@
   }
 
   .TellerSummary-stats {
-    grid-template-columns: repeat(1, 1fr); /* Single column on smaller screens */
+    grid-template-columns: repeat(
+      1,
+      1fr
+    ); /* Single column on smaller screens */
   }
 
   .status-item strong {
@@ -385,44 +388,6 @@
   padding: 20px;
   border: 1px solid #d9d9d9;
 }
-
-/* Update chart options in the component */
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      display: false,
-    },
-    tooltip: {
-      backgroundColor: '#ffffff',
-      titleColor: '#232323',
-      bodyColor: '#232323',
-      borderColor: '#d9d9d9',
-      borderWidth: 1,
-    }
-  },
-  scales: {
-    y: {
-      beginAtZero: true,
-      grid: {
-        color: '#d9d9d9',
-        drawBorder: false,
-      },
-      ticks: {
-        color: '#232323',
-      }
-    },
-    x: {
-      grid: {
-        display: false,
-      },
-      ticks: {
-        color: '#232323',
-      }
-    }
-  }
-};
 
 /* Fare breakdown section */
 .TellerSummary-fare {
