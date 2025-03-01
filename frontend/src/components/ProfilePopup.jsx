@@ -1,9 +1,110 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-hot-toast";
-import ReactCrop from 'react-image-crop';
-import 'react-image-crop/dist/ReactCrop.css';
+import Cropper from "react-easy-crop";
+import { createPortal } from "react-dom";
 import "../css/ProfilePopup.css";
+
+// Move CropModal completely outside the main component
+const CropModal = ({ showModal, image, onCancel, onComplete }) => {
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+
+  // Reset state when modal opens or closes
+  useEffect(() => {
+    if (showModal) {
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setCroppedAreaPixels(null);
+    }
+  }, [showModal]);
+
+  const onCropCompleteCallback = useCallback(
+    (croppedArea, croppedAreaPixels) => {
+      console.log("Crop complete. Cropped area:", croppedArea);
+      console.log("Crop complete. Cropped area pixels:", croppedAreaPixels);
+      setCroppedAreaPixels(croppedAreaPixels);
+    },
+    []
+  );
+
+  // Prevent clicks from propagating to parent components
+  const stopPropagation = (e) => {
+    e.stopPropagation();
+  };
+
+  if (!showModal) return null;
+
+  // Use React Portal to render the modal outside the ProfilePopup component
+  return createPortal(
+    <div className="crop-modal" onClick={stopPropagation}>
+      <div className="crop-container">
+        <h3>Crop Your Profile Picture</h3>
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            height: "400px",
+            backgroundColor: "#333",
+          }}
+        >
+          <Cropper
+            image={image}
+            crop={crop}
+            zoom={zoom}
+            aspect={1}
+            cropShape="round"
+            showGrid={false}
+            onCropChange={setCrop}
+            onCropComplete={onCropCompleteCallback}
+            onZoomChange={setZoom}
+            objectFit="contain"
+            minZoom={1}
+            maxZoom={3}
+          />
+        </div>
+        <div className="crop-controls">
+          <input
+            type="range"
+            value={zoom}
+            min={1}
+            max={3}
+            step={0.1}
+            aria-labelledby="Zoom"
+            onChange={(e) => {
+              const value = parseFloat(e.target.value);
+              if (!isNaN(value)) {
+                setZoom(value);
+              }
+            }}
+            className="zoom-range"
+          />
+        </div>
+        <div className="crop-actions">
+          <button onClick={onCancel}>Cancel</button>
+          <button
+            onClick={async () => {
+              if (croppedAreaPixels) {
+                try {
+                  const croppedImage = await onComplete(croppedAreaPixels);
+                  console.log("Crop applied successfully");
+                } catch (error) {
+                  console.error("Error applying crop:", error);
+                }
+              } else {
+                console.warn("No cropped area available");
+              }
+            }}
+          >
+            Apply
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 const DISCOUNT_TYPES = {
   REGULAR: { label: "Regular", value: 0 },
@@ -20,17 +121,8 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
   const [editedData, setEditedData] = useState({});
   const [profileImage, setProfileImage] = useState(null);
   const [transactions, setTransactions] = useState([]);
-  const [crop, setCrop] = useState({
-    unit: '%',
-    width: 90,
-    aspect: 1,
-    x: 5,
-    y: 5
-  });
   const [imageSrc, setImageSrc] = useState(null);
   const [showCropModal, setShowCropModal] = useState(false);
-  const imageRef = useRef(null);
-  const [completedCrop, setCompletedCrop] = useState(null);
 
   // Get email from JWT token
   const getEmailFromToken = () => {
@@ -116,6 +208,9 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Don't close the popup if the crop modal is open
+      if (showCropModal) return;
+
       if (popupRef.current && !popupRef.current.contains(event.target)) {
         onClose();
       }
@@ -125,116 +220,142 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [onClose]);
+  }, [onClose, showCropModal]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setEditedData({ ...editedData, [name]: value });
   };
 
-  const resizeAndCropImage = async (image, crop) => {
-    if (!crop || !image) return null;
-
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Set the canvas size to our desired output size
-    canvas.width = 120;
-    canvas.height = 120;
-
-    // Draw the cropped image
-    const scaleX = image.naturalWidth / image.width;
-    const scaleY = image.naturalHeight / image.height;
-    
-    const pixelCrop = {
-      x: crop.x * scaleX,
-      y: crop.y * scaleY,
-      width: crop.width * scaleX,
-      height: crop.height * scaleY,
-    };
-
-    ctx.drawImage(
-      image,
-      pixelCrop.x,
-      pixelCrop.y,
-      pixelCrop.width,
-      pixelCrop.height,
-      0,
-      0,
-      120,
-      120
-    );
-
-    // Convert to blob and then to data URL
-    return new Promise((resolve) => {
-      canvas.toBlob((blob) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          resolve(reader.result);
-        };
-        reader.readAsDataURL(blob);
-      }, 'image/jpeg', 0.95);
+  const createImage = (url) =>
+    new Promise((resolve, reject) => {
+      const image = new Image();
+      image.addEventListener("load", () => resolve(image));
+      image.addEventListener("error", (error) => reject(error));
+      image.src = url;
     });
+
+  const getCroppedImg = async (imageSrc, pixelCrop) => {
+    try {
+      console.log("Starting crop with:", { pixelCrop });
+
+      // Create image element
+      const image = await createImage(imageSrc);
+      console.log("Image loaded:", {
+        width: image.naturalWidth,
+        height: image.naturalHeight,
+      });
+
+      // Create canvas
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      // Set canvas size (final output size)
+      const size = 150;
+      canvas.width = size;
+      canvas.height = size;
+
+      // Clear canvas with a transparent background
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Create circular clipping path
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(size / 2, size / 2, size / 2, 0, 2 * Math.PI);
+      ctx.clip();
+
+      // Calculate the aspect ratio to maintain proportions
+      const aspectRatio = pixelCrop.width / pixelCrop.height;
+
+      // Ensure we don't go outside the image bounds
+      let sourceX = Math.max(0, pixelCrop.x);
+      let sourceY = Math.max(0, pixelCrop.y);
+      let sourceWidth = Math.min(pixelCrop.width, image.naturalWidth - sourceX);
+      let sourceHeight = Math.min(
+        pixelCrop.height,
+        image.naturalHeight - sourceY
+      );
+
+      // If we had to adjust width or height, maintain aspect ratio
+      if (sourceWidth < pixelCrop.width) {
+        sourceHeight = sourceWidth / aspectRatio;
+      }
+      if (sourceHeight < pixelCrop.height) {
+        sourceWidth = sourceHeight * aspectRatio;
+      }
+
+      // Final safety check
+      sourceWidth = Math.min(sourceWidth, image.naturalWidth - sourceX);
+      sourceHeight = Math.min(sourceHeight, image.naturalHeight - sourceY);
+
+      console.log("Drawing image with params:", {
+        sourceX,
+        sourceY,
+        sourceWidth,
+        sourceHeight,
+        destX: 0,
+        destY: 0,
+        destWidth: size,
+        destHeight: size,
+      });
+
+      // Draw the cropped image
+      ctx.drawImage(
+        image,
+        sourceX,
+        sourceY,
+        sourceWidth,
+        sourceHeight,
+        0,
+        0,
+        size,
+        size
+      );
+
+      // Restore context
+      ctx.restore();
+
+      // Convert to blob and then to base64
+      return new Promise((resolve, reject) => {
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              console.error("Canvas is empty");
+              reject(new Error("Canvas is empty"));
+              return;
+            }
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              console.log("Crop completed successfully");
+              resolve(reader.result);
+            };
+            reader.onerror = () => {
+              console.error("FileReader error");
+              reject(new Error("FileReader error"));
+            };
+            reader.readAsDataURL(blob);
+          },
+          "image/jpeg",
+          0.95
+        );
+      });
+    } catch (error) {
+      console.error("Error in getCroppedImg:", error);
+      throw error;
+    }
   };
 
-  const handleImageChange = async (e) => {
+  const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       const reader = new FileReader();
-
       reader.onload = () => {
         setImageSrc(reader.result);
         setShowCropModal(true);
       };
-
       reader.readAsDataURL(file);
     }
-  };
-
-  const handleCropComplete = async () => {
-    if (imageRef.current && completedCrop?.width && completedCrop?.height) {
-      try {
-        const croppedImageUrl = await resizeAndCropImage(imageRef.current, completedCrop);
-        setProfileImage(croppedImageUrl);
-        setEditedData({ ...editedData, profilePicture: croppedImageUrl });
-        setShowCropModal(false);
-      } catch (error) {
-        console.error('Error cropping image:', error);
-        toast.error('Failed to crop image. Please try again.');
-      }
-    }
-  };
-
-  const CropModal = () => {
-    if (!showCropModal) return null;
-
-    return (
-      <div className="crop-modal">
-        <div className="crop-container">
-          <h3>Crop Your Profile Picture</h3>
-          <ReactCrop
-            crop={crop}
-            onChange={(c) => setCrop(c)}
-            onComplete={(c) => setCompletedCrop(c)}
-            aspect={1}
-            circularCrop
-          >
-            <img
-              ref={imageRef}
-              src={imageSrc}
-              style={{ maxHeight: '70vh' }}
-              onLoad={(e) => {
-                imageRef.current = e.target;
-              }}
-            />
-          </ReactCrop>
-          <div className="crop-actions">
-            <button onClick={() => setShowCropModal(false)}>Cancel</button>
-            <button onClick={handleCropComplete}>Apply</button>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   const handleSave = async () => {
@@ -458,7 +579,42 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
           )}
         </div>
       </div>
-      <CropModal />
+      <CropModal
+        showModal={showCropModal}
+        image={imageSrc}
+        onCancel={() => {
+          setShowCropModal(false);
+          setImageSrc(null);
+        }}
+        onComplete={async (croppedPixels) => {
+          try {
+            if (!croppedPixels) {
+              console.warn("No cropped pixels provided");
+              return null;
+            }
+
+            console.log("Processing crop with pixels:", croppedPixels);
+            const croppedImage = await getCroppedImg(imageSrc, croppedPixels);
+
+            if (!croppedImage) {
+              console.error("Failed to generate cropped image");
+              toast.error("Failed to crop image. Please try again.");
+              return null;
+            }
+
+            console.log("Setting profile image with cropped result");
+            setProfileImage(croppedImage);
+            setEditedData({ ...editedData, profilePicture: croppedImage });
+            setShowCropModal(false);
+            setImageSrc(null);
+            return croppedImage;
+          } catch (error) {
+            console.error("Error cropping image:", error);
+            toast.error("Failed to crop image. Please try again.");
+            return null;
+          }
+        }}
+      />
     </div>
   );
 };
