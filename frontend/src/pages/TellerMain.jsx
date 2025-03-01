@@ -56,7 +56,6 @@ const TellerMain = () => {
 
   // State Management
   const [dateTime, setDateTime] = useState(new Date());
-  const [userLocation, setUserLocation] = useState([14.5995, 120.9842]); // Set default to Manila coordinates
   const [messages, setMessages] = useState([]);
   const [profileImage, setProfileImage] = useState("/teller-profile.png");
   const [notifications, setNotifications] = useState([]);
@@ -65,9 +64,7 @@ const TellerMain = () => {
   const [shuttleLocations, setShuttleLocations] = useState({});
   const [shuttleSpeeds, setShuttleSpeeds] = useState({});
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
-  const [isLocationSharing, setIsLocationSharing] = useState(false);
-  const watchIdRef = useRef(null);
-  const hasShownToastRef = useRef(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Modal/Popup States
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -82,6 +79,7 @@ const TellerMain = () => {
   const settingsRef = useRef();
   const mapRef = useRef();
   const chatRef = useRef();
+  const mobileMenuRef = useRef();
 
   // Extract email from token
   const getCookie = (name) => {
@@ -303,6 +301,16 @@ const TellerMain = () => {
           fetchAndTrackShuttles();
         });
 
+        // Add viewport height fix for mobile browsers
+        const setVH = () => {
+          const vh = window.innerHeight * 0.01;
+          document.documentElement.style.setProperty("--vh", `${vh}px`);
+        };
+
+        setVH();
+        window.addEventListener("resize", setVH);
+        window.addEventListener("orientationchange", setVH);
+
         return () => {
           clearInterval(cleanupInterval);
           messageCleanup();
@@ -313,6 +321,8 @@ const TellerMain = () => {
             socketInstance.off("disconnect");
             socketInstance.off("reconnect");
           }
+          window.removeEventListener("resize", setVH);
+          window.removeEventListener("orientationchange", setVH);
         };
       } catch (error) {
         console.error("Error initializing socket:", error);
@@ -453,82 +463,61 @@ const TellerMain = () => {
     };
   }, [isMessageBoxOpen]);
 
-  // Update location handling
-  const updateUserLocation = () => {
-    if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported by your browser.");
-      return;
-    }
-
-    // If already watching location, stop sharing
-    if (watchIdRef.current) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
-      setIsLocationSharing(false);
-      setUserLocation(null);
-      hasShownToastRef.current = false;
-      toast("Location sharing stopped", {
-        icon: "🚫",
-        duration: 2000,
-      });
-      return;
-    }
-
-    // Start watching location
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        const userCoords = [latitude, longitude];
-        setUserLocation(userCoords);
-
-        if (!hasShownToastRef.current) {
-          setIsLocationSharing(true);
-          hasShownToastRef.current = true;
-          toast.success("Location sharing started", {
-            icon: "📍",
-            duration: 2000,
-          });
-        }
-
-        if (mapRef.current) {
-          mapRef.current.setView(userCoords, 15.5, { animate: true });
-        }
-      },
-      (error) => {
-        console.error("Location error:", error);
-        toast.error(`Location error: ${error.message}`);
-        setIsLocationSharing(false);
-        setUserLocation(null);
-        watchIdRef.current = null;
-        hasShownToastRef.current = false;
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0,
-      }
-    );
-  };
-
-  // Clean up location watching on unmount
+  // Handle outside clicks for mobile menu
   useEffect(() => {
-    return () => {
-      if (watchIdRef.current) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
-        watchIdRef.current = null;
-        setUserLocation(null);
-        hasShownToastRef.current = false;
+    const handleOutsideClick = (event) => {
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target) &&
+        !event.target.closest(".TellerMain-hamburger")
+      ) {
+        setIsMobileMenuOpen(false);
       }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, []);
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleMobileMenuAction = (action) => {
+    setIsMobileMenuOpen(false);
+
+    switch (action) {
+      case "profile":
+        toggleProfile();
+        break;
+      case "message":
+        toggleMessageBox();
+        break;
+      case "notification":
+        toggleNotification();
+        break;
+      case "settings":
+        toggleSettings();
+        break;
+      case "summary":
+        toggleSummary();
+        break;
+      case "trip":
+        openTripForm();
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
-    <>
-      {/* Map Component */}
+    <div className="TellerMain-container">
       <div className="TellerMain-map-container">
         <MapContainer
           style={{ height: "100%", width: "100%" }}
-          center={userLocation || [14.5995, 120.9842]}
+          center={[14.377022, 120.986577]}
           zoom={15.5}
           zoomControl={false}
           whenCreated={(mapInstance) => {
@@ -609,7 +598,46 @@ const TellerMain = () => {
         </MapContainer>
       </div>
 
-      {/* Navigation Bar */}
+      {/* Mobile Menu */}
+      <button
+        className={`TellerMain-hamburger ${isMobileMenuOpen ? "active" : ""}`}
+        onClick={toggleMobileMenu}
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <div
+        ref={mobileMenuRef}
+        className={`TellerMain-mobile-menu ${isMobileMenuOpen ? "active" : ""}`}
+      >
+        <div className="TellerMain-mobile-menu-header">
+          <div className="TellerMain-mobile-menu-logo">SHU TL.</div>
+        </div>
+        <div className="TellerMain-mobile-menu-items">
+          <button onClick={() => handleMobileMenuAction("profile")}>
+            Profile
+          </button>
+          <button onClick={() => handleMobileMenuAction("message")}>
+            Messages
+          </button>
+          <button onClick={() => handleMobileMenuAction("notification")}>
+            Notifications
+          </button>
+          <button onClick={() => handleMobileMenuAction("settings")}>
+            Settings
+          </button>
+          <button onClick={() => handleMobileMenuAction("summary")}>
+            Summary
+          </button>
+          <button onClick={() => handleMobileMenuAction("trip")}>
+            Trip Tracking
+          </button>
+        </div>
+      </div>
+
+      {/* Navbar */}
       <div className="TellerMain-navbar">
         <div className="TellerMain-logo">SHU TL.</div>
         <div className="TellerMain-navbar-content">
@@ -643,37 +671,6 @@ const TellerMain = () => {
                 src="/trip.png"
                 alt="Trip Icon"
                 className="TellerMain-icon-image"
-              />
-            </button>
-            <button
-              className="TellerMain-update-location-btn"
-              onClick={updateUserLocation}
-              style={{
-                backgroundColor: isLocationSharing ? "#4CAF50" : "white",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                border: "none",
-                borderRadius: "50%",
-                padding: "10px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "background-color 0.3s ease",
-              }}
-            >
-              <img
-                src="/locup.png"
-                alt={
-                  isLocationSharing ? "Stop Sharing Location" : "Share Location"
-                }
-                className="TellerMain-update-location-icon"
-                style={{
-                  width: "24px",
-                  height: "24px",
-                  filter: isLocationSharing
-                    ? "brightness(0) invert(1)"
-                    : "none",
-                }}
               />
             </button>
             <button className="TellerMain-icon-btn" onClick={toggleSettings}>
@@ -744,7 +741,7 @@ const TellerMain = () => {
           show={true}
         />
       )}
-    </>
+    </div>
   );
 };
 

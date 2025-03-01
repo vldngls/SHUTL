@@ -1,8 +1,13 @@
+/* Add CSS variables for dynamic viewport height */
+:root {
+  --vh: 1vh;
+}
+
 .collect-fare-btn {
   background-color: #232323; /* Dark background */
   color: white; /* White text */
   border: none;
-  padding: 10px 20px;
+  padding: 12px 20px;
   margin-top: 20px;
   cursor: pointer;
   width: 100%; /* Full-width button */
@@ -18,34 +23,46 @@
 
 .ShuttleDetails-modal {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%); /* Center the modal */
-  width: auto; /* Adjust width to content */
-  height: auto; /* Adjust height to content */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1100;
+  height: 100vh; /* Fallback */
+  height: calc(var(--vh, 1vh) * 100);
 }
 
 .ShuttleDetails-container {
   background-color: #f1f3f5;
-  padding: 20px;
+  padding: 25px;
   border-radius: 10px;
-  width: 400px; /* Set container width */
+  width: 550px; /* Increased container width */
+  max-width: 90%;
   max-height: 90vh; /* Prevent overflowing vertically */
+  max-height: calc(var(--vh, 1vh) * 90);
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.25);
   overflow-y: auto; /* Enable scrolling for overflow content */
+  position: relative;
 }
 
 .ShuttleDetails-header {
   padding: 20px;
   background-color: #f5f5f5;
+  border-radius: 8px;
   border-bottom: 1px solid #ddd;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
+}
+
+.ShuttleDetails-header h1 {
+  margin: 0;
+  font-size: 24px;
 }
 
 .ShuttleDetails-content {
@@ -62,16 +79,29 @@
 
 .ShuttleDetails-stats div {
   text-align: center;
-  padding: 10px;
+  padding: 15px;
   background-color: #f8f9fa;
-  border-radius: 5px;
+  border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .ShuttleDetails-stats div strong {
-  font-size: 18px;
+  font-size: 20px;
   display: block;
   margin-bottom: 5px;
+}
+
+.ShuttleDetails-log {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.ShuttleDetails-log h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 18px;
 }
 
 .ShuttleDetails-log ul {
@@ -81,8 +111,52 @@
 }
 
 .ShuttleDetails-log li {
-  margin-bottom: 10px; /* Add spacing between log items */
-  font-size: 14px; /* Slightly smaller font */
+  margin-bottom: 12px; /* Add spacing between log items */
+  font-size: 15px; /* Slightly larger font */
+  padding: 10px;
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Transaction details styling */
+.transaction-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.transaction-counts {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.transaction-type {
+  font-weight: 500;
+  color: #333;
+}
+
+.transaction-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px dashed #e0e0e0;
+}
+
+.transaction-amount {
+  font-weight: bold;
+  color: #4caf50;
+  font-size: 16px;
+}
+
+.transaction-time {
+  color: #757575;
+  font-size: 13px;
+  font-style: italic;
 }
 
 .close-btn {
@@ -137,17 +211,87 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .ShuttleDetails-container {
-    width: 100%; /* Use almost full screen width */
+    width: 90%; /* Use almost full screen width */
+    max-height: 85vh; /* Slightly smaller on tablets */
+    max-height: calc(var(--vh, 1vh) * 85);
+    padding: 20px;
   }
 
   .ShuttleDetails-stats {
     grid-template-columns: repeat(2, 1fr); /* 2 columns on smaller screens */
+    gap: 12px;
+  }
+
+  .ShuttleDetails-header {
+    padding: 15px;
+  }
+
+  .ShuttleDetails-stats div strong {
+    font-size: 18px;
+  }
+
+  .transaction-counts {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .transaction-total {
+    flex-direction: row;
+    justify-content: space-between;
   }
 }
 
-@media (max-width: 576px) {
+@media (max-width: 480px) {
   .ShuttleDetails-container {
-    padding: 15px; /* Reduce padding */
-    font-size: 14px; /* Slightly smaller text */
+    width: 95%; /* Almost full width on mobile */
+    padding: 15px;
+    max-height: 80vh; /* Smaller on phones */
+    max-height: calc(var(--vh, 1vh) * 80);
+  }
+
+  .ShuttleDetails-header {
+    padding: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .shuttle-status {
+    margin-left: 0;
+    margin-top: 5px;
+  }
+
+  .ShuttleDetails-stats {
+    grid-template-columns: repeat(
+      2,
+      1fr
+    ); /* Keep 2 columns on very small screens */
+    gap: 10px;
+  }
+
+  .ShuttleDetails-stats div {
+    padding: 10px;
+  }
+
+  .ShuttleDetails-stats div strong {
+    font-size: 16px;
+  }
+
+  .collect-fare-btn,
+  .close-btn {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  .transaction-amount {
+    font-size: 15px;
+  }
+
+  .transaction-time {
+    font-size: 12px;
+  }
+
+  .ShuttleDetails-log li {
+    padding: 8px;
+    font-size: 14px;
   }
 }

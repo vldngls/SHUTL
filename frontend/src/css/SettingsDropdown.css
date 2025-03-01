@@ -1,17 +1,20 @@
 .settings-dropdown {
-  position: absolute;
-  top: 50px; /* Consistent base positioning */
-  left: 89px;
-  z-index: 101;
+  position: fixed;
+  left: 80px; /* Position next to sidebar which is 64px + 16px padding */
+  bottom: 20px; /* Position near the bottom where settings icon usually is */
+  z-index: 1003;
+  width: 200px;
+  background: #232323;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
 }
 
 .settings-dropdown-content {
-  background: #333;
+  background: #232323;
   color: #fff;
-  border-radius: 16px;
-  padding: 10px 0;
-  width: 200px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 8px 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -22,49 +25,46 @@
   color: white;
   text-align: left;
   cursor: pointer;
-  font-size: 1em;
-  padding: 10px 20px;
+  font-size: 16px;
+  padding: 12px 20px;
+  transition: background-color 0.2s ease;
+  width: 100%;
 }
 
 .settings-option:hover {
-  background-color: #444;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 hr {
   border: none;
-  border-top: 1px solid #555;
-  margin: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 4px 0;
 }
 
 /* Responsive Styles */
 @media (max-width: 768px) {
   .settings-dropdown {
-    top: 50px;
-    left: 60px;
-  }
-
-  .settings-dropdown-content {
-    width: 180px;
+    position: fixed;
+    left: 0;
+    top: 60px;
+    bottom: auto;
+    width: 100%;
+    border-radius: 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   }
 
   .settings-option {
-    padding: 8px 15px;
-    font-size: 0.9em;
+    padding: 16px 20px;
+    font-size: 16px;
   }
 }
 
 @media (max-width: 480px) {
   .settings-dropdown {
     top: 50px;
-    left: -160px; /* Adjusted to appear on the left side of the button */
-  }
-
-  .settings-dropdown-content {
-    width: 150px;
   }
 
   .settings-option {
-    padding: 8px 10px;
-    font-size: 0.85em;
+    padding: 14px 20px;
   }
 }

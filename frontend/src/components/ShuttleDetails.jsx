@@ -14,6 +14,23 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
   const modalRef = useRef(null);
   const collectFareRef = useRef(null);
 
+  // Add viewport height fix for mobile browsers
+  useEffect(() => {
+    const setVH = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty("--vh", `${vh}px`);
+    };
+
+    setVH();
+    window.addEventListener("resize", setVH);
+    window.addEventListener("orientationchange", setVH);
+
+    return () => {
+      window.removeEventListener("resize", setVH);
+      window.removeEventListener("orientationchange", setVH);
+    };
+  }, []);
+
   // Helper function to get auth token
   const getAuthToken = () => {
     const getCookie = (name) => {
@@ -161,6 +178,12 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
     }
   };
 
+  // Format timestamp for better readability
+  const formatTime = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
   return (
     <div className="ShuttleDetails-modal" onClick={handleOverlayClick}>
       <div className="ShuttleDetails-container" ref={modalRef}>
@@ -181,27 +204,22 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
           <div className="ShuttleDetails-stats">
             <div>
               <strong>{shuttleStats.roundTrips}</strong>
-              <br />
               Round Trips
             </div>
             <div>
               <strong>{totalRegular}</strong>
-              <br />
               Regular
             </div>
             <div>
               <strong>{totalDiscounted}</strong>
-              <br />
               Discounted
             </div>
             <div>
               <strong>₱{totalFare}</strong>
-              <br />
               Total Fare
             </div>
             <div>
               <strong>{shuttleStats.averagePassengers || 0}</strong>
-              <br />
               Avg. Passengers
             </div>
           </div>
@@ -212,9 +230,26 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
               <ul>
                 {transactions.map((transaction, index) => (
                   <li key={index}>
-                    Regular: {transaction.regularCount}, Discounted:{" "}
-                    {transaction.discountedCount}, Total: ₱
-                    {transaction.totalFare}
+                    <div className="transaction-details">
+                      <div className="transaction-counts">
+                        <span className="transaction-type">
+                          Regular: {transaction.regularCount}
+                        </span>
+                        <span className="transaction-type">
+                          Discounted: {transaction.discountedCount}
+                        </span>
+                      </div>
+                      <div className="transaction-total">
+                        <span className="transaction-amount">
+                          ₱{transaction.totalFare}
+                        </span>
+                        {transaction.timestamp && (
+                          <span className="transaction-time">
+                            {formatTime(transaction.timestamp)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </li>
                 ))}
               </ul>

@@ -7,6 +7,23 @@ body,
   height: 100%;
   width: 100%;
   overflow: hidden;
+  touch-action: pan-x pan-y; /* Allow only scroll, prevent pinch zoom */
+  -webkit-text-size-adjust: 100%; /* Prevent text scaling */
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+}
+
+/* Add CSS variables for dynamic viewport height */
+:root {
+  --vh: 1vh;
+}
+
+/* Prevent zooming on interactive elements */
+button,
+input,
+select,
+textarea {
+  touch-action: manipulation; /* Prevent double-tap zoom */
+  font-size: 16px !important; /* Prevent iOS zoom on focus */
 }
 
 /* Map Container */
@@ -15,8 +32,10 @@ body,
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 100vh; /* Fallback */
+  height: calc(var(--vh, 1vh) * 100);
   z-index: 1;
+  touch-action: pan-x pan-y; /* Allow only scroll, prevent pinch zoom */
 }
 
 .leaflet-container {
@@ -40,7 +59,8 @@ body,
   flex-direction: column !important;
   align-items: center !important;
   width: 64px !important;
-  height: 100vh !important;
+  height: 100vh !important; /* Fallback */
+  height: calc(var(--vh, 1vh) * 100) !important;
   background-color: #232323 !important;
   color: white !important;
   border-top-right-radius: 38.5px !important;
@@ -49,9 +69,11 @@ body,
   position: fixed !important;
   left: 0 !important;
   top: 0 !important;
-  z-index: 1002 !important; /* Ensure it is above other elements */
+  z-index: 1000 !important; /* Reduced z-index to be below hamburger and mobile menu */
   box-sizing: border-box !important;
   justify-content: space-between !important;
+  touch-action: none; /* Disable all touch actions on navbar */
+  user-select: none; /* Prevent text selection */
 }
 
 /* Navbar Elements */
@@ -86,6 +108,8 @@ body,
   cursor: pointer;
   padding: 0;
   transition: transform 0.2s;
+  touch-action: manipulation;
+  user-select: none;
 }
 
 .TellerMain-icon-btn img {
@@ -95,6 +119,87 @@ body,
 
 .TellerMain-icon-btn:hover img {
   transform: scale(1.1);
+}
+
+/* Hamburger Menu Button */
+.TellerMain-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 24px;
+  height: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1002; /* Increased z-index to be above navbar */
+  touch-action: manipulation;
+}
+
+.TellerMain-hamburger span {
+  width: 100%;
+  height: 2px;
+  background-color: white;
+  transition: all 0.3s ease;
+  display: block;
+}
+
+/* Mobile Navigation Menu */
+.TellerMain-mobile-menu {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: -100%; /* Changed from left to right */
+  width: 250px;
+  height: 100vh; /* Fallback */
+  height: calc(var(--vh, 1vh) * 100);
+  background-color: #232323;
+  padding: 20px;
+  z-index: 1001;
+  transition: right 0.3s ease; /* Changed from left to right */
+  box-sizing: border-box;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+.TellerMain-mobile-menu.active {
+  display: block !important;
+  right: 0 !important; /* Changed from left to right */
+}
+
+.TellerMain-mobile-menu-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding-top: 20px;
+}
+
+.TellerMain-mobile-menu-logo {
+  font-size: 1.8em;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 10px;
+}
+
+.TellerMain-mobile-menu-items {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.TellerMain-mobile-menu button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 16px;
+  padding: 15px 20px;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.3s ease;
+  width: 100%;
+}
+
+.TellerMain-mobile-menu button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Popup Modal Overlay */
@@ -110,6 +215,8 @@ body,
   display: flex;
   justify-content: center;
   align-items: center;
+  touch-action: pan-y; /* Only allow vertical scrolling */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 /* Popup Modals */
@@ -125,6 +232,8 @@ body,
   z-index: 1000;
   padding: 20px;
   background-color: transparent !important; /* Force transparent background */
+  touch-action: pan-y; /* Only allow vertical scrolling */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .shuttle-tracking-container {
@@ -134,6 +243,7 @@ body,
   width: 95%;
   max-width: 1400px;
   max-height: 90vh;
+  max-height: calc(var(--vh, 1vh) * 90);
   overflow: auto;
   position: relative;
   display: grid;
@@ -141,6 +251,8 @@ body,
   gap: 24px;
   margin: 0 auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  touch-action: pan-y; /* Only allow vertical scrolling */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 /* Close Button */
@@ -158,14 +270,13 @@ body,
   z-index: 1001;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
+  touch-action: manipulation;
+  user-select: none;
 }
 
 .TellerMain-close-popup-btn:hover {
   background-color: #fee2e2;
 }
-
-/* Modal Animation */
-/* Removed the entire @keyframes modalFadeIn section */
 
 /* Modal Content Container */
 .TellerMain-modal-content {
@@ -198,7 +309,10 @@ body,
   border-radius: 12px;
   z-index: 1001;
   max-height: 90vh;
+  max-height: calc(var(--vh, 1vh) * 90);
   overflow-y: auto;
+  touch-action: pan-y; /* Only allow vertical scrolling */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .TellerMain-summary-header {
@@ -231,272 +345,346 @@ body,
 /* Media Queries */
 @media (max-width: 768px) {
   .TellerMain-navbar {
-    position: absolute; /* Change to absolute positioning */
-    top: 0;
-    left: 0;
-    z-index: 1002; /* Ensure it stays above other elements */
-    width: 48px; /* Adjust width for smaller screens */
-    height: 100vh;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 60px !important;
+    min-height: auto !important;
+    padding: 0 16px !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    border-radius: 0 !important;
+    background-color: #232323 !important;
+    touch-action: none !important;
+    z-index: 1000 !important;
   }
 
-  .TellerSummary-container {
-    margin-left: 48px; /* Adjust margin to account for the sidebar width */
+  .TellerMain-navbar-content {
+    display: none !important; /* Hide all navbar content on mobile */
   }
 
-  .TellerMain-navbar-buttons {
-    padding-top: 120px; /* Adjust button position */
+  .TellerMain-logo {
+    margin: 0 !important;
+    font-size: 1.2em !important;
+    display: block !important;
   }
 
-  .TellerMain-icon-btn {
-    width: 40px;
-    height: 40px;
+  .TellerMain-hamburger {
+    position: fixed !important;
+    right: 16px !important;
+    top: 20px !important;
+    display: flex !important;
+    margin: 0 !important;
+    width: 24px !important;
+    height: 18px !important;
+    z-index: 1002 !important;
+    background: none !important;
+    border: none !important;
   }
 
-  .TellerMain-right-btn {
-    padding: 8px 16px; /* Adjust padding for smaller screens */
-    font-size: 14px; /* Adjust font size for smaller screens */
+  .TellerMain-hamburger span {
+    width: 100% !important;
+    height: 2px !important;
+    margin: 0 !important;
+    background-color: white !important;
+    display: block !important;
   }
 
-  .TellerMain-TripTracking-popup {
-    width: 95%;
-    height: auto;
-    max-height: 80vh;
+  /* Hamburger animation states */
+  .TellerMain-hamburger.active span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
   }
 
-  .TellerMain-modal-content {
-    padding: 1.5rem;
+  .TellerMain-hamburger.active span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .TellerMain-hamburger.active span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+  }
+
+  .TellerMain-mobile-menu {
+    display: block !important;
+    top: 60px !important;
+    height: calc(100vh - 60px) !important;
+    height: calc(var(--vh, 1vh) * 100 - 60px) !important;
+    width: 100% !important;
+    right: -100% !important; /* Changed from left to right */
+    padding: 20px !important;
+    z-index: 1001 !important;
+  }
+
+  .TellerMain-mobile-menu.active {
+    right: 0 !important; /* Changed from left to right */
+  }
+
+  .TellerMain-map-container {
+    top: 60px !important; /* Adjust map container to start below navbar */
+    height: calc(100vh - 60px) !important;
+    height: calc(var(--vh, 1vh) * 100 - 60px) !important;
+    touch-action: pan-y !important;
+  }
+
+  .TellerMain-taskbar {
+    display: none !important; /* Hide taskbar on mobile */
+  }
+
+  /* Adjust other containers that need top spacing */
+  .TellerMain-TripTracking-popup,
+  .TellerMain-summary-panel,
+  .TellerMain-chat-container,
+  .suggestion-form-container {
+    top: 70px !important;
+  }
+
+  /* Prevent rubber-banding effect on iOS */
+  .TellerMain-map-container,
+  .TellerMain-summary-container,
+  .ShuttleDetails-container {
+    overscroll-behavior: none;
   }
 }
 
 @media (max-width: 480px) {
   .TellerMain-navbar {
-    width: 48px;
-    padding: 8px;
-    height: 100vh;
-    border-radius: 0 20px 20px 0;
-    flex-direction: column;
-    justify-content: flex-start;
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 3; /* Keep navbar at the bottom on very small screens */
+    height: 50px !important;
+    padding: 0 12px !important;
   }
 
-  .TellerMain-taskbar {
-    position: fixed;
-    right: 0; /* Fix taskbar to the right */
-    top: 0;
-    height: 100vh; /* Make it full height */
-    width: 80px; /* Adjust width as needed */
-    background-color: #f5f5f5;
-    color: #333;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    padding: 10px 0;
-    border-left: 2px solid #e0e0e0;
-    z-index: 1002; /* Ensure it is above other elements */
-    box-sizing: border-box;
+  .TellerMain-logo {
+    font-size: 1.1em !important;
   }
 
-  .TellerMain-icon-btn {
-    width: 36px;
-    height: 36px;
+  .TellerMain-hamburger {
+    right: 12px !important;
+    top: 17px !important;
+    width: 20px !important;
+    height: 16px !important;
   }
 
-  .TellerMain-right-btn {
-    padding: 6px 12px; /* Further adjust padding for very small screens */
-    font-size: 12px; /* Further adjust font size for very small screens */
+  .TellerMain-hamburger span {
+    height: 2px !important;
   }
 
-  .TellerMain-navbar-content {
-    justify-content: flex-start; /* Align items to the top */
-    padding-top: 20px; /* Adjust this value to move icons higher */
+  /* Adjust hamburger animation for smaller size */
+  .TellerMain-hamburger.active span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
   }
 
-  .TellerMain-navbar-buttons {
-    justify-content: flex-start; /* Align buttons to the top */
-    margin-top: 19px; /* Adjust this value to move icons higher */
-    gap: 25px; /* Maintain original gap for mobile view */
+  .TellerMain-hamburger.active span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .TellerMain-mobile-menu {
+    top: 50px !important;
+    height: calc(100vh - 50px) !important;
+    height: calc(var(--vh, 1vh) * 100 - 50px) !important;
+  }
+
+  .TellerMain-map-container {
+    top: 50px !important;
+    height: calc(100vh - 50px) !important;
+    height: calc(var(--vh, 1vh) * 100 - 50px) !important;
+  }
+
+  /* Adjust other containers for smaller navbar */
+  .TellerMain-TripTracking-popup,
+  .TellerMain-summary-panel,
+  .TellerMain-chat-container,
+  .suggestion-form-container {
+    top: 60px !important;
   }
 }
 
 .TellerMain-icon-image {
-  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  transition: transform 0.2s;
 }
 
-/* Suggestion Button */
 .TellerMain-suggestion-btn {
   position: fixed;
-  top: 20px;
-  right: 10px;
-  padding: 12px;
+  bottom: 20px;
+  right: 20px;
+  background-color: #4caf50;
+  color: white;
   border: none;
   border-radius: 50%;
-  background: transparent;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  z-index: 1000;
-  transition: transform 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 3;
+  touch-action: manipulation;
+  user-select: none;
 }
 
-/* Icon inside the button */
 .TellerMain-suggestion-icon {
-  width: 40px;
-  height: 40px;
-  display: block;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  width: 30px;
+  height: 30px;
+  filter: invert(1);
 }
 
 .suggestion-form-container {
   position: fixed;
-  top: 30px;
-  width: 320px;
+  bottom: 90px;
+  right: 20px;
   background-color: white;
-  border-radius: 8px;
+  padding: 15px;
+  border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  padding: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  width: 300px;
+  z-index: 3;
+  touch-action: pan-y; /* Only allow vertical scrolling */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
-/* Form Styling */
 .suggestion-form-container form {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 10px;
 }
 
-/* Inputs */
 .suggestion-form-container input,
 .suggestion-form-container textarea {
-  width: 92%;
-  padding: 12px;
-  border-radius: 8px;
+  padding: 10px;
   border: 1px solid #ddd;
-  font-size: 1em;
-  background: #fafafa;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: border 0.2s ease;
+  border-radius: 5px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .suggestion-form-container input:focus,
 .suggestion-form-container textarea:focus {
   outline: none;
-  border: 1px solid #3a3a3a;
-  box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+  border-color: #4caf50;
 }
 
-/* Send Button */
 .suggestion-form-container .send-btn {
-  background-color: #303030;
+  background-color: #4caf50;
   color: white;
-  padding: 12px;
   border: none;
-  border-radius: 8px;
+  padding: 10px;
+  border-radius: 5px;
   cursor: pointer;
   font-weight: bold;
-  font-size: 1.1em;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition: background-color 0.2s;
 }
 
 .suggestion-form-container .send-btn:hover {
-  background-color: #575757;
-  transform: translateY(-3px);
+  background-color: #45a049;
 }
 
-/* Responsive Styling */
 @media (max-width: 600px) {
   .suggestion-form-container {
-    width: 90%;
-    left: 50%;
-    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    right: 20px;
+  }
+
+  .TellerMain-suggestion-btn {
+    bottom: 80px;
   }
 }
 
 .TellerMain-chat-container {
   position: fixed;
-  right: 100px;
-  top: 80px;
-  width: 300px;
-  max-height: 500px;
+  bottom: 80px;
+  right: 20px;
   background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  overflow: hidden;
-}
-
-/* Ensure the DriverMessage component is visible */
-.TellerMain-chat-container .driver-message {
-  width: 100%;
-  height: 100%;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 3;
   display: flex;
   flex-direction: column;
+  touch-action: pan-y; /* Only allow vertical scrolling */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+.TellerMain-chat-container .driver-message {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
 }
 
 .TellerMain-close-btn {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
-  padding: 0.5rem 1rem;
-  background: #ef4444;
-  color: white;
+  top: 10px;
+  right: 10px;
+  background: none;
   border: none;
-  border-radius: 6px;
+  font-size: 16px;
   cursor: pointer;
-  font-weight: 500;
-  z-index: 1001;
+  color: #888;
+  transition: color 0.2s;
 }
 
 .TellerMain-close-btn:hover {
-  background: #dc2626;
-}
-/* Add this CSS rule for the profile section */
-.TellerMain-navbar-profile {
-  border-top: 1px solid #e0e0e0; /* Add a top border similar to the sidebar */
-  padding-top: 10px; /* Add some padding to separate the border from the content */
-  margin-top: 10px; /* Add margin to ensure spacing from the above elements */
-}
-
-/* Shuttle Info Popup */
-.TellerMain-shuttle-info {
-  padding: 5px;
-  text-align: center;
-  max-width: 180px;
-}
-
-.TellerMain-shuttle-info h3 {
-  margin: 0 0 3px 0;
   color: #333;
-  font-size: 14px;
 }
 
-.TellerMain-shuttle-info p {
-  margin: 0;
-  font-size: 11px;
-  color: #666;
-  line-height: 1.3;
+.TellerMain-navbar-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: auto;
 }
 
-/* Grayscale effect for offline shuttles */
-.grayscale-icon {
-  filter: grayscale(100%) opacity(60%);
-  transition: filter 0.3s ease;
-}
-
-/* Shuttle info styling */
 .TellerMain-shuttle-info {
-  min-width: 160px;
+  padding: 10px;
+  background-color: white;
 }
 
 .TellerMain-shuttle-info h3 {
-  margin-top: 0;
-  margin-bottom: 5px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 3px;
+  margin: 0 0 5px 0;
+  font-size: 16px;
+  color: #333;
 }
 
 .TellerMain-shuttle-info p {
-  margin: 3px 0;
+  margin: 5px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.grayscale-icon {
+  filter: grayscale(100%);
+  opacity: 0.5;
+}
+
+/* Add viewport height fix for mobile browsers */
+@media (max-width: 768px) {
+  .TellerMain-chat-container {
+    width: calc(100% - 40px);
+    max-height: 50vh;
+    max-height: calc(var(--vh, 1vh) * 50);
+  }
+}
+
+@media (max-width: 480px) {
+  .TellerMain-suggestion-btn {
+    width: 50px;
+    height: 50px;
+    bottom: 70px;
+    right: 15px;
+  }
+
+  .TellerMain-suggestion-icon {
+    width: 25px;
+    height: 25px;
+  }
+
+  .suggestion-form-container {
+    bottom: 130px;
+    width: calc(100% - 30px);
+    right: 15px;
+    padding: 12px;
+  }
 }

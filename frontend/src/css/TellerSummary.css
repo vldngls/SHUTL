@@ -1,3 +1,8 @@
+/* Add CSS variables for dynamic viewport height */
+:root {
+  --vh: 1vh;
+}
+
 /* Summary header styling */
 .TellerSummary-header {
   position: absolute;
@@ -51,6 +56,8 @@
   z-index: 1000;
   padding: 0; /* Remove padding to ensure no space at the top */
   overflow: hidden; /* Prevent overlay from scrolling */
+  height: 100vh; /* Fallback */
+  height: calc(var(--vh, 1vh) * 100);
 }
 
 /* Summary container */
@@ -60,7 +67,8 @@
   border-radius: 12px;
   width: 50%; /* Default width for larger screens */
   max-width: none;
-  height: 100vh;
+  height: 100vh; /* Fallback */
+  height: calc(var(--vh, 1vh) * 100);
   overflow-y: auto;
   position: relative;
   color: #232323;
@@ -100,6 +108,7 @@
   cursor: pointer;
   color: #888;
   transition: color 0.2s ease;
+  z-index: 10;
 }
 
 .TellerSummary-close-btn:hover {
@@ -249,7 +258,7 @@
 }
 
 .offline-shuttle button:hover {
-  background-color: #888;
+  background-color: #555;
 }
 
 .status-item strong {
@@ -265,143 +274,164 @@
   color: #232323;
   font-size: 14px;
   line-height: 1.6;
-  margin: 8px 0;
+  margin: 0 0 8px 0;
 }
 
 .status-item button {
-  width: 100%;
-  padding: 8px;
-  background-color: #232323;
-  color: #f5f5f5;
+  background-color: #4caf50;
+  color: white;
   border: none;
+  padding: 8px 16px;
   border-radius: 6px;
-  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  font-weight: 500;
   margin-top: 12px;
+  transition: background-color 0.2s ease;
+  width: 100%;
 }
 
 .status-item button:hover {
-  background-color: #3a3a3a;
+  background-color: #45a049;
 }
 
-/* Transaction history button */
 .transaction-btn {
-  width: 100%;
-  padding: 12px;
-  background-color: #232323;
-  color: #f5f5f5;
+  background-color: #4caf50;
+  color: white;
   border: none;
+  padding: 10px 20px;
   border-radius: 6px;
-  font-weight: 500;
   cursor: pointer;
+  font-weight: 500;
+  margin-top: 20px;
   transition: background-color 0.2s ease;
-  margin-top: 15px;
+  display: block;
+  width: 100%;
 }
 
 .transaction-btn:hover {
-  background-color: #3a3a3a;
+  background-color: #45a049;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .TellerSummary-container {
-    width: 100%; /* Make the summary smaller */
-    padding: 15px; /* Reduce padding for smaller screens */
-    height: calc(100vh - 50px); /* Adjust height to leave space for taskbar */
+    width: 70%;
+    padding: 50px 15px 15px;
+    margin-left: 48px;
   }
 
   .TellerSummary-header h1 {
-    font-size: 28px; /* Adjust font size for smaller screens */
+    font-size: 28px;
   }
 
   .TellerSummary-header p {
-    font-size: 16px; /* Adjust font size for smaller screens */
+    font-size: 16px;
   }
 
   .TellerSummary-section {
-    margin-top: 20px; /* Adjust margin for smaller screens */
     padding: 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
   }
 
   .TellerSummary-close-btn {
-    font-size: 18px;
+    top: 8px;
+    right: 10px;
   }
 
   .TellerSummary-stats {
-    grid-template-columns: repeat(
-      1,
-      1fr
-    ); /* Single column on smaller screens */
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .TellerSummary-stats strong {
+    font-size: 20px;
+  }
+
+  .TellerSummary-stats div span {
+    font-size: 12px;
   }
 
   .status-item strong {
-    font-size: 14px; /* Adjust font size */
+    font-size: 14px;
   }
 
   .status-item p {
-    font-size: 13px;
+    font-size: 12px;
   }
 
   .status-item button {
-    font-size: 13px; /* Smaller buttons */
+    padding: 6px 12px;
+    font-size: 12px;
   }
 
   .TellerSummary-chart {
-    height: 250px; /* Slightly smaller on mobile */
+    height: 200px;
   }
 }
 
 @media (max-width: 480px) {
   .TellerSummary-container {
-    margin-left: 60px; /* Further reduce margin for extra small screens */
-    padding: 10px;
-    height: calc(100vh - 50px); /* Adjust height to leave space for taskbar */
+    width: 100%;
+    margin-left: 0;
+    padding: 60px 12px 12px;
+    border-radius: 0;
   }
 
   .TellerSummary-section {
-    margin-top: 60px; /* Adjust margin for extra small screens */
-    padding: 10px;
-    margin-bottom: 10px;
+    padding: 15px;
+    margin-top: 15px;
+    margin-bottom: 15px;
   }
 
   .TellerSummary-close-btn {
-    font-size: 16px;
+    top: 15px;
+    right: 15px;
+    font-size: 18px;
   }
 
   .TellerSummary-stats {
-    grid-template-columns: repeat(1, 1fr); /* Single column layout */
-    gap: 5px; /* Reduce spacing */
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 
   .status-item button,
   .transaction-btn {
+    padding: 8px 12px;
     font-size: 12px;
-    padding: 8px; /* Smaller buttons */
+  }
+
+  .TellerSummary-route {
+    grid-template-columns: 1fr;
+  }
+
+  .TellerSummary-status {
+    grid-template-columns: 1fr;
   }
 }
 
-/* Chart section */
 .TellerSummary-chart {
-  background-color: #ffffff;
-  border-radius: 8px;
-  padding: 20px;
-  border: 1px solid #d9d9d9;
+  width: 100%;
+  height: 250px;
+  margin-top: 20px;
+  background-color: white;
+  border-radius: 10px;
+  padding: 15px;
 }
 
-/* Fare breakdown section */
 .TellerSummary-fare {
-  background-color: #f5f5f5;
-  padding: 20px;
-  border-radius: 10px;
-  border: 1px solid #d9d9d9;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 20px;
 }
 
 .TellerSummary-fare p {
-  color: #232323;
-  margin: 10px 0;
+  margin: 5px 0;
+  font-size: 14px;
 }
 
 .TellerSummary-fare strong {
-  color: #232323;
+  font-size: 24px;
+  display: block;
+  margin-bottom: 10px;
 }

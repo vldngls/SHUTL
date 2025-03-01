@@ -56,6 +56,23 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
   const geocodeTimeoutRef = useRef(null);
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
 
+  // Add viewport height fix for mobile browsers
+  useEffect(() => {
+    const setVH = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty("--vh", `${vh}px`);
+    };
+
+    setVH();
+    window.addEventListener("resize", setVH);
+    window.addEventListener("orientationchange", setVH);
+
+    return () => {
+      window.removeEventListener("resize", setVH);
+      window.removeEventListener("orientationchange", setVH);
+    };
+  }, []);
+
   // Helper function to get auth token
   const getAuthToken = () => {
     const getCookie = (name) => {
@@ -374,6 +391,9 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
   return (
     <div className="TellerSummary-modal" onClick={handleOverlayClick}>
       <div className="TellerSummary-container">
+        <button className="TellerSummary-close-btn" onClick={onClose}>
+          ✕
+        </button>
         <div className="TellerSummary-header">
           <h1>Summary</h1>
           <p>
