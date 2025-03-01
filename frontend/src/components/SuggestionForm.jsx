@@ -3,7 +3,7 @@ import { toast } from "react-hot-toast";
 import "../css/SuggestionForm.css"; // Make sure to import the CSS for styling
 
 const SuggestionForm = ({ onClose }) => {
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Use API_BASE_URL from environment variables
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // API base URL from environment variables
 
   const [formData, setFormData] = useState({
     name: "",
@@ -20,9 +20,28 @@ const SuggestionForm = ({ onClose }) => {
     });
   };
 
+  // Function to send email notification
+  const sendEmailNotification = async (recipientEmail) => {
+    try {
+      await fetch(`${API_BASE_URL}/send-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          to: recipientEmail,
+          subject: "Shuttle Suggestions Box - Submission Received",
+          message:
+            "Thank you for using Shuttle Suggestions Box! Your suggestion is under review, and we'll work on improving the service.",
+        }),
+      });
+    } catch (error) {
+      console.error("Error sending email notification:", error);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const loadingToastId = toast.loading("Submitting your suggestion...");
 
     try {
@@ -39,6 +58,11 @@ const SuggestionForm = ({ onClose }) => {
       }
 
       await response.json();
+      
+      // Send email notifications
+      await sendEmailNotification(formData.email);
+      await sendEmailNotification("dummymaggot03@gmail.com");
+
       toast.success("Thank you! Your suggestion has been sent successfully.", {
         id: loadingToastId,
         duration: 2000
@@ -58,8 +82,7 @@ const SuggestionForm = ({ onClose }) => {
     <div className="suggestion-form-container">
       <div className="suggestion-form">
         <p>
-          IF YOU HAVE ANY SUGGESTIONS FOR IMPROVEMENTS, PLEASE EMAIL US AT:{" "}
-          <br />
+          IF YOU HAVE ANY SUGGESTIONS FOR IMPROVEMENTS, PLEASE EMAIL US AT: <br />
           <a href="mailto:helpdesk@goinc.com">helpdesk@goinc.com</a>
         </p>
 
@@ -94,9 +117,7 @@ const SuggestionForm = ({ onClose }) => {
             onChange={handleChange}
           />
 
-          <label htmlFor="description">
-            Description of the Bug or Suggestion:
-          </label>
+          <label htmlFor="description">Description of the Bug or Suggestion:</label>
           <textarea
             id="description"
             name="description"
