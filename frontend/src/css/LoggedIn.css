@@ -868,3 +868,18 @@ hr {
     transform: rotate(-90deg);
   }
 }
+
+/* Hot Toast notification positioning */
+:root {
+  --toaster-margin: 100px;
+}
+
+.Toastify__toast-container {
+  top: var(--toaster-margin) !important;
+}
+
+@media (max-width: 480px) {
+  :root {
+    --toaster-margin: 80px;
+  }
+}
