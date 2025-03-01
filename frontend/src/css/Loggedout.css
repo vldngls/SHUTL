@@ -136,14 +136,18 @@ body {
   .ShutlLoggedOut-navbar {
     width: 48px;
     padding: 8px;
-    height: 100vh;
-    border-radius: 0 20px 20px 0; /* Keep consistent border radius */
+    height: -webkit-fill-available; /* For iOS Safari */
+    min-height: 100vh; /* Fallback for browsers that don't support -webkit-fill-available */
+    max-height: 100vh; /* Prevent overflow */
+    border-radius: 0 20px 20px 0;
     flex-direction: column;
     justify-content: flex-start;
     position: fixed;
     left: 0;
     top: 0;
     z-index: 3;
+    overflow-y: auto; /* Allow scrolling if content overflows */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
   }
 
   .ShutlLoggedOut-logo {
