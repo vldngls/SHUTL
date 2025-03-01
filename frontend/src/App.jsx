@@ -116,6 +116,7 @@ function App() {
             width: "220px",
             maxWidth: "220px",
             textAlign: "center",
+            marginBottom: "30px",
           },
         }}
       />
