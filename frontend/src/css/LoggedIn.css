@@ -84,7 +84,8 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
-  overflow: hidden; /* Prevent scroll bars */
+  height: 100dvh; /* Dynamic viewport height */
+  overflow: hidden;
   font-family: Arial, sans-serif;
 }
 
@@ -95,6 +96,7 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
+  height: 100dvh; /* Dynamic viewport height */
   z-index: 1;
 }
 
@@ -471,7 +473,38 @@ hr {
 
   /* Adjust map container to account for bottom bar */
   .ShutlLoggedIn-map-container {
-    height: calc(100vh - 60px - 56px - env(safe-area-inset-bottom, 0px));
+    position: fixed;
+    top: 60px;
+    height: calc(100vh - 60px - 56px);
+    height: calc(100dvh - 60px - 56px); /* Dynamic viewport height */
+    width: 100%;
+    left: 0;
+  }
+
+  .ShutlLoggedIn-mobile-menu {
+    display: block;
+    top: 60px;
+    height: calc(100vh - 60px);
+    height: calc(100dvh - 60px); /* Dynamic viewport height */
+    right: -100%;
+    transition: right 0.3s ease;
+  }
+
+  .ShutlLoggedIn-mobile-menu.active {
+    left: auto;
+    right: 0;
+  }
+
+  .ShutlLoggedIn-hamburger.active span:nth-child(1) {
+    transform: translateY(9px) rotate(45deg);
+  }
+
+  .ShutlLoggedIn-hamburger.active span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .ShutlLoggedIn-hamburger.active span:nth-child(3) {
+    transform: translateY(-9px) rotate(-45deg);
   }
 }
 
@@ -680,7 +713,8 @@ hr {
   .ShutlLoggedIn-mobile-menu {
     display: block;
     top: 60px;
-    height: calc((var(--vh, 1vh) * 100) - 60px);
+    height: calc(100vh - 60px);
+    height: calc(100dvh - 60px); /* Dynamic viewport height */
     right: -100%;
     transition: right 0.3s ease;
   }
@@ -694,7 +728,8 @@ hr {
   .ShutlLoggedIn-map-container {
     position: fixed;
     top: 60px;
-    height: calc((var(--vh, 1vh) * 100) - 60px);
+    height: calc(100vh - 60px - 56px);
+    height: calc(100dvh - 60px - 56px); /* Dynamic viewport height */
     width: 100%;
     left: 0;
   }
@@ -732,19 +767,28 @@ hr {
 @supports (-webkit-touch-callout: none) {
   .ShutlLoggedIn-container {
     height: -webkit-fill-available;
+    min-height: -webkit-fill-available;
   }
 
   .ShutlLoggedIn-map-container {
     height: -webkit-fill-available;
+    min-height: -webkit-fill-available;
   }
 
   @media (max-width: 480px) {
     .ShutlLoggedIn-map-container {
-      height: calc(100vh - 60px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      height: calc(100dvh - 60px - 56px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      min-height: calc(100dvh - 60px - 56px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     }
 
     .ShutlLoggedIn-mobile-menu {
-      height: calc(100vh - 60px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      height: calc(100dvh - 60px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      min-height: calc(100dvh - 60px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    }
+
+    /* Bottom actions bar adjustments */
+    .ShutlLoggedIn-bottom-actions {
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
     }
   }
 }
