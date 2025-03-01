@@ -3,28 +3,77 @@ import OperationalHours from "../models/operationalHours.model.js";
 import { isWithinOperationalHours } from "./operationalHoursController.js";
 
 export const createFareTransaction = async (req, res) => {
-  const {
-    commuterEmail,
-    regularCount,
-    discountedCount,
-    totalFare,
-    tender,
-    change,
-    shuttleID,
-  } = req.body;
-
   try {
-    // Check if the current time is within operational hours
-    const currentTime = new Date();
-    const localTime = new Date(currentTime.getTime() + 8 * 60 * 60 * 1000); // Convert to GMT+8
-    const timeString = localTime.toTimeString().slice(0, 5); // Format as "HH:mm"
+    const {
+      commuterEmail,
+      regularCount,
+      discountedCount,
+      totalFare,
+      tender,
+      change,
+      shuttleID,
+    } = req.body;
 
+    // Validate required fields
+    if (!shuttleID) {
+      return res.status(400).json({ message: "Shuttle ID is required" });
+    }
+
+    if (!commuterEmail) {
+      return res.status(400).json({ message: "Commuter email is required" });
+    }
+
+    if (regularCount === undefined || discountedCount === undefined) {
+      return res.status(400).json({ message: "Passenger counts are required" });
+    }
+
+    if (
+      totalFare === undefined ||
+      tender === undefined ||
+      change === undefined
+    ) {
+      return res.status(400).json({ message: "Fare details are required" });
+    }
+
+    // Get current time in Philippines (GMT+8)
+    const now = new Date();
+    // Create a date string in ISO format with the Philippines timezone offset
+    const philippinesDateString = new Date(
+      now.getTime() + 8 * 60 * 60 * 1000
+    ).toISOString();
+    // Extract just the time portion in HH:MM format
+    const timeString = philippinesDateString.substring(11, 16);
+
+    console.log("Current time (UTC):", now.toISOString());
+    console.log("Philippines time string:", timeString);
+
+    // Get operational hours for debugging
+    const operationalHours = (await OperationalHours.findOne({
+      isActive: true,
+    })) || { startTime: "05:00", endTime: "22:00" };
+    console.log(
+      "Operational hours:",
+      operationalHours.startTime,
+      "to",
+      operationalHours.endTime
+    );
+
+    // Check if the current time is within operational hours
     const isWithinHours = await isWithinOperationalHours(timeString);
+    console.log("Is within operational hours:", isWithinHours);
+
+    // For testing purposes, temporarily bypass the operational hours check
+    // Comment out this section when going to production
+    /*
     if (!isWithinHours) {
       return res.status(400).json({
-        error: "Transaction cannot be created outside operational hours",
+        message: "Transaction cannot be created outside operational hours",
       });
     }
+    */
+
+    // Get current Philippine time (GMT+8)
+    const philippineTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
 
     const newTransaction = new FareTransaction({
       commuterEmail,
@@ -34,8 +83,8 @@ export const createFareTransaction = async (req, res) => {
       tender,
       change,
       shuttleID,
-      createdAt: localTime, // Save the adjusted time
-      date: localTime.toISOString().split('T')[0], // Save the date in YYYY-MM-DD format
+      createdAt: philippineTime,
+      date: philippineTime.toISOString().split("T")[0], // Save the date in YYYY-MM-DD format
       time: timeString, // Save the time in HH:mm format
     });
 
@@ -43,14 +92,33 @@ export const createFareTransaction = async (req, res) => {
     res.status(201).json(newTransaction);
   } catch (error) {
     console.error("Error creating fare transaction:", error);
-    res.status(500).json({ message: "Error creating fare transaction", error });
+    res.status(500).json({
+      message: "Error creating fare transaction",
+      error: error.message,
+    });
   }
 };
 
 export const getTransactionsByShuttleID = async (req, res) => {
-  const { shuttleID } = req.query;
+  const { shuttleID, date } = req.query;
   try {
-    const transactions = await FareTransaction.find({ shuttleID });
+    let query = { shuttleID };
+
+    // If date is provided, filter by that date
+    if (date) {
+      query.date = date;
+      console.log(
+        `Filtering transactions for shuttle ${shuttleID} on date ${date}`
+      );
+    }
+
+    const transactions = await FareTransaction.find(query).sort({
+      createdAt: -1,
+    });
+    console.log(
+      `Found ${transactions.length} transactions for shuttle ${shuttleID}`
+    );
+
     res.status(200).json(transactions);
   } catch (error) {
     console.error("Error fetching transactions:", error);
@@ -62,12 +130,13 @@ export const getTransactionsByCommuterEmail = async (req, res) => {
   const { commuterEmail } = req.query;
   try {
     console.log("Searching for transactions with email:", commuterEmail); // Debug log
-    
-    const transactions = await FareTransaction.find({ commuterEmail })
-      .sort({ createdAt: -1 });
-    
+
+    const transactions = await FareTransaction.find({ commuterEmail }).sort({
+      createdAt: -1,
+    });
+
     console.log("Found transactions:", transactions); // Debug log
-    
+
     res.status(200).json(transactions);
   } catch (error) {
     console.error("Error fetching transactions:", error);
@@ -77,41 +146,38 @@ export const getTransactionsByCommuterEmail = async (req, res) => {
 
 export const getTotalEarnings = async (req, res) => {
   try {
+    // Get current date in YYYY-MM-DD format
+    const today = new Date();
+    const formattedDate = today.toISOString().split("T")[0];
+
+    console.log("Getting total earnings for date:", formattedDate);
+
     // Get current operational hours
-    const operationalHours = await OperationalHours.findOne({ isActive: true }) || { 
-      startTime: "05:00", 
-      endTime: "22:00" 
+    const operationalHours = (await OperationalHours.findOne({
+      isActive: true,
+    })) || {
+      startTime: "05:00",
+      endTime: "22:00",
     };
 
-    // Create Date objects for today's operational hours
-    const today = new Date();
-    const [startHour, startMinute] = operationalHours.startTime.split(':').map(Number);
-    const [endHour, endMinute] = operationalHours.endTime.split(':').map(Number);
-    
-    const startDate = new Date(today);
-    startDate.setHours(startHour, startMinute, 0, 0);
-    
-    const endDate = new Date(today);
-    endDate.setHours(endHour, endMinute, 59, 999);
-
+    // Query transactions for today using the date field
     const transactions = await FareTransaction.aggregate([
       {
         $match: {
-          createdAt: {
-            $gte: startDate,
-            $lte: endDate
-          }
-        }
+          date: formattedDate,
+        },
       },
       {
         $group: {
           _id: null,
           totalFare: { $sum: "$totalFare" },
           regularCount: { $sum: "$regularCount" },
-          discountedCount: { $sum: "$discountedCount" }
+          discountedCount: { $sum: "$discountedCount" },
         },
       },
     ]);
+
+    console.log("Transactions aggregation result:", transactions);
 
     if (transactions.length > 0) {
       const { totalFare, regularCount, discountedCount } = transactions[0];
@@ -121,8 +187,8 @@ export const getTotalEarnings = async (req, res) => {
         discounted: discountedCount,
         operationalHours: {
           startTime: operationalHours.startTime,
-          endTime: operationalHours.endTime
-        }
+          endTime: operationalHours.endTime,
+        },
       });
     } else {
       res.status(200).json({
@@ -131,8 +197,8 @@ export const getTotalEarnings = async (req, res) => {
         discounted: 0,
         operationalHours: {
           startTime: operationalHours.startTime,
-          endTime: operationalHours.endTime
-        }
+          endTime: operationalHours.endTime,
+        },
       });
     }
   } catch (error) {

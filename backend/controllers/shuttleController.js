@@ -508,30 +508,149 @@ export const getShuttleStats = async (req, res) => {
       },
     }).lean();
 
+    console.log("Today's trips:", todayTrips);
+
+    // Group trips by shuttle
+    const shuttleTripsMap = {};
+    todayTrips.forEach((trip) => {
+      if (!shuttleTripsMap[trip.shuttleNumber]) {
+        shuttleTripsMap[trip.shuttleNumber] = [];
+      }
+      shuttleTripsMap[trip.shuttleNumber].push(trip);
+    });
+
     // Calculate stats per shuttle
-    const stats = todayTrips.reduce((acc, trip) => {
-      const shuttleId = trip.shuttleNumber;
-      if (!acc[shuttleId]) {
-        acc[shuttleId] = {
-          totalPassengers: 0,
-          roundTrips: 0,
-        };
+    const stats = {};
+
+    for (const [shuttleId, trips] of Object.entries(shuttleTripsMap)) {
+      // Initialize stats for this shuttle
+      stats[shuttleId] = {
+        totalPassengers: 0,
+        roundTrips: 0,
+        inTrips: 0,
+        outTrips: 0,
+        tripCount: 0,
+        averagePassengers: 0,
+        completedRoundTrips: new Set(), // To track completed round trips
+      };
+
+      // Count in and out trips and passengers
+      trips.forEach((trip) => {
+        // Add passengers
+        stats[shuttleId].totalPassengers += trip.passengerCount || 0;
+
+        // Increment trip count
+        stats[shuttleId].tripCount += 1;
+
+        // Count in and out trips
+        if (trip.status === "In") {
+          stats[shuttleId].inTrips += 1;
+        } else if (trip.status === "Out") {
+          stats[shuttleId].outTrips += 1;
+        }
+
+        // Track round trips by roundTripId
+        if (trip.roundTripId) {
+          stats[shuttleId].completedRoundTrips.add(trip.roundTripId);
+        }
+      });
+
+      // Find matching In/Out pairs to count completed round trips
+      const outTrips = trips.filter((trip) => trip.status === "Out");
+      const inTrips = trips.filter((trip) => trip.status === "In");
+
+      // Count completed round trips
+      let completedTrips = 0;
+
+      // Method 1: Count by matching roundTripId between In and Out trips
+      outTrips.forEach((outTrip) => {
+        const hasMatchingInTrip = inTrips.some(
+          (inTrip) =>
+            inTrip.roundTripId === outTrip._id.toString() ||
+            (outTrip.roundTripId &&
+              inTrip.roundTripId &&
+              outTrip.roundTripId === inTrip.roundTripId)
+        );
+
+        if (hasMatchingInTrip) {
+          completedTrips++;
+        }
+      });
+
+      // Set the round trips count
+      stats[shuttleId].roundTrips = completedTrips;
+
+      // Calculate average passengers per trip
+      if (stats[shuttleId].tripCount > 0) {
+        stats[shuttleId].averagePassengers = Math.round(
+          stats[shuttleId].totalPassengers / stats[shuttleId].tripCount
+        );
       }
 
-      // Add passengers
-      acc[shuttleId].totalPassengers += trip.passengerCount || 0;
+      // Remove the Set before sending to client
+      delete stats[shuttleId].completedRoundTrips;
+    }
 
-      // Count round trips (when status is "In")
-      if (trip.status === "In") {
-        acc[shuttleId].roundTrips += 1;
-      }
-
-      return acc;
-    }, {});
-
+    console.log("Shuttle stats for today:", stats);
     res.status(200).json(stats);
   } catch (error) {
     console.error("Error getting shuttle stats:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Get shuttle location by ID
+export const getShuttleLocationById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if we have this shuttle's location in memory
+    // This assumes you have a global shuttleLocations object that stores the latest locations
+    if (!global.shuttleLocations) {
+      global.shuttleLocations = {};
+    }
+
+    if (global.shuttleLocations[id]) {
+      return res.status(200).json({
+        shuttleId: id,
+        coordinates: global.shuttleLocations[id].coordinates,
+        lastUpdate: global.shuttleLocations[id].lastUpdate,
+        metadata: global.shuttleLocations[id].metadata,
+        hasLocationData: true,
+      });
+    }
+
+    // If not found in memory, check if there's a recent trip for this shuttle
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const recentTrip = await ShuttleTrip.findOne({
+      shuttleNumber: id,
+      date: {
+        $gte: today,
+        $lt: tomorrow,
+      },
+    }).sort({ date: -1 });
+
+    if (recentTrip) {
+      // Return basic info without location data
+      return res.status(200).json({
+        shuttleId: id,
+        lastUpdate: recentTrip.date,
+        hasLocationData: false,
+      });
+    }
+
+    // If no location data found
+    return res.status(404).json({
+      message: "No location data found for this shuttle",
+      shuttleId: id,
+      hasLocationData: false,
+    });
+  } catch (error) {
+    console.error("Error getting shuttle location:", error);
     res.status(500).json({ error: error.message });
   }
 };

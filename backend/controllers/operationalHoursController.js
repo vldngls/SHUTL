@@ -60,13 +60,45 @@ export const updateOperationalHours = async (req, res) => {
 export const isWithinOperationalHours = async (time) => {
   try {
     const hours = await OperationalHours.findOne({ isActive: true });
+    console.log("Checking time:", time);
+
+    // Log the current server time for comparison
+    const serverTime = new Date();
+    console.log("Current server time (UTC):", serverTime.toISOString());
+
+    // Calculate Philippines time (GMT+8)
+    const philippinesTime = new Date(serverTime.getTime() + 8 * 60 * 60 * 1000);
+    console.log(
+      "Current Philippines time (GMT+8):",
+      philippinesTime.toISOString()
+    );
+
+    // Format Philippines time as HH:MM for direct comparison
+    const philippinesTimeString = philippinesTime
+      .toISOString()
+      .substring(11, 16);
+    console.log("Philippines time string:", philippinesTimeString);
+    console.log("Time being checked:", time);
+
     if (!hours) {
       // Default operational hours
       const defaultStart = "05:00";
       const defaultEnd = "22:00";
-      return isTimeWithinRange(time, defaultStart, defaultEnd);
+      console.log("Using default hours:", defaultStart, "to", defaultEnd);
+      const result = isTimeWithinRange(time, defaultStart, defaultEnd);
+      console.log("Is within default range:", result);
+      return result;
     }
-    return isTimeWithinRange(time, hours.startTime, hours.endTime);
+
+    console.log(
+      "Using configured hours:",
+      hours.startTime,
+      "to",
+      hours.endTime
+    );
+    const result = isTimeWithinRange(time, hours.startTime, hours.endTime);
+    console.log("Is within configured range:", result);
+    return result;
   } catch (error) {
     console.error("Error checking operational hours:", error);
     return false;
@@ -82,6 +114,10 @@ const isTimeWithinRange = (time, start, end) => {
   const checkTime = checkHour * 60 + checkMinute;
   const startTime = startHour * 60 + startMinute;
   const endTime = endHour * 60 + endMinute;
+
+  console.log("Check time (minutes):", checkTime);
+  console.log("Start time (minutes):", startTime);
+  console.log("End time (minutes):", endTime);
 
   return checkTime >= startTime && checkTime <= endTime;
 };

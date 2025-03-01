@@ -83,6 +83,19 @@ const setupSocket = (io, db) => {
         socketId: socket.id,
       });
 
+      // Update global shuttleLocations object for API access
+      if (!global.shuttleLocations) {
+        global.shuttleLocations = {};
+      }
+
+      global.shuttleLocations[shuttleId] = {
+        coordinates,
+        timestamp,
+        lastUpdate: new Date(),
+        metadata,
+        socketId: socket.id,
+      };
+
       // Broadcast to all clients tracking this shuttle
       io.to(`shuttle_${shuttleId}`).emit("shuttle_location", {
         shuttleId,
@@ -208,6 +221,12 @@ const setupSocket = (io, db) => {
       for (const [shuttleId, data] of shuttleLocations.entries()) {
         if (data.socketId === socket.id) {
           shuttleLocations.delete(shuttleId);
+
+          // Also remove from global shuttleLocations
+          if (global.shuttleLocations && global.shuttleLocations[shuttleId]) {
+            delete global.shuttleLocations[shuttleId];
+          }
+
           io.emit("shuttle_disconnected", { shuttleId });
         }
       }

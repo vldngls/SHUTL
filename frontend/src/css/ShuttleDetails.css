@@ -40,8 +40,12 @@
 }
 
 .ShuttleDetails-header {
-  text-align: center;
-  margin-bottom: 20px;
+  padding: 20px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .ShuttleDetails-content {
@@ -49,16 +53,25 @@
 }
 
 .ShuttleDetails-stats {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap; /* Allow wrapping for smaller screens */
-  gap: 10px; /* Add spacing between items */
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columns */
+  gap: 15px; /* Add spacing between items */
   font-size: 14px;
+  margin-bottom: 20px;
 }
 
 .ShuttleDetails-stats div {
-  flex: 1 1 30%; /* Ensure items are evenly spaced */
   text-align: center;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.ShuttleDetails-stats div strong {
+  font-size: 18px;
+  display: block;
+  margin-bottom: 5px;
 }
 
 .ShuttleDetails-log ul {
@@ -88,21 +101,53 @@
   background-color: #0056b3;
 }
 
+.shuttle-status {
+  font-size: 12px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-left: 10px;
+}
+
+.shuttle-status.online {
+  background-color: #e6f7e6;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+}
+
+.shuttle-status.recent {
+  background-color: #fff8e1;
+  color: #ff8f00;
+  border: 1px solid #ffe082;
+}
+
+.shuttle-status.offline {
+  background-color: #f5f5f5;
+  color: #757575;
+  border: 1px solid #e0e0e0;
+}
+
+.no-transactions {
+  color: #757575;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .ShuttleDetails-container {
-      width: 100%; /* Use almost full screen width */
+    width: 100%; /* Use almost full screen width */
   }
 
   .ShuttleDetails-stats {
-      flex-direction: column; /* Stack items vertically */
-      gap: 15px;
+    grid-template-columns: repeat(2, 1fr); /* 2 columns on smaller screens */
   }
 }
 
 @media (max-width: 576px) {
   .ShuttleDetails-container {
-      padding: 15px; /* Reduce padding */
-      font-size: 14px; /* Slightly smaller text */
+    padding: 15px; /* Reduce padding */
+    font-size: 14px; /* Slightly smaller text */
   }
 }

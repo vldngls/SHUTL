@@ -27,11 +27,11 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
       try {
         const response = await fetch(`${API_BASE_URL}/fares`);
         const data = await response.json();
-        const regularFare = data.find(fare => fare.fare === "Regular");
-        const discountedFare = data.find(fare => fare.fare === "Discounted");
+        const regularFare = data.find((fare) => fare.fare === "Regular");
+        const discountedFare = data.find((fare) => fare.fare === "Discounted");
         setFares({
           regular: regularFare ? parseFloat(regularFare.price) : 30,
-          discounted: discountedFare ? parseFloat(discountedFare.price) : 28
+          discounted: discountedFare ? parseFloat(discountedFare.price) : 28,
         });
       } catch (error) {
         console.error("Error fetching fares:", error);
@@ -138,7 +138,12 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/fare-transactions/save`, {
+      if (!commuterEmail || commuterEmail.trim() === "") {
+        toast.error("Commuter email is required");
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/fare-transactions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -150,16 +155,18 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
           totalFare,
           tender: tenderAmount,
           change: tenderAmount - totalFare,
-          commuterEmail: commuterEmail || null,
+          commuterEmail,
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save transaction");
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Server response:", errorData);
+        throw new Error(errorData.message || "Failed to save transaction");
       }
 
       toast.success("Fare collected successfully!", {
-        duration: 2000
+        duration: 2000,
       });
 
       if (onTransactionSaved) {
@@ -170,7 +177,7 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
       onClose();
     } catch (error) {
       console.error("Error saving transaction:", error);
-      toast.error("Failed to collect fare. Please try again.");
+      toast.error(`Failed to collect fare: ${error.message}`);
     }
   };
 

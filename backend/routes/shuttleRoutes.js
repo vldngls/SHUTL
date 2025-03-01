@@ -11,6 +11,7 @@ import {
   getShuttleRouteTimes,
   getRecentTrips,
   getShuttleStats,
+  getShuttleLocationById,
 } from "../controllers/shuttleController.js";
 
 const router = express.Router();
@@ -47,5 +48,8 @@ router.get("/recent-trips", getRecentTrips);
 
 // Add this new route
 router.get("/stats", getShuttleStats);
+
+// Add route to get shuttle location by ID
+router.get("/locations/:id", getShuttleLocationById);
 
 export default router;

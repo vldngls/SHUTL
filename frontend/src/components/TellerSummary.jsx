@@ -42,6 +42,7 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
     new Array(17).fill(0)
   );
   const [shuttleStats, setShuttleStats] = useState({});
+  const [shuttleAssignments, setShuttleAssignments] = useState([]);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [operationalHours, setOperationalHours] = useState({
     startTime: "05:00",
@@ -54,6 +55,27 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
   const [streetNames, setStreetNames] = useState({});
   const geocodeTimeoutRef = useRef(null);
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
+
+  // Helper function to get auth token
+  const getAuthToken = () => {
+    const getCookie = (name) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(";").shift();
+      return null;
+    };
+
+    return getCookie("token");
+  };
+
+  // Helper function to create axios config with auth header
+  const getAuthConfig = () => {
+    return {
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+    };
+  };
 
   // Log the received locations for debugging
   useEffect(() => {
@@ -101,11 +123,32 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
     };
   }, [shuttleLocations]);
 
+  // Fetch shuttle assignments
+  useEffect(() => {
+    const fetchShuttleAssignments = async () => {
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/shuttle-assignments`,
+          getAuthConfig()
+        );
+        setShuttleAssignments(response.data);
+        console.log("Shuttle assignments:", response.data);
+      } catch (error) {
+        console.error("Error fetching shuttle assignments:", error);
+      }
+    };
+
+    fetchShuttleAssignments();
+  }, [API_BASE_URL]);
+
   // Fetch shuttle statistics
   useEffect(() => {
     const fetchShuttleStats = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/shuttle/stats`);
+        const response = await axios.get(
+          `${API_BASE_URL}/shuttle/stats`,
+          getAuthConfig()
+        );
         setShuttleStats(response.data);
       } catch (error) {
         console.error("Error fetching shuttle stats:", error);
@@ -113,13 +156,15 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
     };
 
     fetchShuttleStats();
-  }, []);
+  }, [API_BASE_URL]);
 
   useEffect(() => {
     const fetchSummaryData = async () => {
       try {
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-        const response = await axios.get(`${API_BASE_URL}/shuttle/summary`);
+        const response = await axios.get(
+          `${API_BASE_URL}/shuttle/summary`,
+          getAuthConfig()
+        );
 
         console.log("API Response:", response.data);
 
@@ -144,14 +189,15 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
     };
 
     fetchSummaryData();
-  }, []);
+  }, [API_BASE_URL]);
 
   // Fetch earnings data
   useEffect(() => {
     const fetchEarningsData = async () => {
       try {
         const response = await axios.get(
-          `${API_BASE_URL}/fare-transactions/earnings`
+          `${API_BASE_URL}/fare-transactions/earnings`,
+          getAuthConfig()
         );
         setEarningsData(response.data);
       } catch (error) {
@@ -291,6 +337,40 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
     },
   };
 
+  // Combine shuttle assignments with location data to show all shuttles
+  const getAllShuttles = () => {
+    const allShuttles = {};
+
+    // First add all shuttles from assignments
+    shuttleAssignments.forEach((assignment) => {
+      if (assignment.status === "active") {
+        allShuttles[assignment.shuttleId] = {
+          id: assignment.shuttleId,
+          status: "offline",
+          lastUpdate: new Date(0), // Default to epoch time
+          streetName: "Not broadcasting location",
+        };
+      }
+    });
+
+    // Then override with location data for shuttles that are broadcasting
+    Object.entries(optimizedLocations).forEach(([shuttleId, data]) => {
+      allShuttles[shuttleId] = {
+        ...allShuttles[shuttleId],
+        ...data,
+        id: shuttleId,
+        streetName:
+          data.streetName || streetNames[shuttleId] || "Location unavailable",
+        lastUpdate: data.lastUpdate || new Date(),
+        status: data.status || "online",
+      };
+    });
+
+    return allShuttles;
+  };
+
+  const allShuttles = getAllShuttles();
+
   return (
     <div className="TellerSummary-modal" onClick={handleOverlayClick}>
       <div className="TellerSummary-container">
@@ -331,22 +411,30 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
           </div>
         </div>
 
-        {/* Route Time Section */}
+        {/* Route Statistics Section (formerly Route Time) */}
         <div className="TellerSummary-section">
-          <h3>Route Time (Within Operational Hours)</h3>
+          <h3>Route Statistics (Within Operational Hours)</h3>
           <div className="TellerSummary-route">
-            {Object.entries(routeMetrics).map(([shuttleId, metrics]) => (
-              <div key={shuttleId}>
-                <strong>SHUTL {shuttleId}</strong>
-                <p>
-                  <span>{metrics.averageRouteMinutes} min</span> average route
-                  time
-                  <br />
-                  <span>{metrics.averageDepartureMinutes} min</span> average
-                  departure time
-                </p>
-              </div>
-            ))}
+            {Object.entries(routeMetrics).map(([shuttleId, metrics]) => {
+              // Get shuttle stats for this shuttle ID
+              const shuttleStat = shuttleStats[shuttleId] || {};
+              const avgPassengers = shuttleStat.averagePassengers || 0;
+
+              return (
+                <div key={shuttleId}>
+                  <strong>SHUTL {shuttleId}</strong>
+                  <p>
+                    <span>{metrics.averageRouteMinutes} min</span> average route
+                    time
+                    <br />
+                    <span>{metrics.averageDepartureMinutes} min</span> average
+                    departure time
+                    <br />
+                    <span>{avgPassengers} passengers</span> average per trip
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -354,19 +442,31 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
         <div className="TellerSummary-section">
           <h3>Current Status</h3>
           <div className="TellerSummary-status">
-            {Object.entries(optimizedLocations).map(([shuttleId, data]) => {
+            {Object.entries(allShuttles).map(([shuttleId, data]) => {
               const stats = shuttleStats[shuttleId] || {
                 totalPassengers: 0,
                 roundTrips: 0,
               };
 
+              const isOffline = data.status === "offline";
+              const locationText = isOffline
+                ? "Not broadcasting location"
+                : data.streetName || "Fetching location...";
+              const lastUpdateText = isOffline
+                ? "No recent updates"
+                : `Last Updated: ${data.lastUpdate.toLocaleTimeString()}`;
+
               return (
-                <div className="status-item" key={shuttleId}>
+                <div
+                  className={`status-item ${
+                    isOffline ? "offline-shuttle" : ""
+                  }`}
+                  key={shuttleId}
+                  style={{ opacity: isOffline ? 0.7 : 1 }}
+                >
                   <strong>SHUTL {shuttleId}</strong>
-                  <p>
-                    Currently at {data.streetName || "Fetching location..."}
-                  </p>
-                  <p>Last Updated: {data.lastUpdate.toLocaleTimeString()}</p>
+                  <p>Currently at {locationText}</p>
+                  <p>{lastUpdateText}</p>
                   <p>
                     {stats.totalPassengers} Passengers | {stats.roundTrips}{" "}
                     Trips

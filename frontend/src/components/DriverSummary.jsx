@@ -74,8 +74,9 @@ const DriverSummary = ({
             shuttleId: data.shuttleId,
             roundTrips: shuttleStats.roundTrips,
             totalPassengers: shuttleStats.totalPassengers,
-            inTrips: shuttleStats.roundTrips, // In trips equals round trips
-            outTrips: shuttleStats.roundTrips, // Out trips equals round trips since they're paired
+            inTrips: shuttleStats.inTrips || shuttleStats.roundTrips,
+            outTrips: shuttleStats.outTrips || shuttleStats.roundTrips,
+            averagePassengers: shuttleStats.averagePassengers || 0,
           });
         }
       } catch (error) {
@@ -122,6 +123,11 @@ const DriverSummary = ({
               <strong>{shuttleDetails.totalPassengers}</strong>
               <br />
               Total Passengers
+            </div>
+            <div>
+              <strong>{shuttleDetails.averagePassengers}</strong>
+              <br />
+              Avg. Passengers
             </div>
             <div>
               <strong>₱{totalEarnings.toFixed(2)}</strong>

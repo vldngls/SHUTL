@@ -39,6 +39,9 @@ if (!process.env.MONGO_URI) {
   process.exit(1);
 }
 
+// Initialize global shuttleLocations object
+global.shuttleLocations = {};
+
 const app = express();
 const server = http.createServer(app);
 
