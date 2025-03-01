@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import toast from "react-hot-toast";
 import "../css/ShuttleTripTracking.css"; // Import the CSS file
 
-const ShuttleTripTracking = ({ onClose }) => {
+const ShuttleTripTracking = ({ onClose, socket, shuttleId }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  const [tripData, setTripData] = useState({
-    date: new Date().toLocaleDateString("en-CA"),
-    time: new Date().toLocaleTimeString([], {
+  const getCurrentTime = () => {
+    return new Date().toLocaleTimeString("en-GB", {
       hour: "2-digit",
       minute: "2-digit",
-    }),
+      hour12: false,
+    });
+  };
+
+  const [tripData, setTripData] = useState({
+    date: new Date().toLocaleDateString("en-CA"),
+    time: getCurrentTime(),
     shuttleNumber: "",
     driver: "",
     status: "Out",
@@ -26,6 +32,50 @@ const ShuttleTripTracking = ({ onClose }) => {
 
   const [operationalHours, setOperationalHours] = useState(null);
   const [isWithinHours, setIsWithinHours] = useState(true);
+
+  const showToast = (message, type = "info") => {
+    switch (type) {
+      case "success":
+        toast.success(message);
+        break;
+      case "error":
+        toast.error(message);
+        break;
+      case "info":
+      default:
+        toast(message);
+        break;
+    }
+  };
+
+  useEffect(() => {
+    if (!socket) {
+      showToast("Socket connection not available", "error");
+      return;
+    }
+
+    socket.on("trip_created", (data) => {
+      showToast("New trip created successfully", "success");
+      setPendingOutTrips((prev) => [...prev, data]);
+    });
+
+    socket.on("trip_updated", (data) => {
+      showToast(`Trip ${data.tripId} updated successfully`, "success");
+      setPendingOutTrips((prev) =>
+        prev.map((trip) => (trip._id === data.tripId ? data : trip))
+      );
+    });
+
+    socket.on("trip_error", (error) => {
+      showToast(error.message || "An error occurred with the trip", "error");
+    });
+
+    return () => {
+      socket.off("trip_created");
+      socket.off("trip_updated");
+      socket.off("trip_error");
+    };
+  }, [socket]);
 
   useEffect(() => {
     fetchPendingOutTrips();
@@ -60,6 +110,18 @@ const ShuttleTripTracking = ({ onClose }) => {
       setIsWithinHours(currentTime >= startTime && currentTime <= endTime);
     }
   }, [tripData.time, operationalHours]);
+
+  // Add time update effect
+  useEffect(() => {
+    const timeInterval = setInterval(() => {
+      setTripData((prev) => ({
+        ...prev,
+        time: getCurrentTime(),
+      }));
+    }, 1000); // Update every second
+
+    return () => clearInterval(timeInterval);
+  }, []);
 
   const fetchPendingOutTrips = async () => {
     try {
@@ -104,6 +166,10 @@ const ShuttleTripTracking = ({ onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!socket) {
+      showToast("Socket connection not available", "error");
+      return;
+    }
 
     if (!isWithinHours) {
       alert(
@@ -149,37 +215,37 @@ const ShuttleTripTracking = ({ onClose }) => {
         localTime: tripData.time,
       };
 
-      const response = await fetch(`${API_BASE_URL}/shuttle/trips`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(tripDataToSend),
-      });
+      socket.emit("create_trip", tripDataToSend);
+      showToast("Creating new trip...", "info");
 
-      if (response.ok) {
-        alert("Shuttle trip added successfully");
-        setTripData({
-          date: new Date().toLocaleDateString("en-CA"),
-          time: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          shuttleNumber: "",
-          driver: "",
-          status: "Out",
-          passengerCount: 0,
-          roundTripId: "",
-        });
-        fetchPendingOutTrips();
-        fetchRecentTrips();
-      } else {
-        const errorData = await response.json();
-        alert(errorData.message || "Failed to add shuttle trip");
-      }
+      // Reset form but keep current time
+      setTripData({
+        date: new Date().toLocaleDateString("en-CA"),
+        time: getCurrentTime(),
+        shuttleNumber: "",
+        driver: "",
+        status: "Out",
+        passengerCount: 0,
+        roundTripId: "",
+      });
+      fetchPendingOutTrips();
+      fetchRecentTrips();
     } catch (error) {
-      console.error("Error:", error);
-      alert("An error occurred while adding the shuttle trip");
+      showToast(error.message || "Failed to create trip", "error");
+    }
+  };
+
+  const handleStatusChange = async (tripId, newStatus) => {
+    if (!socket) {
+      showToast("Socket connection not available", "error");
+      return;
+    }
+
+    try {
+      socket.emit("update_trip", { tripId, status: newStatus });
+      showToast(`Updating trip ${tripId} status...`, "info");
+    } catch (error) {
+      showToast(error.message || "Failed to update trip status", "error");
     }
   };
 
@@ -362,7 +428,7 @@ const ShuttleTripTracking = ({ onClose }) => {
                     tripData.status === "Out" ? "active" : ""
                   }`}
                   onClick={() =>
-                    handleChange({ target: { name: "status", value: "Out" } })
+                    handleStatusChange(tripData.roundTripId, "Out")
                   }
                 >
                   Out
@@ -372,9 +438,7 @@ const ShuttleTripTracking = ({ onClose }) => {
                   className={`status-button ${
                     tripData.status === "In" ? "active" : ""
                   }`}
-                  onClick={() =>
-                    handleChange({ target: { name: "status", value: "In" } })
-                  }
+                  onClick={() => handleStatusChange(tripData.roundTripId, "In")}
                 >
                   In
                 </button>
@@ -412,6 +476,8 @@ const ShuttleTripTracking = ({ onClose }) => {
 
 ShuttleTripTracking.propTypes = {
   onClose: PropTypes.func.isRequired,
+  socket: PropTypes.object,
+  shuttleId: PropTypes.string,
 };
 
 export default ShuttleTripTracking;

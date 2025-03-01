@@ -6,8 +6,8 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables
-dotenv.config({ path: path.resolve(__dirname, "../.env") });
+// Load environment variables from backend/.env
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const resetDatabase = async () => {
   try {
@@ -39,7 +39,7 @@ const resetDatabase = async () => {
   } catch (error) {
     console.error("Error resetting database:", error);
     console.error(
-      "Please make sure your .env file exists and contains MONGO_URI"
+      "Please make sure your .env file exists in the backend directory and contains MONGO_URI"
     );
     process.exit(1);
   }

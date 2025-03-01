@@ -15,6 +15,8 @@ import {
   subscribeToMessages,
   subscribeToLocationUpdates,
   disconnectSocket,
+  joinShuttleTracking,
+  getLocationUpdateInterval,
 } from "../utils/websocketService";
 import L from "leaflet";
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
@@ -54,7 +56,7 @@ const TellerMain = () => {
 
   // State Management
   const [dateTime, setDateTime] = useState(new Date());
-  const [userLocation, setUserLocation] = useState(null);
+  const [userLocation, setUserLocation] = useState([14.5995, 120.9842]); // Set default to Manila coordinates
   const [messages, setMessages] = useState([]);
   const [profileImage, setProfileImage] = useState("/teller-profile.png");
   const [notifications, setNotifications] = useState([]);
@@ -101,107 +103,224 @@ const TellerMain = () => {
 
   // Initialize socket and set up message subscription
   useEffect(() => {
-    socket.current = connectSocket();
-
-    subscribeToMessages((message) => {
-      setMessages((prev) => [...prev, message]);
-    });
-
-    // Fetch active shuttle assignments and join their tracking rooms
-    const fetchAndTrackShuttles = async () => {
+    const initializeSocket = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
-          headers: {
-            Authorization: `Bearer ${getCookie("token")}`,
-          },
+        // Wait for socket connection
+        const socketInstance = await connectSocket();
+        if (!socketInstance) {
+          toast.error(
+            "Unable to establish connection. Please refresh the page."
+          );
+          return;
+        }
+
+        socket.current = socketInstance;
+
+        // Subscribe to messages with error handling
+        const messageCleanup = await subscribeToMessages((message) => {
+          setMessages((prev) => [...prev, message]);
         });
-        const assignments = await response.json();
 
-        // Join tracking for each active shuttle
-        assignments.forEach((assignment) => {
-          socket.current.emit("join_shuttle_tracking", assignment.shuttleId);
+        // Fetch active shuttle assignments and join their tracking rooms
+        const fetchAndTrackShuttles = async () => {
+          try {
+            const response = await fetch(
+              `${API_BASE_URL}/shuttle-assignments`,
+              {
+                headers: {
+                  Authorization: `Bearer ${getCookie("token")}`,
+                },
+              }
+            );
+            const assignments = await response.json();
+
+            // Join tracking for each active shuttle
+            for (const assignment of assignments) {
+              await joinShuttleTracking(assignment.shuttleId);
+            }
+
+            console.log(`Joined tracking for ${assignments.length} shuttles`);
+          } catch (error) {
+            console.error("Error fetching shuttle assignments:", error);
+            toast.error("Failed to fetch shuttle assignments");
+          }
+        };
+
+        await fetchAndTrackShuttles();
+
+        // Subscribe to location updates with enhanced logging and validation
+        const locationCleanup = await subscribeToLocationUpdates((data) => {
+          console.log("Received location update:", data);
+
+          // Validate incoming data
+          if (!data || !data.shuttleId || !data.coordinates) {
+            console.warn("Invalid location data received:", data);
+            return;
+          }
+
+          // Validate coordinates
+          const [lat, lng] = data.coordinates;
+          if (
+            isNaN(lat) ||
+            isNaN(lng) ||
+            lat < -90 ||
+            lat > 90 ||
+            lng < -180 ||
+            lng > 180
+          ) {
+            console.warn("Invalid coordinates received:", data.coordinates);
+            return;
+          }
+
+          setShuttleLocations((prev) => {
+            const now = new Date();
+            const newLocations = { ...prev };
+            const shuttleId = data.shuttleId;
+
+            // Check if this is a new shuttle or an update
+            const isNewShuttle = !newLocations[shuttleId];
+
+            // Update the location for this shuttle
+            newLocations[shuttleId] = {
+              coordinates: data.coordinates,
+              lastUpdate: now,
+              speed: data.metadata?.speed || 0,
+              heading: data.metadata?.heading || 0,
+              accuracy: data.metadata?.accuracy,
+              status: "online",
+            };
+
+            if (isNewShuttle) {
+              console.log(`New shuttle ${shuttleId} added to tracking`);
+            }
+
+            return newLocations;
+          });
         });
-      } catch (error) {
-        console.error("Error fetching shuttle assignments:", error);
-      }
-    };
 
-    fetchAndTrackShuttles();
+        // Import the interval constant from websocketService
+        const LOCATION_UPDATE_INTERVAL = getLocationUpdateInterval();
 
-    // Listen for both types of location updates
-    socket.current.on("shuttle_location", (data) => {
-      console.log("Received shuttle location:", data);
-      setShuttleLocations((prev) => ({
-        ...prev,
-        [data.shuttleId]: {
-          coordinates: data.coordinates,
-          lastUpdate: new Date(data.timestamp),
-          speed: data.metadata?.speed || 0,
-          heading: data.metadata?.heading,
-          accuracy: data.metadata?.accuracy,
-        },
-      }));
-    });
+        // Clean up stale locations every 3 seconds (same as update interval)
+        const cleanupInterval = setInterval(() => {
+          setShuttleLocations((prev) => {
+            const now = new Date();
+            const newLocations = { ...prev };
+            let changes = false;
 
-    socket.current.on("shuttle_location_update", (data) => {
-      console.log("Received shuttle location update:", data);
-      setShuttleLocations((prev) => ({
-        ...prev,
-        [data.shuttleId]: {
-          coordinates: data.coordinates,
-          lastUpdate: new Date(data.timestamp),
-          speed: data.metadata?.speed || 0,
-          heading: data.metadata?.heading,
-          accuracy: data.metadata?.accuracy,
-        },
-      }));
-    });
+            Object.entries(newLocations).forEach(([id, data]) => {
+              const timeSinceUpdate = now - new Date(data.lastUpdate);
 
-    // Clean up stale locations every 3 seconds
-    const cleanupInterval = setInterval(() => {
-      setShuttleLocations((prev) => {
-        const now = new Date();
-        const updatedLocations = {};
+              // Mark as offline after 3 missed updates (9 seconds)
+              if (
+                data.status !== "offline" &&
+                timeSinceUpdate > LOCATION_UPDATE_INTERVAL * 3
+              ) {
+                console.log(
+                  `Marking shuttle ${id} as offline - No updates for ${Math.round(
+                    timeSinceUpdate / 1000
+                  )}s`
+                );
+                newLocations[id] = {
+                  ...data,
+                  status: "offline",
+                };
+                changes = true;
+              }
 
-        Object.entries(prev).forEach(([shuttleId, data]) => {
-          // Check if location is less than 3 seconds old
-          if (now - new Date(data.lastUpdate) < 3000) {
-            updatedLocations[shuttleId] = data;
+              // Remove markers that have been offline for 2 minutes
+              if (timeSinceUpdate > 120000) {
+                // 120 seconds = 2 minutes
+                console.log(
+                  `Removing shuttle ${id} - No updates for ${Math.round(
+                    timeSinceUpdate / 1000
+                  )}s (2 minutes)`
+                );
+                delete newLocations[id];
+                changes = true;
+              }
+            });
+
+            // Only trigger a re-render if there were changes
+            return changes ? newLocations : prev;
+          });
+        }, LOCATION_UPDATE_INTERVAL);
+
+        // Set up socket event listeners
+        socketInstance.on("new_notification", (notification) => {
+          setNotifications((prev) => {
+            const updatedNotifications = [notification, ...prev];
+            return updatedNotifications.slice(0, 5);
+          });
+          setActivePopup("notifications");
+          setTimeout(() => {
+            setActivePopup((current) =>
+              current === "notifications" ? null : current
+            );
+          }, 5000);
+        });
+
+        // Handle connection errors
+        socketInstance.on("connect_error", (error) => {
+          console.error("Socket connection error:", error);
+          toast.error("Connection error. Attempting to reconnect...");
+        });
+
+        // Handle disconnections
+        socketInstance.on("disconnect", (reason) => {
+          console.log("Socket disconnected:", reason);
+          if (reason === "io server disconnect") {
+            toast.error("Disconnected from server. Please refresh the page.");
           } else {
-            console.log(`Removing stale location for ${shuttleId}`);
+            toast.warning("Connection lost. Attempting to reconnect...");
+
+            // Mark all shuttles as offline when connection is lost
+            setShuttleLocations((prev) => {
+              const newLocations = { ...prev };
+              let changes = false;
+
+              Object.entries(newLocations).forEach(([id, data]) => {
+                if (data.status !== "offline") {
+                  newLocations[id] = {
+                    ...data,
+                    status: "offline",
+                  };
+                  changes = true;
+                }
+              });
+
+              return changes ? newLocations : prev;
+            });
           }
         });
 
-        return updatedLocations;
-      });
-    }, 3000);
+        // Handle successful reconnection
+        socketInstance.on("reconnect", (attemptNumber) => {
+          console.log("Socket reconnected after", attemptNumber, "attempts");
+          toast.success("Connection restored!");
 
-    socket.current.on("new_notification", (notification) => {
-      setNotifications((prev) => {
-        const updatedNotifications = [notification, ...prev];
-        return updatedNotifications.slice(0, 5); // Keep only 5 most recent notifications
-      });
-      // Automatically show notification popup
-      setActivePopup("notifications");
+          // Re-join all shuttle tracking rooms
+          fetchAndTrackShuttles();
+        });
 
-      // Auto-hide after 5 seconds
-      setTimeout(() => {
-        setActivePopup((current) =>
-          current === "notifications" ? null : current
-        );
-      }, 5000);
-    });
-
-    return () => {
-      if (socket.current) {
-        socket.current.off("shuttle_location");
-        socket.current.off("shuttle_location_update");
-        socket.current.off("new_notification");
-        socket.current.disconnect();
+        return () => {
+          clearInterval(cleanupInterval);
+          messageCleanup();
+          locationCleanup();
+          if (socketInstance) {
+            socketInstance.off("new_notification");
+            socketInstance.off("connect_error");
+            socketInstance.off("disconnect");
+            socketInstance.off("reconnect");
+          }
+        };
+      } catch (error) {
+        console.error("Error initializing socket:", error);
+        toast.error("Failed to establish connection. Please refresh the page.");
       }
-      clearInterval(cleanupInterval);
-      disconnectSocket();
     };
+
+    initializeSocket();
   }, []);
 
   // Add this useEffect after the socket initialization useEffect
@@ -334,21 +453,6 @@ const TellerMain = () => {
     };
   }, [isMessageBoxOpen]);
 
-  useEffect(() => {
-    subscribeToLocationUpdates((data) => {
-      const { shuttleId, coordinates, metadata } = data;
-      setShuttleLocations((prev) => ({
-        ...prev,
-        [shuttleId]: {
-          coordinates,
-          speed: metadata.speed || 0,
-          heading: metadata.heading || 0,
-          lastUpdate: new Date(),
-        },
-      }));
-    });
-  }, []);
-
   // Update location handling
   const updateUserLocation = () => {
     if (!navigator.geolocation) {
@@ -423,8 +527,8 @@ const TellerMain = () => {
       {/* Map Component */}
       <div className="TellerMain-map-container">
         <MapContainer
-          style={{ height: "100vh", width: "100vw" }}
-          center={userLocation}
+          style={{ height: "100%", width: "100%" }}
+          center={userLocation || [14.5995, 120.9842]}
           zoom={15.5}
           zoomControl={false}
           whenCreated={(mapInstance) => {
@@ -435,26 +539,73 @@ const TellerMain = () => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
-          {Object.entries(shuttleLocations).map(([shuttleId, data]) => (
-            <MovingMarker
-              key={shuttleId}
-              position={data.coordinates}
-              icon={carIcon}
-            >
-              <Popup>
-                <div>
-                  <strong>Shuttle {shuttleId}</strong>
-                  <br />
-                  Speed: {data.speed.toFixed(1)} km/h
-                  <br />
-                  Last Update: {data.lastUpdate.toLocaleTimeString()}
-                </div>
-              </Popup>
-              <Tooltip direction="right" offset={[10, 0]} permanent>
-                Shuttle {shuttleId}
-              </Tooltip>
-            </MovingMarker>
-          ))}
+          {Object.entries(optimizedLocations).map(([shuttleId, data]) => {
+            if (!data || !data.coordinates) return null;
+
+            const trafficCondition = getTrafficCondition(data.speed || 0);
+            const isOffline = data.status === "offline";
+
+            // Create a custom icon that shows online/offline status
+            const shuttleIcon = new L.Icon({
+              iconUrl: "/car.png",
+              iconRetinaUrl: "/car.png",
+              iconAnchor: [12, 41],
+              popupAnchor: [1, -34],
+              iconSize: [29, 59],
+              shadowUrl:
+                "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+              shadowSize: [41, 41],
+              className: isOffline ? "grayscale-icon" : "",
+            });
+
+            return (
+              <MovingMarker
+                key={shuttleId}
+                position={data.coordinates}
+                icon={shuttleIcon}
+              >
+                <Popup>
+                  <div className="TellerMain-shuttle-info">
+                    <h3>SHUTL {shuttleId}</h3>
+                    <p>
+                      Status:{" "}
+                      <span
+                        style={{
+                          color: isOffline ? "red" : "green",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {isOffline ? "Offline" : "Online"}
+                      </span>
+                    </p>
+                    <p>Speed: {(data.speed || 0).toFixed(1)} km/h</p>
+                    <p>
+                      Traffic:{" "}
+                      <span style={{ color: trafficCondition.color }}>
+                        {trafficCondition.status}
+                      </span>
+                    </p>
+                    <p>
+                      Last Update:{" "}
+                      {new Date(data.lastUpdate).toLocaleTimeString()}
+                    </p>
+                    <p>
+                      Time Since Update:{" "}
+                      {Math.round(
+                        (new Date() - new Date(data.lastUpdate)) / 1000
+                      )}
+                      s ago
+                    </p>
+                  </div>
+                </Popup>
+                <Tooltip direction="right" offset={[10, 0]} permanent>
+                  <span style={{ color: isOffline ? "#999" : "#000" }}>
+                    Shuttle {shuttleId} {isOffline ? "(Offline)" : ""}
+                  </span>
+                </Tooltip>
+              </MovingMarker>
+            );
+          })}
         </MapContainer>
       </div>
 
@@ -512,12 +663,16 @@ const TellerMain = () => {
             >
               <img
                 src="/locup.png"
-                alt={isLocationSharing ? "Stop Sharing Location" : "Share Location"}
+                alt={
+                  isLocationSharing ? "Stop Sharing Location" : "Share Location"
+                }
                 className="TellerMain-update-location-icon"
                 style={{
                   width: "24px",
                   height: "24px",
-                  filter: isLocationSharing ? "brightness(0) invert(1)" : "none",
+                  filter: isLocationSharing
+                    ? "brightness(0) invert(1)"
+                    : "none",
                 }}
               />
             </button>
@@ -567,7 +722,9 @@ const TellerMain = () => {
         />
       )}
       {isProfilePopupOpen && <ProfilePopup onClose={toggleProfilePopup} />}
-      {isTripFormOpen && <ShuttleTripTracking onClose={closeTripForm} />}
+      {isTripFormOpen && (
+        <ShuttleTripTracking onClose={closeTripForm} socket={socket.current} />
+      )}
 
       {/* Taskbar */}
       <div className="TellerMain-taskbar">

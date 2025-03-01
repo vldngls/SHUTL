@@ -8,54 +8,43 @@ const setupSocket = (io, db) => {
   io.on("connection", (socket) => {
     // SHUTL-Leb: User connection and status update
     console.log("✅ User connected:", socket.id);
-    let userId = socket.handshake.query.userId;
-    console.log(`🔍 Retrieved userId from handshake: ${userId}`);
 
     // Handle user authentication and status updates
     const handleUserAuth = async () => {
-      if (!userId) {
-        const token = socket.handshake.headers.cookie
-          ?.split("; ")
-          .find((row) => row.startsWith("token="))
-          ?.split("=")[1];
+      const token = socket.handshake.headers.cookie
+        ?.split("; ")
+        .find((row) => row.startsWith("token="))
+        ?.split("=")[1];
 
-        if (token) {
-          try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            const cursor = db
-              .collection("users")
-              .find({ email: decoded.email });
-            const user = await cursor.next();
-
-            if (user) {
-              userId = user._id.toString();
-              socket.userId = userId; // Store user ID in socket session
-              console.log(`🔍 Retrieved userId from email: ${userId}`);
-            } else {
-              console.error("❌ No user found with the provided email.");
-              return;
-            }
-          } catch (err) {
-            console.error("❌ Error decoding token or finding user:", err);
-            return;
-          }
-        } else {
-          console.error("❌ No token provided in WebSocket connection.");
-          return;
-        }
-      } else {
-        socket.userId = userId; // Store user ID in socket session
+      if (!token) {
+        console.error("❌ No token provided in WebSocket connection.");
+        return;
       }
 
       try {
-        await User.findByIdAndUpdate(userId, {
-          status: "active",
-          last_active: new Date(),
-        });
-        console.log(`✅ Updated user ${userId} to active`);
-        io.emit("status_update", { userId, status: "active" });
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log("🔍 Retrieved email from token:", decoded.email);
+
+        const user = await User.findOne({ email: decoded.email });
+        if (user) {
+          socket.userId = user._id.toString();
+          socket.userEmail = decoded.email;
+          console.log(
+            `✅ Authenticated user: ${decoded.email} (${socket.userId})`
+          );
+
+          await User.findByIdAndUpdate(socket.userId, {
+            status: "active",
+            last_active: new Date(),
+          });
+          io.emit("status_update", { userId: socket.userId, status: "active" });
+        } else {
+          console.error("❌ No user found with the provided email.");
+          return;
+        }
       } catch (err) {
-        console.error("❌ Error updating user status:", err);
+        console.error("❌ Error decoding token or finding user:", err);
+        return;
       }
     };
 

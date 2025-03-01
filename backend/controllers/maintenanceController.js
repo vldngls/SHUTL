@@ -1,8 +1,8 @@
-import os from 'os';
-import { exec } from 'child_process';
-import util from 'util';
-import MaintenanceLog from '../models/maintenanceLog.js';
-import mongoose from 'mongoose';
+import os from "os";
+import { exec } from "child_process";
+import util from "util";
+import MaintenanceLog from "../models/maintenanceLog.js";
+import mongoose from "mongoose";
 
 const execPromise = util.promisify(exec);
 
@@ -11,20 +11,20 @@ let apiStats = {
   requests: 0,
   success: 0,
   startTime: Date.now(),
-  logs: []
+  logs: [],
 };
 
 // Function to log API calls
 const logApiCall = (success, details) => {
   apiStats.requests++;
   if (success) apiStats.success++;
-  
+
   const log = {
     time: new Date().toLocaleTimeString(),
     result: details,
-    success
+    success,
   };
-  
+
   apiStats.logs.unshift(log);
   if (apiStats.logs.length > 50) apiStats.logs.pop();
 };
@@ -41,18 +41,18 @@ const maintenanceController = {
       res.json({
         cpu: {
           usage: cpuUsage,
-          cores: os.cpus().length
+          cores: os.cpus().length,
         },
         memory: memoryUsage,
         storage: storageUsage,
         uptime,
         platform: os.platform(),
         arch: os.arch(),
-        hostname: os.hostname()
+        hostname: os.hostname(),
       });
     } catch (error) {
-      console.error('Error getting system health:', error);
-      res.status(500).json({ error: 'Failed to get system health metrics' });
+      console.error("Error getting system health:", error);
+      res.status(500).json({ error: "Failed to get system health metrics" });
     }
   },
 
@@ -60,53 +60,58 @@ const maintenanceController = {
   backupSystem: async (req, res) => {
     try {
       // Create backups directory if it doesn't exist
-      const fs = await import('fs/promises');
-      const path = await import('path');
-      
-      const backupsDir = path.join(process.cwd(), 'backups');
+      const fs = await import("fs/promises");
+      const path = await import("path");
+
+      const backupsDir = path.join(process.cwd(), "backups");
       await fs.mkdir(backupsDir, { recursive: true });
-      
+
       // Generate backup filename with timestamp
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
       const backupFile = path.join(backupsDir, `backup-${timestamp}.json`);
-      
+
       // Get all collections
-      const collections = await mongoose.connection.db.listCollections().toArray();
+      const collections = await mongoose.connection.db
+        .listCollections()
+        .toArray();
       const backup = {};
-      
+
       // Backup each collection
       for (const collection of collections) {
-        const data = await mongoose.connection.db.collection(collection.name).find({}).toArray();
+        const data = await mongoose.connection.db
+          .collection(collection.name)
+          .find({})
+          .toArray();
         backup[collection.name] = data;
       }
-      
+
       // Write backup to file
       await fs.writeFile(backupFile, JSON.stringify(backup, null, 2));
 
       // Log the backup action
       await MaintenanceLog.create({
-        action: 'System backup',
-        status: 'success',
+        action: "System backup",
+        status: "success",
         details: `Backup created: backup-${timestamp}.json`,
-        userId: req.user._id
+        userId: req.user._id,
       });
 
-      res.json({ 
+      res.json({
         message: `Backup created successfully: backup-${timestamp}.json`,
-        timestamp 
+        timestamp,
       });
     } catch (error) {
-      console.error('Backup error:', error);
-      
+      console.error("Backup error:", error);
+
       // Log the error
       await MaintenanceLog.create({
-        action: 'System backup',
-        status: 'error',
+        action: "System backup",
+        status: "error",
         details: error.message,
-        userId: req.user._id
+        userId: req.user._id,
       });
 
-      res.status(500).json({ error: 'Failed to create backup' });
+      res.status(500).json({ error: "Failed to create backup" });
     }
   },
 
@@ -114,32 +119,35 @@ const maintenanceController = {
   clearCache: async (req, res) => {
     try {
       // Clear Mongoose connection cache
-      mongoose.connection.db.collection('cache').drop().catch(() => {});
-      
+      mongoose.connection.db
+        .collection("cache")
+        .drop()
+        .catch(() => {});
+
       // Clear application cache
       global.cache = {};
-      
+
       // Log the action
       await MaintenanceLog.create({
-        action: 'Cache cleared',
-        status: 'success',
-        details: 'Application and database cache cleared',
-        userId: req.user._id
+        action: "Cache cleared",
+        status: "success",
+        details: "Application and database cache cleared",
+        userId: req.user._id,
       });
 
-      res.json({ message: 'Cache cleared successfully' });
+      res.json({ message: "Cache cleared successfully" });
     } catch (error) {
-      console.error('Cache clear error:', error);
+      console.error("Cache clear error:", error);
 
       // Log the error
       await MaintenanceLog.create({
-        action: 'Cache cleared',
-        status: 'error',
+        action: "Cache cleared",
+        status: "error",
         details: error.message,
-        userId: req.user._id
+        userId: req.user._id,
       });
 
-      res.status(500).json({ error: 'Failed to clear cache' });
+      res.status(500).json({ error: "Failed to clear cache" });
     }
   },
 
@@ -147,112 +155,122 @@ const maintenanceController = {
   optimizeDatabase: async (req, res) => {
     try {
       // Get all collections
-      const collections = await mongoose.connection.db.listCollections().toArray();
+      const collections = await mongoose.connection.db
+        .listCollections()
+        .toArray();
       const stats = [];
-      
+
       // For each collection, we'll remove and recreate indexes
       for (const collection of collections) {
         const coll = mongoose.connection.db.collection(collection.name);
-        
+
         // Get existing indexes
         const indexes = await coll.indexes();
-        
+
         // Drop all indexes except _id
         for (const index of indexes) {
-          if (index.name !== '_id_') {
+          if (index.name !== "_id_") {
             await coll.dropIndex(index.name);
           }
         }
-        
+
         // Recreate indexes
         for (const index of indexes) {
-          if (index.name !== '_id_') {
+          if (index.name !== "_id_") {
             await coll.createIndex(index.key, index.options);
           }
         }
-        
+
         stats.push(`Optimized ${collection.name}`);
       }
-      
+
       // Log the action
       await MaintenanceLog.create({
-        action: 'Database optimization',
-        status: 'success',
+        action: "Database optimization",
+        status: "success",
         details: `Optimized ${collections.length} collections`,
-        userId: req.user._id
+        userId: req.user._id,
       });
 
-      res.json({ 
-        message: 'Database optimization completed successfully',
-        details: stats
+      res.json({
+        message: "Database optimization completed successfully",
+        details: stats,
       });
     } catch (error) {
-      console.error('Database optimization error:', error);
+      console.error("Database optimization error:", error);
 
       // Log the error
       await MaintenanceLog.create({
-        action: 'Database optimization',
-        status: 'error',
+        action: "Database optimization",
+        status: "error",
         details: error.message,
-        userId: req.user._id
+        userId: req.user._id,
       });
 
-      res.status(500).json({ error: 'Failed to optimize database' });
+      res.status(500).json({ error: "Failed to optimize database" });
     }
   },
 
   // Check for system updates
   checkUpdates: async (req, res) => {
     try {
-      const packageJson = await import('../../package.json', { assert: { type: 'json' } });
-      const dependencies = { ...packageJson.default.dependencies, ...packageJson.default.devDependencies };
-      
+      const packageJson = await import("../../package.json", {
+        assert: { type: "json" },
+      });
+      const dependencies = {
+        ...packageJson.default.dependencies,
+        ...packageJson.default.devDependencies,
+      };
+
       const updates = [];
       for (const [pkg, version] of Object.entries(dependencies)) {
         try {
-          const response = await fetch(`https://registry.npmjs.org/${pkg}/latest`);
+          const response = await fetch(
+            `https://registry.npmjs.org/${pkg}/latest`
+          );
           const data = await response.json();
-          const currentVersion = version.replace(/[^0-9.]/g, '');
+          const currentVersion = version.replace(/[^0-9.]/g, "");
           const latestVersion = data.version;
-          
+
           if (currentVersion !== latestVersion) {
             updates.push({
               package: pkg,
               current: currentVersion,
-              latest: latestVersion
+              latest: latestVersion,
             });
           }
         } catch (err) {
           console.warn(`Failed to check updates for ${pkg}:`, err);
         }
       }
-      
+
       // Log the action
       await MaintenanceLog.create({
-        action: 'System update check',
-        status: 'success',
+        action: "System update check",
+        status: "success",
         details: `Found ${updates.length} updates available`,
-        userId: req.user._id
+        userId: req.user._id,
       });
 
-      res.json({ 
-        message: updates.length > 0 
-          ? `${updates.length} updates available` 
-          : 'System is up to date',
-        updates 
+      res.json({
+        message:
+          updates.length > 0
+            ? `${updates.length} updates available`
+            : "System is up to date",
+        updates,
       });
     } catch (error) {
-      console.error('Update check error:', error);
+      console.error("Update check error:", error);
 
       // Log the error
       await MaintenanceLog.create({
-        action: 'System update check',
-        status: 'error',
+        action: "System update check",
+        status: "error",
         details: error.message,
-        userId: req.user._id
+        userId: req.user._id,
       });
 
-      res.status(500).json({ error: 'Failed to check for updates' });
+      res.status(500).json({ error: "Failed to check for updates" });
     }
   },
 
@@ -261,17 +279,17 @@ const maintenanceController = {
     try {
       const currentTime = Date.now();
       const uptime = Math.floor((currentTime - apiStats.startTime) / 1000);
-      
+
       res.json({
         requests: apiStats.requests,
         success: apiStats.success,
         ping: await getPingTime(),
         uptime,
-        logs: apiStats.logs
+        logs: apiStats.logs,
       });
     } catch (error) {
-      console.error('API stats error:', error);
-      res.status(500).json({ error: 'Failed to get API statistics' });
+      console.error("API stats error:", error);
+      res.status(500).json({ error: "Failed to get API statistics" });
     }
   },
 
@@ -282,67 +300,63 @@ const maintenanceController = {
       const logs = await MaintenanceLog.find()
         .sort({ createdAt: -1 })
         .limit(100)
-        .populate('userId', 'name');
-      
-      res.json(logs.map(log => ({
-        time: new Date(log.createdAt).toLocaleTimeString(),
-        action: log.action,
-        status: log.status,
-        details: log.details,
-        user: log.userId?.name || 'System'
-      })));
+        .populate("userId", "name");
+
+      res.json(
+        logs.map((log) => ({
+          time: new Date(log.createdAt).toLocaleTimeString(),
+          action: log.action,
+          status: log.status,
+          details: log.details,
+          user: log.userId?.name || "System",
+        }))
+      );
     } catch (error) {
-      console.error('Logs error:', error);
-      res.status(500).json({ error: 'Failed to get maintenance logs' });
+      console.error("Logs error:", error);
+      res.status(500).json({ error: "Failed to get maintenance logs" });
     }
   },
 
   // Get user stats
   getUserStats: async (req, res) => {
     try {
-      // Fetch users from the database
-      const users = await mongoose.connection.db.collection('users').find({}).toArray();
-      
+      // Fetch users and their corresponding userdata
+      const users = await mongoose.connection.db
+        .collection("users")
+        .find({})
+        .toArray();
+
+      const userEmails = users.map((user) => user.email);
+      const userDatas = await mongoose.connection.db
+        .collection("userdatas")
+        .find({ email: { $in: userEmails } })
+        .toArray();
+
+      // Create a map of email to userdata for quick lookup
+      const userDataMap = new Map(
+        userDatas.map((userData) => [userData.email, userData])
+      );
+
       const stats = {
         users: users.length,
-        drivers: users.filter(user => user.userType === 'Driver').length,
-        tellers: users.filter(user => user.userType === 'Teller').length,
-        usersList: users.map(user => ({
+        drivers: users.filter((user) => user.userType === "Driver").length,
+        tellers: users.filter((user) => user.userType === "Teller").length,
+        usersList: users.map((user) => ({
           name: user.name,
           email: user.email,
           userType: user.userType,
           status: user.status,
-          profilePicture: user.profilePicture || user.avatar
-        }))
+          profilePicture:
+            userDataMap.get(user.email)?.profilePicture || "/avatar.png",
+        })),
       };
-      
-      // Log the action
-      await MaintenanceLog.create({
-        action: 'User stats',
-        status: 'success',
-        details: JSON.stringify({
-          total: stats.users,
-          drivers: stats.drivers,
-          tellers: stats.tellers
-        }),
-        userId: req.user._id
-      });
 
       res.json(stats);
     } catch (error) {
-      console.error('User stats error:', error);
-
-      // Log the error
-      await MaintenanceLog.create({
-        action: 'User stats',
-        status: 'error',
-        details: error.message,
-        userId: req.user._id
-      });
-
-      res.status(500).json({ error: 'Failed to get user stats' });
+      console.error("User stats error:", error);
+      res.status(500).json({ error: "Failed to get user stats" });
     }
-  }
+  },
 };
 
 // Helper functions
@@ -351,7 +365,7 @@ function getCpuUsage() {
   let totalIdle = 0;
   let totalTick = 0;
 
-  cpus.forEach(cpu => {
+  cpus.forEach((cpu) => {
     for (const type in cpu.times) {
       totalTick += cpu.times[type];
     }
@@ -361,7 +375,7 @@ function getCpuUsage() {
   const idle = totalIdle / cpus.length;
   const total = totalTick / cpus.length;
   const usage = Math.round(100 * (1 - idle / total));
-  
+
   return usage;
 }
 
@@ -369,12 +383,12 @@ function getMemoryUsage() {
   const total = os.totalmem();
   const free = os.freemem();
   const used = total - free;
-  
+
   return {
     total: Math.round(total / 1024 / 1024),
     used: Math.round(used / 1024 / 1024),
     free: Math.round(free / 1024 / 1024),
-    usagePercentage: Math.round((used / total) * 100)
+    usagePercentage: Math.round((used / total) * 100),
   };
 }
 
@@ -383,7 +397,7 @@ function getStorageUsage() {
     total: "N/A",
     used: "N/A",
     free: "N/A",
-    usagePercentage: "N/A"
+    usagePercentage: "N/A",
   };
 }
 
@@ -392,13 +406,13 @@ function getSystemUptime() {
   const days = Math.floor(uptime / 86400);
   const hours = Math.floor((uptime % 86400) / 3600);
   const minutes = Math.floor((uptime % 3600) / 60);
-  
+
   return {
     days,
     hours,
     minutes,
     formatted: `${days}d ${hours}h ${minutes}m`,
-    total: uptime
+    total: uptime,
   };
 }
 
@@ -408,4 +422,4 @@ async function getPingTime() {
   return Date.now() - start;
 }
 
-export default maintenanceController; 
+export default maintenanceController;

@@ -40,19 +40,45 @@ const getTrafficCondition = (speed) => {
 };
 
 const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
-  const [totalUsers, setTotalUsers] = useState(0); // State for total registered users
-  const [activeUsers, setActiveUsers] = useState(0); // State for active (online) users
-  const [notificationMessage, setNotificationMessage] = useState(""); // State for notification message
-  const [recipientType, setRecipientType] = useState("Commuter"); // Default recipient type
-  const [notificationStatus, setNotificationStatus] = useState(null); // Status message for feedback
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [activeUsers, setActiveUsers] = useState(0);
+  const [notificationMessage, setNotificationMessage] = useState("");
+  const [recipientType, setRecipientType] = useState("Commuter");
+  const [notificationStatus, setNotificationStatus] = useState(null);
   const [shuttleStats, setShuttleStats] = useState(null);
   const [operationalHours, setOperationalHours] = useState({
     startTime: "05:00",
     endTime: "22:00",
   });
   const [shuttleAssignments, setShuttleAssignments] = useState([]);
-  const [shuttleSpeeds, setShuttleSpeeds] = useState({});
   const [shuttleLocations, setShuttleLocations] = useState({});
+  const optimizedLocations = useOptimizedLocations(shuttleLocations);
+
+  // Update shuttle locations when initialShuttleLocations changes
+  useEffect(() => {
+    if (initialShuttleLocations) {
+      setShuttleLocations(initialShuttleLocations);
+    }
+  }, [initialShuttleLocations]);
+
+  // Update shuttle stats when locations change
+  useEffect(() => {
+    const updateShuttleStats = () => {
+      if (!shuttleLocations) return;
+
+      const activeShuttles = Object.values(shuttleLocations).filter(
+        (data) => data && data.coordinates
+      ).length;
+
+      setShuttleStats((prev) => ({
+        ...prev,
+        activeShuttles,
+        inTrips: activeShuttles,
+      }));
+    };
+
+    updateShuttleStats();
+  }, [shuttleLocations]);
 
   useEffect(() => {
     const fetchUserCounts = async () => {
@@ -107,41 +133,92 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
   }, []);
 
   useEffect(() => {
-    const fetchShuttleAssignments = async () => {
+    // Initialize socket connection
+    socket.current = connectSocket();
+
+    // Subscribe to location updates
+    const locationCleanup = subscribeToLocationUpdates((data) => {
+      setShuttleLocations((prev) => ({
+        ...prev,
+        [data.shuttleId]: {
+          coordinates: data.coordinates || null,
+          lastUpdate: new Date(data.timestamp || Date.now()),
+          speed: data.metadata?.speed ?? 0,
+          heading: data.metadata?.heading ?? 0,
+          accuracy: data.metadata?.accuracy ?? 0,
+          isPredicted: false,
+          lastKnownCoordinates: data.coordinates || null,
+          lastKnownSpeed: data.metadata?.speed ?? 0,
+          lastKnownHeading: data.metadata?.heading ?? 0,
+        },
+      }));
+
+      // Update traffic conditions based on speed
+      if (data.metadata?.speed !== undefined) {
+        updateTrafficConditions(data.shuttleId, data.metadata.speed);
+      }
+    });
+
+    // Fetch and track active shuttles
+    const fetchAndTrackShuttles = async () => {
       try {
-        const data = await shuttleService.getAssignments();
-        setShuttleAssignments(data);
+        const token = getCookie("token");
+        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const assignments = Array.isArray(data) ? data : data.assignments || [];
+
+        // Join tracking for each active shuttle
+        assignments.forEach((assignment) => {
+          if (assignment && assignment.shuttleId) {
+            joinShuttleTracking(assignment.shuttleId);
+          }
+        });
       } catch (error) {
         console.error("Error fetching shuttle assignments:", error);
+        toast.error("Failed to fetch shuttle assignments");
       }
     };
 
-    fetchShuttleAssignments();
-  }, []);
+    fetchAndTrackShuttles();
 
-  useEffect(() => {
-    console.log(
-      "AdministratorDashboard received locations:",
-      initialShuttleLocations
-    );
-    if (initialShuttleLocations) {
-      const updatedLocations = {};
-      Object.entries(initialShuttleLocations).forEach(([shuttleId, data]) => {
-        if (data.coordinates) {
-          updatedLocations[shuttleId] = {
-            ...data,
-            speed: data.metadata?.speed || 0,
-            heading: data.metadata?.heading,
-            accuracy: data.metadata?.accuracy,
-          };
-        }
+    // Clean up stale locations every 10 seconds
+    const cleanupInterval = setInterval(() => {
+      setShuttleLocations((prev) => {
+        const now = new Date();
+        const updatedLocations = {};
+
+        Object.entries(prev).forEach(([shuttleId, data]) => {
+          const timeSinceUpdate = now - new Date(data.lastUpdate);
+          if (timeSinceUpdate < 60000) {
+            updatedLocations[shuttleId] = data;
+          } else {
+            console.log(
+              `Removing stale location for ${shuttleId} after 1 minute`
+            );
+          }
+        });
+
+        return updatedLocations;
       });
-      setShuttleLocations(updatedLocations);
-    }
-  }, [initialShuttleLocations]);
+    }, 10000);
 
-  // Use optimizedLocations from the hook for rendering
-  const optimizedLocations = useOptimizedLocations(shuttleLocations);
+    return () => {
+      clearInterval(cleanupInterval);
+      locationCleanup();
+    };
+  }, []);
 
   const handleSendNotification = async () => {
     try {

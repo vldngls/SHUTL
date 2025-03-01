@@ -1,10 +1,28 @@
+:root {
+  --shutl-primary: #4caf50;
+  --shutl-primary-hover: #45a049;
+  --shutl-primary-light: rgba(76, 175, 80, 0.2);
+  --shutl-bg: #fff;
+  --shutl-bg-secondary: #f9f9f9;
+  --shutl-border: #e0e0e0;
+  --shutl-text: #333;
+  --shutl-text-secondary: #555;
+  --shutl-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  --shutl-radius-sm: 8px;
+  --shutl-radius-lg: 16px;
+  --shutl-radius-full: 50%;
+  --shutl-spacing-xs: 4px;
+  --shutl-spacing-sm: 8px;
+  --shutl-spacing-md: 12px;
+  --shutl-spacing-lg: 16px;
+  --shutl-spacing-xl: 20px;
+  --shutl-transition: 0.3s ease;
+}
+
 /* Popup overlay */
 .ShutlProfilePopup {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -14,40 +32,42 @@
 
 /* Popup content */
 .ShutlProfilePopup-content {
-  background-color: white;
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  background-color: var(--shutl-bg);
+  padding: var(--shutl-spacing-xl);
+  border-radius: var(--shutl-radius-lg);
+  box-shadow: var(--shutl-shadow);
   width: 500px;
-  height: auto;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--shutl-spacing-md);
   position: relative;
-  animation: slideIn 0.3s ease-out;
-  box-sizing: border-box;
-  overflow: hidden; /* Prevent scrolling */
+  animation: slideIn var(--shutl-transition);
+  overflow: auto;
 }
 
 /* Profile header */
 .ShutlProfilePopup-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  width: 100%;
-  box-sizing: border-box;
-  margin: 0;
-  padding-bottom: 12px;
+  gap: var(--shutl-spacing-md);
+  padding-bottom: var(--shutl-spacing-md);
 }
 
 /* Profile picture styling */
+.ShutlProfilePopup-picture-container {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
 .ShutlProfilePopup-picture {
   width: 80px;
   height: 80px;
-  border-radius: 50%;
+  border-radius: var(--shutl-radius-full);
   object-fit: cover;
-  border: 2px solid #ddd;
+  border: 2px solid var(--shutl-border);
+  transition: border-color var(--shutl-transition);
 }
 
 /* Profile info section */
@@ -65,47 +85,53 @@
 
 /* Edit button */
 .ShutlProfilePopup-edit-btn {
-  padding: 6px 12px;
-  background-color: #ccc;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: background-color 0.3s ease;
+  padding: var(--shutl-spacing-xs) var(--shutl-spacing-md) !important;
+  background-color: #ccc !important;
+  font-size: 12px !important;
 }
 
 .ShutlProfilePopup-edit-btn:hover {
-  background-color: #bbb;
+  background-color: #bbb !important;
 }
 
 /* User details section */
 .ShutlProfilePopup-details {
-  background-color: #f9f9f9;
-  padding: 12px;
-  border-radius: 8px;
+  background-color: var(--shutl-bg-secondary);
+  padding: var(--shutl-spacing-lg);
+  border-radius: var(--shutl-radius-sm);
   display: grid;
-  gap: 8px;
-  width: 100%;
-  box-sizing: border-box;
-  margin: 0;
+  gap: var(--shutl-spacing-sm);
 }
 
-.ShutlProfilePopup-details p,
-.ShutlProfilePopup-details input {
+.ShutlProfilePopup-details p {
   margin: 0;
   font-size: 13px;
-  color: #555;
+  color: var(--shutl-text-secondary);
 }
 
-.ShutlProfilePopup-details input {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+.ShutlProfilePopup input,
+.ShutlProfilePopup select {
+  padding: var(--shutl-spacing-md);
+  border: 1px solid var(--shutl-border);
+  border-radius: var(--shutl-radius-sm);
   font-size: 14px;
   width: 100%;
   box-sizing: border-box;
-  margin: 0;
-  max-width: none;
+  background-color: var(--shutl-bg);
+  transition: border-color var(--shutl-transition),
+    box-shadow var(--shutl-transition);
+}
+
+.ShutlProfilePopup input:focus,
+.ShutlProfilePopup select:focus {
+  outline: none;
+  border-color: var(--shutl-primary);
+  box-shadow: 0 0 0 2px var(--shutl-primary-light);
+}
+
+.ShutlProfilePopup input:hover,
+.ShutlProfilePopup select:hover {
+  border-color: var(--shutl-primary);
 }
 
 /* Save button styling */
@@ -148,8 +174,8 @@
 @media (max-width: 600px) {
   .ShutlProfilePopup-content {
     width: 90%;
-    padding: 15px;
-    gap: 10px;
+    padding: var(--shutl-spacing-md);
+    gap: var(--shutl-spacing-sm);
   }
 
   .ShutlProfilePopup-header {
@@ -184,18 +210,9 @@
 }
 
 /* Edit mode specific styles */
-.ShutlProfilePopup-picture-container {
-  position: relative;
-  display: inline-block;
-  cursor: pointer;
-}
-
 .ShutlProfilePopup-upload {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   opacity: 0;
   cursor: pointer;
   z-index: 2;
@@ -203,37 +220,40 @@
 
 .ShutlProfilePopup-picture-overlay {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  inset: auto 0 0;
   background: rgba(0, 0, 0, 0.5);
   color: white;
   font-size: 12px;
-  padding: 4px;
+  padding: var(--shutl-spacing-xs);
   text-align: center;
-  border-bottom-left-radius: 40px;
-  border-bottom-right-radius: 40px;
+  border-bottom-left-radius: var(--shutl-radius-full);
+  border-bottom-right-radius: var(--shutl-radius-full);
   pointer-events: none;
 }
 
 /* Edit mode enhancements */
 .ShutlProfilePopup-edit-details {
-  background-color: #f9f9f9;
-  padding: 20px;
-  border-radius: 8px;
+  background-color: var(--shutl-bg-secondary);
+  padding: var(--shutl-spacing-xl);
+  border-radius: var(--shutl-radius-sm);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--shutl-spacing-lg);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .ShutlProfilePopup-edit-details input,
 .ShutlProfilePopup-edit-details select {
-  padding: 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  padding: var(--shutl-spacing-md);
+  border: 1px solid var(--shutl-border);
+  border-radius: var(--shutl-radius-sm);
   font-size: 14px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  background-color: white;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: var(--shutl-bg);
+  transition: border-color var(--shutl-transition),
+    box-shadow var(--shutl-transition);
 }
 
 .ShutlProfilePopup-edit-details input:focus,
@@ -314,28 +334,29 @@
 .transaction-list {
   max-height: 300px;
   overflow-y: auto;
-  padding: 10px;
+  padding: var(--shutl-spacing-sm);
+  margin: calc(-1 * var(--shutl-spacing-sm));
 }
 
 .transaction-item {
-  background-color: #f8f9fa;
-  border-left: 4px solid #4CAF50;
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 15px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  background-color: var(--shutl-bg);
+  padding: var(--shutl-spacing-md);
+  border-radius: var(--shutl-radius-sm);
+  margin-bottom: var(--shutl-spacing-sm);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .transaction-item h4 {
-  color: #2c3e50;
-  margin: 0 0 10px 0;
-  font-size: 1.1em;
+  margin: 0 0 var(--shutl-spacing-sm);
+  color: var(--shutl-text);
+  font-size: 14px;
 }
 
 .transaction-details {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  gap: var(--shutl-spacing-xs);
+  font-size: 13px;
+  color: var(--shutl-text-secondary);
 }
 
 .transaction-row {
@@ -366,21 +387,33 @@
   margin-top: 8px;
 }
 
-/* Scrollbar styling */
+/* Custom scrollbar */
+.transaction-list {
+  scrollbar-width: thin;
+  scrollbar-color: var(--shutl-primary) var(--shutl-bg-secondary);
+}
+
 .transaction-list::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .transaction-list::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+  background: var(--shutl-bg-secondary);
 }
 
 .transaction-list::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
+  background-color: var(--shutl-primary);
+  border-radius: var(--shutl-radius-full);
 }
 
-.transaction-list::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

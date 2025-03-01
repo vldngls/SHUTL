@@ -19,7 +19,6 @@ import {
   joinShuttleTracking,
 } from "../utils/websocketService";
 import { toast } from "react-hot-toast";
-import "react-toastify/dist/ReactToastify.css";
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 import MovingMarker from "../components/MovingMarker";
 
@@ -120,34 +119,26 @@ const ShutlLoggedIn = () => {
   const [shuttleSpeeds, setShuttleSpeeds] = useState({});
 
   useEffect(() => {
-    // Function to clean up stale locations
-    const cleanupStaleLocations = () => {
-      setShuttleLocations((prev) => {
-        const now = new Date();
-        const updatedLocations = {};
-
-        Object.entries(prev).forEach(([shuttleId, data]) => {
-          const timeSinceUpdate = now - new Date(data.lastUpdate);
-
-          // Only remove if beyond MAX_PREDICTION_TIME (1 minute)
-          if (timeSinceUpdate < 60000) {
-            updatedLocations[shuttleId] = data;
-          } else {
-            console.log(
-              `Removing stale location for ${shuttleId} after 1 minute`
-            );
-          }
-        });
-
-        return updatedLocations;
-      });
-    };
-
-    // Run cleanup every 10 seconds instead of 3
-    const cleanupInterval = setInterval(cleanupStaleLocations, 10000);
-
     // Initialize socket connection
     socket.current = connectSocket();
+
+    // Subscribe to location updates
+    const locationCleanup = subscribeToLocationUpdates((data) => {
+      setShuttleLocations((prev) => ({
+        ...prev,
+        [data.shuttleId]: {
+          coordinates: data.coordinates || null,
+          lastUpdate: new Date(data.timestamp || Date.now()),
+          speed: data.metadata?.speed ?? 0,
+          heading: data.metadata?.heading ?? 0,
+          accuracy: data.metadata?.accuracy ?? 0,
+          isPredicted: false,
+          lastKnownCoordinates: data.coordinates || null,
+          lastKnownSpeed: data.metadata?.speed ?? 0,
+          lastKnownHeading: data.metadata?.heading ?? 0,
+        },
+      }));
+    });
 
     // Fetch and track active shuttles
     const fetchAndTrackShuttles = async () => {
@@ -183,47 +174,6 @@ const ShutlLoggedIn = () => {
 
     fetchAndTrackShuttles();
 
-    // Listen for both types of location updates
-    socket.current.on("shuttle_location", (data) => {
-      setShuttleLocations((prev) => {
-        // Always update with real data when received
-        return {
-          ...prev,
-          [data.shuttleId]: {
-            coordinates: data.coordinates || null,
-            lastUpdate: new Date(data.timestamp || Date.now()),
-            speed: data.metadata?.speed ?? 0,
-            heading: data.metadata?.heading ?? 0,
-            accuracy: data.metadata?.accuracy ?? 0,
-            isPredicted: false,
-            lastKnownCoordinates: data.coordinates || null,
-            lastKnownSpeed: data.metadata?.speed ?? 0,
-            lastKnownHeading: data.metadata?.heading ?? 0,
-          },
-        };
-      });
-    });
-
-    socket.current.on("shuttle_location_update", (data) => {
-      setShuttleLocations((prev) => {
-        // Always update with real data when received
-        return {
-          ...prev,
-          [data.shuttleId]: {
-            coordinates: data.coordinates || null,
-            lastUpdate: new Date(data.timestamp || Date.now()),
-            speed: data.metadata?.speed ?? 0,
-            heading: data.metadata?.heading ?? 0,
-            accuracy: data.metadata?.accuracy ?? 0,
-            isPredicted: false,
-            lastKnownCoordinates: data.coordinates || null,
-            lastKnownSpeed: data.metadata?.speed ?? 0,
-            lastKnownHeading: data.metadata?.heading ?? 0,
-          },
-        };
-      });
-    });
-
     // Add socket event listeners for pickup request responses
     socket.current.on("pickup_request_accepted", (data) => {
       toast.success(
@@ -248,35 +198,34 @@ const ShutlLoggedIn = () => {
       });
     });
 
-    // Add socket connection and notification handling
-    socket.current.on("new_notification", (notification) => {
-      setNotifications((prev) => {
-        const updatedNotifications = [notification, ...prev];
-        return updatedNotifications.slice(0, 5); // Keep only 5 most recent notifications
-      });
-      // Automatically show notification popup
-      setActivePopup("notifications");
+    // Clean up stale locations every 10 seconds
+    const cleanupInterval = setInterval(() => {
+      setShuttleLocations((prev) => {
+        const now = new Date();
+        const updatedLocations = {};
 
-      // Auto-hide after 5 seconds
-      setTimeout(() => {
-        setActivePopup((current) =>
-          current === "notifications" ? null : current
-        );
-      }, 5000);
-    });
+        Object.entries(prev).forEach(([shuttleId, data]) => {
+          const timeSinceUpdate = now - new Date(data.lastUpdate);
+          if (timeSinceUpdate < 60000) {
+            updatedLocations[shuttleId] = data;
+          } else {
+            console.log(
+              `Removing stale location for ${shuttleId} after 1 minute`
+            );
+          }
+        });
+
+        return updatedLocations;
+      });
+    }, 10000);
 
     return () => {
-      // Clear the cleanup interval
       clearInterval(cleanupInterval);
-
+      locationCleanup();
       if (socket.current) {
-        socket.current.off("shuttle_location");
-        socket.current.off("shuttle_location_update");
         socket.current.off("pickup_request_accepted");
         socket.current.off("pickup_request_completed");
         socket.current.off("pickup_request_cancelled");
-        socket.current.off("new_notification");
-        disconnectSocket();
       }
     };
   }, []);
@@ -493,7 +442,11 @@ const ShutlLoggedIn = () => {
           const timeSinceUpdate = now - new Date(data.lastUpdate);
 
           // Switch to prediction mode after 5 seconds of no updates
-          if (timeSinceUpdate > 5000 && !data.isPredicted && data.lastKnownSpeed > 0) {
+          if (
+            timeSinceUpdate > 5000 &&
+            !data.isPredicted &&
+            data.lastKnownSpeed > 0
+          ) {
             // Start prediction using last known values
             const predictedPosition = predictNewPosition(
               data.lastKnownCoordinates,
@@ -508,7 +461,7 @@ const ShutlLoggedIn = () => {
                 coordinates: predictedPosition,
                 speed: data.lastKnownSpeed,
                 heading: data.lastKnownHeading,
-                isPredicted: true
+                isPredicted: true,
               };
               hasUpdates = true;
             }
@@ -525,7 +478,7 @@ const ShutlLoggedIn = () => {
               updatedLocations[shuttleId] = {
                 ...data,
                 coordinates: predictedPosition,
-                isPredicted: true
+                isPredicted: true,
               };
               hasUpdates = true;
             }
@@ -566,16 +519,14 @@ const ShutlLoggedIn = () => {
 
     // Calculate new position using haversine formula
     const dLat = (distance * Math.cos(headingRad)) / R;
-    const dLon = (distance * Math.sin(headingRad)) / (R * Math.cos(lat * Math.PI / 180));
+    const dLon =
+      (distance * Math.sin(headingRad)) / (R * Math.cos((lat * Math.PI) / 180));
 
     // Convert back to degrees
-    const newLat = lat + (dLat * 180 / Math.PI);
-    const newLon = lon + (dLon * 180 / Math.PI);
+    const newLat = lat + (dLat * 180) / Math.PI;
+    const newLon = lon + (dLon * 180) / Math.PI;
 
-    return [
-      Number(newLat.toFixed(6)),
-      Number(newLon.toFixed(6))
-    ];
+    return [Number(newLat.toFixed(6)), Number(newLon.toFixed(6))];
   };
 
   return (

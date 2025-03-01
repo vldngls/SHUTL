@@ -1,37 +1,71 @@
 import bcrypt from "bcryptjs";
 import User from "../models/user.model.js";
+import UserData from "../models/userData.model.js";
 import jwt from "jsonwebtoken";
+import MaintenanceLog from "../models/maintenanceLog.js";
 
 export const registerUser = async (req, res) => {
-  const { name, email, username, password, userType } = req.body;
-
   try {
-    const userExists = await User.findOne({ email });
+    const { name, email, username, password, userType, profilePicture } =
+      req.body;
 
+    // Check if user exists
+    const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Create user
     const user = await User.create({
       name,
       email,
       username,
       password: hashedPassword,
-      userType,
+      userType: userType || "Commuter",
     });
 
-    res.status(201).json({
-      _id: user._id,
-      name: user.name,
+    // Create corresponding userData
+    const userData = await UserData.create({
       email: user.email,
-      username: user.username,
-      userType: user.userType,
+      name: user.name,
+      profilePicture: profilePicture || "/avatar.png",
+      discountType: "REGULAR",
+      discount: 0,
+    });
+
+    // Generate token
+    const token = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+        userType: user.userType,
+        isAdmin: user.userType === "Admin",
+        fullAccess: user.userType === "Admin",
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    res.status(201).json({
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        username: user.username,
+        userType: user.userType,
+        profilePicture: userData.profilePicture,
+        isAdmin: user.userType === "Admin",
+        fullAccess: user.userType === "Admin",
+      },
     });
   } catch (error) {
-    console.error("Error during registration:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Registration error:", error);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -41,29 +75,48 @@ export const loginUser = async (req, res) => {
     const user = await User.findOne({ username });
 
     if (!user) {
+      await MaintenanceLog.create({
+        action: "User login attempt",
+        status: "error",
+        details: `Failed login attempt for username: ${username} - User not found`,
+      });
       return res.status(404).json({ message: "User not found" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      await MaintenanceLog.create({
+        action: "User login attempt",
+        status: "error",
+        details: `Failed login attempt for user: ${user.email} - Invalid credentials`,
+        userId: user._id,
+      });
       return res.status(400).json({ message: "Invalid credentials" });
     }
+
+    // Get user data for profile picture
+    const userData = await UserData.findOne({ email: user.email });
 
     // Enhanced token payload for admin users
     const tokenPayload = {
       id: user._id,
       email: user.email,
       userType: user.userType,
-      // Add additional admin privileges
       isAdmin: user.userType === "Admin",
       fullAccess: user.userType === "Admin",
     };
 
-    const token = jwt.sign(
-      tokenPayload,
-      process.env.JWT_SECRET,
-      { expiresIn: "24h" } // Increased token expiration for admins
-    );
+    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, {
+      expiresIn: "24h",
+    });
+
+    // Log successful login
+    await MaintenanceLog.create({
+      action: "User login",
+      status: "success",
+      details: `User ${user.email} (${user.userType}) logged in successfully`,
+      userId: user._id,
+    });
 
     res.status(200).json({
       token,
@@ -73,11 +126,17 @@ export const loginUser = async (req, res) => {
         email: user.email,
         username: user.username,
         userType: user.userType,
+        profilePicture: userData?.profilePicture || "/avatar.png",
         isAdmin: user.userType === "Admin",
         fullAccess: user.userType === "Admin",
       },
     });
   } catch (error) {
+    await MaintenanceLog.create({
+      action: "User login attempt",
+      status: "error",
+      details: `Login error: ${error.message}`,
+    });
     res.status(500).json({ message: error.message });
   }
 };
@@ -140,5 +199,22 @@ export const getActiveUsers = async (req, res) => {
   } catch (error) {
     console.error("Error fetching active users:", error);
     res.status(500).json({ message: "Error fetching active users count" });
+  }
+};
+
+// New function to get login history
+export const getLoginHistory = async (req, res) => {
+  try {
+    const logs = await MaintenanceLog.find({
+      action: { $in: ["User login", "User login attempt"] },
+    })
+      .sort({ createdAt: -1 })
+      .populate("userId", "email userType")
+      .limit(100);
+
+    res.status(200).json(logs);
+  } catch (error) {
+    console.error("Error fetching login history:", error);
+    res.status(500).json({ message: "Error fetching login history" });
   }
 };

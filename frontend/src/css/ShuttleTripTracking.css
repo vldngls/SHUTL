@@ -156,90 +156,139 @@ tr:hover {
 
 /* Form section */
 .form-section {
-  background: white;
-  border-radius: 12px;
+  background-color: white;
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  height: fit-content;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .form-title {
-  font-size: 1.2rem;
-  color: #2c3e50;
-  margin-bottom: 20px;
+  font-size: 1.25rem;
   font-weight: 600;
+  color: #232323;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #f0f0f0;
 }
 
-/* Form groups */
 .form-group {
-  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   width: 100%;
 }
 
 .form-group label {
-  display: block;
-  margin-bottom: 8px;
-  color: #64748b;
+  font-size: 0.875rem;
   font-weight: 500;
+  color: #4a5568;
 }
 
 .form-group input,
 .form-group select {
   width: 100%;
-  box-sizing: border-box;
-  padding: 8px 12px;
+  padding: 10px 12px;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
-  font-size: 0.95rem;
-  color: #334155;
-  transition: border-color 0.2s ease;
-  height: 40px;
+  font-size: 0.875rem;
+  color: #2d3748;
+  background-color: white;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .form-group input[readonly] {
-  background-color: #f8fafc;
+  background-color: #f7fafc;
   cursor: not-allowed;
 }
 
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
 }
 
-/* Submit button */
+/* Consistent styling for date and time inputs */
+input[type="date"],
+input[type="time"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #2d3748;
+  background-color: white;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  filter: invert(0.8);
+}
+
+/* Submit button styling */
 .submit-button {
   width: 100%;
   padding: 12px;
-  background-color: #3b82f6;
+  background-color: #4299e1;
   color: white;
   border: none;
   border-radius: 6px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease;
-  height: 40px;
+  transition: all 0.2s ease;
+  margin-top: 16px;
 }
 
 .submit-button:hover {
-  background-color: #2563eb;
+  background-color: #3182ce;
+  transform: translateY(-1px);
 }
 
-/* Specific styling for the time input to match other inputs */
-input[type="time"] {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  width: 100%;
+.submit-button:disabled {
+  background-color: #cbd5e0;
+  cursor: not-allowed;
+  transform: none;
 }
 
-/* Ensure date input matches other inputs */
-input[type="date"] {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
+/* Status buttons */
+.status-buttons {
+  display: flex;
+  gap: 8px;
   width: 100%;
+  margin-bottom: 16px;
+}
+
+.status-button {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background-color: white;
+  color: #4a5568;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.status-button:hover {
+  background-color: #f7fafc;
+}
+
+.status-button.active {
+  background-color: #4299e1;
+  color: white;
+  border-color: #4299e1;
 }
 
 /* Style for the select dropdown when status is "In" */
@@ -296,37 +345,6 @@ input[type="date"] {
   .tables-section {
     overflow-y: visible;
   }
-}
-
-/* Add these styles after the form-group styles */
-.status-buttons {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.status-button {
-  flex: 1;
-  padding: 10px;
-  border: 2px solid #e2e8f0;
-  background-color: white;
-  color: #64748b;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.status-button:hover {
-  background-color: #f8fafc;
-  border-color: #3b82f6;
-  color: #3b82f6;
-}
-
-.status-button.active {
-  background-color: #3b82f6;
-  border-color: #3b82f6;
-  color: white;
 }
 
 /* Update the pending-trips styles */

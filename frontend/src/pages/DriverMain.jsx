@@ -13,6 +13,7 @@ import {
   subscribeToMessages,
   sendLocation,
   subscribeToLocationUpdates,
+  getLocationUpdateInterval,
 } from "../utils/websocketService";
 import L from "leaflet";
 import PickupRequestsPanel from "../components/PickupRequestsPanel";
@@ -264,6 +265,7 @@ const DriverMain = () => {
   const [notifications, setNotifications] = useState([]);
   const settingsRef = useRef(null);
   const [shuttleId, setShuttleId] = useState(null);
+  const shuttleIdRef = useRef(null);
   const [pickupRequests, setPickupRequests] = useState([]);
   const [activePickups, setActivePickups] = useState([]);
   const [profileImage, setProfileImage] = useState("/profile.png"); // Default image
@@ -277,69 +279,124 @@ const DriverMain = () => {
 
   // Initialize socket and handle events
   useEffect(() => {
-    socket.current = connectSocket();
-
-    subscribeToMessages((incomingMessage) => {
-      setMessages((prev) => [...prev, incomingMessage]);
-    });
-
-    socket.current.on("new_notification", (notification) => {
-      setNotifications((prev) => {
-        const updatedNotifications = [notification, ...prev];
-        return updatedNotifications.slice(0, 5); // Keep only 5 most recent notifications
-      });
-      // Automatically show notification popup
-      setActivePopup("notifications");
-
-      // Auto-hide after 5 seconds
-      setTimeout(() => {
-        setActivePopup((current) =>
-          current === "notifications" ? null : current
-        );
-      }, 5000);
-    });
-
-    // Load active pickups from localStorage
-    const savedPickups = JSON.parse(
-      localStorage.getItem("activePickups") || "[]"
-    );
-    setActivePickups(savedPickups);
-
-    socket.current.on("pickup_request", (request) => {
-      console.log("🚗 Driver received pickup request:", request);
-      setPickupRequests((prev) => {
-        // Check for duplicates
-        const isDuplicate = prev.some((r) => r.requestId === request.requestId);
-        if (isDuplicate) {
-          console.log("🚫 Duplicate request ignored");
-          return prev;
+    const initializeSocket = async () => {
+      try {
+        // Wait for socket connection
+        const socketInstance = await connectSocket();
+        if (!socketInstance) {
+          toast.error(
+            "Unable to establish connection. Please refresh the page."
+          );
+          return;
         }
-        console.log("✅ Adding new pickup request to state");
-        return [...prev, request];
-      });
 
-      // Create notification without opening panel
-      const notification = createNotification(
-        "pickup_request",
-        `New pickup request received at ${request.location.streetName}!`
-      );
-      setNotifications((prev) => [notification, ...prev].slice(0, 5));
-    });
+        socket.current = socketInstance;
 
-    socket.current.on("pickup_request_taken", (requestId) => {
-      setPickupRequests((prev) =>
-        prev.filter((req) => req.requestId !== requestId)
-      );
-    });
+        // Subscribe to messages with error handling
+        const messageCleanup = await subscribeToMessages((incomingMessage) => {
+          setMessages((prev) => [...prev, incomingMessage]);
+        });
 
-    return () => {
-      if (socket.current) {
-        socket.current.disconnect();
+        // Handle notifications
+        socketInstance.on("new_notification", (notification) => {
+          setNotifications((prev) => {
+            const updatedNotifications = [notification, ...prev];
+            return updatedNotifications.slice(0, 5);
+          });
+          setActivePopup("notifications");
+
+          setTimeout(() => {
+            setActivePopup((current) =>
+              current === "notifications" ? null : current
+            );
+          }, 5000);
+        });
+
+        // Load active pickups from localStorage
+        const savedPickups = JSON.parse(
+          localStorage.getItem("activePickups") || "[]"
+        );
+        setActivePickups(savedPickups);
+
+        // Handle pickup requests with error handling
+        socketInstance.on("pickup_request", (request) => {
+          console.log("🚗 Driver received pickup request:", request);
+          if (!request || !request.requestId) {
+            console.error("Invalid pickup request received");
+            return;
+          }
+
+          setPickupRequests((prev) => {
+            const isDuplicate = prev.some(
+              (r) => r.requestId === request.requestId
+            );
+            if (isDuplicate) {
+              console.log("🚫 Duplicate request ignored");
+              return prev;
+            }
+            console.log("✅ Adding new pickup request to state");
+            return [...prev, request];
+          });
+
+          const notification = createNotification(
+            "pickup_request",
+            `New pickup request received at ${
+              request.location.streetName || "unknown location"
+            }!`
+          );
+          setNotifications((prev) => [notification, ...prev].slice(0, 5));
+        });
+
+        socketInstance.on("pickup_request_taken", (requestId) => {
+          if (!requestId) {
+            console.error("Invalid request ID received");
+            return;
+          }
+          setPickupRequests((prev) =>
+            prev.filter((req) => req.requestId !== requestId)
+          );
+        });
+
+        // Handle connection errors
+        socketInstance.on("connect_error", (error) => {
+          console.error("Socket connection error:", error);
+          toast.error("Connection error. Attempting to reconnect...");
+        });
+
+        // Handle disconnections
+        socketInstance.on("disconnect", (reason) => {
+          console.log("Socket disconnected:", reason);
+          if (reason === "io server disconnect") {
+            toast.error("Disconnected from server. Please refresh the page.");
+          } else {
+            toast.warning("Connection lost. Attempting to reconnect...");
+          }
+        });
+
+        // Handle successful reconnection
+        socketInstance.on("reconnect", (attemptNumber) => {
+          console.log("Socket reconnected after", attemptNumber, "attempts");
+          toast.success("Connection restored!");
+        });
+
+        return () => {
+          if (socketInstance) {
+            socketInstance.off("new_notification");
+            socketInstance.off("pickup_request");
+            socketInstance.off("pickup_request_taken");
+            socketInstance.off("connect_error");
+            socketInstance.off("disconnect");
+            socketInstance.off("reconnect");
+            messageCleanup();
+          }
+        };
+      } catch (error) {
+        console.error("Error initializing socket:", error);
+        toast.error("Failed to establish connection. Please refresh the page.");
       }
-      socket.current.off("new_notification");
-      socket.current.off("pickup_request");
-      socket.current.off("pickup_request_taken");
     };
+
+    initializeSocket();
   }, []);
 
   // Update date and time
@@ -349,6 +406,11 @@ const DriverMain = () => {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Keep shuttleIdRef in sync with shuttleId state
+  useEffect(() => {
+    shuttleIdRef.current = shuttleId;
+  }, [shuttleId]);
 
   // Initialize location sharing on mount if it was previously active
   useEffect(() => {
@@ -362,33 +424,66 @@ const DriverMain = () => {
           setIsLocationSharing(true);
         }
 
-        // Get actual location first
+        // Get actual location first with retry mechanism
         if (navigator.geolocation) {
-          try {
-            const position = await new Promise((resolve, reject) => {
-              navigator.geolocation.getCurrentPosition(resolve, reject, {
-                enableHighAccuracy: true,
-                timeout: 5000,
-                maximumAge: 0,
+          let retryCount = 0;
+          const maxRetries = 3;
+
+          const getLocationWithRetry = async () => {
+            try {
+              const position = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                  enableHighAccuracy: true,
+                  timeout: 15000, // Increased timeout to 15 seconds
+                  maximumAge: 0,
+                });
               });
-            });
 
-            const { latitude, longitude } = position.coords;
-            const userCoords = [latitude, longitude];
-            setUserLocation(userCoords);
+              const { latitude, longitude } = position.coords;
+              const userCoords = [latitude, longitude];
+              setUserLocation(userCoords);
 
-            // Only start sharing after we have the actual location
-            if (wasSharing) {
-              startLocationSharing();
+              // Only start sharing after we have the actual location
+              if (wasSharing) {
+                startLocationSharing();
+              }
+
+              return true; // Success
+            } catch (error) {
+              console.error(
+                `Location error (attempt ${retryCount + 1}/${maxRetries}):`,
+                error
+              );
+
+              // Only retry on timeout errors
+              if (error.code === 3 && retryCount < maxRetries) {
+                retryCount++;
+                toast.info(
+                  `Location request timed out. Retrying... (${retryCount}/${maxRetries})`,
+                  {
+                    duration: 2000,
+                  }
+                );
+
+                // Wait a bit before retrying
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+                return getLocationWithRetry();
+              }
+
+              // If we've exhausted retries or it's not a timeout error
+              toast.error(`Location error: ${error.message}`);
+              setUserLocation([14.377, 120.983]); // Set default only if error
+
+              if (wasSharing) {
+                // Still try to start location sharing with default location
+                startLocationSharing();
+              }
+
+              return false;
             }
-          } catch (error) {
-            console.error("Location error:", error);
-            toast.error(`Location error: ${error.message}`);
-            setUserLocation([14.377, 120.983]); // Set default only if error
-            if (wasSharing) {
-              cleanupLocationServices();
-            }
-          }
+          };
+
+          await getLocationWithRetry();
         }
       }
     };
@@ -400,11 +495,132 @@ const DriverMain = () => {
     };
   }, []);
 
-  // Update the startLocationSharing function
+  // Add this useEffect to fetch shuttle assignment
+  useEffect(() => {
+    const fetchAssignment = async () => {
+      try {
+        console.log("Fetching shuttle assignment for driver...");
+
+        // First check localStorage for cached assignment
+        const cachedAssignment = localStorage.getItem(
+          "driverShuttleAssignment"
+        );
+        if (cachedAssignment) {
+          const parsedAssignment = JSON.parse(cachedAssignment);
+          console.log("Using cached shuttle assignment:", parsedAssignment);
+          setShuttleId(parsedAssignment.shuttleId);
+          shuttleIdRef.current = parsedAssignment.shuttleId;
+        }
+
+        const token = getTokenFromCookies();
+
+        if (!token) {
+          console.error("No authentication token found");
+          toast.error("Authentication error. Please log in again.");
+          return;
+        }
+
+        const response = await fetch(
+          `${API_BASE_URL}/shuttle-assignments/driver`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(
+            `Error fetching shuttle assignment: ${response.status} - ${errorText}`
+          );
+          toast.error("Failed to fetch shuttle assignment");
+          return;
+        }
+
+        const data = await response.json();
+        console.log("Shuttle assignment data:", data);
+
+        if (data && data.shuttleId) {
+          console.log(`Shuttle ID assigned: ${data.shuttleId}`);
+          setShuttleId(data.shuttleId);
+          shuttleIdRef.current = data.shuttleId;
+
+          // Save to localStorage for future use
+          localStorage.setItem("driverShuttleAssignment", JSON.stringify(data));
+        } else {
+          console.warn("No shuttle assignment found for this driver");
+          // Clear localStorage if no assignment found
+          localStorage.removeItem("driverShuttleAssignment");
+
+          toast("No shuttle assigned. Please contact an administrator.", {
+            icon: "⚠️",
+            duration: 3000,
+            style: {
+              backgroundColor: "#FFF3CD",
+              color: "#856404",
+            },
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching shuttle assignment:", error);
+        toast.error(
+          "Failed to fetch shuttle assignment. Please refresh the page."
+        );
+      }
+    };
+
+    // Call immediately on component mount
+    fetchAssignment();
+
+    // Also set up a periodic check every 30 seconds to handle any assignment changes
+    const assignmentCheckInterval = setInterval(fetchAssignment, 30000);
+
+    return () => {
+      clearInterval(assignmentCheckInterval);
+    };
+  }, []);
+
+  // Update the startLocationSharing function to check for shuttleId before starting
   const startLocationSharing = () => {
     if (!navigator.geolocation) {
       toast.error("Geolocation is not supported by your browser.");
       return;
+    }
+
+    // Check for shuttleId in state or localStorage
+    let currentShuttleId = shuttleId;
+    if (!currentShuttleId) {
+      // Try to get from localStorage
+      const cachedAssignment = localStorage.getItem("driverShuttleAssignment");
+      if (cachedAssignment) {
+        try {
+          const parsedAssignment = JSON.parse(cachedAssignment);
+          currentShuttleId = parsedAssignment.shuttleId;
+          // Update state and ref
+          setShuttleId(currentShuttleId);
+          shuttleIdRef.current = currentShuttleId;
+          console.log(
+            "Using cached shuttleId from localStorage:",
+            currentShuttleId
+          );
+        } catch (error) {
+          console.error("Error parsing cached assignment:", error);
+        }
+      }
+    }
+
+    if (!currentShuttleId) {
+      toast("No shuttle assigned. Location updates will not be sent.", {
+        icon: "⚠️",
+        duration: 3000,
+        style: {
+          backgroundColor: "#FFF3CD",
+          color: "#856404",
+        },
+      });
+      // We'll still track location locally but won't send updates
     }
 
     // Clear any existing intervals first
@@ -416,12 +632,12 @@ const DriverMain = () => {
         const position = await new Promise((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject, {
             enableHighAccuracy: true,
-            timeout: 10000,
+            timeout: 15000, // Increased timeout to 15 seconds
             maximumAge: 0,
           });
         });
 
-        const { latitude, longitude } = position.coords;
+        const { latitude, longitude, accuracy } = position.coords;
         const currentTime = Date.now();
         const userCoords = [latitude, longitude];
 
@@ -460,15 +676,18 @@ const DriverMain = () => {
         // Update local state
         setUserLocation(userCoords);
 
+        // Use shuttleIdRef.current instead of shuttleId state
+        const currentShuttleId = shuttleIdRef.current;
+
         // Send to server if we have shuttleId
-        if (shuttleId) {
+        if (currentShuttleId) {
           const locationData = {
-            shuttleId,
+            shuttleId: currentShuttleId,
             coordinates: userCoords,
             metadata: {
               speed: speed,
               heading: heading,
-              accuracy: position.coords.accuracy,
+              accuracy: accuracy,
             },
             timestamp: new Date().toISOString(),
           };
@@ -476,7 +695,81 @@ const DriverMain = () => {
           // Log the data being sent
           console.log("Sending location data:", locationData);
 
-          await sendLocation(locationData);
+          const success = await sendLocation(locationData);
+          if (!success) {
+            console.warn("Failed to send location, will retry on next update");
+          }
+        } else {
+          console.warn("No shuttleId assigned, location update not sent");
+
+          // Check localStorage as a fallback
+          const cachedAssignment = localStorage.getItem(
+            "driverShuttleAssignment"
+          );
+          if (cachedAssignment) {
+            try {
+              const parsedAssignment = JSON.parse(cachedAssignment);
+              console.log(
+                "Found cached shuttle assignment, using shuttleId:",
+                parsedAssignment.shuttleId
+              );
+              setShuttleId(parsedAssignment.shuttleId);
+              shuttleIdRef.current = parsedAssignment.shuttleId;
+
+              // Send location with the cached shuttleId
+              const locationData = {
+                shuttleId: parsedAssignment.shuttleId,
+                coordinates: userCoords,
+                metadata: {
+                  speed: speed,
+                  heading: heading,
+                  accuracy: accuracy,
+                },
+                timestamp: new Date().toISOString(),
+              };
+
+              console.log(
+                "Sending location data with cached shuttleId:",
+                locationData
+              );
+              await sendLocation(locationData);
+            } catch (error) {
+              console.error("Error using cached assignment:", error);
+              localStorage.removeItem("driverShuttleAssignment"); // Remove invalid cache
+            }
+          } else {
+            // Try to fetch the assignment again in case it was missed
+            const fetchAssignment = async () => {
+              try {
+                const token = getTokenFromCookies();
+                const response = await fetch(
+                  `${API_BASE_URL}/shuttle-assignments/driver`,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                    },
+                    credentials: "include",
+                  }
+                );
+
+                if (response.ok) {
+                  const data = await response.json();
+                  if (data && data.shuttleId) {
+                    console.log(`Shuttle ID now assigned: ${data.shuttleId}`);
+                    setShuttleId(data.shuttleId);
+                    shuttleIdRef.current = data.shuttleId;
+                  }
+                }
+              } catch (error) {
+                console.error(
+                  "Error in retry fetch of shuttle assignment:",
+                  error
+                );
+              }
+            };
+
+            fetchAssignment();
+          }
         }
 
         // Update refs for next calculation
@@ -501,7 +794,10 @@ const DriverMain = () => {
         } else if (error.code === 2) {
           errorMessage = "Location information temporarily unavailable.";
         } else if (error.code === 3) {
-          errorMessage = "Location request timed out.";
+          errorMessage =
+            "Location request timed out. Try turning location sharing off and on again.";
+          // Don't stop location sharing on timeout, just log the error
+          // The next interval will try again
         }
 
         toast.error(errorMessage, { duration: 4000 });
@@ -511,8 +807,14 @@ const DriverMain = () => {
     // Run first update immediately
     updateLocation();
 
-    // Set up interval for continuous updates
-    locationUpdateInterval.current = setInterval(updateLocation, 3000);
+    // Import the interval constant from websocketService
+    const LOCATION_UPDATE_INTERVAL = getLocationUpdateInterval();
+
+    // Set up interval for continuous updates every 3 seconds
+    locationUpdateInterval.current = setInterval(
+      updateLocation,
+      LOCATION_UPDATE_INTERVAL
+    );
 
     setIsLocationSharing(true);
     localStorage.setItem("isLocationSharing", "true");
@@ -540,9 +842,10 @@ const DriverMain = () => {
 
   const stopLocationSharing = () => {
     cleanupLocationServices();
-    toast.success("Location sharing stopped", {
+    toast("Location sharing stopped", {
       position: "bottom-center",
-      theme: "colored",
+      icon: "🚫",
+      duration: 2000,
     });
   };
 
@@ -554,29 +857,6 @@ const DriverMain = () => {
       startLocationSharing();
     }
   };
-
-  // Add this useEffect to fetch shuttle assignment
-  useEffect(() => {
-    const fetchAssignment = async () => {
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/shuttle-assignments/driver`,
-          {
-            headers: {
-              Authorization: `Bearer ${getCookie("token")}`,
-            },
-          }
-        );
-        const data = await response.json();
-        if (data.shuttleId) {
-          setShuttleId(data.shuttleId);
-        }
-      } catch (error) {
-        console.error("Error fetching shuttle assignment:", error);
-      }
-    };
-    fetchAssignment();
-  }, []);
 
   const handleLocationButtonClick = () => {
     setIsLocationSharing((prev) => !prev);

@@ -19,6 +19,14 @@ import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+// Add getCookie function
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
+};
+
 const AdministratorMain = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("Dashboard");
@@ -46,23 +54,102 @@ const AdministratorMain = () => {
   useEffect(() => {
     socket.current = connectSocket();
 
-    subscribeToLocationUpdates((data) => {
-      const { shuttleId, coordinates, metadata } = data;
+    // Fetch active shuttle assignments and join their tracking rooms
+    const fetchAndTrackShuttles = async () => {
+      try {
+        const token = getCookie("token");
+        if (!token) {
+          console.error("No token found");
+          return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const assignments = await response.json();
+
+        // Join tracking for each active shuttle
+        assignments.forEach((assignment) => {
+          socket.current.emit("join_shuttle_tracking", assignment.shuttleId);
+        });
+      } catch (error) {
+        console.error("Error fetching shuttle assignments:", error);
+        if (error.message.includes("401")) {
+          // Handle unauthorized access
+          navigate("/ShutlLoggedOut");
+        }
+      }
+    };
+
+    fetchAndTrackShuttles();
+
+    // Listen for both types of location updates
+    socket.current.on("shuttle_location", (data) => {
+      console.log("Received shuttle location:", data);
       setShuttleLocations((prev) => ({
         ...prev,
-        [shuttleId]: {
-          coordinates,
-          speed: metadata.speed || 0,
-          heading: metadata.heading || 0,
-          lastUpdate: new Date(),
+        [data.shuttleId]: {
+          coordinates: data.coordinates,
+          lastUpdate: new Date(data.timestamp),
+          speed: data.metadata?.speed || 0,
+          heading: data.metadata?.heading,
+          accuracy: data.metadata?.accuracy,
         },
       }));
     });
 
+    socket.current.on("shuttle_location_update", (data) => {
+      console.log("Received shuttle location update:", data);
+      setShuttleLocations((prev) => ({
+        ...prev,
+        [data.shuttleId]: {
+          coordinates: data.coordinates,
+          lastUpdate: new Date(data.timestamp),
+          speed: data.metadata?.speed || 0,
+          heading: data.metadata?.heading,
+          accuracy: data.metadata?.accuracy,
+        },
+      }));
+    });
+
+    // Clean up stale locations every minute
+    const cleanupInterval = setInterval(() => {
+      setShuttleLocations((prev) => {
+        const now = new Date();
+        const updatedLocations = {};
+
+        Object.entries(prev).forEach(([shuttleId, data]) => {
+          const timeSinceUpdate = now - new Date(data.lastUpdate);
+
+          // Only remove if beyond MAX_PREDICTION_TIME (1 minute)
+          if (timeSinceUpdate < 60000) {
+            updatedLocations[shuttleId] = data;
+          } else {
+            console.log(
+              `Removing stale location for ${shuttleId} after 1 minute`
+            );
+          }
+        });
+
+        return updatedLocations;
+      });
+    }, 60000); // Run every minute
+
     return () => {
       if (socket.current) {
-        disconnectSocket();
+        socket.current.off("shuttle_location");
+        socket.current.off("shuttle_location_update");
+        socket.current.disconnect();
       }
+      clearInterval(cleanupInterval);
+      disconnectSocket();
     };
   }, []);
 
@@ -199,7 +286,10 @@ const AdministratorMain = () => {
           >
             <img src="/notif.png" alt="Notifications" />
           </button>
-          <button className="AdministratorMain-logout-btn" onClick={handleLogout}>
+          <button
+            className="AdministratorMain-logout-btn"
+            onClick={handleLogout}
+          >
             Logout
           </button>
         </div>
@@ -236,12 +326,14 @@ const AdministratorMain = () => {
       <div className="AdministratorMain-content">
         {activeTab === "Dashboard" && (
           <AdministratorDashboardContent
-            initialShuttleLocations={shuttleLocations}
+            initialShuttleLocations={optimizedLocations}
           />
         )}
         {activeTab === "Maintenance" && <AdministratorMaintenanceContent />}
         {activeTab === "Fare" && <AdministratorFareContent />}
-        {activeTab === "ShuttlesRoutes" && <AdministratorShuttlesRoutesContent />}
+        {activeTab === "ShuttlesRoutes" && (
+          <AdministratorShuttlesRoutesContent />
+        )}
         {activeTab === "ShuttleManagement" && (
           <AdministratorShuttleManagementContent />
         )}

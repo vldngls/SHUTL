@@ -12,20 +12,20 @@ const AdministratorMaintenanceContent = () => {
     cpu: { usage: 0, cores: 0 },
     memory: { usagePercentage: 0, total: 0, used: 0, free: 0 },
     storage: { usagePercentage: 0, total: 0, used: 0, free: 0 },
-    uptime: { days: 0, hours: 0, minutes: 0, formatted: "0d 0h 0m" }
+    uptime: { days: 0, hours: 0, minutes: 0, formatted: "0d 0h 0m" },
   });
 
   const [apiData, setApiData] = useState({
     requests: 0,
     success: 0,
     ping: 0,
-    logs: []
+    logs: [],
   });
 
   const [stats, setStats] = useState({
     users: 0,
     drivers: 0,
-    tellers: 0
+    tellers: 0,
   });
 
   // Fetch initial data
@@ -49,7 +49,7 @@ const AdministratorMaintenanceContent = () => {
         setStats({
           users: userData.users || 0,
           drivers: userData.drivers || 0,
-          tellers: userData.tellers || 0
+          tellers: userData.tellers || 0,
         });
 
         // Set users array from the users collection data
@@ -57,7 +57,7 @@ const AdministratorMaintenanceContent = () => {
           setUsers(userData.usersList);
         } else {
           setUsers([]);
-          console.warn('User list is not an array:', userData);
+          console.warn("User list is not an array:", userData);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -72,7 +72,7 @@ const AdministratorMaintenanceContent = () => {
       try {
         const healthData = await maintenanceService.getSystemHealth();
         setSystemHealth(healthData);
-        
+
         const apiStats = await maintenanceService.getApiStats();
         setApiData(apiStats);
 
@@ -81,7 +81,7 @@ const AdministratorMaintenanceContent = () => {
         setStats({
           users: userData.users || 0,
           drivers: userData.drivers || 0,
-          tellers: userData.tellers || 0
+          tellers: userData.tellers || 0,
         });
 
         // Update users array
@@ -100,17 +100,20 @@ const AdministratorMaintenanceContent = () => {
 
   const handleSystemAction = async (action) => {
     if (isLoading) return;
-    
+
     setIsLoading(true);
     const timestamp = new Date().toLocaleTimeString();
-    
+
     try {
       // Add pending log entry
-      setMaintenanceLogs(prev => [{
-        time: timestamp,
-        action: action,
-        status: "pending"
-      }, ...prev]);
+      setMaintenanceLogs((prev) => [
+        {
+          time: timestamp,
+          action: action,
+          status: "pending",
+        },
+        ...prev,
+      ]);
 
       // Perform the actual action
       let result;
@@ -132,24 +135,30 @@ const AdministratorMaintenanceContent = () => {
       }
 
       // Update log with success status
-      setMaintenanceLogs(prev => [{
-        time: timestamp,
-        action: action,
-        status: "success",
-        details: result.message
-      }, ...prev.slice(1)]);
+      setMaintenanceLogs((prev) => [
+        {
+          time: timestamp,
+          action: action,
+          status: "success",
+          details: result.message,
+        },
+        ...prev.slice(1),
+      ]);
 
       toast.success(`${action} completed successfully`);
     } catch (error) {
       console.error(`Error performing ${action}:`, error);
-      
+
       // Update log with error status
-      setMaintenanceLogs(prev => [{
-        time: timestamp,
-        action: action,
-        status: "error",
-        details: error.message
-      }, ...prev.slice(1)]);
+      setMaintenanceLogs((prev) => [
+        {
+          time: timestamp,
+          action: action,
+          status: "error",
+          details: error.message,
+        },
+        ...prev.slice(1),
+      ]);
 
       toast.error(`Failed to ${action.toLowerCase()}`);
     } finally {
@@ -163,6 +172,17 @@ const AdministratorMaintenanceContent = () => {
     return "red";
   };
 
+  const getProfilePicture = (user) => {
+    if (user.profilePicture) {
+      // Check if it's a base64 string or URL
+      return user.profilePicture.startsWith("data:") ||
+        user.profilePicture.startsWith("http")
+        ? user.profilePicture
+        : "/avatar.png";
+    }
+    return "/avatar.png"; // Default avatar
+  };
+
   return (
     <div className="AdministratorMaintenance-maintenance-content">
       {/* System Health Panel */}
@@ -172,24 +192,29 @@ const AdministratorMaintenanceContent = () => {
           <div className="health-metric">
             <label>CPU Usage ({systemHealth.cpu.cores} cores)</label>
             <div className="progress-bar">
-              <div 
-                className="progress" 
-                style={{ 
+              <div
+                className="progress"
+                style={{
                   width: `${systemHealth.cpu.usage}%`,
-                  backgroundColor: getStatusColor(systemHealth.cpu.usage)
+                  backgroundColor: getStatusColor(systemHealth.cpu.usage),
                 }}
               ></div>
             </div>
             <span>{systemHealth.cpu.usage}%</span>
           </div>
           <div className="health-metric">
-            <label>Memory Usage ({Math.round(systemHealth.memory.used / 1024)} GB / {Math.round(systemHealth.memory.total / 1024)} GB)</label>
+            <label>
+              Memory Usage ({Math.round(systemHealth.memory.used / 1024)} GB /{" "}
+              {Math.round(systemHealth.memory.total / 1024)} GB)
+            </label>
             <div className="progress-bar">
-              <div 
-                className="progress" 
-                style={{ 
+              <div
+                className="progress"
+                style={{
                   width: `${systemHealth.memory.usagePercentage}%`,
-                  backgroundColor: getStatusColor(systemHealth.memory.usagePercentage)
+                  backgroundColor: getStatusColor(
+                    systemHealth.memory.usagePercentage
+                  ),
                 }}
               ></div>
             </div>
@@ -198,24 +223,32 @@ const AdministratorMaintenanceContent = () => {
           <div className="health-metric">
             <label>
               Storage Usage
-              {systemHealth.storage.total !== "N/A" && 
-                ` (${Math.round(systemHealth.storage.used / 1024)} GB / ${Math.round(systemHealth.storage.total / 1024)} GB)`
-              }
+              {systemHealth.storage.total !== "N/A" &&
+                ` (${Math.round(
+                  systemHealth.storage.used / 1024
+                )} GB / ${Math.round(systemHealth.storage.total / 1024)} GB)`}
             </label>
             <div className="progress-bar">
-              <div 
-                className="progress" 
-                style={{ 
-                  width: `${systemHealth.storage.usagePercentage === "N/A" ? 0 : systemHealth.storage.usagePercentage}%`,
-                  backgroundColor: getStatusColor(systemHealth.storage.usagePercentage === "N/A" ? 0 : systemHealth.storage.usagePercentage)
+              <div
+                className="progress"
+                style={{
+                  width: `${
+                    systemHealth.storage.usagePercentage === "N/A"
+                      ? 0
+                      : systemHealth.storage.usagePercentage
+                  }%`,
+                  backgroundColor: getStatusColor(
+                    systemHealth.storage.usagePercentage === "N/A"
+                      ? 0
+                      : systemHealth.storage.usagePercentage
+                  ),
                 }}
               ></div>
             </div>
             <span>
-              {systemHealth.storage.usagePercentage === "N/A" 
-                ? "N/A" 
-                : `${systemHealth.storage.usagePercentage}%`
-              }
+              {systemHealth.storage.usagePercentage === "N/A"
+                ? "N/A"
+                : `${systemHealth.storage.usagePercentage}%`}
             </span>
           </div>
           <div className="uptime">
@@ -274,29 +307,29 @@ const AdministratorMaintenanceContent = () => {
         <div className="AdministratorMaintenance-control-panel">
           <h3>System Controls</h3>
           <div className="control-buttons">
-            <button 
-              onClick={() => handleSystemAction("System backup")} 
+            <button
+              onClick={() => handleSystemAction("System backup")}
               className="control-btn backup"
               disabled={isLoading}
             >
               {isLoading ? "Processing..." : "Backup System"}
             </button>
-            <button 
-              onClick={() => handleSystemAction("Cache cleared")} 
+            <button
+              onClick={() => handleSystemAction("Cache cleared")}
               className="control-btn clear"
               disabled={isLoading}
             >
               {isLoading ? "Processing..." : "Clear Cache"}
             </button>
-            <button 
-              onClick={() => handleSystemAction("Database optimization")} 
+            <button
+              onClick={() => handleSystemAction("Database optimization")}
               className="control-btn optimize"
               disabled={isLoading}
             >
               {isLoading ? "Processing..." : "Optimize DB"}
             </button>
-            <button 
-              onClick={() => handleSystemAction("System update check")} 
+            <button
+              onClick={() => handleSystemAction("System update check")}
               className="control-btn update"
               disabled={isLoading}
             >
@@ -315,7 +348,9 @@ const AdministratorMaintenanceContent = () => {
               <span className="log-time">{log.time}</span>
               <span className="log-action">
                 {log.action}
-                {log.details && <span className="log-details"> - {log.details}</span>}
+                {log.details && (
+                  <span className="log-details"> - {log.details}</span>
+                )}
               </span>
               <span className={`log-status ${log.status}`}>{log.status}</span>
             </div>
@@ -331,9 +366,13 @@ const AdministratorMaintenanceContent = () => {
             {users.map((user, index) => (
               <div key={index} className="AdministratorMaintenance-user-item">
                 <img
-                  src={user.avatar || "/avatar.png"}
-                  alt="User Avatar"
+                  src={getProfilePicture(user)}
+                  alt={`${user.name}'s Avatar`}
                   className="AdministratorMaintenance-user-avatar"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/avatar.png";
+                  }}
                 />
                 <p>{user.name}</p>
               </div>

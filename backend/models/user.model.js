@@ -43,9 +43,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       sparse: true,
     },
-    profilePicture: {
-      type: String,
-    },
   },
   {
     timestamps: true,

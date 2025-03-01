@@ -167,24 +167,39 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
 
   const handleSave = async () => {
     try {
+      // Merge existing userData with editedData to ensure all fields are present
+      const dataToUpdate = {
+        ...userData,
+        ...editedData,
+        profileImage: profileImage || userData.profileImage,
+      };
+
+      // Remove any undefined or null values
+      Object.keys(dataToUpdate).forEach(
+        (key) =>
+          (dataToUpdate[key] === undefined || dataToUpdate[key] === null) &&
+          delete dataToUpdate[key]
+      );
+
       const response = await fetch(`${API_BASE_URL}/userdata/update`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify(editedData),
+        body: JSON.stringify(dataToUpdate),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update profile");
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || "Failed to update profile");
       }
 
       const updatedData = await response.json();
       setUserData(updatedData);
       setIsEditing(false);
       toast.success("Profile updated successfully", {
-        duration: 2000
+        duration: 2000,
       });
     } catch (error) {
       console.error("Error updating profile:", error);
