@@ -45,8 +45,8 @@ global.shuttleLocations = {};
 const app = express();
 const server = http.createServer(app);
 
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
 
 app.use(
@@ -60,11 +60,19 @@ app.use(
         ? process.env.FRONTEND_ORIGIN.slice(0, -1)
         : process.env.FRONTEND_ORIGIN || "http://localhost:5173";
 
-      callback(null, normalizedOrigin);
+      // Allow both localhost and IP address
+      const allowedOrigins = [
+        allowedOrigin,
+        "http://192.168.254.106:5173",
+        "http://localhost:5173",
+      ];
+
+      const allowed = !origin || allowedOrigins.includes(normalizedOrigin);
+      callback(null, allowed ? normalizedOrigin : allowedOrigins[0]);
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -93,7 +101,10 @@ connectDB();
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: [
+      process.env.FRONTEND_URL || "http://localhost:5173",
+      "http://192.168.254.106:5173",
+    ],
     methods: ["GET", "POST"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
@@ -111,6 +122,9 @@ setupSocket(io);
 export { io };
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(
+    `Access the server at http://localhost:${PORT} or your local IP address`
+  );
 });
