@@ -15,12 +15,21 @@ body {
 }
 
 /* ShutlLoggedOut Map container */
+.ShutlLoggedOut-container {
+  height: 100vh; /* Fallback */
+  height: calc(var(--vh, 1vh) * 100);
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
 .ShutlLoggedOut-map-container {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100dvh; /* Use dynamic viewport height */
+  width: 100%;
+  height: 100vh; /* Fallback */
+  height: calc(var(--vh, 1vh) * 100);
   z-index: 1;
 }
 
@@ -30,7 +39,7 @@ body {
   flex-direction: column;
   align-items: center;
   width: 64px;
-  height: 100dvh; /* Use dynamic viewport height */
+  height: 100dvh;
   background-color: #232323;
   color: white;
   border-radius: 0 38.5px 38.5px 0;
@@ -40,7 +49,7 @@ body {
   top: 0;
   z-index: 3;
   box-sizing: border-box;
-  justify-content: space-between; /* Distribute space between elements */
+  justify-content: flex-start;
 }
 
 .ShutlLoggedOut-logo {
@@ -48,6 +57,7 @@ body {
   font-weight: bold;
   margin-bottom: 20px;
   margin-top: 8px;
+  text-align: center;
 }
 
 .ShutlLoggedOut-status {
@@ -101,11 +111,97 @@ body {
   margin-left: -80px; /* Shift taskbar left to align with the navbar's edge */
 }
 
+/* Hamburger Menu Button */
+.ShutlLoggedOut-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 24px;
+  height: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 20px;
+}
+
+.ShutlLoggedOut-hamburger span {
+  width: 100%;
+  height: 2px;
+  background-color: white;
+  transition: all 0.3s ease;
+}
+
+/* Mobile Navigation Menu */
+.ShutlLoggedOut-mobile-menu {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: -100%;
+  width: 250px;
+  height: 100vh;
+  background-color: #232323;
+  padding: 20px;
+  z-index: 4;
+  transition: left 0.3s ease;
+}
+
+.ShutlLoggedOut-mobile-menu.active {
+  left: 0;
+}
+
+.ShutlLoggedOut-mobile-menu-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding-top: 20px;
+}
+
+.ShutlLoggedOut-mobile-menu-logo {
+  font-size: 1.8em;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 10px;
+}
+
+.ShutlLoggedOut-mobile-menu-items {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ShutlLoggedOut-mobile-menu button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 16px;
+  padding: 15px 20px;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.3s ease;
+  width: 100%;
+}
+
+.ShutlLoggedOut-mobile-menu button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
 /* Media Queries */
 @media (max-width: 768px) {
   .ShutlLoggedOut-navbar {
     width: 48px;
     padding: 8px;
+  }
+
+  .ShutlLoggedOut-hamburger {
+    display: flex;
+  }
+
+  .ShutlLoggedOut-mobile-menu {
+    display: block;
+  }
+
+  .ShutlLoggedOut-icon-container {
+    display: none;
   }
 
   .ShutlLoggedOut-logo {
@@ -142,25 +238,113 @@ body {
 
 @media (max-width: 480px) {
   .ShutlLoggedOut-navbar {
-    width: 48px;
-    padding: 8px;
-    height: 100dvh; /* Use dynamic viewport height */
-    min-height: 100%; /* Ensure full height */
-    border-radius: 0 20px 20px 0;
-    flex-direction: column;
+    width: 100%;
+    height: 60px;
+    min-height: auto;
+    padding: 0 16px;
+    border-radius: 0;
+    flex-direction: row;
+    align-items: center;
     justify-content: space-between;
-    position: fixed;
-    left: 0;
     top: 0;
+    left: 0;
     z-index: 3;
-    box-sizing: border-box;
+    background-color: #232323;
+    position: fixed;
+  }
+
+  .ShutlLoggedOut-hamburger {
+    order: 3;
+    margin-bottom: 0;
   }
 
   .ShutlLoggedOut-logo {
-    font-size: 1em;
+    display: block;
+    order: 1;
+    font-size: 1.4em;
     font-weight: bold;
-    margin-bottom: 20px;
-    margin-top: 8px;
+    margin: 0;
+    padding: 0;
+    color: white;
+    text-align: left;
+  }
+
+  .ShutlLoggedOut-status {
+    display: none;
+  }
+
+  .ShutlLoggedOut-icon-container {
+    display: none;
+  }
+
+  .ShutlLoggedOut-line {
+    display: none;
+  }
+
+  .ShutlLoggedOut-mobile-menu {
+    top: 60px;
+    height: calc((var(--vh, 1vh) * 100) - 60px);
+    right: -100%;
+    transition: right 0.3s ease;
+  }
+
+  .ShutlLoggedOut-mobile-menu.active {
+    left: auto;
+    right: 0;
+  }
+
+  .ShutlLoggedOut-mobile-menu-header {
+    display: none;
+  }
+
+  .ShutlLoggedOut-mobile-menu-items {
+    margin-top: 20px;
+  }
+
+  /* Adjust taskbar position for top navbar */
+  .ShutlLoggedOut-taskbar {
+    position: fixed;
+    bottom: 0;
+    padding-bottom: 8px;
+    width: 100%;
+    margin-left: 0;
+    background-color: #f5f5f5;
+  }
+
+  /* Adjust map container for top navbar */
+  .ShutlLoggedOut-map-container {
+    position: fixed;
+    top: 60px;
+    height: calc((var(--vh, 1vh) * 100) - 60px);
+    width: 100%;
+    left: 0;
+  }
+
+  /* Adjust update location button position */
+  .ShutlLoggedOut-update-location-btn {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
+    right: 10px;
+  }
+
+  .ShutlLoggedOut-hamburger.active span:nth-child(1) {
+    transform: translateY(9px) rotate(45deg);
+  }
+
+  .ShutlLoggedOut-hamburger.active span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .ShutlLoggedOut-hamburger.active span:nth-child(3) {
+    transform: translateY(-9px) rotate(-45deg);
+  }
+
+  .ShutlLoggedOut-mobile-menu-logo {
+    font-size: 1.6em;
+  }
+
+  .ShutlLoggedOut-mobile-menu button {
+    font-size: 15px;
+    padding: 12px 20px;
   }
 
   .ShutlLoggedOut-status {
@@ -200,6 +384,27 @@ body {
   }
 }
 
+/* iOS-specific adjustments */
+@supports (-webkit-touch-callout: none) {
+  .ShutlLoggedOut-container {
+    height: -webkit-fill-available;
+  }
+
+  .ShutlLoggedOut-map-container {
+    height: -webkit-fill-available;
+  }
+
+  @media (max-width: 480px) {
+    .ShutlLoggedOut-map-container {
+      height: calc(100vh - 60px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    }
+
+    .ShutlLoggedOut-mobile-menu {
+      height: calc(100vh - 60px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    }
+  }
+}
+
 /* ShutlLoggedOut Update Location Button */
 .ShutlLoggedOut-update-location-btn {
   position: fixed;
@@ -236,7 +441,7 @@ body {
 @media (max-width: 480px) {
   .ShutlLoggedOut-update-location-btn {
     right: 10px;
-    bottom: 60px; /* Adjust for smaller screens */
+    bottom: 80px; /* Adjust for smaller screens */
   }
 
   .ShutlLoggedOut-update-location-icon {

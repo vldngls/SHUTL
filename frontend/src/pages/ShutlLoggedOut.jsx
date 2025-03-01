@@ -39,6 +39,7 @@ const ShutlLoggedOut = () => {
   const mapRef = useRef();
   const socket = useRef(null);
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -116,6 +117,16 @@ const ShutlLoggedOut = () => {
       }));
     });
 
+    // Add viewport height fix for mobile browsers
+    const setVH = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+
+    setVH();
+    window.addEventListener('resize', setVH);
+    window.addEventListener('orientationchange', setVH);
+
     return () => {
       clearInterval(timer);
       clearInterval(cleanupInterval);
@@ -124,6 +135,8 @@ const ShutlLoggedOut = () => {
         socket.current.off("shuttle_location_update");
         socket.current.disconnect();
       }
+      window.removeEventListener('resize', setVH);
+      window.removeEventListener('orientationchange', setVH);
     };
   }, []);
 
@@ -155,14 +168,19 @@ const ShutlLoggedOut = () => {
 
   const handleLoginClick = () => {
     setShowLogin(true);
+    setIsMobileMenuOpen(false);
   };
 
   const handleCloseLogin = () => {
     setShowLogin(false);
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   return (
-    <>
+    <div className="ShutlLoggedOut-container">
       <div className="ShutlLoggedOut-map-container">
         <MapContainer
           style={{ height: "100%", width: "100%" }}
@@ -213,16 +231,29 @@ const ShutlLoggedOut = () => {
       <div className="ShutlLoggedOut-navbar">
         <div className="ShutlLoggedOut-logo">SHU TL.</div>
         <div className="ShutlLoggedOut-status"></div>
-        <div
-          className="ShutlLoggedOut-icon-container"
-          onClick={handleLoginClick}
-        >
+        <div className="ShutlLoggedOut-icon-container" onClick={handleLoginClick}>
           <div className="ShutlLoggedOut-line"></div>
           <img
             src="/icon.png"
             alt="Navigation Icon"
             className="ShutlLoggedOut-nav-icon"
           />
+        </div>
+        <button 
+          className={`ShutlLoggedOut-hamburger ${isMobileMenuOpen ? 'active' : ''}`}
+          onClick={toggleMobileMenu}
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+
+      <div className={`ShutlLoggedOut-mobile-menu ${isMobileMenuOpen ? 'active' : ''}`}>
+        <div className="ShutlLoggedOut-mobile-menu-items">
+          <button onClick={handleLoginClick}>
+            Login
+          </button>
         </div>
       </div>
 
@@ -248,7 +279,7 @@ const ShutlLoggedOut = () => {
       </button>
 
       {showLogin && <LoginForm onClose={handleCloseLogin} />}
-    </>
+    </div>
   );
 };
 
