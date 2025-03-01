@@ -10,7 +10,6 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 import MovingMarker from "../components/MovingMarker";
-import { subscribeToLocationUpdates } from "../utils/websocketService";
 
 // Fix for default Leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -132,94 +131,6 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
     fetchOperationalHours();
   }, []);
 
-  useEffect(() => {
-    // Initialize socket connection
-    socket.current = connectSocket();
-
-    // Subscribe to location updates
-    const locationCleanup = subscribeToLocationUpdates((data) => {
-      setShuttleLocations((prev) => ({
-        ...prev,
-        [data.shuttleId]: {
-          coordinates: data.coordinates || null,
-          lastUpdate: new Date(data.timestamp || Date.now()),
-          speed: data.metadata?.speed ?? 0,
-          heading: data.metadata?.heading ?? 0,
-          accuracy: data.metadata?.accuracy ?? 0,
-          isPredicted: false,
-          lastKnownCoordinates: data.coordinates || null,
-          lastKnownSpeed: data.metadata?.speed ?? 0,
-          lastKnownHeading: data.metadata?.heading ?? 0,
-        },
-      }));
-
-      // Update traffic conditions based on speed
-      if (data.metadata?.speed !== undefined) {
-        updateTrafficConditions(data.shuttleId, data.metadata.speed);
-      }
-    });
-
-    // Fetch and track active shuttles
-    const fetchAndTrackShuttles = async () => {
-      try {
-        const token = getCookie("token");
-        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const assignments = Array.isArray(data) ? data : data.assignments || [];
-
-        // Join tracking for each active shuttle
-        assignments.forEach((assignment) => {
-          if (assignment && assignment.shuttleId) {
-            joinShuttleTracking(assignment.shuttleId);
-          }
-        });
-      } catch (error) {
-        console.error("Error fetching shuttle assignments:", error);
-        toast.error("Failed to fetch shuttle assignments");
-      }
-    };
-
-    fetchAndTrackShuttles();
-
-    // Clean up stale locations every 10 seconds
-    const cleanupInterval = setInterval(() => {
-      setShuttleLocations((prev) => {
-        const now = new Date();
-        const updatedLocations = {};
-
-        Object.entries(prev).forEach(([shuttleId, data]) => {
-          const timeSinceUpdate = now - new Date(data.lastUpdate);
-          if (timeSinceUpdate < 60000) {
-            updatedLocations[shuttleId] = data;
-          } else {
-            console.log(
-              `Removing stale location for ${shuttleId} after 1 minute`
-            );
-          }
-        });
-
-        return updatedLocations;
-      });
-    }, 10000);
-
-    return () => {
-      clearInterval(cleanupInterval);
-      locationCleanup();
-    };
-  }, []);
-
   const handleSendNotification = async () => {
     try {
       await notificationService.sendNotification(
@@ -323,11 +234,33 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
                     <div className="AdministratorDashboard-shuttle-info">
                       <h3>SHUTL {shuttleId}</h3>
                       <p>
-                        Last updated: {data.lastUpdate.toLocaleTimeString()}
+                        Status:{" "}
+                        <span
+                          style={{
+                            color: data.status === "offline" ? "red" : "green",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {data.status === "offline" ? "Offline" : "Online"}
+                        </span>
                       </p>
-                      <p>Speed: {speed.toFixed(1)} km/h</p>
-                      <p style={{ color: trafficCondition.color }}>
-                        Traffic: {trafficCondition.status}
+                      <p>Speed: {(data.speed || 0).toFixed(1)} km/h</p>
+                      <p>
+                        Traffic:{" "}
+                        <span style={{ color: trafficCondition.color }}>
+                          {trafficCondition.status}
+                        </span>
+                      </p>
+                      <p>
+                        Last Update:{" "}
+                        {new Date(data.lastUpdate).toLocaleTimeString()}
+                      </p>
+                      <p>
+                        Time Since Update:{" "}
+                        {Math.round(
+                          (new Date() - new Date(data.lastUpdate)) / 1000
+                        )}
+                        s ago
                       </p>
                     </div>
                   </Popup>
@@ -347,21 +280,30 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
               : "N/A";
             const speed = data.speed;
             const trafficCondition = getTrafficCondition(speed);
+            const timeSinceUpdate = data?.lastUpdate
+              ? Math.round((new Date() - new Date(data.lastUpdate)) / 1000)
+              : 0;
 
             return (
               <div key={shuttleId} className="shuttle-status-card">
                 <h4>SHUTL {shuttleId}</h4>
                 <p>
                   Status:{" "}
-                  <span style={{ color: getStatusColor(status) }}>
-                    {formatStatus(status)}
+                  <span
+                    style={{
+                      color: status === "offline" ? "red" : "green",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {status === "offline" ? "Offline" : "Online"}
                   </span>
                 </p>
-                <p>Last Updated: {lastUpdate}</p>
                 <p>Speed: {speed ? `${speed.toFixed(1)} km/h` : "0.0 km/h"}</p>
                 <p style={{ color: trafficCondition.color }}>
                   Traffic: {trafficCondition.status}
                 </p>
+                <p>Last Update: {lastUpdate}</p>
+                <p>Time Since Update: {timeSinceUpdate}s ago</p>
                 {data?.streetName && <p>Location: {data.streetName}</p>}
               </div>
             );

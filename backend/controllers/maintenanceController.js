@@ -338,17 +338,23 @@ const maintenanceController = {
       );
 
       const stats = {
-        users: users.length,
+        totalUsers: users.length,
+        commuters: users.filter((user) => user.userType === "Commuter").length,
         drivers: users.filter((user) => user.userType === "Driver").length,
         tellers: users.filter((user) => user.userType === "Teller").length,
-        usersList: users.map((user) => ({
-          name: user.name,
-          email: user.email,
-          userType: user.userType,
-          status: user.status,
-          profilePicture:
-            userDataMap.get(user.email)?.profilePicture || "/avatar.png",
-        })),
+        administrators: users.filter(
+          (user) => user.userType === "Administrator"
+        ).length,
+        usersList: users
+          .filter((user) => user.userType === "Commuter")
+          .map((user) => ({
+            name: user.name,
+            email: user.email,
+            userType: user.userType,
+            status: user.status,
+            profilePicture:
+              userDataMap.get(user.email)?.profilePicture || "/avatar.png",
+          })),
       };
 
       res.json(stats);

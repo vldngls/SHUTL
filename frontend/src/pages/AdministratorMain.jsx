@@ -52,106 +52,130 @@ const AdministratorMain = () => {
   }, []);
 
   useEffect(() => {
-    socket.current = connectSocket();
+    // Initialize socket connection
+    let cleanupFn = () => {};
 
-    // Fetch active shuttle assignments and join their tracking rooms
-    const fetchAndTrackShuttles = async () => {
+    const initializeSocket = async () => {
       try {
-        const token = getCookie("token");
-        if (!token) {
-          console.error("No token found");
+        // Wait for socket connection
+        const socketInstance = await connectSocket();
+        if (!socketInstance) {
+          toast.error(
+            "Unable to establish connection. Please refresh the page."
+          );
           return;
         }
 
-        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        socket.current = socketInstance;
+
+        // Fetch active shuttle assignments and join their tracking rooms
+        const fetchAndTrackShuttles = async () => {
+          try {
+            const token = getCookie("token");
+            if (!token) {
+              console.error("No token found");
+              return;
+            }
+
+            const response = await fetch(
+              `${API_BASE_URL}/shuttle-assignments`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const assignments = await response.json();
+
+            // Join tracking for each active shuttle
+            assignments.forEach((assignment) => {
+              socket.current.emit(
+                "join_shuttle_tracking",
+                assignment.shuttleId
+              );
+            });
+          } catch (error) {
+            console.error("Error fetching shuttle assignments:", error);
+            if (error.message.includes("401")) {
+              // Handle unauthorized access
+              navigate("/ShutlLoggedOut");
+            }
+          }
+        };
+
+        await fetchAndTrackShuttles();
+
+        // Subscribe to location updates
+        const locationCleanup = await subscribeToLocationUpdates((data) => {
+          console.log("Received shuttle location update:", data);
+          setShuttleLocations((prev) => ({
+            ...prev,
+            [data.shuttleId]: {
+              coordinates: data.coordinates,
+              lastUpdate: new Date(data.timestamp || Date.now()),
+              speed: data.metadata?.speed || 0,
+              heading: data.metadata?.heading,
+              accuracy: data.metadata?.accuracy,
+              isPredicted: false,
+              lastKnownCoordinates: data.coordinates,
+              lastKnownSpeed: data.metadata?.speed || 0,
+              lastKnownHeading: data.metadata?.heading,
+            },
+          }));
         });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        // Clean up stale locations every minute
+        const cleanupInterval = setInterval(() => {
+          setShuttleLocations((prev) => {
+            const now = new Date();
+            const updatedLocations = {};
 
-        const assignments = await response.json();
+            Object.entries(prev).forEach(([shuttleId, data]) => {
+              const timeSinceUpdate = now - new Date(data.lastUpdate);
 
-        // Join tracking for each active shuttle
-        assignments.forEach((assignment) => {
-          socket.current.emit("join_shuttle_tracking", assignment.shuttleId);
-        });
+              // Only remove if beyond MAX_PREDICTION_TIME (1 minute)
+              if (timeSinceUpdate < 60000) {
+                updatedLocations[shuttleId] = data;
+              } else {
+                console.log(
+                  `Removing stale location for ${shuttleId} after 1 minute`
+                );
+              }
+            });
+
+            return updatedLocations;
+          });
+        }, 60000); // Run every minute
+
+        // Store the cleanup function
+        cleanupFn = () => {
+          if (socket.current) {
+            socket.current.off("shuttle_location");
+            socket.current.off("shuttle_location_update");
+          }
+          if (locationCleanup) locationCleanup();
+          clearInterval(cleanupInterval);
+        };
       } catch (error) {
-        console.error("Error fetching shuttle assignments:", error);
-        if (error.message.includes("401")) {
-          // Handle unauthorized access
-          navigate("/ShutlLoggedOut");
-        }
+        console.error("Socket connection error:", error);
+        toast.error("Failed to connect to server");
       }
     };
 
-    fetchAndTrackShuttles();
+    // Start the initialization process
+    initializeSocket();
 
-    // Listen for both types of location updates
-    socket.current.on("shuttle_location", (data) => {
-      console.log("Received shuttle location:", data);
-      setShuttleLocations((prev) => ({
-        ...prev,
-        [data.shuttleId]: {
-          coordinates: data.coordinates,
-          lastUpdate: new Date(data.timestamp),
-          speed: data.metadata?.speed || 0,
-          heading: data.metadata?.heading,
-          accuracy: data.metadata?.accuracy,
-        },
-      }));
-    });
-
-    socket.current.on("shuttle_location_update", (data) => {
-      console.log("Received shuttle location update:", data);
-      setShuttleLocations((prev) => ({
-        ...prev,
-        [data.shuttleId]: {
-          coordinates: data.coordinates,
-          lastUpdate: new Date(data.timestamp),
-          speed: data.metadata?.speed || 0,
-          heading: data.metadata?.heading,
-          accuracy: data.metadata?.accuracy,
-        },
-      }));
-    });
-
-    // Clean up stale locations every minute
-    const cleanupInterval = setInterval(() => {
-      setShuttleLocations((prev) => {
-        const now = new Date();
-        const updatedLocations = {};
-
-        Object.entries(prev).forEach(([shuttleId, data]) => {
-          const timeSinceUpdate = now - new Date(data.lastUpdate);
-
-          // Only remove if beyond MAX_PREDICTION_TIME (1 minute)
-          if (timeSinceUpdate < 60000) {
-            updatedLocations[shuttleId] = data;
-          } else {
-            console.log(
-              `Removing stale location for ${shuttleId} after 1 minute`
-            );
-          }
-        });
-
-        return updatedLocations;
-      });
-    }, 60000); // Run every minute
-
+    // Return cleanup function
     return () => {
-      if (socket.current) {
-        socket.current.off("shuttle_location");
-        socket.current.off("shuttle_location_update");
-        socket.current.disconnect();
-      }
-      clearInterval(cleanupInterval);
+      cleanupFn();
       disconnectSocket();
     };
-  }, []);
+  }, [navigate]);
 
   const updateUserLocation = () => {
     if (!navigator.geolocation) {

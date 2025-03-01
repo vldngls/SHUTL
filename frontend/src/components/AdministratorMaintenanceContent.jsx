@@ -26,6 +26,8 @@ const AdministratorMaintenanceContent = () => {
     users: 0,
     drivers: 0,
     tellers: 0,
+    totalUsers: 0,
+    administrators: 0,
   });
 
   // Fetch initial data
@@ -47,9 +49,11 @@ const AdministratorMaintenanceContent = () => {
         // Fetch users and stats
         const userData = await maintenanceService.getUserStats();
         setStats({
-          users: userData.users || 0,
+          users: userData.commuters || 0,
           drivers: userData.drivers || 0,
           tellers: userData.tellers || 0,
+          totalUsers: userData.totalUsers || 0,
+          administrators: userData.administrators || 0,
         });
 
         // Set users array from the users collection data
@@ -79,9 +83,11 @@ const AdministratorMaintenanceContent = () => {
         // Also update user stats periodically
         const userData = await maintenanceService.getUserStats();
         setStats({
-          users: userData.users || 0,
+          users: userData.commuters || 0,
           drivers: userData.drivers || 0,
           tellers: userData.tellers || 0,
+          totalUsers: userData.totalUsers || 0,
+          administrators: userData.administrators || 0,
         });
 
         // Update users array
@@ -175,12 +181,17 @@ const AdministratorMaintenanceContent = () => {
   const getProfilePicture = (user) => {
     if (user.profilePicture) {
       // Check if it's a base64 string or URL
-      return user.profilePicture.startsWith("data:") ||
+      if (
+        user.profilePicture.startsWith("data:") ||
         user.profilePicture.startsWith("http")
-        ? user.profilePicture
-        : "/avatar.png";
+      ) {
+        return user.profilePicture;
+      } else {
+        // Handle relative paths like "/profile.png"
+        return user.profilePicture;
+      }
     }
-    return "/avatar.png"; // Default avatar
+    return "/images/avatar.png"; // Default avatar if no profile picture
   };
 
   return (
@@ -289,8 +300,12 @@ const AdministratorMaintenanceContent = () => {
           <h3>User Stats</h3>
           <div className="AdministratorMaintenance-stats-details">
             <div>
+              <span>{stats.totalUsers}</span>
+              <p>Total Users</p>
+            </div>
+            <div>
               <span>{stats.users}</span>
-              <p>Users</p>
+              <p>Commuters</p>
             </div>
             <div>
               <span>{stats.drivers}</span>
@@ -299,6 +314,10 @@ const AdministratorMaintenanceContent = () => {
             <div>
               <span>{stats.tellers}</span>
               <p>Tellers</p>
+            </div>
+            <div>
+              <span>{stats.administrators}</span>
+              <p>Administrators</p>
             </div>
           </div>
         </div>
@@ -361,7 +380,7 @@ const AdministratorMaintenanceContent = () => {
       {/* Users and Groups Panels */}
       <div className="AdministratorMaintenance-bottom-panels">
         <div className="AdministratorMaintenance-users-panel">
-          <h3>Active Users</h3>
+          <h3>Commuters</h3>
           <div className="AdministratorMaintenance-user-list">
             {users.map((user, index) => (
               <div key={index} className="AdministratorMaintenance-user-item">
@@ -371,7 +390,7 @@ const AdministratorMaintenanceContent = () => {
                   className="AdministratorMaintenance-user-avatar"
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = "/avatar.png";
+                    e.target.src = "/images/avatar.png";
                   }}
                 />
                 <p>{user.name}</p>

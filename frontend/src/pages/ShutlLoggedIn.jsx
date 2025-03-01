@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "../css/LoggedIn.css";
@@ -8,13 +8,11 @@ import ProfilePopup from "../components/ProfilePopup";
 import SuggestionForm from "../components/SuggestionForm";
 import PickMeUp from "../components/PickMeUp";
 import L from "leaflet";
-import { io } from "socket.io-client";
 import { calculateDistance, reverseGeocode } from "../utils/locationUtils";
 import { getCookie } from "../utils/cookieUtils";
 import PaymentQR from "../components/PaymentQR";
 import {
   connectSocket,
-  disconnectSocket,
   subscribeToLocationUpdates,
   joinShuttleTracking,
 } from "../utils/websocketService";
@@ -33,7 +31,6 @@ L.Icon.Default.mergeOptions({
 });
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Dynamic API Base URL
-const SOCKET_URL = API_BASE_URL.replace("/api", ""); // Socket URL without /api
 
 const carIcon = new L.Icon({
   iconUrl: "/car.png",
@@ -82,19 +79,6 @@ const getTrafficCondition = (speed) => {
   return { status: "Light Traffic", color: "green" };
 };
 
-const getStreetName = async (lat, lng) => {
-  try {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
-    );
-    const data = await response.json();
-    return data.address.road || "Unknown location";
-  } catch (error) {
-    console.error("Error getting street name:", error);
-    return "Unknown location";
-  }
-};
-
 const ShutlLoggedIn = () => {
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
@@ -111,122 +95,152 @@ const ShutlLoggedIn = () => {
   const socket = useRef(null);
   const watchIdRef = useRef(null);
   const popupRef = useRef(null);
-  const locationUpdateInterval = useRef(null);
   const [isLocationSharing, setIsLocationSharing] = useState(false);
   const hasShownToastRef = useRef(false);
   const [selectedDestination, setSelectedDestination] = useState(null);
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
-  const [shuttleSpeeds, setShuttleSpeeds] = useState({});
 
   useEffect(() => {
     // Initialize socket connection
-    socket.current = connectSocket();
+    let cleanupFn = () => {};
 
-    // Subscribe to location updates
-    const locationCleanup = subscribeToLocationUpdates((data) => {
-      setShuttleLocations((prev) => ({
-        ...prev,
-        [data.shuttleId]: {
-          coordinates: data.coordinates || null,
-          lastUpdate: new Date(data.timestamp || Date.now()),
-          speed: data.metadata?.speed ?? 0,
-          heading: data.metadata?.heading ?? 0,
-          accuracy: data.metadata?.accuracy ?? 0,
-          isPredicted: false,
-          lastKnownCoordinates: data.coordinates || null,
-          lastKnownSpeed: data.metadata?.speed ?? 0,
-          lastKnownHeading: data.metadata?.heading ?? 0,
-        },
-      }));
-    });
-
-    // Fetch and track active shuttles
-    const fetchAndTrackShuttles = async () => {
+    const initializeSocket = async () => {
       try {
-        const token = getCookie("token");
-        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        // Wait for socket connection
+        const socketInstance = await connectSocket();
+        if (!socketInstance) {
+          toast.error(
+            "Unable to establish connection. Please refresh the page."
+          );
+          return;
         }
 
-        const data = await response.json();
-        const assignments = Array.isArray(data) ? data : data.assignments || [];
+        socket.current = socketInstance;
 
-        // Join tracking for each active shuttle
-        assignments.forEach((assignment) => {
-          if (assignment && assignment.shuttleId) {
-            joinShuttleTracking(assignment.shuttleId);
-          }
+        // Add socket event listeners for pickup request responses
+        socket.current.on("pickup_request_accepted", (data) => {
+          toast.success(
+            `Your pickup request for ${data.shuttleId} has been accepted!`,
+            {
+              duration: 2000,
+            }
+          );
         });
+
+        socket.current.on("pickup_request_completed", () => {
+          toast(`Your pickup request has been completed.`, {
+            icon: "✅",
+            duration: 2000,
+          });
+        });
+
+        socket.current.on("pickup_request_cancelled", () => {
+          toast(`Your pickup request has been cancelled.`, {
+            icon: "❌",
+            duration: 2000,
+          });
+        });
+
+        // Subscribe to location updates
+        const locationCleanup = await subscribeToLocationUpdates((data) => {
+          setShuttleLocations((prev) => ({
+            ...prev,
+            [data.shuttleId]: {
+              coordinates: data.coordinates || null,
+              lastUpdate: new Date(data.timestamp || Date.now()),
+              speed: data.metadata?.speed ?? 0,
+              heading: data.metadata?.heading ?? 0,
+              accuracy: data.metadata?.accuracy ?? 0,
+              isPredicted: false,
+              lastKnownCoordinates: data.coordinates || null,
+              lastKnownSpeed: data.metadata?.speed ?? 0,
+              lastKnownHeading: data.metadata?.heading ?? 0,
+            },
+          }));
+        });
+
+        // Fetch and track active shuttles
+        const fetchAndTrackShuttles = async () => {
+          try {
+            const token = getCookie("token");
+            const response = await fetch(
+              `${API_BASE_URL}/shuttle-assignments`,
+              {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+                credentials: "include",
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const assignments = Array.isArray(data)
+              ? data
+              : data.assignments || [];
+
+            // Join tracking for each active shuttle
+            assignments.forEach((assignment) => {
+              if (assignment && assignment.shuttleId) {
+                joinShuttleTracking(assignment.shuttleId);
+              }
+            });
+          } catch (error) {
+            console.error("Error fetching shuttle assignments:", error);
+            toast.error("Failed to fetch shuttle assignments");
+          }
+        };
+
+        await fetchAndTrackShuttles();
+
+        // Clean up stale locations every 10 seconds
+        const cleanupInterval = setInterval(() => {
+          setShuttleLocations((prev) => {
+            const now = new Date();
+            const updatedLocations = {};
+
+            Object.entries(prev).forEach(([shuttleId, data]) => {
+              const timeSinceUpdate = now - new Date(data.lastUpdate);
+              if (timeSinceUpdate < 60000) {
+                updatedLocations[shuttleId] = data;
+              } else {
+                console.log(
+                  `Removing stale location for ${shuttleId} after 1 minute`
+                );
+              }
+            });
+
+            return updatedLocations;
+          });
+        }, 10000);
+
+        // Store the cleanup function
+        cleanupFn = () => {
+          clearInterval(cleanupInterval);
+          if (locationCleanup) locationCleanup();
+          if (socket.current) {
+            socket.current.off("pickup_request_accepted");
+            socket.current.off("pickup_request_completed");
+            socket.current.off("pickup_request_cancelled");
+          }
+        };
       } catch (error) {
-        console.error("Error fetching shuttle assignments:", error);
-        toast.error("Failed to fetch shuttle assignments");
+        console.error("Socket connection error:", error);
+        toast.error("Failed to connect to server");
       }
     };
 
-    fetchAndTrackShuttles();
+    // Start the initialization process
+    initializeSocket();
 
-    // Add socket event listeners for pickup request responses
-    socket.current.on("pickup_request_accepted", (data) => {
-      toast.success(
-        `Your pickup request for ${data.shuttleId} has been accepted!`,
-        {
-          duration: 2000,
-        }
-      );
-    });
-
-    socket.current.on("pickup_request_completed", () => {
-      toast(`Your pickup request has been completed.`, {
-        icon: "✅",
-        duration: 2000,
-      });
-    });
-
-    socket.current.on("pickup_request_cancelled", () => {
-      toast(`Your pickup request has been cancelled.`, {
-        icon: "❌",
-        duration: 2000,
-      });
-    });
-
-    // Clean up stale locations every 10 seconds
-    const cleanupInterval = setInterval(() => {
-      setShuttleLocations((prev) => {
-        const now = new Date();
-        const updatedLocations = {};
-
-        Object.entries(prev).forEach(([shuttleId, data]) => {
-          const timeSinceUpdate = now - new Date(data.lastUpdate);
-          if (timeSinceUpdate < 60000) {
-            updatedLocations[shuttleId] = data;
-          } else {
-            console.log(
-              `Removing stale location for ${shuttleId} after 1 minute`
-            );
-          }
-        });
-
-        return updatedLocations;
-      });
-    }, 10000);
-
+    // Return cleanup function
     return () => {
-      clearInterval(cleanupInterval);
-      locationCleanup();
-      if (socket.current) {
-        socket.current.off("pickup_request_accepted");
-        socket.current.off("pickup_request_completed");
-        socket.current.off("pickup_request_cancelled");
-      }
+      cleanupFn();
     };
   }, []);
 
@@ -393,7 +407,18 @@ const ShutlLoggedIn = () => {
       };
 
       if (!socket.current) {
-        socket.current = connectSocket();
+        try {
+          const socketInstance = await connectSocket();
+          if (!socketInstance) {
+            toast.error("Unable to establish connection. Please try again.");
+            return;
+          }
+          socket.current = socketInstance;
+        } catch (error) {
+          console.error("Socket connection error:", error);
+          toast.error("Failed to connect to server");
+          return;
+        }
       }
 
       socket.current.emit("pickup_request", request);
@@ -412,21 +437,6 @@ const ShutlLoggedIn = () => {
 
     // Cleanup timer on unmount
     return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    subscribeToLocationUpdates((data) => {
-      const { shuttleId, coordinates, metadata } = data;
-      setShuttleLocations((prev) => ({
-        ...prev,
-        [shuttleId]: {
-          coordinates,
-          speed: metadata.speed || 0,
-          heading: metadata.heading || 0,
-          lastUpdate: new Date(),
-        },
-      }));
-    });
   }, []);
 
   // Add prediction update effect

@@ -1,37 +1,75 @@
 /* TellerProfile.css */
 
-/* Modal background */
-.TellerProfile-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 10px; /* Padding to avoid edge clipping on small screens */
-}
-.TellerProfile-error {
-  color: red;
-  font-size: 12px;
-  margin-top: 5px;
+:root {
+  --shutl-primary: #4caf50;
+  --shutl-primary-hover: #45a049;
+  --shutl-primary-light: rgba(76, 175, 80, 0.2);
+  --shutl-bg: #fff;
+  --shutl-bg-secondary: #f9f9f9;
+  --shutl-border: #e0e0e0;
+  --shutl-text: #333;
+  --shutl-text-secondary: #555;
+  --shutl-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  --shutl-radius-sm: 8px;
+  --shutl-radius-lg: 16px;
+  --shutl-radius-full: 50%;
+  --shutl-spacing-xs: 4px;
+  --shutl-spacing-sm: 8px;
+  --shutl-spacing-md: 12px;
+  --shutl-spacing-lg: 16px;
+  --shutl-spacing-xl: 20px;
+  --shutl-transition: 0.3s ease;
 }
 
-/* Profile container */
+/* Popup overlay */
+.TellerProfile-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  z-index: 1000;
+}
+
+/* Popup content */
 .TellerProfile-container {
-  background-color: #ffffff;
-  padding: 30px;
-  border-radius: 10px;
-  width: 350px;
-  max-width: 100%; /* Ensures modal is never wider than screen */
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+  background-color: var(--shutl-bg);
+  padding: var(--shutl-spacing-xl);
+  border-radius: var(--shutl-radius-lg);
+  box-shadow: var(--shutl-shadow);
+  width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: var(--shutl-spacing-md);
   position: relative;
-  text-align: center;
-  font-family: Arial, sans-serif;
-  box-sizing: border-box;
+  animation: slideIn var(--shutl-transition);
+  overflow: auto;
+}
+
+/* Profile header */
+.TellerProfile-header {
+  display: flex;
+  align-items: center;
+  gap: var(--shutl-spacing-md);
+  padding-bottom: var(--shutl-spacing-md);
+}
+
+/* Profile picture styling */
+.TellerProfile-icon {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.TellerProfile-icon-image {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--shutl-radius-full);
+  object-fit: cover;
+  border: 2px solid var(--shutl-border);
+  transition: border-color var(--shutl-transition);
 }
 
 /* Close button */
@@ -41,140 +79,176 @@
   right: 15px;
   background: none;
   border: none;
-  font-size: 18px;
+  font-size: 16px;
   cursor: pointer;
-  color: #666;
-  transition: color 0.2s ease;
+  color: var(--shutl-text-secondary);
+  transition: color var(--shutl-transition);
 }
 
 .TellerProfile-close-btn:hover {
-  color: #333;
+  color: var(--shutl-text);
 }
 
-/* Profile icon */
-.TellerProfile-icon {
-  margin-bottom: 20px;
-}
-
-.TellerProfile-icon-image {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #818181;
-  box-shadow: 0px 4px 8px rgba(37, 37, 37, 0.15);
-}
-
+/* Upload input */
 .TellerProfile-upload {
-  display: block;
-  margin: 10px auto 0;
-  font-size: 14px;
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
 }
 
-/* Form fields */
+.TellerProfile-picture-overlay {
+  position: absolute;
+  inset: auto 0 0;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 12px;
+  padding: var(--shutl-spacing-xs);
+  text-align: center;
+  border-bottom-left-radius: var(--shutl-radius-full);
+  border-bottom-right-radius: var(--shutl-radius-full);
+  pointer-events: none;
+}
+
+/* User details section */
+.TellerProfile-details {
+  background-color: var(--shutl-bg-secondary);
+  padding: var(--shutl-spacing-lg);
+  border-radius: var(--shutl-radius-sm);
+  display: grid;
+  gap: var(--shutl-spacing-sm);
+}
+
 .TellerProfile-details label {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   font-size: 14px;
-  margin-bottom: 15px;
-  color: #333;
+  color: var(--shutl-text-secondary);
+  margin-bottom: var(--shutl-spacing-sm);
 }
 
 .TellerProfile-details input {
-  width: 100%;
-  padding: 8px;
-  margin-top: 5px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  padding: var(--shutl-spacing-md);
+  border: 1px solid var(--shutl-border);
+  border-radius: var(--shutl-radius-sm);
   font-size: 14px;
-  transition: border-color 0.2s ease;
+  width: 100%;
   box-sizing: border-box;
+  background-color: var(--shutl-bg);
+  transition: border-color var(--shutl-transition),
+    box-shadow var(--shutl-transition);
 }
 
 .TellerProfile-details input:focus {
   outline: none;
-  border-color: #1d1d1d;
+  border-color: var(--shutl-primary);
+  box-shadow: 0 0 0 2px var(--shutl-primary-light);
+}
+
+.TellerProfile-details input:hover {
+  border-color: var(--shutl-primary);
+}
+
+.TellerProfile-error {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 2px;
 }
 
 /* Action buttons container */
 .TellerProfile-actions {
   display: flex;
   justify-content: space-between;
-  margin-top: 20px;
-  gap: 10px;
+  margin-top: var(--shutl-spacing-md);
+  gap: var(--shutl-spacing-md);
 }
 
 /* Buttons */
 .TellerProfile-edit-btn,
 .TellerProfile-save-btn,
 .TellerProfile-cancel-btn {
-  flex: 1; /* Make buttons equal width */
-  padding: 10px;
+  padding: var(--shutl-spacing-md);
   border: none;
-  border-radius: 5px;
+  border-radius: var(--shutl-radius-sm);
   font-size: 14px;
-  font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color var(--shutl-transition);
 }
 
 /* Edit button */
 .TellerProfile-edit-btn {
-  background-color: #202020;
-  color: white;
+  padding: var(--shutl-spacing-xs) var(--shutl-spacing-md) !important;
+  background-color: #ccc !important;
+  font-size: 12px !important;
 }
 
 .TellerProfile-edit-btn:hover {
-  background-color: #181818;
+  background-color: #bbb !important;
 }
 
 /* Save button */
 .TellerProfile-save-btn {
-  background-color: #28a745;
+  background-color: var(--shutl-primary);
   color: white;
+  flex: 1;
 }
 
 .TellerProfile-save-btn:hover {
-  background-color: #218838;
+  background-color: var(--shutl-primary-hover);
 }
 
 /* Cancel button */
 .TellerProfile-cancel-btn {
   background-color: #dc3545;
   color: white;
+  flex: 1;
 }
 
 .TellerProfile-cancel-btn:hover {
   background-color: #c82333;
 }
 
-/* Responsive adjustments */
-@media (max-width: 480px) {
+/* Mobile-friendly adjustments */
+@media (max-width: 600px) {
   .TellerProfile-container {
-    width: 100%;
-    padding: 20px;
+    width: 90%;
+    padding: var(--shutl-spacing-md);
+    gap: var(--shutl-spacing-sm);
+  }
+
+  .TellerProfile-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
   }
 
   .TellerProfile-icon-image {
-    width: 90px;
-    height: 90px;
+    width: 70px;
+    height: 70px;
   }
 
-  .TellerProfile-details label {
-    font-size: 13px;
+  .TellerProfile-details button {
+    font-size: 14px;
   }
 
-  .TellerProfile-details input {
-    font-size: 13px;
-    padding: 7px;
+  .TellerProfile-edit-btn {
+    font-size: 12px;
+    padding: 6px 12px;
   }
 
-  .TellerProfile-edit-btn,
-  .TellerProfile-save-btn,
-  .TellerProfile-cancel-btn {
-    padding: 8px;
-    font-size: 13px;
+  .TellerProfile-details {
+    padding: 15px;
   }
 }
 
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

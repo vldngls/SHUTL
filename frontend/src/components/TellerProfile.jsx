@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import "../css/TellerProfile.css";
 
 const TellerProfile = ({ onClose, onImageChange }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const popupRef = React.useRef(null);
 
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
@@ -65,7 +67,21 @@ const TellerProfile = ({ onClose, onImageChange }) => {
     };
 
     fetchProfileData();
-  }, [email]);
+  }, [email, API_BASE_URL]);
+
+  // Handle click outside to close popup
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (popupRef.current && !popupRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [onClose]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -156,122 +172,164 @@ const TellerProfile = ({ onClose, onImageChange }) => {
 
   return (
     <div className="TellerProfile-modal">
-      <div className="TellerProfile-container">
+      <div ref={popupRef} className="TellerProfile-container">
         <button onClick={onClose} className="TellerProfile-close-btn">
           Close
         </button>
 
-        <div className="TellerProfile-icon">
-          <img
-            src={profileData.profileImage}
-            alt="Profile Icon"
-            className="TellerProfile-icon-image"
-          />
-          {isEditMode && (
-            <input
-              type="file"
-              onChange={handleImageChange}
-              className="TellerProfile-upload"
+        {/* Profile Header Section */}
+        <div className="TellerProfile-header">
+          <div className="TellerProfile-icon">
+            <img
+              src={profileData.profileImage}
+              alt="Profile"
+              className="TellerProfile-icon-image"
             />
+            {isEditMode && (
+              <>
+                <input
+                  type="file"
+                  onChange={handleImageChange}
+                  className="TellerProfile-upload"
+                  accept="image/*"
+                />
+                <div className="TellerProfile-picture-overlay">
+                  Change Photo
+                </div>
+              </>
+            )}
+          </div>
+          <h2>{profileData.name || "Teller Name"}</h2>
+          {!isEditMode && (
+            <button
+              className="TellerProfile-edit-btn"
+              onClick={() => setIsEditMode(true)}
+            >
+              Edit Profile
+            </button>
           )}
         </div>
 
+        {/* Profile Details Section */}
         <div className="TellerProfile-details">
-          <label>
-            Name:
-            <input
-              type="text"
-              name="name"
-              value={profileData.name}
-              onChange={handleInputChange}
-              readOnly={!isEditMode}
-            />
-            {errors.name && <span className="TellerProfile-error">{errors.name}</span>}
-          </label>
-          <label>
-            Age:
-            <input
-              type="number"
-              name="age"
-              value={profileData.age}
-              onChange={handleInputChange}
-              readOnly={!isEditMode}
-            />
-            {errors.age && <span className="TellerProfile-error">{errors.age}</span>}
-          </label>
-          <label>
-            Address:
-            <input
-              type="text"
-              name="address"
-              value={profileData.address}
-              onChange={handleInputChange}
-              readOnly={!isEditMode}
-            />
-            {errors.address && <span className="TellerProfile-error">{errors.address}</span>}
-          </label>
-          <label>
-            Email:
-            <input
-              type="email"
-              name="email"
-              value={profileData.email}
-              readOnly
-            />
-          </label>
-          <label>
-            Birthday:
-            <input
-              type="date"
-              name="birthday"
-              value={profileData.birthday}
-              onChange={handleInputChange}
-              readOnly={!isEditMode}
-            />
-            {errors.birthday && (
-              <span className="TellerProfile-error">{errors.birthday}</span>
-            )}
-          </label>
-          <label>
-            Position:
-            <input
-              type="text"
-              name="position"
-              value={profileData.position}
-              onChange={handleInputChange}
-              readOnly={!isEditMode}
-            />
-            {errors.position && (
-              <span className="TellerProfile-error">{errors.position}</span>
-            )}
-          </label>
-        </div>
-
-        <div className="TellerProfile-actions">
           {isEditMode ? (
             <>
-              <button onClick={handleSave} className="TellerProfile-save-btn">
-                Save
-              </button>
-              <button
-                onClick={handleCancel}
-                className="TellerProfile-cancel-btn"
-              >
-                Cancel
-              </button>
+              <label>
+                Name:
+                <input
+                  type="text"
+                  name="name"
+                  value={profileData.name}
+                  onChange={handleInputChange}
+                />
+                {errors.name && (
+                  <span className="TellerProfile-error">{errors.name}</span>
+                )}
+              </label>
+              <label>
+                Age:
+                <input
+                  type="number"
+                  name="age"
+                  value={profileData.age}
+                  onChange={handleInputChange}
+                />
+                {errors.age && (
+                  <span className="TellerProfile-error">{errors.age}</span>
+                )}
+              </label>
+              <label>
+                Address:
+                <input
+                  type="text"
+                  name="address"
+                  value={profileData.address}
+                  onChange={handleInputChange}
+                />
+                {errors.address && (
+                  <span className="TellerProfile-error">{errors.address}</span>
+                )}
+              </label>
+              <label>
+                Email:
+                <input
+                  type="email"
+                  name="email"
+                  value={profileData.email}
+                  readOnly
+                />
+              </label>
+              <label>
+                Birthday:
+                <input
+                  type="date"
+                  name="birthday"
+                  value={profileData.birthday}
+                  onChange={handleInputChange}
+                />
+                {errors.birthday && (
+                  <span className="TellerProfile-error">{errors.birthday}</span>
+                )}
+              </label>
+              <label>
+                Position:
+                <input
+                  type="text"
+                  name="position"
+                  value={profileData.position}
+                  onChange={handleInputChange}
+                />
+                {errors.position && (
+                  <span className="TellerProfile-error">{errors.position}</span>
+                )}
+              </label>
+
+              <div className="TellerProfile-actions">
+                <button onClick={handleSave} className="TellerProfile-save-btn">
+                  Save
+                </button>
+                <button
+                  onClick={handleCancel}
+                  className="TellerProfile-cancel-btn"
+                >
+                  Cancel
+                </button>
+              </div>
             </>
           ) : (
-            <button
-              onClick={() => setIsEditMode(true)}
-              className="TellerProfile-edit-btn"
-            >
-              Edit
-            </button>
+            <>
+              <p>
+                <strong>Name:</strong> {profileData.name || "Not set"}
+              </p>
+              <p>
+                <strong>Age:</strong> {profileData.age || "Not set"}
+              </p>
+              <p>
+                <strong>Address:</strong> {profileData.address || "Not set"}
+              </p>
+              <p>
+                <strong>Email:</strong> {profileData.email}
+              </p>
+              <p>
+                <strong>Birthday:</strong>{" "}
+                {profileData.birthday
+                  ? new Date(profileData.birthday).toLocaleDateString()
+                  : "Not set"}
+              </p>
+              <p>
+                <strong>Position:</strong> {profileData.position || "Not set"}
+              </p>
+            </>
           )}
         </div>
       </div>
     </div>
   );
+};
+
+TellerProfile.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  onImageChange: PropTypes.func.isRequired,
 };
 
 export default TellerProfile;

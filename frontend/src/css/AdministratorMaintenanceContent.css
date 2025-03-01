@@ -112,8 +112,8 @@
 }
 
 .AdministratorMaintenance-stats-details {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 15px;
   margin-top: 15px;
 }
@@ -125,11 +125,54 @@
   border-radius: 5px;
 }
 
+.AdministratorMaintenance-stats-details div:first-child {
+  grid-column: span 2;
+  background-color: #e8f5e9;
+}
+
+/* Add different colors for each user type */
+.AdministratorMaintenance-stats-details div:nth-child(2) {
+  background-color: #e3f2fd; /* Light blue for Commuters */
+}
+
+.AdministratorMaintenance-stats-details div:nth-child(3) {
+  background-color: #fff3e0; /* Light orange for Drivers */
+}
+
+.AdministratorMaintenance-stats-details div:nth-child(4) {
+  background-color: #e8f5e9; /* Light green for Tellers */
+}
+
+.AdministratorMaintenance-stats-details div:nth-child(5) {
+  background-color: #f3e5f5; /* Light purple for Administrators */
+}
+
 .AdministratorMaintenance-stats-details span {
   display: block;
   font-size: 20px;
   font-weight: bold;
   color: #4caf50;
+}
+
+.AdministratorMaintenance-stats-details div:first-child span {
+  font-size: 24px;
+  color: #2e7d32;
+}
+
+.AdministratorMaintenance-stats-details div:nth-child(2) span {
+  color: #1976d2; /* Blue for Commuters */
+}
+
+.AdministratorMaintenance-stats-details div:nth-child(3) span {
+  color: #f57c00; /* Orange for Drivers */
+}
+
+.AdministratorMaintenance-stats-details div:nth-child(4) span {
+  color: #388e3c; /* Green for Tellers */
+}
+
+.AdministratorMaintenance-stats-details div:nth-child(5) span {
+  color: #7b1fa2; /* Purple for Administrators */
 }
 
 /* Control Panel */
@@ -260,7 +303,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Error state for log entries */
@@ -354,7 +399,7 @@
   .AdministratorMaintenance-top-panels {
     grid-template-columns: 1fr 1fr;
   }
-  
+
   .AdministratorMaintenance-control-panel {
     grid-column: span 2;
   }
@@ -365,12 +410,20 @@
   .AdministratorMaintenance-bottom-panels {
     grid-template-columns: 1fr;
   }
-  
+
   .AdministratorMaintenance-control-panel {
     grid-column: auto;
   }
-  
+
   .AdministratorMaintenance-health-metrics {
     grid-template-columns: 1fr;
+  }
+
+  .AdministratorMaintenance-stats-details {
+    grid-template-columns: 1fr;
+  }
+
+  .AdministratorMaintenance-stats-details div:first-child {
+    grid-column: 1;
   }
 }
