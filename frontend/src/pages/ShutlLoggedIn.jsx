@@ -19,6 +19,7 @@ import {
 import { toast } from "react-hot-toast";
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 import MovingMarker from "../components/MovingMarker";
+import { useNavigate } from "react-router-dom";
 
 // Fix for default Leaflet icons issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -99,6 +100,9 @@ const ShutlLoggedIn = () => {
   const hasShownToastRef = useRef(false);
   const [selectedDestination, setSelectedDestination] = useState(null);
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileSettingsExpanded, setIsMobileSettingsExpanded] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Initialize socket connection
@@ -539,8 +543,56 @@ const ShutlLoggedIn = () => {
     return [Number(newLat.toFixed(6)), Number(newLon.toFixed(6))];
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleMobileMenuClick = (action) => {
+    if (action === 'settings') {
+      setIsMobileSettingsExpanded(!isMobileSettingsExpanded);
+    } else {
+      setIsMobileMenuOpen(false);
+      switch (action) {
+        case 'notifications':
+          setActivePopup('notifications');
+          break;
+        case 'payment':
+          setShowPaymentQR(true);
+          break;
+        case 'profile':
+          setIsProfileEditMode(false);
+          setActivePopup('profile');
+          break;
+        default:
+          break;
+      }
+    }
+  };
+
+  const handleMobileSettingsClick = (action) => {
+    setIsMobileMenuOpen(false);
+    setIsMobileSettingsExpanded(false);
+    
+    switch (action) {
+      case 'profile':
+        setIsProfileEditMode(true);
+        setActivePopup('profile');
+        break;
+      case 'notifications':
+        setActivePopup('notifications');
+        break;
+      case 'logout':
+        // Assuming you have the handleLogout function from SettingsDropdown
+        document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        navigate("/ShutlLoggedOut");
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
-    <>
+    <div className="ShutlLoggedIn-container">
       <div className="ShutlLoggedIn-map-container">
         <MapContainer
           style={{ height: "100vh", width: "100vw" }}
@@ -649,37 +701,21 @@ const ShutlLoggedIn = () => {
         <div className="ShutlLoggedIn-navbar-buttons">
           <button
             className="ShutlLoggedIn-notif-btn"
-            onClick={() =>
-              setActivePopup(
-                activePopup === "notifications" ? null : "notifications"
-              )
-            }
+            onClick={() => setActivePopup(activePopup === "notifications" ? null : "notifications")}
           >
-            <img
-              src="/notif.png"
-              alt="Notification Icon"
-              className="ShutlLoggedIn-notif-icon"
-            />
+            <img src="/notif.png" alt="Notification Icon" className="ShutlLoggedIn-notif-icon" />
           </button>
           <button
             className="ShutlLoggedIn-money-btn"
             onClick={() => setShowPaymentQR(true)}
           >
-            <img
-              src="/money.png"
-              alt="Money Icon"
-              className="ShutlLoggedIn-money-icon"
-            />
+            <img src="/money.png" alt="Money Icon" className="ShutlLoggedIn-money-icon" />
           </button>
           <button
             className="ShutlLoggedIn-setting-btn"
             onClick={handleSettingsClick}
           >
-            <img
-              src="/settings.png"
-              alt="Settings Icon"
-              className="ShutlLoggedIn-setting-icon"
-            />
+            <img src="/settings.png" alt="Settings Icon" className="ShutlLoggedIn-setting-icon" />
           </button>
         </div>
 
@@ -695,6 +731,47 @@ const ShutlLoggedIn = () => {
             }}
           />
         </div>
+        <button 
+          className={`ShutlLoggedIn-hamburger ${isMobileMenuOpen ? 'active' : ''}`}
+          onClick={toggleMobileMenu}
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+
+      <div className={`ShutlLoggedIn-mobile-menu ${isMobileMenuOpen ? 'active' : ''}`}>
+        <div className="ShutlLoggedIn-mobile-menu-items">
+          <button onClick={() => handleMobileMenuClick('notifications')}>
+            Notifications
+          </button>
+          <button onClick={() => handleMobileMenuClick('payment')}>
+            Payment QR
+          </button>
+          <button 
+            className={`${isMobileSettingsExpanded ? 'settings-expanded' : 'settings-collapsed'}`}
+            onClick={() => handleMobileMenuClick('settings')}
+          >
+            Settings
+          </button>
+          {isMobileSettingsExpanded && (
+            <div className={`ShutlLoggedIn-mobile-settings ${isMobileSettingsExpanded ? 'active' : ''}`}>
+              <button onClick={() => handleMobileSettingsClick('profile')}>
+                Profile Settings
+              </button>
+              <button onClick={() => handleMobileSettingsClick('notifications')}>
+                Notification Settings
+              </button>
+              <button onClick={() => handleMobileSettingsClick('logout')}>
+                Logout
+              </button>
+            </div>
+          )}
+          <button onClick={() => handleMobileMenuClick('profile')}>
+            Profile
+          </button>
+        </div>
       </div>
 
       <div className="ShutlLoggedIn-taskbar">
@@ -707,44 +784,56 @@ const ShutlLoggedIn = () => {
         </div>
       )}
 
-      <button
-        className="ShutlLoggedIn-suggestion-btn"
-        onClick={() => setShowSuggestionForm(true)}
-      >
-        <img
-          src="/ask.png"
-          alt="Ask Button"
-          className="ShutlLoggedIn-suggestion-icon"
-        />
-      </button>
-
-      <button
-        className="ShutlLoggedIn-update-location-btn"
-        onClick={updateUserLocation}
-        style={{
-          backgroundColor: isLocationSharing ? "#4CAF50" : "white",
-          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-          border: "none",
-          borderRadius: "50%",
-          padding: "10px",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          transition: "background-color 0.3s ease",
-        }}
-      >
-        <img
-          src="/locup.png"
-          alt={isLocationSharing ? "Stop Sharing Location" : "Share Location"}
-          className="ShutlLoggedIn-update-location-icon"
-          style={{
-            width: "24px",
-            height: "24px",
-            filter: isLocationSharing ? "brightness(0) invert(1)" : "none",
+      <div className="ShutlLoggedIn-bottom-actions">
+        <button
+          className="ShutlLoggedIn-profile-btn"
+          onClick={() => {
+            setIsProfileEditMode(false);
+            setActivePopup("profile");
           }}
-        />
-      </button>
+        >
+          <img
+            src={profilePicture}
+            alt="Profile"
+            className="ShutlLoggedIn-nav-icon"
+          />
+        </button>
+
+        <button
+          className="ShutlLoggedIn-suggestion-btn"
+          onClick={() => setShowSuggestionForm(true)}
+        >
+          <img
+            src="/ask.png"
+            alt="Ask Button"
+            className="ShutlLoggedIn-suggestion-icon"
+          />
+        </button>
+
+        <button
+          className="ShutlLoggedIn-update-location-btn"
+          onClick={updateUserLocation}
+          style={{
+            backgroundColor: isLocationSharing ? "#4CAF50" : "white",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+            border: "none",
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "background-color 0.3s ease",
+          }}
+        >
+          <img
+            src="/locup.png"
+            alt={isLocationSharing ? "Stop Sharing Location" : "Share Location"}
+            className="ShutlLoggedIn-update-location-icon"
+            style={{
+              filter: isLocationSharing ? "brightness(0) invert(1)" : "none",
+            }}
+          />
+        </button>
+      </div>
 
       <div ref={popupRef}>
         {isSettingsOpen && (
@@ -784,7 +873,7 @@ const ShutlLoggedIn = () => {
       )}
 
       {showPaymentQR && <PaymentQR onClose={() => setShowPaymentQR(false)} />}
-    </>
+    </div>
   );
 };
 
