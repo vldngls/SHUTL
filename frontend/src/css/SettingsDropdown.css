@@ -15,7 +15,7 @@
 }
 
 .settings-dropdown-content {
-  background: #232323;
+  background: #333;
   color: #fff;
   width: 100%;
   display: flex;
@@ -48,7 +48,7 @@
 }
 
 .settings-option:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #444;
 }
 
 hr {
@@ -69,18 +69,24 @@ hr {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   }
 
-  .settings-option {
-    padding: 16px 20px;
+    padding: 8px 15px;
+    font-size: 0.9em;
     font-size: 16px;
   }
 }
 
 @media (max-width: 480px) {
   .settings-dropdown {
+    left: -160px; /* Adjusted to appear on the left side of the button */
+  }
+
+  .settings-dropdown-content {
+    width: 150px;
     top: 50px;
   }
 
-  .settings-option {
+    padding: 8px 10px;
+    font-size: 0.85em;
     padding: 14px 20px;
   }
 }
