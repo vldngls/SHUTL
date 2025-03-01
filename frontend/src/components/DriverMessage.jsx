@@ -84,10 +84,18 @@ const DriverMessage = ({ onClose }) => {
     // Cleanup function
     return () => {
       if (socket.current) {
-        if (currentRoom) {
-          socket.current.emit("leave_room", currentRoom);
+        try {
+          if (currentRoom) {
+            socket.current.emit("leave_room", currentRoom);
+          }
+          // Remove all listeners before disconnecting
+          if (typeof socket.current.removeAllListeners === "function") {
+            socket.current.removeAllListeners();
+          }
+          socket.current.disconnect();
+        } catch (error) {
+          console.error("Error during socket cleanup:", error);
         }
-        socket.current.disconnect();
       }
     };
   }, []);
@@ -211,6 +219,15 @@ const DriverMessage = ({ onClose }) => {
   // Separate function to set up message listener
   const setupMessageListener = () => {
     if (!socket.current) return;
+
+    // Safely remove any existing listeners
+    try {
+      if (typeof socket.current.removeListener === "function") {
+        socket.current.removeListener("chat_message");
+      }
+    } catch (error) {
+      console.error("Error removing existing listener:", error);
+    }
 
     socket.current.on("chat_message", (message) => {
       console.log("Received message:", message);

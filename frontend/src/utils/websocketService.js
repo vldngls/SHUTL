@@ -65,7 +65,7 @@ export const connectSocket = () => {
     try {
       if (!socket) {
         socket = io(SOCKET_URL, {
-          transports: ["websocket"],
+          transports: ["websocket", "polling"],
           reconnection: true,
           reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
           reconnectionDelay: RECONNECT_DELAY,
@@ -76,6 +76,18 @@ export const connectSocket = () => {
             Cookie: `token=${token}`,
           },
         });
+
+        // Ensure consistent method availability
+        if (!socket.off) {
+          socket.off = function (event, listener) {
+            if (listener) {
+              this.removeListener(event, listener);
+            } else {
+              this.removeAllListeners(event);
+            }
+            return this;
+          };
+        }
 
         socket.on("connect", () => {
           console.log("Socket connected with ID:", socket.id);
