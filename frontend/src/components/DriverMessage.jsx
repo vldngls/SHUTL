@@ -5,6 +5,7 @@ import {
   connectSocket,
   joinChatRoom,
   leaveChatRoom,
+  subscribeToMessages,
 } from "../utils/websocketService";
 import {
   getChatRooms,
@@ -22,6 +23,7 @@ const DriverMessage = ({ onClose }) => {
   const messageListRef = useRef(null);
   const lastMessageCountRef = useRef(messages.length);
   const socket = useRef(null);
+  const cleanupRef = useRef(null);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const SOCKET_URL = API_BASE_URL.replace("/api", "");
   const [userRole, setUserRole] = useState("Driver");
@@ -67,13 +69,34 @@ const DriverMessage = ({ onClose }) => {
           setCurrentRoom(globalRoom._id);
           setMessages(globalRoom.messages || []);
 
-          // Join the room
-          socket.current.emit("join_room", globalRoom._id);
+          // Join the room using the websocketService function
+          await joinChatRoom(globalRoom._id);
           console.log("Joined global room:", globalRoom._id);
-        }
 
-        // Set up message listener
-        setupMessageListener();
+          // Set up message subscription
+          const cleanup = await subscribeToMessages((message) => {
+            console.log("Received message:", message);
+            setMessages((prev) => {
+              // Check if message already exists
+              const messageExists = prev.some(
+                (m) =>
+                  m.content === message.content &&
+                  m.sender.email === message.sender.email &&
+                  new Date(m.timestamp).getTime() ===
+                    new Date(message.timestamp).getTime()
+              );
+
+              if (messageExists) return prev;
+
+              const newMessages = [...prev, message];
+              // Scroll to bottom after messages update
+              setTimeout(scrollToBottom, 100);
+              return newMessages;
+            });
+          });
+
+          cleanupRef.current = cleanup;
+        }
       } catch (error) {
         console.error("Error initializing chat:", error);
       }
@@ -83,19 +106,18 @@ const DriverMessage = ({ onClose }) => {
 
     // Cleanup function
     return () => {
-      if (socket.current) {
-        try {
-          if (currentRoom) {
-            socket.current.emit("leave_room", currentRoom);
-          }
-          // Remove all listeners before disconnecting
-          if (typeof socket.current.removeAllListeners === "function") {
-            socket.current.removeAllListeners();
-          }
-          socket.current.disconnect();
-        } catch (error) {
-          console.error("Error during socket cleanup:", error);
+      try {
+        if (currentRoom) {
+          leaveChatRoom(currentRoom);
         }
+        if (cleanupRef.current) {
+          cleanupRef.current();
+        }
+        if (socket.current) {
+          socket.current.disconnect();
+        }
+      } catch (error) {
+        console.error("Error during cleanup:", error);
       }
     };
   }, []);
@@ -137,23 +159,20 @@ const DriverMessage = ({ onClose }) => {
           userType: decodedToken.userType,
         },
         content: newMessage.trim(),
-        timestamp: new Date().toISOString(), // Ensure consistent timestamp format
+        timestamp: new Date().toISOString(),
       };
 
       // Send message to server
       await sendChatMessage(currentRoom, messageData);
 
-      // Emit to socket
-      if (socket.current && socket.current.connected) {
-        socket.current.emit("chat_message", {
-          roomId: currentRoom,
-          message: messageData,
-        });
-      } else {
-        console.error("Socket not connected");
-      }
+      // Add message to local state immediately for instant feedback
+      setMessages((prev) => [...prev, messageData]);
 
+      // Clear input
       setNewMessage("");
+
+      // Scroll to bottom
+      setTimeout(scrollToBottom, 100);
     } catch (error) {
       console.error("Error sending message:", error);
     } finally {
@@ -214,41 +233,6 @@ const DriverMessage = ({ onClose }) => {
     return `DriverMessage-message-item ${
       isOwnMessage ? "driver-message" : "teller-message"
     }`;
-  };
-
-  // Separate function to set up message listener
-  const setupMessageListener = () => {
-    if (!socket.current) return;
-
-    // Safely remove any existing listeners
-    try {
-      if (typeof socket.current.removeListener === "function") {
-        socket.current.removeListener("chat_message");
-      }
-    } catch (error) {
-      console.error("Error removing existing listener:", error);
-    }
-
-    socket.current.on("chat_message", (message) => {
-      console.log("Received message:", message);
-      setMessages((prev) => {
-        // Check if message already exists
-        const messageExists = prev.some(
-          (m) =>
-            m.content === message.content &&
-            m.sender.email === message.sender.email &&
-            new Date(m.timestamp).getTime() ===
-              new Date(message.timestamp).getTime()
-        );
-
-        if (messageExists) return prev;
-
-        const newMessages = [...prev, message];
-        // Scroll to bottom after messages update
-        setTimeout(scrollToBottom, 100);
-        return newMessages;
-      });
-    });
   };
 
   const handleQuickReplyClick = async (replyText) => {
