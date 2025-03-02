@@ -2,6 +2,7 @@ import React, { forwardRef, useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import "../css/Sidebar.css";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
 const Sidebar = forwardRef(
   (
@@ -22,7 +23,25 @@ const Sidebar = forwardRef(
   ) => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [settingsButtonRef, setSettingsButtonRef] = useState(null);
+    const [username, setUsername] = useState(null);
     const navigate = useNavigate();
+
+    // Get username from token
+    useEffect(() => {
+      const token = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("token="))
+        ?.split("=")[1];
+
+      if (token) {
+        try {
+          const decoded = jwtDecode(token);
+          setUsername(decoded.username);
+        } catch (error) {
+          console.error("Error decoding token:", error);
+        }
+      }
+    }, []);
 
     // Add click outside handler
     useEffect(() => {
@@ -248,16 +267,23 @@ const Sidebar = forwardRef(
 
         <div className="Sidebar-icon-container">
           <div className="Sidebar-line"></div>
-          <img
-            src={profileImage || "/profile.png"}
-            alt="Profile"
-            className="Sidebar-icon-image"
-            onClick={(e) => {
-              e.stopPropagation();
-              onProfileClick();
-            }}
-            style={{ cursor: "pointer" }}
-          />
+          <div className="Sidebar-profile-section">
+            <img
+              src={profileImage || "/profile.png"}
+              alt="Profile"
+              className="Sidebar-icon-image"
+              onClick={(e) => {
+                e.stopPropagation();
+                onProfileClick();
+              }}
+              style={{ cursor: "pointer" }}
+            />
+            {isExpanded && (
+              <span className="Sidebar-profile-text">
+                {username || "Login"}
+              </span>
+            )}
+          </div>
         </div>
       </nav>
     );

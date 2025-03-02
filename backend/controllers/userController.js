@@ -113,6 +113,7 @@ export const loginUser = async (req, res) => {
       userType: user.userType,
       isAdmin: user.userType === "Admin",
       fullAccess: user.userType === "Admin",
+      username: user.username,
     };
 
     const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, {
