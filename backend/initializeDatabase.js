@@ -6,6 +6,8 @@ import { fileURLToPath } from "url";
 import User from "./models/user.model.js";
 import UserData from "./models/userData.model.js";
 import ShuttleAssignment from "./models/shuttleAssignment.model.js";
+import Fare from "./models/fares.model.js";
+import MaintenanceLog from "./models/maintenanceLog.model.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,6 +32,8 @@ const initializeDatabase = async () => {
     await User.deleteMany({});
     await UserData.deleteMany({});
     await ShuttleAssignment.deleteMany({});
+    await Fare.deleteMany({});
+    await MaintenanceLog.deleteMany({});
     console.log("Cleared existing data");
 
     // Create admin account
@@ -99,6 +103,7 @@ const initializeDatabase = async () => {
       profilePicture: DEFAULT_PROFILE,
       discountType: "REGULAR",
       discount: 0,
+      discountStatus: "APPROVED",
       paymentMethod: "Cash",
       preferences: {
         notifications: true,
@@ -118,6 +123,29 @@ const initializeDatabase = async () => {
 
     await ShuttleAssignment.insertMany(assignments);
     console.log("Shuttle assignments created successfully");
+
+    // Create default fares
+    const defaultFares = [
+      {
+        fare: "Regular",
+        price: "30",
+      },
+      {
+        fare: "PWD",
+        price: "24",
+      },
+      {
+        fare: "STUDENT",
+        price: "24",
+      },
+      {
+        fare: "SENIOR",
+        price: "24",
+      },
+    ];
+
+    await Fare.insertMany(defaultFares);
+    console.log("Default fares created successfully");
 
     console.log("\nInitial data created successfully:");
     console.log("\nAll accounts use the same password:", DEFAULT_PASSWORD);

@@ -113,6 +113,12 @@ const DISCOUNT_TYPES = {
   SENIOR: { label: "Senior Citizen", value: 20 },
 };
 
+const DISCOUNT_STATUS = {
+  PENDING: { label: "Pending Approval", color: "#f0ad4e" },
+  APPROVED: { label: "Approved", color: "#5cb85c" },
+  REJECTED: { label: "Rejected", color: "#d9534f" },
+};
+
 const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Use API_BASE_URL from environment variables
   const popupRef = useRef(null);
@@ -427,7 +433,23 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
               </>
             )}
           </div>
-          <h2>{userData.name || "User Name"}</h2>
+          <div className="ShutlProfilePopup-info">
+            <h2>{userData?.name || "User Name"}</h2>
+            {userData?.discountType !== "REGULAR" && (
+              <div
+                className="ShutlProfilePopup-discount-status"
+                style={{
+                  color:
+                    DISCOUNT_STATUS[userData?.discountStatus || "PENDING"]
+                      .color,
+                  fontSize: "14px",
+                  marginTop: "4px",
+                }}
+              >
+                {DISCOUNT_STATUS[userData?.discountStatus || "PENDING"].label}
+              </div>
+            )}
+          </div>
           {!isEditing && (
             <button
               className="ShutlProfilePopup-edit-btn"
@@ -442,29 +464,44 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
         {!isEditing ? (
           <div className="ShutlProfilePopup-details">
             <p>
-              <strong>Email:</strong> {userData.email || "N/A"}
+              <strong>Email:</strong> {userData?.email || "N/A"}
             </p>
             <p>
               <strong>Birthday:</strong>{" "}
-              {userData.birthday
+              {userData?.birthday
                 ? new Date(userData.birthday).toISOString().substring(0, 10)
                 : "N/A"}
             </p>
             <p>
-              <strong>Address:</strong> {userData.address || "N/A"}
+              <strong>Address:</strong> {userData?.address || "N/A"}
             </p>
             <p>
               <strong>Discount Type:</strong>{" "}
-              {DISCOUNT_TYPES[userData.discountType || "REGULAR"].label}
+              {DISCOUNT_TYPES[userData?.discountType || "REGULAR"].label}
             </p>
             <p>
-              <strong>Discount:</strong> {userData.discount || 0}%
+              <strong>Discount:</strong> {userData?.discount || 0}%
+            </p>
+            {userData?.discountType !== "REGULAR" && (
+              <p>
+                <strong>Discount Status:</strong>{" "}
+                <span
+                  style={{
+                    color:
+                      DISCOUNT_STATUS[userData?.discountStatus || "PENDING"]
+                        .color,
+                  }}
+                >
+                  {DISCOUNT_STATUS[userData?.discountStatus || "PENDING"].label}
+                </span>
+              </p>
+            )}
+            <p>
+              <strong>Payment Method:</strong>{" "}
+              {userData?.paymentMethod || "N/A"}
             </p>
             <p>
-              <strong>Payment Method:</strong> {userData.paymentMethod || "N/A"}
-            </p>
-            <p>
-              <strong>Contact:</strong> {userData.contactNumber || "N/A"}
+              <strong>Contact:</strong> {userData?.contactNumber || "N/A"}
             </p>
           </div>
         ) : (
@@ -472,7 +509,7 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
             <input
               name="name"
               type="text"
-              value={editedData.name || userData.name || ""}
+              value={editedData.name || userData?.name || ""}
               onChange={handleInputChange}
               placeholder="Name"
             />
@@ -481,7 +518,7 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
               type="date"
               value={
                 editedData.birthday ||
-                (userData.birthday &&
+                (userData?.birthday &&
                   new Date(userData.birthday).toISOString().substring(0, 10)) ||
                 ""
               }
@@ -491,14 +528,14 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
             <input
               name="address"
               type="text"
-              value={editedData.address || userData.address || ""}
+              value={editedData.address || userData?.address || ""}
               onChange={handleInputChange}
               placeholder="Address"
             />
             <select
               name="discountType"
               value={
-                editedData.discountType || userData.discountType || "REGULAR"
+                editedData.discountType || userData?.discountType || "REGULAR"
               }
               onChange={(e) => {
                 const selectedType = e.target.value;
@@ -515,17 +552,32 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
                 </option>
               ))}
             </select>
+            {(editedData.discountType || userData?.discountType) !==
+              "REGULAR" && (
+              <div className="auth-input-group">
+                <input
+                  type="file"
+                  name="idPicture"
+                  className="auth-input"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, "idPicture")}
+                />
+                <small>
+                  Please upload a valid ID for discount verification
+                </small>
+              </div>
+            )}
             <input
               name="paymentMethod"
               type="text"
-              value={editedData.paymentMethod || userData.paymentMethod || ""}
+              value={editedData.paymentMethod || userData?.paymentMethod || ""}
               onChange={handleInputChange}
               placeholder="Payment Method"
             />
             <input
               name="contactNumber"
               type="tel"
-              value={editedData.contactNumber || userData.contactNumber || ""}
+              value={editedData.contactNumber || userData?.contactNumber || ""}
               onChange={handleInputChange}
               placeholder="Contact Number"
             />
@@ -541,41 +593,17 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
               {transactions.map((transaction, index) => (
                 <div key={transaction._id} className="transaction-item">
                   <h4>Transaction {index + 1}</h4>
-                  <div className="transaction-details">
-                    <div className="transaction-row">
-                      <span className="transaction-counts">
-                        Regular: {transaction.regularCount} | Discounted:{" "}
-                        {transaction.discountedCount}
-                      </span>
-                    </div>
-                    <div className="transaction-row">
-                      <span className="transaction-amounts">
-                        Total Fare: ₱{transaction.totalFare} | Tender: ₱
-                        {transaction.tender} | Change: ₱{transaction.change}
-                      </span>
-                    </div>
-                    <div className="transaction-row">
-                      <span className="transaction-shuttle">
-                        Shuttle ID: {transaction.shuttleID}
-                      </span>
-                    </div>
-                    <div className="transaction-date">
-                      Date:{" "}
-                      {new Date(transaction.createdAt).toLocaleString("en-US", {
-                        year: "numeric",
-                        month: "2-digit",
-                        day: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: true,
-                      })}
-                    </div>
-                  </div>
+                  <p>
+                    Date: {new Date(transaction.createdAt).toLocaleDateString()}
+                  </p>
+                  <p>Regular Count: {transaction.regularCount}</p>
+                  <p>Discounted Count: {transaction.discountedCount}</p>
+                  <p>Total Fare: ₱{transaction.totalFare}</p>
                 </div>
               ))}
             </div>
           ) : (
-            <p>No transactions found.</p>
+            <p>No transactions found</p>
           )}
         </div>
       </div>

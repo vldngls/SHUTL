@@ -8,18 +8,40 @@ import crypto from "crypto";
 
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, username, password, userType, profilePicture } =
-      req.body;
+    const {
+      name,
+      email,
+      username,
+      password,
+      birthday,
+      address,
+      discountType,
+      paymentMethod,
+      contactNumber,
+    } = req.body;
 
     // Check if user exists
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({
+      $or: [{ email }, { username }],
+    });
+
     if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({
+        message:
+          userExists.email === email
+            ? "Email already in use"
+            : "Username already in use",
+      });
     }
 
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Get profile picture and ID picture from request files
+    const profilePicture =
+      req.files?.profilePicture?.[0]?.path || "/avatar.png";
+    const idPicture = req.files?.idPicture?.[0]?.path;
 
     // Create user
     const user = await User.create({
@@ -27,16 +49,25 @@ export const registerUser = async (req, res) => {
       email,
       username,
       password: hashedPassword,
-      userType: userType || "Commuter",
+      userType: "Commuter",
     });
 
-    // Create corresponding userData
+    // Create corresponding userData with initial discount settings
     const userData = await UserData.create({
+      userId: user._id,
       email: user.email,
       name: user.name,
-      profilePicture: profilePicture || "/avatar.png",
-      discountType: "REGULAR",
+      birthday,
+      address,
+      discountType,
+      // Initially set discount to 0 regardless of type until approved
       discount: 0,
+      // Set status to PENDING for non-regular types
+      discountStatus: discountType === "REGULAR" ? "APPROVED" : "PENDING",
+      idPicture: idPicture || null,
+      paymentMethod,
+      contactNumber,
+      profilePicture,
     });
 
     // Generate token
@@ -63,6 +94,8 @@ export const registerUser = async (req, res) => {
         profilePicture: userData.profilePicture,
         isAdmin: user.userType === "Admin",
         fullAccess: user.userType === "Admin",
+        discountStatus: userData.discountStatus,
+        discountType: userData.discountType,
       },
     });
   } catch (error) {

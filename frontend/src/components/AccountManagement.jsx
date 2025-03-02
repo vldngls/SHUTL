@@ -1,36 +1,61 @@
 import React, { useState, useEffect } from "react";
-import { addUser, fetchUsers, updateUser, deleteUser } from "../utils/userService";
+import {
+  addUser,
+  fetchUsers,
+  updateUser,
+  deleteUser,
+} from "../utils/userService";
 import "../css/AccountManagement.css";
 
 const AccountManagement = () => {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [users, setUsers] = useState([]);
-  const [editingUser, setEditingUser] = useState(null);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     username: "",
+    password: "",
     userType: "Commuter",
   });
+  const [editingUser, setEditingUser] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [viewingUser, setViewingUser] = useState(null);
+  const [showUserModal, setShowUserModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
 
   useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        const data = await fetchUsers();
-        setUsers(data);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
-
-    loadUsers();
+    fetchUsers();
   }, []);
+
+  useEffect(() => {
+    const filtered = users.filter((user) =>
+      Object.values(user).some((value) =>
+        String(value).toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+    setFilteredUsers(filtered);
+    setCurrentPage(1);
+  }, [searchTerm, users]);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/all`);
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+        setFilteredUsers(data);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      setErrorMessage("Failed to fetch users");
+    }
+  };
 
   const handleFormChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -38,35 +63,109 @@ const AccountManagement = () => {
 
   const handleSaveUser = async (e) => {
     e.preventDefault();
-    setErrorMessage(""); // Reset the error message before saving
-
     try {
-      const payload = {
-        name: formData.name,
-        email: formData.email,
-        username: formData.username,
-        password: formData.password,
-        userType: formData.userType,
-      };
+      const url = editingUser
+        ? `${API_BASE_URL}/users/update/${editingUser._id}`
+        : `${API_BASE_URL}/users/register`;
 
-      if (editingUser) {
-        await updateUser(editingUser._id, payload);
+      const response = await fetch(url, {
+        method: editingUser ? "PUT" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        fetchUsers();
+        setFormData({
+          name: "",
+          email: "",
+          username: "",
+          password: "",
+          userType: "Commuter",
+        });
+        setEditingUser(null);
+        setErrorMessage("");
       } else {
-        await addUser(payload);
+        const error = await response.json();
+        setErrorMessage(error.message);
       }
-
-      setEditingUser(null);
-      setFormData({ name: "", email: "", username: "", password: "", userType: "Commuter" });
-      const updatedUsers = await fetchUsers();
-      setUsers(updatedUsers);
     } catch (error) {
-      setErrorMessage(error.response?.data?.message || "Error saving user");
+      console.error("Error saving user:", error);
+      setErrorMessage("Failed to save user");
     }
   };
 
-  const handleEdit = (user) => {
+  const handleEditUser = (user) => {
     setEditingUser(user);
-    setFormData(user);
+    setFormData({
+      name: user.name,
+      email: user.email,
+      username: user.username,
+      userType: user.userType,
+    });
+  };
+
+  const handleViewUser = async (user) => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/userData/find?email=${user.email}`
+      );
+      if (response.ok) {
+        const userData = await response.json();
+        setViewingUser({ ...user, ...userData });
+        setShowUserModal(true);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  const handleApproveDiscount = async (email) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/userData/update`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          discountStatus: "APPROVED",
+        }),
+      });
+
+      if (response.ok) {
+        fetchUsers();
+        setShowUserModal(false);
+      }
+    } catch (error) {
+      console.error("Error approving discount:", error);
+    }
+  };
+
+  const handleRejectDiscount = async (email) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/userData/update`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          discountStatus: "REJECTED",
+          discountType: "REGULAR",
+          discount: 0,
+        }),
+      });
+
+      if (response.ok) {
+        fetchUsers();
+        setShowUserModal(false);
+      }
+    } catch (error) {
+      console.error("Error rejecting discount:", error);
+    }
   };
 
   const handleDelete = (user) => {
@@ -77,7 +176,9 @@ const AccountManagement = () => {
   const confirmDelete = async () => {
     try {
       await deleteUser(userToDelete._id);
-      const updatedUsers = users.filter((user) => user._id !== userToDelete._id);
+      const updatedUsers = users.filter(
+        (user) => user._id !== userToDelete._id
+      );
       setUsers(updatedUsers);
       setShowDeleteModal(false);
       setUserToDelete(null);
@@ -89,11 +190,6 @@ const AccountManagement = () => {
   const cancelDelete = () => {
     setShowDeleteModal(false);
     setUserToDelete(null);
-  };
-
-  const handleSearchChange = (e) => {
-    setSearch(e.target.value);
-    setCurrentPage(1);
   };
 
   const handleSort = (key) => {
@@ -108,7 +204,7 @@ const AccountManagement = () => {
   };
 
   const sortedUsers = () => {
-    let sorted = [...users];
+    let sorted = [...filteredUsers];
     if (sortConfig.key) {
       sorted.sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
@@ -123,15 +219,7 @@ const AccountManagement = () => {
     return sorted;
   };
 
-  const filteredUsers = sortedUsers().filter(
-    (user) =>
-      user.name.toLowerCase().includes(search.toLowerCase()) ||
-      user.email.toLowerCase().includes(search.toLowerCase()) ||
-      user.username.toLowerCase().includes(search.toLowerCase()) ||
-      user.userType.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const paginatedUsers = filteredUsers.slice(
+  const paginatedUsers = sortedUsers().slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -145,6 +233,18 @@ const AccountManagement = () => {
   return (
     <div className="account-management">
       <h1>Account Management</h1>
+
+      {/* Search Bar */}
+      <div className="search-bar">
+        <input
+          type="text"
+          placeholder="Search users..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      {/* User Form */}
       <div className="form-container">
         <h2>{editingUser ? "Update User" : "Add User"}</h2>
         {errorMessage && <p className="error-message">{errorMessage}</p>}
@@ -173,14 +273,16 @@ const AccountManagement = () => {
             onChange={handleFormChange}
             required
           />
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password || ""}
-            onChange={handleFormChange}
-            required
-          />
+          {!editingUser && (
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleFormChange}
+              required
+            />
+          )}
           <select
             name="userType"
             value={formData.userType}
@@ -192,30 +294,14 @@ const AccountManagement = () => {
             <option value="Driver">Driver</option>
             <option value="Teller">Teller</option>
           </select>
-          <button type="submit">{editingUser ? "Update User" : "Add User"}</button>
+          <button type="submit">
+            {editingUser ? "Update User" : "Add User"}
+          </button>
         </form>
       </div>
 
-      <div className="list-container">
-        <h2>User List</h2>
-        <input
-          className="search-input"
-          type="text"
-          placeholder="Search..."
-          value={search}
-          onChange={handleSearchChange}
-        />
-        <div className="sort-buttons">
-          {["name", "email", "username", "userType"].map((key) => (
-            <button
-              key={key}
-              onClick={() => handleSort(key)}
-              className={sortConfig.key === key ? "active-sort" : ""}
-            >
-              Sort by {key.charAt(0).toUpperCase() + key.slice(1)}
-            </button>
-          ))}
-        </div>
+      {/* Users Table */}
+      <div className="users-table">
         <table>
           <thead>
             <tr>
@@ -234,36 +320,93 @@ const AccountManagement = () => {
                 <td>{user.username}</td>
                 <td>{user.userType}</td>
                 <td>
-                  <button className="edit-btn" onClick={() => handleEdit(user)}>
-                    Edit
-                  </button>
-                  <button className="delete-button" onClick={() => handleDelete(user)}>
-                    Delete
-                  </button>
+                  <button onClick={() => handleViewUser(user)}>View</button>
+                  <button onClick={() => handleEditUser(user)}>Edit</button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        <div className="pagination">
-          {Array.from({ length: totalPages }, (_, index) => (
-            <button
-              key={index + 1}
-              className={`pagination-btn ${currentPage === index + 1 ? "active" : ""}`}
-              onClick={() => handlePageChange(index + 1)}
-            >
-              {index + 1}
-            </button>
-          ))}
-        </div>
       </div>
+
+      {/* Pagination */}
+      <div className="pagination">
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <button
+            key={page}
+            onClick={() => handlePageChange(page)}
+            className={currentPage === page ? "active" : ""}
+          >
+            {page}
+          </button>
+        ))}
+      </div>
+
+      {/* User Details Modal */}
+      {showUserModal && viewingUser && (
+        <div className="modal">
+          <div className="modal-content">
+            <h2>User Details</h2>
+            <div className="user-details">
+              <p>
+                <strong>Name:</strong> {viewingUser.name}
+              </p>
+              <p>
+                <strong>Email:</strong> {viewingUser.email}
+              </p>
+              <p>
+                <strong>Username:</strong> {viewingUser.username}
+              </p>
+              <p>
+                <strong>User Type:</strong> {viewingUser.userType}
+              </p>
+              <p>
+                <strong>Discount Type:</strong> {viewingUser.discountType}
+              </p>
+              <p>
+                <strong>Discount Status:</strong> {viewingUser.discountStatus}
+              </p>
+              {viewingUser.discountType !== "REGULAR" &&
+                viewingUser.idPicture && (
+                  <div>
+                    <p>
+                      <strong>ID Picture:</strong>
+                    </p>
+                    <img
+                      src={viewingUser.idPicture}
+                      alt="ID"
+                      style={{ maxWidth: "300px" }}
+                    />
+                  </div>
+                )}
+              {viewingUser.discountType !== "REGULAR" &&
+                viewingUser.discountStatus === "PENDING" && (
+                  <div className="discount-actions">
+                    <button
+                      onClick={() => handleApproveDiscount(viewingUser.email)}
+                    >
+                      Approve Discount
+                    </button>
+                    <button
+                      onClick={() => handleRejectDiscount(viewingUser.email)}
+                    >
+                      Reject Discount
+                    </button>
+                  </div>
+                )}
+            </div>
+            <button onClick={() => setShowUserModal(false)}>Close</button>
+          </div>
+        </div>
+      )}
 
       {showDeleteModal && (
         <div className="modal">
           <div className="modal-content">
             <h2>Confirm Delete</h2>
             <p>
-              Are you sure you want to delete <strong>{userToDelete.name}</strong>?
+              Are you sure you want to delete{" "}
+              <strong>{userToDelete.name}</strong>?
             </p>
             <div className="modal-buttons">
               <button onClick={confirmDelete}>Yes, Delete</button>
