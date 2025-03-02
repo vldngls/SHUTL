@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import "../css/Sidebar.css";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import { FiMenu } from "react-icons/fi";
 
 const Sidebar = forwardRef(
   (
@@ -24,6 +25,7 @@ const Sidebar = forwardRef(
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [settingsButtonRef, setSettingsButtonRef] = useState(null);
     const [username, setUsername] = useState(null);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const navigate = useNavigate();
 
     // Get username from token
@@ -109,14 +111,13 @@ const Sidebar = forwardRef(
       [isSettingsOpen, onSettingsClick]
     );
 
-    const handleProfileSettings = useCallback(
-      (e) => {
-        e.stopPropagation();
-        onProfileClick();
-        setIsSettingsOpen(false);
-      },
-      [onProfileClick]
-    );
+    const handleProfileClick = (e) => {
+      e.stopPropagation();
+      onProfileClick();
+      if (window.innerWidth <= 768) {
+        setIsMobileMenuOpen(false);
+      }
+    };
 
     const getButtonsConfig = () => {
       const commonButtons = [
@@ -174,118 +175,149 @@ const Sidebar = forwardRef(
       }
     };
 
+    const toggleMobileMenu = (e) => {
+      e.stopPropagation();
+      setIsMobileMenuOpen(!isMobileMenuOpen);
+    };
+
+    // Add mobile menu close handler
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (
+          isMobileMenuOpen &&
+          ref.current &&
+          !ref.current.contains(event.target)
+        ) {
+          setIsMobileMenuOpen(false);
+        }
+      };
+
+      if (isMobileMenuOpen) {
+        document.addEventListener("mousedown", handleClickOutside);
+      }
+
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [isMobileMenuOpen]);
+
     return (
-      <nav
-        ref={ref}
-        className={`Sidebar ${isExpanded ? "expanded" : ""}`}
-        onClick={onToggle}
-      >
-        <div className="Sidebar-logo">
-          {isExpanded ? (
-            "SHUTL."
-          ) : (
-            <>
-              SHU
-              <br />
-              TL.
-            </>
-          )}
+      <>
+        {/* Mobile Top Bar */}
+        <div className="Mobile-top-bar">
+          <div className="mobile-logo">SHUTL.</div>
+          <button className="hamburger-menu" onClick={toggleMobileMenu}>
+            <FiMenu size={24} color="#fff" />
+          </button>
         </div>
 
-        <div className="Sidebar-buttons">
-          {getButtonsConfig().map((button) => (
-            <button
-              key={button.id}
-              className={`Sidebar-icon-btn ${
-                button.id === "settings" && isSettingsOpen ? "active" : ""
-              }`}
-              onClick={(e) => {
-                e.stopPropagation();
-                button.onClick(e);
-              }}
-              ref={button.ref}
-            >
-              <img
-                src={button.icon}
-                alt={button.label}
-                className="Sidebar-icon-image"
-              />
-              {isExpanded && (
-                <span className="button-label">{button.label}</span>
-              )}
-            </button>
-          ))}
+        {/* Sidebar - Desktop and Mobile */}
+        <nav
+          ref={ref}
+          className={`Sidebar ${isExpanded ? "expanded" : ""} ${
+            isMobileMenuOpen ? "mobile-open" : ""
+          }`}
+          onClick={(e) => {
+            if (window.innerWidth > 768) {
+              onToggle(e);
+            }
+          }}
+        >
+          <div className="Sidebar-logo">
+            {isExpanded ? (
+              "SHUTL."
+            ) : (
+              <>
+                SHU
+                <br />
+                TL.
+              </>
+            )}
+          </div>
 
-          {/* Settings Dropdown with improved accessibility */}
-          {isSettingsOpen && settingsButtonRef && (
-            <div
-              className="Sidebar-settings-dropdown"
-              onClick={(e) => e.stopPropagation()}
-              role="menu"
-              aria-label="Settings menu"
-              style={{
-                position: "absolute",
-                top: `${
-                  settingsButtonRef.offsetTop +
-                  settingsButtonRef.offsetHeight +
-                  4
-                }px`,
-                left: 0,
-                width: "100%",
-              }}
-            >
+          <div className="Sidebar-buttons">
+            {getButtonsConfig().map((button) => (
               <button
-                className="Sidebar-settings-option"
-                onClick={handleProfileSettings}
-                role="menuitem"
-              >
-                Profile Settings
-              </button>
-              <hr />
-              <button
-                className="Sidebar-settings-option"
+                key={button.id}
+                className={`Sidebar-icon-btn ${
+                  button.id === "settings" && isSettingsOpen ? "active" : ""
+                }`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onNotificationClick();
-                  setIsSettingsOpen(false);
+                  button.onClick(e);
+                  if (window.innerWidth <= 768 && button.id !== "settings") {
+                    setIsMobileMenuOpen(false);
+                  }
                 }}
-                role="menuitem"
+                ref={button.ref}
               >
-                Notification Settings
+                <img
+                  src={button.icon}
+                  alt={button.label}
+                  className="Sidebar-icon-image"
+                />
+                {(isExpanded || window.innerWidth <= 768) && (
+                  <span className="button-label">{button.label}</span>
+                )}
               </button>
-              <hr />
-              <button
-                className="Sidebar-settings-option"
-                onClick={handleLogout}
-                role="menuitem"
-              >
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
+            ))}
 
-        <div className="Sidebar-icon-container">
-          <div className="Sidebar-line"></div>
-          <div className="Sidebar-profile-section">
-            <img
-              src={profileImage || "/profile.png"}
-              alt="Profile"
-              className="Sidebar-icon-image"
-              onClick={(e) => {
-                e.stopPropagation();
-                onProfileClick();
-              }}
-              style={{ cursor: "pointer" }}
-            />
-            {isExpanded && (
+            {/* Settings Dropdown */}
+            {isSettingsOpen && settingsButtonRef && (
+              <div
+                className="Sidebar-settings-dropdown"
+                onClick={(e) => e.stopPropagation()}
+                role="menu"
+                aria-label="Settings menu"
+              >
+                <button
+                  className="Sidebar-settings-option"
+                  onClick={handleProfileClick}
+                  role="menuitem"
+                >
+                  Profile Settings
+                </button>
+                <hr />
+                <button
+                  className="Sidebar-settings-option"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onNotificationClick();
+                    setIsSettingsOpen(false);
+                  }}
+                  role="menuitem"
+                >
+                  Notification Settings
+                </button>
+                <hr />
+                <button
+                  className="Sidebar-settings-option"
+                  onClick={handleLogout}
+                  role="menuitem"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="Sidebar-icon-container">
+            <div className="Sidebar-line"></div>
+            <div className="Sidebar-profile-section">
+              <img
+                src={profileImage || "/profile.png"}
+                alt="Profile"
+                className="Sidebar-icon-image"
+                onClick={handleProfileClick}
+                style={{ cursor: "pointer" }}
+              />
               <span className="Sidebar-profile-text">
                 {username || "Login"}
               </span>
-            )}
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      </>
     );
   }
 );
