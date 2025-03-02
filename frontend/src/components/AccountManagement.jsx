@@ -124,11 +124,23 @@ const AccountManagement = () => {
 
   const handleApproveDiscount = async (email) => {
     try {
+      const token = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("token="))
+        ?.split("=")[1];
+
+      if (!token) {
+        console.error("No authentication token found");
+        return;
+      }
+
       const response = await fetch(`${API_BASE_URL}/userData/update`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
         body: JSON.stringify({
           email,
           discountStatus: "APPROVED",
@@ -138,6 +150,8 @@ const AccountManagement = () => {
       if (response.ok) {
         fetchUsers();
         setShowUserModal(false);
+      } else {
+        console.error("Failed to approve discount:", await response.text());
       }
     } catch (error) {
       console.error("Error approving discount:", error);
@@ -146,11 +160,23 @@ const AccountManagement = () => {
 
   const handleRejectDiscount = async (email) => {
     try {
+      const token = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("token="))
+        ?.split("=")[1];
+
+      if (!token) {
+        console.error("No authentication token found");
+        return;
+      }
+
       const response = await fetch(`${API_BASE_URL}/userData/update`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
         body: JSON.stringify({
           email,
           discountStatus: "REJECTED",
@@ -162,6 +188,8 @@ const AccountManagement = () => {
       if (response.ok) {
         fetchUsers();
         setShowUserModal(false);
+      } else {
+        console.error("Failed to reject discount:", await response.text());
       }
     } catch (error) {
       console.error("Error rejecting discount:", error);

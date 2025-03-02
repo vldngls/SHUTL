@@ -82,12 +82,32 @@ const ShutlLoggedOut = () => {
     // Fetch and track all active shuttles
     const fetchAndTrackShuttles = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`);
+        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
+          credentials: "include", // Include credentials in the request
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            console.log(
+              "User not authenticated, this is expected for logged out view"
+            );
+            return;
+          }
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const assignments = await response.json();
 
+        // Ensure assignments is an array
+        const assignmentsArray = Array.isArray(assignments)
+          ? assignments
+          : assignments.assignments || [];
+
         // Join tracking for each active shuttle
-        assignments.forEach((assignment) => {
-          socket.current.emit("join_shuttle_tracking", assignment.shuttleId);
+        assignmentsArray.forEach((assignment) => {
+          if (assignment && assignment.shuttleId) {
+            socket.current.emit("join_shuttle_tracking", assignment.shuttleId);
+          }
         });
       } catch (error) {
         console.error("Error fetching shuttle assignments:", error);

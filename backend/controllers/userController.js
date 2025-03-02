@@ -18,6 +18,8 @@ export const registerUser = async (req, res) => {
       discountType,
       paymentMethod,
       contactNumber,
+      profilePicture,
+      idPicture,
     } = req.body;
 
     // Check if user exists
@@ -37,11 +39,6 @@ export const registerUser = async (req, res) => {
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Get profile picture and ID picture from request files
-    const profilePicture =
-      req.files?.profilePicture?.[0]?.path || "/avatar.png";
-    const idPicture = req.files?.idPicture?.[0]?.path;
 
     // Create user
     const user = await User.create({
@@ -67,7 +64,7 @@ export const registerUser = async (req, res) => {
       idPicture: idPicture || null,
       paymentMethod,
       contactNumber,
-      profilePicture,
+      profilePicture: profilePicture || "/avatar.png",
     });
 
     // Generate token

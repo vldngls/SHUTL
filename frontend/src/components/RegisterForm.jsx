@@ -3,6 +3,7 @@ import "../css/shared/AuthForms.css";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { toast } from "react-hot-toast";
 
 const RegisterForm = ({ onClose }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -52,13 +53,79 @@ const RegisterForm = ({ onClose }) => {
     }));
   };
 
-  const handleFileChange = (e, field) => {
+  // Helper function to create an image object from file
+  const createImage = (url) =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      img.addEventListener("load", () => resolve(img));
+      img.addEventListener("error", (error) => reject(error));
+      img.src = url;
+    });
+
+  // Helper function to get the cropped and resized image
+  const getCroppedImg = async (imageSrc, size = 400) => {
+    const image = await createImage(imageSrc);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    // Set width and height to our target size
+    canvas.width = size;
+    canvas.height = size;
+
+    // Calculate the center crop coordinates
+    const minDim = Math.min(image.width, image.height);
+    const sx = (image.width - minDim) / 2;
+    const sy = (image.height - minDim) / 2;
+
+    // Draw the cropped and resized image
+    ctx.drawImage(image, sx, sy, minDim, minDim, 0, 0, size, size);
+
+    // Convert to base64 with reduced quality
+    return canvas.toDataURL("image/jpeg", 0.8);
+  };
+
+  const handleFileChange = async (e, field) => {
     const file = e.target.files[0];
-    if (file) {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: file,
-      }));
+    if (!file) return;
+
+    try {
+      // Check file type
+      if (!file.type.startsWith("image/")) {
+        setError("Please upload an image file");
+        return;
+      }
+
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError("Image size should be less than 5MB");
+        return;
+      }
+
+      // First convert to base64 to process
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          // Process the image - crop and resize
+          const processedImage = await getCroppedImg(reader.result);
+
+          setFormData((prev) => ({
+            ...prev,
+            [field]: processedImage,
+            [`${field}Preview`]: processedImage,
+          }));
+          setError(""); // Clear any previous errors
+        } catch (error) {
+          console.error("Error processing image:", error);
+          setError("Error processing image. Please try again.");
+        }
+      };
+      reader.onerror = () => {
+        setError("Error reading the image file");
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Error handling file:", error);
+      setError("Error processing image. Please try again.");
     }
   };
 
@@ -132,33 +199,46 @@ const RegisterForm = ({ onClose }) => {
 
     setIsLoading(true);
     try {
-      const formDataToSend = new FormData();
-      Object.keys(formData).forEach((key) => {
-        if (formData[key]) {
-          formDataToSend.append(key, formData[key]);
-        }
-      });
+      // Filter out preview fields and prepare data for submission
+      const dataToSend = Object.fromEntries(
+        Object.entries(formData).filter(([key]) => !key.includes("Preview"))
+      );
 
       const response = await fetch(`${API_BASE_URL}/users/register`, {
         method: "POST",
-        body: formDataToSend,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataToSend),
+        credentials: "include",
       });
 
       if (response.ok) {
         const data = await response.json();
         console.log("Registration successful", data);
         if (formData.discountType !== "REGULAR") {
-          alert(
-            "Your account has been created! Your discount status is pending approval. You can still use the app with regular fare rates until your discount is approved."
+          toast.success(
+            "Your account has been created! Your discount status is pending approval. You can still use the app with regular fare rates until your discount is approved.",
+            {
+              duration: 6000,
+              position: "top-center",
+            }
           );
+        } else {
+          toast.success("Registration successful! Welcome to SHUTL!", {
+            duration: 3000,
+            position: "top-center",
+          });
         }
         onClose();
       } else {
         const errorData = await response.json();
+        toast.error(errorData.message || "Registration failed");
         setError(errorData.message || "Registration failed");
       }
     } catch (error) {
       console.error("Error:", error);
+      toast.error("An error occurred during registration");
       setError("An error occurred during registration");
     } finally {
       setIsLoading(false);
@@ -368,6 +448,18 @@ const RegisterForm = ({ onClose }) => {
       case 3:
         return (
           <div className="auth-input-group">
+            <div className="profile-preview">
+              {formData.profilePicturePreview ? (
+                <img
+                  src={formData.profilePicturePreview}
+                  alt="Profile Preview"
+                />
+              ) : (
+                <div className="profile-placeholder">
+                  <span>Upload Profile Picture</span>
+                </div>
+              )}
+            </div>
             <input
               type="file"
               name="profilePicture"
@@ -376,20 +468,7 @@ const RegisterForm = ({ onClose }) => {
               onChange={(e) => handleFileChange(e, "profilePicture")}
               required
             />
-            <div className="profile-preview">
-              {formData.profilePicture && (
-                <img
-                  src={URL.createObjectURL(formData.profilePicture)}
-                  alt="Profile Preview"
-                  style={{
-                    width: "100px",
-                    height: "100px",
-                    objectFit: "cover",
-                    borderRadius: "50%",
-                  }}
-                />
-              )}
-            </div>
+            <small>Please upload a profile picture (max 5MB)</small>
           </div>
         );
 
