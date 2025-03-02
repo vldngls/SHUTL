@@ -20,6 +20,7 @@ import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 import MovingMarker from "../components/MovingMarker";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import Taskbar from "../components/Taskbar";
 
 // Fix for default Leaflet icons issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -101,9 +102,6 @@ const ShutlLoggedIn = () => {
   const hasShownToastRef = useRef(false);
   const [selectedDestination, setSelectedDestination] = useState(null);
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobileSettingsExpanded, setIsMobileSettingsExpanded] =
-    useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -356,7 +354,12 @@ const ShutlLoggedIn = () => {
   }, [dateTime]);
 
   const formattedTime = useMemo(() => {
-    return dateTime.toLocaleTimeString("en-PH");
+    return dateTime.toLocaleTimeString("en-PH", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    });
   }, [dateTime]);
 
   const handleProfileSettings = () => {
@@ -542,64 +545,6 @@ const ShutlLoggedIn = () => {
     return [Number(newLat.toFixed(6)), Number(newLon.toFixed(6))];
   };
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const handleMobileMenuClick = (action) => {
-    if (action === "settings") {
-      setIsMobileSettingsExpanded(!isMobileSettingsExpanded);
-    } else {
-      setIsMobileMenuOpen(false);
-      switch (action) {
-        case "notifications":
-          setActivePopup("notifications");
-          break;
-        case "payment":
-          setShowPaymentQR(true);
-          break;
-        case "profile":
-          setIsProfileEditMode(false);
-          setActivePopup("profile");
-          break;
-        default:
-          break;
-      }
-    }
-  };
-
-  const handleMobileSettingsClick = (action) => {
-    setIsMobileMenuOpen(false);
-    setIsMobileSettingsExpanded(false);
-
-    switch (action) {
-      case "profile":
-        setIsProfileEditMode(true);
-        setActivePopup("profile");
-        break;
-      case "notifications":
-        setActivePopup("notifications");
-        break;
-      case "logout":
-        // Clear the token cookie with proper attributes
-        document.cookie =
-          "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=None; Secure";
-
-        // Clear any user data from localStorage
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
-
-        // Clear any session storage data if used
-        sessionStorage.clear();
-
-        // Navigate to the logged out page
-        navigate("/ShutlLoggedOut", { replace: true });
-        break;
-      default:
-        break;
-    }
-  };
-
   // Add toggle function for sidebar
   const toggleSidebar = () => {
     if (window.innerWidth <= 480) {
@@ -751,63 +696,6 @@ const ShutlLoggedIn = () => {
         }}
       />
 
-      <div
-        className={`ShutlLoggedIn-mobile-menu ${
-          isMobileMenuOpen ? "active" : ""
-        }`}
-      >
-        <div className="ShutlLoggedIn-mobile-menu-items">
-          <button onClick={() => handleMobileMenuClick("notifications")}>
-            Notifications
-          </button>
-          <button onClick={() => handleMobileMenuClick("payment")}>
-            Payment QR
-          </button>
-          <button
-            className={`${
-              isMobileSettingsExpanded
-                ? "settings-expanded"
-                : "settings-collapsed"
-            }`}
-            onClick={() => handleMobileMenuClick("settings")}
-          >
-            Settings
-          </button>
-          {isMobileSettingsExpanded && (
-            <div
-              className={`ShutlLoggedIn-mobile-settings ${
-                isMobileSettingsExpanded ? "active" : ""
-              }`}
-            >
-              <button onClick={() => handleMobileSettingsClick("profile")}>
-                Profile Settings
-              </button>
-              <button
-                onClick={() => handleMobileSettingsClick("notifications")}
-              >
-                Notification Settings
-              </button>
-              <button onClick={() => handleMobileSettingsClick("logout")}>
-                Logout
-              </button>
-            </div>
-          )}
-          <button onClick={() => handleMobileMenuClick("profile")}>
-            Profile
-          </button>
-        </div>
-      </div>
-
-      <div className="ShutlLoggedIn-taskbar">
-        {formattedDate} - {formattedTime}
-      </div>
-
-      {showSuggestionForm && (
-        <div className="suggestion-form-overlay">
-          <SuggestionForm onClose={() => setShowSuggestionForm(false)} />
-        </div>
-      )}
-
       <div className="ShutlLoggedIn-bottom-actions">
         <button
           className="ShutlLoggedIn-profile-btn"
@@ -859,6 +747,8 @@ const ShutlLoggedIn = () => {
         </button>
       </div>
 
+      <Taskbar date={formattedDate} time={formattedTime} />
+
       <div ref={popupRef}>
         {activePopup === "profile" && (
           <ProfilePopup
@@ -878,6 +768,12 @@ const ShutlLoggedIn = () => {
           />
         )}
       </div>
+
+      {showSuggestionForm && (
+        <div className="suggestion-form-overlay">
+          <SuggestionForm onClose={() => setShowSuggestionForm(false)} />
+        </div>
+      )}
 
       {showPickMeUp && (
         <PickMeUp

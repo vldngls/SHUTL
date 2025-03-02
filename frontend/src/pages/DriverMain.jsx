@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "../css/DriverMain.css";
@@ -20,6 +20,7 @@ import PickupRequestsPanel from "../components/PickupRequestsPanel";
 import { getTokenFromCookies } from "../utils/tokenUtils";
 import { toast } from "react-hot-toast";
 import Sidebar from "../components/Sidebar";
+import Taskbar from "../components/Taskbar";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -282,6 +283,34 @@ const DriverMain = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 
+  // Add formatted date and time
+  const formattedDate = useMemo(() => {
+    return dateTime.toLocaleDateString("en-PH", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }, [dateTime]);
+
+  const formattedTime = useMemo(() => {
+    return dateTime.toLocaleTimeString("en-PH", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    });
+  }, [dateTime]);
+
+  // Add timer effect to update dateTime
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setDateTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
   // Add effect to handle recentering when shouldRecenter changes
   useEffect(() => {
     if (shouldRecenter && mapRef.current && userLocation) {
@@ -311,8 +340,7 @@ const DriverMain = () => {
           duration: 0.5,
         });
       }
-    }, 5000);
-  }, [userLocation]);
+    }, [userLocation]);
 
   // Clean up timeout on unmount
   useEffect(() => {
@@ -443,14 +471,6 @@ const DriverMain = () => {
     };
 
     initializeSocket();
-  }, []);
-
-  // Update date and time
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setDateTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
   }, []);
 
   // Keep shuttleIdRef in sync with shuttleId state
@@ -1424,6 +1444,8 @@ const DriverMain = () => {
           }
         }}
       />
+
+      <Taskbar date={formattedDate} time={formattedTime} />
 
       <button
         className={`DriverMain-hamburger ${isMobileMenuOpen ? "active" : ""}`}

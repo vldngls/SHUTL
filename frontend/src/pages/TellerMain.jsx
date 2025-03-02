@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import { useNavigate } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
@@ -22,6 +22,7 @@ import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 import MovingMarker from "../components/MovingMarker";
 import { toast } from "react-hot-toast";
 import Sidebar from "../components/Sidebar";
+import Taskbar from "../components/Taskbar";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -541,6 +542,25 @@ const TellerMain = () => {
     console.log("Sidebar expanded state changed:", isSidebarExpanded);
   }, [isSidebarExpanded]);
 
+  // Add formatted date and time
+  const formattedDate = useMemo(() => {
+    return dateTime.toLocaleDateString("en-PH", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }, [dateTime]);
+
+  const formattedTime = useMemo(() => {
+    return dateTime.toLocaleTimeString("en-PH", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    });
+  }, [dateTime]);
+
   return (
     <div className="TellerMain-container">
       <div className="TellerMain-map-container">
@@ -627,14 +647,13 @@ const TellerMain = () => {
       </div>
 
       <Sidebar
+        ref={sidebarRef}
         userType="teller"
         isExpanded={isSidebarExpanded}
         onToggle={toggleSidebar}
-        onProfileClick={toggleProfile}
-        onMessageClick={toggleMessageBox}
+        onProfileClick={toggleProfilePopup}
+        onMessageClick={() => setIsMessageBoxOpen(true)}
         onNotificationClick={toggleNotification}
-        onSummaryClick={toggleSummary}
-        onTripClick={openTripForm}
         profileImage={profileImage}
         notifications={notifications}
         onSettingsClick={() => {
@@ -643,6 +662,8 @@ const TellerMain = () => {
           }
         }}
       />
+
+      <Taskbar date={formattedDate} time={formattedTime} />
 
       {/* Mobile Menu Button */}
       <button
@@ -712,11 +733,6 @@ const TellerMain = () => {
           />
         </div>
       )}
-
-      {/* Taskbar */}
-      <div className="TellerMain-taskbar">
-        <span>{dateTime.toLocaleString()}</span>
-      </div>
     </div>
   );
 };
