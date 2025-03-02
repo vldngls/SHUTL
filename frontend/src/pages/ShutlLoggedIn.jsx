@@ -603,6 +603,9 @@ const ShutlLoggedIn = () => {
 
   // Add toggle function for sidebar
   const toggleSidebar = () => {
+    if (window.innerWidth <= 480) {
+      return; // Prevent expansion on mobile
+    }
     setIsSidebarExpanded(!isSidebarExpanded);
     // Close settings dropdown when sidebar is unexpanded
     if (isSidebarExpanded) {
@@ -736,7 +739,9 @@ const ShutlLoggedIn = () => {
         }`}
         onClick={(e) => {
           e.stopPropagation();
-          toggleSidebar();
+          if (!isSidebarExpanded) {
+            toggleSidebar();
+          }
         }}
       >
         <div className="ShutlLoggedIn-logo">SHU TL.</div>

@@ -326,35 +326,6 @@
   }
 }
 
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-container {
-  position: relative;
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  max-width: 90%;
-  max-height: 90%;
-  overflow-y: auto;
-}
-
-.modal-container.half-screen {
-  max-width: 50%;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
 /* Settings Dropdown */
 .DriverMain-settings-dropdown {
   position: absolute;
@@ -473,31 +444,6 @@
   transform: scale(1.1);
 }
 
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.pickup-location-marker {
-  position: absolute;
-  display: block;
-}
-
-.marker-container {
-  pointer-events: auto;
-}
-
-/* Hamburger Menu Button */
 .DriverMain-hamburger {
   display: none;
 }

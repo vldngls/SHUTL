@@ -23,6 +23,7 @@ const SettingsDropdown = ({ onClose, onProfileSettings }) => {
   return (
     <div 
       className="settings-dropdown"
+      style={{ position: "absolute", top: "60px", zIndex: 9999 }}
       onClick={(e) => {
         e.stopPropagation();
         e.preventDefault();
