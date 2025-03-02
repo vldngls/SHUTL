@@ -3,7 +3,6 @@ import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import { useNavigate } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 import "../css/TellerMain.css";
-import SettingsDropdown from "../components/SettingsDropdown";
 import NotificationPop from "../components/NotificationPop";
 import ShuttleTripTracking from "../components/ShuttleTripTracking";
 import TellerProfile from "../components/TellerProfile";
@@ -22,6 +21,7 @@ import L from "leaflet";
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 import MovingMarker from "../components/MovingMarker";
 import { toast } from "react-hot-toast";
+import Sidebar from "../components/Sidebar";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -65,13 +65,14 @@ const TellerMain = () => {
   const [shuttleSpeeds, setShuttleSpeeds] = useState({});
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Modal/Popup States
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
   const [isMessageBoxOpen, setIsMessageBoxOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [isTripFormOpen, setIsTripFormOpen] = useState(false);
 
@@ -80,6 +81,7 @@ const TellerMain = () => {
   const mapRef = useRef();
   const chatRef = useRef();
   const mobileMenuRef = useRef();
+  const sidebarRef = useRef();
 
   // Extract email from token
   const getCookie = (name) => {
@@ -363,23 +365,6 @@ const TellerMain = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Handle clicks outside settings dropdown
-  useEffect(() => {
-    const handleOutsideClick = (event) => {
-      if (settingsRef.current && !settingsRef.current.contains(event.target)) {
-        setIsSettingsOpen(false);
-      }
-    };
-
-    if (isSettingsOpen) {
-      document.addEventListener("click", handleOutsideClick);
-    } else {
-      document.removeEventListener("click", handleOutsideClick);
-    }
-
-    return () => document.removeEventListener("click", handleOutsideClick);
-  }, [isSettingsOpen]);
-
   // Fetch user profile data on mount
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -429,7 +414,6 @@ const TellerMain = () => {
   const toggleNotification = () => {
     setActivePopup(activePopup === "notifications" ? null : "notifications");
   };
-  const toggleSettings = () => setIsSettingsOpen((prev) => !prev);
   const toggleSummary = () => setIsSummaryOpen(!isSummaryOpen);
   const openTripForm = () => setIsTripFormOpen(true);
   const closeTripForm = () => setIsTripFormOpen(false);
@@ -498,9 +482,6 @@ const TellerMain = () => {
       case "notification":
         toggleNotification();
         break;
-      case "settings":
-        toggleSettings();
-        break;
       case "summary":
         toggleSummary();
         break;
@@ -511,6 +492,54 @@ const TellerMain = () => {
         break;
     }
   };
+
+  // Add toggle function for sidebar
+  const toggleSidebar = (e) => {
+    if (e) {
+      e.stopPropagation(); // Prevent event bubbling
+    }
+
+    // Prevent expansion on mobile devices
+    if (window.innerWidth <= 480) {
+      return;
+    }
+
+    console.log("Toggling sidebar, current state:", isSidebarExpanded);
+
+    // Use callback form to ensure we're working with the latest state
+    setIsSidebarExpanded((prevState) => {
+      const newState = !prevState;
+      console.log("Setting sidebar expanded from", prevState, "to", newState);
+
+      // If we're collapsing the sidebar, also close settings
+      if (prevState && !newState) {
+        setIsSettingsOpen(false);
+      }
+
+      return newState;
+    });
+  };
+
+  // Add useEffect for click outside handling
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+        setIsSidebarExpanded(false);
+        // Also close settings dropdown when sidebar is closed by clicking outside
+        setIsSettingsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Add a useEffect to log sidebar state changes
+  useEffect(() => {
+    console.log("Sidebar expanded state changed:", isSidebarExpanded);
+  }, [isSidebarExpanded]);
 
   return (
     <div className="TellerMain-container">
@@ -534,7 +563,6 @@ const TellerMain = () => {
             const trafficCondition = getTrafficCondition(data.speed || 0);
             const isOffline = data.status === "offline";
 
-            // Create a custom icon that shows online/offline status
             const shuttleIcon = new L.Icon({
               iconUrl: "/car.png",
               iconRetinaUrl: "/car.png",
@@ -598,7 +626,25 @@ const TellerMain = () => {
         </MapContainer>
       </div>
 
-      {/* Mobile Menu */}
+      <Sidebar
+        userType="teller"
+        isExpanded={isSidebarExpanded}
+        onToggle={toggleSidebar}
+        onProfileClick={toggleProfile}
+        onMessageClick={toggleMessageBox}
+        onNotificationClick={toggleNotification}
+        onSummaryClick={toggleSummary}
+        onTripClick={openTripForm}
+        profileImage={profileImage}
+        notifications={notifications}
+        onSettingsClick={() => {
+          if (!isSidebarExpanded) {
+            setIsSidebarExpanded(true);
+          }
+        }}
+      />
+
+      {/* Mobile Menu Button */}
       <button
         className={`TellerMain-hamburger ${isMobileMenuOpen ? "active" : ""}`}
         onClick={toggleMobileMenu}
@@ -608,139 +654,69 @@ const TellerMain = () => {
         <span></span>
       </button>
 
+      {/* Mobile Menu */}
       <div
         ref={mobileMenuRef}
         className={`TellerMain-mobile-menu ${isMobileMenuOpen ? "active" : ""}`}
       >
         <div className="TellerMain-mobile-menu-header">
-          <div className="TellerMain-mobile-menu-logo">SHU TL.</div>
+          <div className="TellerMain-mobile-menu-logo">SHUTL</div>
         </div>
         <div className="TellerMain-mobile-menu-items">
           <button onClick={() => handleMobileMenuAction("profile")}>
             Profile
           </button>
           <button onClick={() => handleMobileMenuAction("message")}>
-            Messages
+            Message
           </button>
           <button onClick={() => handleMobileMenuAction("notification")}>
-            Notifications
-          </button>
-          <button onClick={() => handleMobileMenuAction("settings")}>
-            Settings
+            Notification
           </button>
           <button onClick={() => handleMobileMenuAction("summary")}>
             Summary
           </button>
-          <button onClick={() => handleMobileMenuAction("trip")}>
-            Trip Tracking
-          </button>
+          <button onClick={() => handleMobileMenuAction("trip")}>Trip</button>
         </div>
       </div>
 
-      {/* Navbar */}
-      <div className="TellerMain-navbar">
-        <div className="TellerMain-logo">SHU TL.</div>
-        <div className="TellerMain-navbar-content">
-          <div className="TellerMain-navbar-buttons">
-            <button className="TellerMain-icon-btn" onClick={toggleSummary}>
-              <img
-                src="/summary.png"
-                alt="Summary Icon"
-                className="TellerMain-icon-image"
-              />
-            </button>
-            <button className="TellerMain-icon-btn" onClick={toggleMessageBox}>
-              <img
-                src="/message.png"
-                alt="Message Icon"
-                className="TellerMain-icon-image"
-              />
-            </button>
-            <button
-              className="TellerMain-icon-btn"
-              onClick={handleNotificationClick}
-            >
-              <img
-                src="/notif.png"
-                alt="Notification Icon"
-                className="TellerMain-icon-image"
-              />
-            </button>
-            <button className="TellerMain-icon-btn" onClick={openTripForm}>
-              <img
-                src="/trip.png"
-                alt="Trip Icon"
-                className="TellerMain-icon-image"
-              />
-            </button>
-            <button className="TellerMain-icon-btn" onClick={toggleSettings}>
-              <img
-                src="/settings.png"
-                alt="Settings Icon"
-                className="TellerMain-icon-image"
-              />
-            </button>
-          </div>
-          <div className="TellerMain-navbar-profile">
-            <button className="TellerMain-icon-btn" onClick={toggleProfile}>
-              <img
-                src={profileImage}
-                alt="Profile Icon"
-                className="TellerMain-icon-image"
-              />
-            </button>
-          </div>
-        </div>
-        {isSettingsOpen && (
-          <div className="TellerMain-settings-dropdown">
-            <SettingsDropdown onClose={toggleSettings} />
-          </div>
-        )}
-      </div>
+      {/* Notification Popup */}
+      {activePopup === "notifications" && (
+        <NotificationPop
+          notifications={notifications}
+          onClose={toggleNotification}
+        />
+      )}
 
-      {/* Conditional Modals */}
-      {isMessageBoxOpen && (
-        <DriverMessage
-          messages={messages}
-          onSendMessage={handleSendMessage}
-          onClose={toggleMessageBox}
-        />
-      )}
-      {isSummaryOpen && (
-        <TellerSummary
-          onClose={() => setIsSummaryOpen(false)}
-          shuttleLocations={optimizedLocations}
-        />
-      )}
+      {/* Profile Modal */}
       {isProfileOpen && (
         <TellerProfile
           onClose={toggleProfile}
-          onImageChange={setProfileImage}
+          profileImage={profileImage}
+          setProfileImage={setProfileImage}
         />
       )}
-      {isProfilePopupOpen && <ProfilePopup onClose={toggleProfilePopup} />}
-      {isTripFormOpen && (
-        <ShuttleTripTracking onClose={closeTripForm} socket={socket.current} />
+
+      {/* Summary Modal */}
+      {isSummaryOpen && <TellerSummary onClose={toggleSummary} />}
+
+      {/* Trip Tracking Modal */}
+      {isTripFormOpen && <ShuttleTripTracking onClose={closeTripForm} />}
+
+      {/* Message Box */}
+      {isMessageBoxOpen && (
+        <div ref={chatRef} className="TellerMain-chat-container">
+          <DriverMessage
+            messages={messages}
+            onSendMessage={handleSendMessage}
+            onClose={toggleMessageBox}
+          />
+        </div>
       )}
 
       {/* Taskbar */}
       <div className="TellerMain-taskbar">
-        {dateTime.toLocaleDateString("en-PH", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })}{" "}
-        - {dateTime.toLocaleTimeString("en-PH")}
+        <span>{dateTime.toLocaleString()}</span>
       </div>
-
-      {activePopup === "notifications" && (
-        <NotificationPop
-          notifications={notifications}
-          onClose={() => setActivePopup(null)}
-          show={true}
-        />
-      )}
     </div>
   );
 };

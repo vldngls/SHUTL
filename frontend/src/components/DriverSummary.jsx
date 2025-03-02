@@ -138,37 +138,57 @@ const DriverSummary = ({
         </div>
       )}
 
-      <div className="DriverSummary-pickup-requests">
-        <h3>Pending Pickup Requests</h3>
-        {pickupRequests.length > 0 ? (
-          pickupRequests.map((request) => (
-            <div key={request.requestId} className="pickup-request-item">
-              <p>Location: {request.location.streetName}</p>
-              <button onClick={() => onAcceptPickup(request)}>Accept</button>
-            </div>
-          ))
-        ) : (
-          <p className="no-requests">No pending pickup requests</p>
-        )}
-      </div>
+      <div className="DriverSummary-content">
+        <div className="DriverSummary-pickup-requests">
+          <h3>
+            Pending Pickup Requests
+            {pickupRequests.length > 0 && (
+              <span className="request-count">{pickupRequests.length}</span>
+            )}
+          </h3>
+          <div className="pickup-requests-container">
+            {pickupRequests.length > 0 ? (
+              pickupRequests.map((request) => (
+                <div key={request.requestId} className="pickup-request-item">
+                  <p>Location: {request.location.streetName}</p>
+                  <button onClick={() => onAcceptPickup(request)}>
+                    Accept
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p className="no-requests">No pending pickup requests</p>
+            )}
+          </div>
+        </div>
 
-      <div className="DriverSummary-active-pickups">
-        <h3>Active Pickups</h3>
-        {activePickups.length > 0 ? (
-          activePickups.map((pickup) => (
-            <div key={pickup.requestId} className="active-pickup-item">
-              <p>Location: {pickup.location.streetName}</p>
-              <div className="pickup-buttons">
-                <button onClick={() => onCompletePickup(pickup)}>
-                  Complete
-                </button>
-                <button onClick={() => onCancelPickup(pickup)}>Cancel</button>
-              </div>
-            </div>
-          ))
-        ) : (
-          <p className="no-pickups">No active pickups</p>
-        )}
+        <div className="DriverSummary-active-pickups">
+          <h3>
+            Active Pickups
+            {activePickups.length > 0 && (
+              <span className="request-count">{activePickups.length}</span>
+            )}
+          </h3>
+          <div className="active-pickups-container">
+            {activePickups.length > 0 ? (
+              activePickups.map((pickup) => (
+                <div key={pickup.requestId} className="active-pickup-item">
+                  <p>Location: {pickup.location.streetName}</p>
+                  <div className="pickup-buttons">
+                    <button onClick={() => onCompletePickup(pickup)}>
+                      Complete
+                    </button>
+                    <button onClick={() => onCancelPickup(pickup)}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="no-pickups">No active pickups</p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

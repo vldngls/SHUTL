@@ -6,6 +6,7 @@ import LoginForm from "../components/LoginForm"; // Ensure this path is correct
 import L from "leaflet";
 import { io } from "socket.io-client"; // Import socket.io-client
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
+import Sidebar from "../components/Sidebar";
 
 // Define SOCKET_URL
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Ensure this is set in your environment
@@ -40,6 +41,7 @@ const ShutlLoggedOut = () => {
   const socket = useRef(null);
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -120,12 +122,12 @@ const ShutlLoggedOut = () => {
     // Add viewport height fix for mobile browsers
     const setVH = () => {
       const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
+      document.documentElement.style.setProperty("--vh", `${vh}px`);
     };
 
     setVH();
-    window.addEventListener('resize', setVH);
-    window.addEventListener('orientationchange', setVH);
+    window.addEventListener("resize", setVH);
+    window.addEventListener("orientationchange", setVH);
 
     return () => {
       clearInterval(timer);
@@ -135,8 +137,8 @@ const ShutlLoggedOut = () => {
         socket.current.off("shuttle_location_update");
         socket.current.disconnect();
       }
-      window.removeEventListener('resize', setVH);
-      window.removeEventListener('orientationchange', setVH);
+      window.removeEventListener("resize", setVH);
+      window.removeEventListener("orientationchange", setVH);
     };
   }, []);
 
@@ -177,6 +179,10 @@ const ShutlLoggedOut = () => {
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const toggleSidebar = () => {
+    setIsSidebarExpanded((prev) => !prev);
   };
 
   return (
@@ -228,34 +234,24 @@ const ShutlLoggedOut = () => {
         </MapContainer>
       </div>
 
-      <div className="ShutlLoggedOut-navbar">
-        <div className="ShutlLoggedOut-logo">SHU TL.</div>
-        <div className="ShutlLoggedOut-status"></div>
-        <div className="ShutlLoggedOut-icon-container" onClick={handleLoginClick}>
-          <div className="ShutlLoggedOut-line"></div>
-          <img
-            src="/icon.png"
-            alt="Navigation Icon"
-            className="ShutlLoggedOut-nav-icon"
-          />
-        </div>
-        <button 
-          className={`ShutlLoggedOut-hamburger ${isMobileMenuOpen ? 'active' : ''}`}
-          onClick={toggleMobileMenu}
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-      </div>
+      <Sidebar
+        userType="guest"
+        isExpanded={isSidebarExpanded}
+        onToggle={toggleSidebar}
+        onProfileClick={handleLoginClick}
+        profileImage="/icon.png"
+      />
 
-      <div className={`ShutlLoggedOut-mobile-menu ${isMobileMenuOpen ? 'active' : ''}`}>
-        <div className="ShutlLoggedOut-mobile-menu-items">
-          <button onClick={handleLoginClick}>
-            Login
-          </button>
-        </div>
-      </div>
+      <button
+        className={`ShutlLoggedOut-hamburger ${
+          isMobileMenuOpen ? "active" : ""
+        }`}
+        onClick={toggleMobileMenu}
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
 
       <div className="ShutlLoggedOut-taskbar">
         {dateTime.toLocaleDateString("en-PH", {

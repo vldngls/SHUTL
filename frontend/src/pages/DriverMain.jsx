@@ -19,6 +19,7 @@ import L from "leaflet";
 import PickupRequestsPanel from "../components/PickupRequestsPanel";
 import { getTokenFromCookies } from "../utils/tokenUtils";
 import { toast } from "react-hot-toast";
+import Sidebar from "../components/Sidebar";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -279,6 +280,7 @@ const DriverMain = () => {
   const recenterTimeoutRef = useRef(null);
   const [shouldRecenter, setShouldRecenter] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 
   // Add effect to handle recentering when shouldRecenter changes
   useEffect(() => {
@@ -1145,43 +1147,50 @@ const DriverMain = () => {
   };
 
   // Update toggle function for mobile menu
-  const toggleMobileMenu = useCallback((e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    console.log('Toggling mobile menu, current state:', isMobileMenuOpen);
-    setIsMobileMenuOpen((prev) => !prev);
-  }, [isMobileMenuOpen]);
+  const toggleMobileMenu = useCallback(
+    (e) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      console.log("Toggling mobile menu, current state:", isMobileMenuOpen);
+      setIsMobileMenuOpen((prev) => !prev);
+    },
+    [isMobileMenuOpen]
+  );
 
   // Add effect to handle clicks outside mobile menu
   useEffect(() => {
     const handleClickOutside = (e) => {
-      const mobileMenu = document.querySelector('.DriverMain-mobile-menu');
-      const hamburgerButton = document.querySelector('.DriverMain-hamburger');
-      
+      const mobileMenu = document.querySelector(".DriverMain-mobile-menu");
+      const hamburgerButton = document.querySelector(".DriverMain-hamburger");
+
       if (
-        isMobileMenuOpen && 
+        isMobileMenuOpen &&
         mobileMenu &&
         hamburgerButton &&
-        !mobileMenu.contains(e.target) && 
+        !mobileMenu.contains(e.target) &&
         !hamburgerButton.contains(e.target)
       ) {
-        console.log('Clicking outside, closing menu');
+        console.log("Clicking outside, closing menu");
         setIsMobileMenuOpen(false);
       }
     };
 
     if (isMobileMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
     };
   }, [isMobileMenuOpen]);
+
+  const toggleSidebar = () => {
+    setIsSidebarExpanded((prev) => !prev);
+  };
 
   return (
     <div className="DriverMain-container">
@@ -1394,128 +1403,36 @@ const DriverMain = () => {
         />
       </div>
 
-      <div className="DriverMain-navbar">
-        <div className="DriverMain-logo">SHU TL.</div>
-        <div className="DriverMain-navbar-buttons">
-          <button
-            className="DriverMain-icon-btn"
-            onClick={() => toggleModal("isMessageOpen")}
-          >
-            <img src="/message.png" alt="Message Icon" />
-          </button>
-          <button
-            className="DriverMain-icon-btn"
-            onClick={() => toggleModal("isScheduleOpen")}
-          >
-            <img src="/calendar.png" alt="Schedule Icon" />
-          </button>
-          <button
-            className="DriverMain-icon-btn"
-            onClick={() => toggleModal("isSummaryOpen")}
-          >
-            <img src="/summary.png" alt="Summary Icon" />
-          </button>
-          <button
-            className="DriverMain-notif-btn"
-            onClick={() =>
-              setActivePopup(
-                activePopup === "notifications" ? null : "notifications"
-              )
-            }
-          >
-            <img src="/notif.png" alt="Notification Icon" />
-          </button>
-          <div className="settings-wrapper" ref={settingsRef}>
-            <button
-              className="DriverMain-icon-btn"
-              onClick={() => toggleModal("isSettingsOpen")}
-            >
-              <img src="/settings.png" alt="Settings Icon" />
-            </button>
-            {activeModal === "isSettingsOpen" && <SettingsDropdown />}
-          </div>
-          <button
-            className="DriverMain-icon-btn"
-            onClick={() => toggleModal("isProfileOpen")}
-            style={{ borderRadius: "50%", overflow: "hidden" }}
-          >
-            <img
-              src={profileImage}
-              alt="Profile Icon"
-              className="DriverMain-profile-icon"
-            />
-          </button>
-        </div>
-        <button 
-          className={`DriverMain-hamburger ${isMobileMenuOpen ? 'active' : ''}`}
-          onClick={toggleMobileMenu}
-          aria-label="Toggle mobile menu"
-          aria-expanded={isMobileMenuOpen}
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-      </div>
+      <Sidebar
+        userType="driver"
+        isExpanded={isSidebarExpanded}
+        onToggle={toggleSidebar}
+        onProfileClick={() => toggleModal("isProfileOpen")}
+        onMessageClick={() => toggleModal("isMessageOpen")}
+        onNotificationClick={() =>
+          setActivePopup(
+            activePopup === "notifications" ? null : "notifications"
+          )
+        }
+        onSummaryClick={() => toggleModal("isSummaryOpen")}
+        onTripClick={() => toggleModal("isScheduleOpen")}
+        profileImage={profileImage}
+        notifications={notifications}
+        onSettingsClick={() => {
+          if (!isSidebarExpanded) {
+            setIsSidebarExpanded(true);
+          }
+        }}
+      />
 
-      <div className={`DriverMain-mobile-menu ${isMobileMenuOpen ? 'active' : ''}`}>
-        <div className="DriverMain-navbar-buttons">
-          <button
-            onClick={() => {
-              toggleModal("isMessageOpen");
-              setIsMobileMenuOpen(false);
-            }}
-          >
-            <img src="/message.png" alt="Message Icon" />
-            <span>Messages</span>
-          </button>
-          <button
-            onClick={() => {
-              toggleModal("isScheduleOpen");
-              setIsMobileMenuOpen(false);
-            }}
-          >
-            <img src="/calendar.png" alt="Schedule Icon" />
-            <span>Schedule</span>
-          </button>
-          <button
-            onClick={() => {
-              toggleModal("isSummaryOpen");
-              setIsMobileMenuOpen(false);
-            }}
-          >
-            <img src="/summary.png" alt="Summary Icon" />
-            <span>Summary</span>
-          </button>
-          <button
-            onClick={() => {
-              setActivePopup(activePopup === "notifications" ? null : "notifications");
-              setIsMobileMenuOpen(false);
-            }}
-          >
-            <img src="/notif.png" alt="Notification Icon" />
-            <span>Notifications</span>
-          </button>
-          <button
-            onClick={() => {
-              toggleModal("isSettingsOpen");
-              setIsMobileMenuOpen(false);
-            }}
-          >
-            <img src="/settings.png" alt="Settings Icon" />
-            <span>Settings</span>
-          </button>
-          <button
-            onClick={() => {
-              toggleModal("isProfileOpen");
-              setIsMobileMenuOpen(false);
-            }}
-          >
-            <img src={profileImage} alt="Profile Icon" className="DriverMain-profile-icon" />
-            <span>Profile</span>
-          </button>
-        </div>
-      </div>
+      <button
+        className={`DriverMain-hamburger ${isMobileMenuOpen ? "active" : ""}`}
+        onClick={toggleMobileMenu}
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
 
       <div className="DriverMain-taskbar">
         {dateTime.toLocaleDateString()} - {dateTime.toLocaleTimeString()}
@@ -1595,16 +1512,6 @@ const DriverMain = () => {
           </div>
         </div>
       )}
-
-      <div className="DriverMain-sidebar">
-        <img
-          src={profileImage}
-          alt="Profile"
-          className="DriverMain-sidebar-profile"
-          onClick={() => setShowProfileCard(true)}
-        />
-        {/* Rest of your sidebar icons */}
-      </div>
     </div>
   );
 };

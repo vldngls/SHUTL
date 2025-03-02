@@ -42,8 +42,19 @@ const AdministratorMain = () => {
   const socket = useRef(null);
 
   const handleLogout = () => {
-    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    navigate("/ShutlLoggedOut");
+    // Clear the token cookie with proper attributes
+    document.cookie =
+      "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=None; Secure";
+
+    // Clear any user data from localStorage
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+
+    // Clear any session storage data if used
+    sessionStorage.clear();
+
+    // Navigate to the logged out page
+    navigate("/ShutlLoggedOut", { replace: true });
   };
 
   useEffect(() => {

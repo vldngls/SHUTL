@@ -1,0 +1,232 @@
+.Sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 70px;
+  background-color: #232323;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: width 0.3s ease;
+  z-index: 1000;
+  border-top-right-radius: 38.5px;
+  border-bottom-right-radius: 38.5px;
+  padding: 0px 8px;
+  box-sizing: border-box;
+}
+
+.Sidebar-logo {
+  margin-top: 24px;
+  font-size: 18px;
+  color: #fff;
+  white-space: nowrap;
+  overflow: visible;
+  margin-bottom: 32px;
+  width: 100%;
+  text-align: center;
+  font-weight: bold;
+  letter-spacing: 1px;
+  line-height: 1.2;
+}
+
+.Sidebar.expanded {
+  width: 200px;
+}
+
+.Sidebar.expanded .Sidebar-logo {
+  text-align: left;
+  padding-left: 16px;
+  white-space: nowrap;
+}
+
+.Sidebar-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  margin-top: 20px;
+  width: 100%;
+  position: relative;
+}
+
+.Sidebar-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  color: #fff;
+  transition: background-color 0.3s ease;
+  width: 100%;
+  justify-content: center;
+}
+
+.Sidebar.expanded .Sidebar-icon-btn {
+  justify-content: flex-start;
+  padding-left: 16px;
+}
+
+.Sidebar-icon-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.button-label {
+  display: none;
+  margin-left: 15px;
+  white-space: nowrap;
+  color: #fff;
+  font-size: 16px;
+  font-weight: normal;
+}
+
+.Sidebar.expanded .button-label {
+  display: block;
+}
+
+.Sidebar-icon-image {
+  width: 36px;
+  height: 36px;
+  display: block;
+}
+
+.Sidebar-icon-container {
+  margin-top: auto;
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.Sidebar-icon-container .Sidebar-icon-image {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block !important;
+}
+
+.Sidebar-line {
+  width: 80%;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.2);
+  margin: 20px 0;
+}
+
+.Sidebar.expanded .Sidebar-line {
+  width: 100%;
+}
+
+/* Settings Dropdown */
+.Sidebar-settings-dropdown {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  background-color: #232323;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  z-index: 1003;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.Sidebar-settings-option {
+  background: none;
+  border: none;
+  color: white;
+  text-align: center;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: normal;
+  padding: 12px 8px;
+  transition: background-color 0.2s ease;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.Sidebar-settings-option:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.Sidebar.expanded .Sidebar-settings-option {
+  text-align: left;
+  padding: 12px 16px;
+}
+
+.Sidebar-settings-dropdown hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 0;
+}
+
+.Sidebar-icon-btn.active {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .Sidebar {
+    width: 64px !important;
+    border-radius: 0 !important;
+    padding: 12px 8px !important;
+  }
+
+  .Sidebar.expanded {
+    width: 64px !important;
+  }
+
+  .Sidebar.expanded .button-label {
+    display: none;
+  }
+
+  .Sidebar-logo {
+    font-size: 1.2em;
+    margin-bottom: 30px;
+  }
+
+  .Sidebar-settings-dropdown {
+    width: 100%;
+  }
+
+  .Sidebar-settings-option {
+    text-align: center;
+    padding: 12px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .Sidebar {
+    width: 64px !important;
+    border-radius: 0 !important;
+    padding: 12px 8px !important;
+  }
+
+  .Sidebar.expanded {
+    width: 64px !important;
+  }
+
+  .Sidebar.expanded .button-label {
+    display: none !important;
+  }
+
+  .Sidebar-settings-dropdown {
+    position: fixed;
+    top: auto !important;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    margin-left: 0;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  .Sidebar-settings-option {
+    padding: 16px 20px;
+    font-size: 16px;
+    text-align: left;
+  }
+}

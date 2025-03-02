@@ -42,35 +42,53 @@
 .DriverSummary {
   position: fixed;
   top: 0; /* Align to the top */
-  left: 80px; /* Offset by the navbar's width */
+  left: 80px; /* Offset by the sidebar width (assuming 80px) */
   height: 100vh; /* Full height */
-  width: calc(100% - 80px); /* Full width minus navbar */
+  width: 400px; /* Fixed width on desktop */
   background-color: #fff;
   padding: 20px;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1); /* Shadow on the right side */
   z-index: 1001;
   overflow-y: auto;
   border-radius: 0; /* Remove rounded corners for full height */
-  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Make it Full-Width on Small Screens */
+/* Tablet view adjustments */
 @media (max-width: 1024px) {
   .DriverSummary {
-    width: calc(100vw - 80px); /* Take full width minus sidebar */
+    width: 350px; /* Slightly smaller on tablets */
   }
 }
 
+/* Mobile view adjustments */
+@media (max-width: 768px) {
+  .DriverSummary {
+    width: 100%; /* Full width on smaller tablets */
+    right: 0;
+    left: 0;
+  }
+}
+
+/* Small mobile devices */
 @media (max-width: 480px) {
   .DriverSummary {
     position: fixed;
-    bottom: 0; /* Positioned at bottom */
+    top: auto; /* Reset top positioning */
+    bottom: 0; /* Position at bottom on mobile */
     left: 0;
-    width: 100vw;
-    height: 50vh; /* Set to cover 50% of screen */
-    z-index: 1001;
-    transform: none;
-    overflow-y: auto;
+    width: 100%;
+    height: 85vh; /* Cover most of the screen but leave some space at top */
+    max-height: 85vh;
+    border-radius: 20px 20px 0 0; /* Rounded corners on top for mobile */
+    padding: 15px;
+    padding-top: 20px;
+    padding-bottom: env(
+      safe-area-inset-bottom,
+      20px
+    ); /* Account for safe area on iOS */
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.15);
   }
 }
 
@@ -80,6 +98,18 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 2;
+}
+
+.DriverSummary-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #333;
 }
 
 .close-button {
@@ -87,85 +117,308 @@
   border: none;
   font-size: 24px;
   cursor: pointer;
-  padding: 5px;
+  padding: 8px;
+  color: #666;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  transition: background-color 0.2s;
+}
+
+.close-button:hover {
+  color: #333;
+  background-color: #f0f0f0;
+}
+
+/* Mobile-specific header adjustments */
+@media (max-width: 480px) {
+  .DriverSummary-header {
+    padding-top: 5px;
+  }
+
+  .DriverSummary-header::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 5px;
+    background-color: #ddd;
+    border-radius: 10px;
+  }
 }
 
 .no-requests,
 .no-pickups {
   color: #666;
   text-align: center;
-  padding: 10px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin: 10px 0;
+  font-size: 0.95rem;
 }
 
-/* Pickup List */
-.DriverSummary-pickup-list {
-  list-style: none;
-  padding: 0;
+/* Sections */
+.DriverSummary-section {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  flex-shrink: 0;
 }
 
-.DriverSummary-pickup-item {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-  margin: 5px 0;
+.DriverSummary-section h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+  font-size: 1.2rem;
+  text-align: center;
+  font-weight: 600;
 }
 
 /* Statistics Grid */
 .DriverSummary-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
   text-align: center;
-  padding: 10px;
-  margin: 20px auto;
+  padding: 5px;
+  margin: 0 auto;
 }
 
 .DriverSummary-stats div {
-  background-color: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
+  background-color: #fff;
+  padding: 15px 10px;
+  border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  min-width: 80px;
-  min-height: 80px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  aspect-ratio: 1;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* Responsive Grid Adjustments */
-@media (max-width: 768px) {
+.DriverSummary-stats div:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.DriverSummary-stats div strong {
+  font-size: 1.3rem;
+  color: #0056b3;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* Larger screens can fit 3 columns */
+@media (min-width: 769px) {
   .DriverSummary-stats {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
-/* Pickup Request Items */
-.pickup-requests-list {
-  margin-top: 20px;
-  padding: 10px;
+/* Smaller mobile screens */
+@media (max-width: 360px) {
+  .DriverSummary-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .DriverSummary-stats div {
+    padding: 10px 5px;
+  }
+
+  .DriverSummary-stats div strong {
+    font-size: 1.1rem;
+  }
 }
 
-.pickup-request-item {
-  background-color: #f8f9fa;
+/* Main content container for pickup sections */
+.DriverSummary-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden; /* Prevent overall scrolling */
+  min-height: 0; /* Important for nested flex containers with overflow */
+}
+
+/* Pickup Request Items */
+.DriverSummary-pickup-requests,
+.DriverSummary-active-pickups {
+  margin-top: 20px;
+  background-color: #f9f9f9;
+  border-radius: 12px;
   padding: 15px;
-  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  max-height: 300px; /* Limit height to ensure both sections are visible */
+}
+
+/* Container for the scrollable pickup items */
+.pickup-requests-container,
+.active-pickups-container {
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 5px; /* Space for scrollbar */
+  margin-right: -5px; /* Compensate for padding */
+  scrollbar-width: thin; /* Firefox */
+}
+
+/* Webkit scrollbar styling */
+.pickup-requests-container::-webkit-scrollbar,
+.active-pickups-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pickup-requests-container::-webkit-scrollbar-thumb,
+.active-pickups-container::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 3px;
+}
+
+.pickup-requests-container::-webkit-scrollbar-track,
+.active-pickups-container::-webkit-scrollbar-track {
+  background-color: #f1f1f1;
+  border-radius: 3px;
+}
+
+.DriverSummary-pickup-requests h3,
+.DriverSummary-active-pickups h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+  font-size: 1.2rem;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  background-color: #f9f9f9;
+  padding: 5px 0;
+  z-index: 1;
+}
+
+/* Adjust heights for different screen sizes */
+@media (min-height: 800px) {
+  .DriverSummary-pickup-requests,
+  .DriverSummary-active-pickups {
+    max-height: 350px;
+  }
+}
+
+@media (max-height: 700px) {
+  .DriverSummary-pickup-requests,
+  .DriverSummary-active-pickups {
+    max-height: 200px;
+  }
+}
+
+/* On mobile, make sections more compact */
+@media (max-width: 480px) {
+  .DriverSummary-pickup-requests,
+  .DriverSummary-active-pickups {
+    max-height: none; /* Let them take natural height */
+    flex: 1; /* Allow them to grow */
+    margin-top: 15px;
+    padding: 12px;
+  }
+
+  /* Make sure we don't overflow the container */
+  .DriverSummary-content {
+    max-height: calc(85vh - 150px); /* Account for header and stats */
+    overflow-y: auto;
+  }
+}
+
+.pickup-request-item,
+.active-pickup-item {
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 10px;
   margin-bottom: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s;
 }
 
-.pickup-request-item button {
-  background-color: #28a745;
+/* Remove margin from the last item */
+.pickup-request-item:last-child,
+.active-pickup-item:last-child {
+  margin-bottom: 0;
+}
+
+.pickup-request-item:hover,
+.active-pickup-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pickup-request-item p,
+.active-pickup-item p {
+  margin: 0 0 10px 0;
+  font-size: 0.95rem;
+}
+
+.pickup-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.pickup-request-item button,
+.active-pickup-item button {
+  background-color: #0056b3;
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 10px 16px;
+  border-radius: 8px;
   cursor: pointer;
-  margin-top: 10px;
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.2s, transform 0.1s;
 }
 
-.pickup-request-item button:hover {
-  background-color: #218838;
+.pickup-request-item button:hover,
+.active-pickup-item button:hover {
+  background-color: #004494;
+  transform: translateY(-1px);
+}
+
+.pickup-request-item button:active,
+.active-pickup-item button:active {
+  transform: translateY(1px);
+}
+
+.active-pickup-item button:nth-child(2) {
+  background-color: #dc3545;
+}
+
+.active-pickup-item button:nth-child(2):hover {
+  background-color: #bd2130;
+}
+
+/* Badge for request counts */
+.request-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #0056b3;
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 0.8rem;
+  margin-left: 8px;
+  font-weight: bold;
+}
+
+/* Safe area insets for notched phones */
+@supports (padding: max(0px)) {
+  .DriverSummary {
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
 }

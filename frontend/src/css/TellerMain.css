@@ -30,12 +30,18 @@ textarea {
 .TellerMain-map-container {
   position: fixed;
   top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh; /* Fallback */
+  left: 64px;
+  width: calc(100% - 64px);
+  height: 100vh;
   height: calc(var(--vh, 1vh) * 100);
   z-index: 1;
-  touch-action: pan-x pan-y; /* Allow only scroll, prevent pinch zoom */
+  touch-action: pan-x pan-y;
+  transition: left 0.3s ease, width 0.3s ease;
+}
+
+.TellerMain-navbar.expanded ~ .TellerMain-map-container {
+  left: 180px !important;
+  width: calc(100% - 180px) !important;
 }
 
 .leaflet-container {
@@ -55,70 +61,143 @@ textarea {
 
 /* Navbar */
 .TellerMain-navbar {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  width: 64px !important;
-  height: 100vh !important; /* Fallback */
-  height: calc(var(--vh, 1vh) * 100) !important;
-  background-color: #232323 !important;
-  color: white !important;
-  border-top-right-radius: 38.5px !important;
-  border-bottom-right-radius: 38.5px !important;
-  padding: 16px !important;
-  position: fixed !important;
-  left: 0 !important;
-  top: 0 !important;
-  z-index: 1000 !important; /* Reduced z-index to be below hamburger and mobile menu */
-  box-sizing: border-box !important;
-  justify-content: space-between !important;
-  touch-action: none; /* Disable all touch actions on navbar */
-  user-select: none; /* Prevent text selection */
-}
-
-/* Navbar Elements */
-.TellerMain-logo {
-  font-size: 1.4em;
-  font-weight: bold;
-  margin-bottom: 20px;
-  margin-top: 8px;
-}
-
-/* Default styles for larger screens */
-.TellerMain-navbar-content {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 64px;
+  background-color: #232323;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Center the buttons vertically */
-  height: 100%;
+  transition: width 0.3s ease;
+  z-index: 1000;
+  border-top-right-radius: 38.5px;
+  border-bottom-right-radius: 38.5px;
+  padding: 24px 8px;
+  box-sizing: border-box;
+}
+
+.TellerMain-logo {
+  font-size: 18px;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  margin-bottom: 32px;
+  width: 100%;
+  text-align: center;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.TellerMain-navbar.expanded {
+  width: 180px;
+}
+
+.TellerMain-navbar.expanded .TellerMain-logo {
+  text-align: left;
+  padding-left: 16px;
+}
+
+.TellerMain-navbar.expanded .TellerMain-icon-image {
+  display: none;
+}
+
+.TellerMain-navbar.expanded .button-label {
+  display: block;
+  font-weight: normal;
+  color: #fff;
+  font-size: 16px;
 }
 
 .TellerMain-navbar-buttons {
   display: flex;
   flex-direction: column;
-  gap: 10px; /* Decrease the gap for closer icons in web view */
   align-items: center;
-  justify-content: center; /* Center the buttons vertically */
-  flex-grow: 1;
+  gap: 28px;
+  margin-top: 20px;
+  width: 100%;
 }
 
 .TellerMain-icon-btn {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0;
-  transition: transform 0.2s;
-  touch-action: manipulation;
-  user-select: none;
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  color: #fff;
+  transition: background-color 0.3s ease;
+  width: 100%;
+  justify-content: center;
 }
 
-.TellerMain-icon-btn img {
-  width: 42px;
-  height: 42px;
+.TellerMain-navbar.expanded .TellerMain-icon-btn {
+  justify-content: flex-start;
+  padding-left: 16px;
 }
 
-.TellerMain-icon-btn:hover img {
-  transform: scale(1.1);
+.TellerMain-icon-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.button-label {
+  display: none;
+  margin-left: 15px;
+  white-space: nowrap;
+}
+
+/* Exception for the bottom profile image */
+.TellerMain-icon-container .TellerMain-icon-image {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.TellerMain-icon-image {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.TellerMain-icon-container {
+  margin-top: auto;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.TellerMain-line {
+  width: 80%;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.2);
+  margin: 20px 0;
+}
+
+.TellerMain-navbar.expanded .TellerMain-line {
+  width: 100%;
+}
+
+/* Settings Dropdown */
+.TellerMain-settings-dropdown {
+  position: absolute;
+  top: 0;
+  right: -220px;
+  width: 200px;
+  background-color: #232323;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  overflow: hidden;
+}
+
+/* Adjust settings dropdown position when sidebar is expanded */
+.TellerMain-navbar.expanded .TellerMain-settings-dropdown {
+  right: -220px;
+  top: 0;
 }
 
 /* Hamburger Menu Button */
@@ -327,74 +406,72 @@ textarea {
 .TellerMain-taskbar {
   position: fixed;
   bottom: 0;
-  left: 0;
-  width: calc(100% + 80px); /* Expand width to cover entire screen width */
+  left: 64px;
+  width: calc(100% - 64px);
   background-color: #f5f5f5;
   color: #333;
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding: 10px 20px;
-  border-top: 2px solid #e0e0e0;
-  font-size: 1em; /* Adjusted to relative units */
-  z-index: 2; /* Ensure it is above the map but below modals */
+  padding: 8px 16px;
+  border-top: 1px solid #e0e0e0;
+  font-size: 14px;
+  z-index: 2;
   box-sizing: border-box;
-  margin-left: -80px; /* Shift taskbar left to align with the navbar's edge */
+  transition: left 0.3s ease, width 0.3s ease;
+}
+
+.TellerMain-navbar.expanded ~ .TellerMain-taskbar {
+  left: 180px !important;
+  width: calc(100% - 180px) !important;
 }
 
 /* Media Queries */
 @media (max-width: 768px) {
   .TellerMain-navbar {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 60px !important;
-    min-height: auto !important;
-    padding: 0 16px !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-between !important;
+    width: 64px !important;
     border-radius: 0 !important;
-    background-color: #232323 !important;
-    touch-action: none !important;
+    padding: 12px 8px !important;
     z-index: 1000 !important;
   }
 
-  .TellerMain-navbar-content {
-    display: none !important; /* Hide all navbar content on mobile */
+  .TellerMain-navbar.expanded {
+    width: 64px !important;
+  }
+
+  .TellerMain-navbar.expanded .button-label {
+    display: none;
   }
 
   .TellerMain-logo {
-    margin: 0 !important;
-    font-size: 1.2em !important;
-    display: block !important;
+    font-size: 1.2em;
+    margin-bottom: 30px;
   }
 
   .TellerMain-hamburger {
-    position: fixed !important;
-    right: 16px !important;
-    top: 20px !important;
-    display: flex !important;
-    margin: 0 !important;
-    width: 24px !important;
-    height: 18px !important;
-    z-index: 1002 !important;
-    background: none !important;
-    border: none !important;
+    display: flex;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1002;
+    background-color: #232323;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 
   .TellerMain-hamburger span {
-    width: 100% !important;
-    height: 2px !important;
-    margin: 0 !important;
-    background-color: white !important;
-    display: block !important;
+    width: 20px;
+    height: 2px;
+    margin: 2px 0;
   }
 
-  /* Hamburger animation states */
   .TellerMain-hamburger.active span:nth-child(1) {
-    transform: translateY(8px) rotate(45deg);
+    transform: rotate(45deg) translate(5px, 5px);
   }
 
   .TellerMain-hamburger.active span:nth-child(2) {
@@ -402,106 +479,112 @@ textarea {
   }
 
   .TellerMain-hamburger.active span:nth-child(3) {
-    transform: translateY(-8px) rotate(-45deg);
+    transform: rotate(-45deg) translate(5px, -5px);
   }
 
   .TellerMain-mobile-menu {
-    display: block !important;
-    top: 60px !important;
-    height: calc(100vh - 60px) !important;
-    height: calc(var(--vh, 1vh) * 100 - 60px) !important;
-    width: 100% !important;
-    right: -100% !important; /* Changed from left to right */
-    padding: 20px !important;
-    z-index: 1001 !important;
+    display: none;
+    right: -250px;
   }
 
   .TellerMain-mobile-menu.active {
-    right: 0 !important; /* Changed from left to right */
+    display: block !important;
+    right: 0 !important;
   }
 
   .TellerMain-map-container {
-    top: 60px !important; /* Adjust map container to start below navbar */
-    height: calc(100vh - 60px) !important;
-    height: calc(var(--vh, 1vh) * 100 - 60px) !important;
-    touch-action: pan-y !important;
+    left: 64px;
+    width: calc(100% - 64px);
   }
 
   .TellerMain-taskbar {
-    display: none !important; /* Hide taskbar on mobile */
+    left: 64px;
+    width: calc(100% - 64px);
   }
 
-  /* Adjust other containers that need top spacing */
   .TellerMain-TripTracking-popup,
-  .TellerMain-summary-panel,
-  .TellerMain-chat-container,
-  .suggestion-form-container {
-    top: 70px !important;
+  .TellerMain-modal-overlay {
+    left: 64px;
+    width: calc(100% - 64px);
   }
 
-  /* Prevent rubber-banding effect on iOS */
   .TellerMain-map-container,
-  .TellerMain-summary-container,
-  .ShuttleDetails-container {
-    overscroll-behavior: none;
+  .TellerMain-taskbar {
+    transition: left 0.3s ease, width 0.3s ease;
+  }
+
+  .TellerMain-settings-dropdown {
+    right: -220px;
+    top: 0;
   }
 }
 
 @media (max-width: 480px) {
   .TellerMain-navbar {
-    height: 50px !important;
-    padding: 0 12px !important;
+    width: 64px !important;
+    border-radius: 0 !important;
+    padding: 12px 8px !important;
   }
 
   .TellerMain-logo {
-    font-size: 1.1em !important;
+    font-size: 1.2em;
+    margin-bottom: 30px;
   }
 
   .TellerMain-hamburger {
-    right: 12px !important;
-    top: 17px !important;
-    width: 20px !important;
-    height: 16px !important;
+    display: flex;
+    top: 15px;
+    right: 15px;
+    width: 36px;
+    height: 36px;
   }
 
   .TellerMain-hamburger span {
-    height: 2px !important;
+    width: 18px;
   }
 
-  /* Adjust hamburger animation for smaller size */
   .TellerMain-hamburger.active span:nth-child(1) {
-    transform: translateY(7px) rotate(45deg);
+    transform: rotate(45deg) translate(4px, 4px);
   }
 
   .TellerMain-hamburger.active span:nth-child(3) {
-    transform: translateY(-7px) rotate(-45deg);
+    transform: rotate(-45deg) translate(4px, -4px);
   }
 
   .TellerMain-mobile-menu {
-    top: 50px !important;
-    height: calc(100vh - 50px) !important;
-    height: calc(var(--vh, 1vh) * 100 - 50px) !important;
+    width: 100%;
+    right: -100%;
   }
 
   .TellerMain-map-container {
-    top: 50px !important;
-    height: calc(100vh - 50px) !important;
-    height: calc(var(--vh, 1vh) * 100 - 50px) !important;
+    left: 0 !important;
+    width: 100% !important;
   }
 
-  /* Adjust other containers for smaller navbar */
   .TellerMain-TripTracking-popup,
-  .TellerMain-summary-panel,
-  .TellerMain-chat-container,
-  .suggestion-form-container {
-    top: 60px !important;
+  .TellerMain-modal-overlay {
+    left: 0;
+    width: 100%;
   }
-}
 
-.TellerMain-icon-image {
-  width: 42px;
-  height: 42px;
-  transition: transform 0.2s;
+  .TellerMain-taskbar {
+    left: 0 !important;
+    width: 100% !important;
+    font-size: 0.8em;
+  }
+
+  .TellerMain-navbar.expanded {
+    width: 64px !important;
+  }
+
+  .TellerMain-navbar.expanded .button-label {
+    display: none !important;
+  }
+
+  .TellerMain-settings-dropdown {
+    right: 70px;
+    top: 0;
+  }
 }
 
 .TellerMain-suggestion-btn {
@@ -630,13 +713,6 @@ textarea {
   color: #333;
 }
 
-.TellerMain-navbar-profile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: auto;
-}
-
 .TellerMain-shuttle-info {
   padding: 10px;
   background-color: white;
@@ -686,5 +762,20 @@ textarea {
     width: calc(100% - 30px);
     right: 15px;
     padding: 12px;
+  }
+}
+
+.sidebar-settings-container {
+  position: fixed;
+  left: 70px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1002;
+  width: 200px;
+}
+
+@media (max-width: 768px) {
+  .sidebar-settings-container {
+    left: 64px;
   }
 }
