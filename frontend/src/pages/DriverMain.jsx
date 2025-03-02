@@ -2,12 +2,11 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "../css/DriverMain.css";
-import DriverMessage from "../components/DriverMessage"; // Import DriverMessage component
-import SettingsDropdown from "../components/SettingsDropdown";
+import DriverMessage from "../components/DriverMessage";
 import SchedulePopup from "../components/SchedulePopup";
 import NotificationPop from "../components/NotificationPop";
 import DriverSummary from "../components/DriverSummary";
-import ProfileIDCard from "../components/ProfileIDCard"; // Add this import
+import ProfileIDCard from "../components/ProfileIDCard";
 import {
   connectSocket,
   subscribeToMessages,
@@ -302,26 +301,7 @@ const DriverMain = () => {
     });
   }, [dateTime]);
 
-  // Add timer effect to update dateTime
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setDateTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  // Add effect to handle recentering when shouldRecenter changes
-  useEffect(() => {
-    if (shouldRecenter && mapRef.current && userLocation) {
-      mapRef.current.setView(userLocation, mapRef.current.getZoom(), {
-        animate: true,
-        duration: 0.5,
-      });
-    }
-  }, [shouldRecenter, userLocation]);
-
-  // Modify handleMapMove
+  // Define handleMapMove
   const handleMapMove = useCallback(() => {
     setShouldRecenter(false);
 
@@ -340,7 +320,27 @@ const DriverMain = () => {
           duration: 0.5,
         });
       }
-    }, [userLocation]);
+    }, 5000);
+  }, [userLocation, mapRef]);
+
+  // Add timer effect to update dateTime
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setDateTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Add effect to handle recentering when shouldRecenter changes
+  useEffect(() => {
+    if (shouldRecenter && mapRef.current && userLocation) {
+      mapRef.current.setView(userLocation, mapRef.current.getZoom(), {
+        animate: true,
+        duration: 0.5,
+      });
+    }
+  }, [shouldRecenter, userLocation, mapRef]);
 
   // Clean up timeout on unmount
   useEffect(() => {
