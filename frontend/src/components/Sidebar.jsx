@@ -26,6 +26,12 @@ const Sidebar = forwardRef(
     const [settingsButtonRef, setSettingsButtonRef] = useState(null);
     const [username, setUsername] = useState(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [notificationsEnabled, setNotificationsEnabled] = useState(
+      localStorage.getItem("notificationsEnabled") === "true"
+    );
+    const [locationEnabled, setLocationEnabled] = useState(
+      localStorage.getItem("locationEnabled") === "true"
+    );
     const navigate = useNavigate();
 
     // Get username from token
@@ -90,6 +96,8 @@ const Sidebar = forwardRef(
         // Clear any user data from localStorage
         localStorage.removeItem("user");
         localStorage.removeItem("token");
+        localStorage.removeItem("notificationsEnabled");
+        localStorage.removeItem("locationEnabled");
 
         // Clear any session storage data if used
         sessionStorage.clear();
@@ -116,6 +124,51 @@ const Sidebar = forwardRef(
       onProfileClick();
       if (window.innerWidth <= 768) {
         setIsMobileMenuOpen(false);
+      }
+    };
+
+    const toggleNotifications = (e) => {
+      e.stopPropagation();
+      const newState = !notificationsEnabled;
+      setNotificationsEnabled(newState);
+      localStorage.setItem("notificationsEnabled", newState);
+    };
+
+    const toggleLocation = async (e) => {
+      e.stopPropagation();
+      const newState = !locationEnabled;
+
+      if (newState) {
+        try {
+          // Directly request location permission - this should trigger the browser dialog
+          navigator.geolocation.getCurrentPosition(
+            () => {
+              setLocationEnabled(true);
+              localStorage.setItem("locationEnabled", "true");
+            },
+            (error) => {
+              setLocationEnabled(false);
+              localStorage.setItem("locationEnabled", "false");
+              
+              if (error.code === 1) { // PERMISSION_DENIED
+                alert('Please enable location access in your browser settings to use this feature.');
+              }
+            },
+            { 
+              enableHighAccuracy: true,
+              maximumAge: 0,
+              timeout: 5000
+            }
+          );
+        } catch (error) {
+          console.error('Location error:', error);
+          setLocationEnabled(false);
+          localStorage.setItem("locationEnabled", "false");
+        }
+      } else {
+        // Turning OFF
+        setLocationEnabled(false);
+        localStorage.setItem("locationEnabled", "false");
       }
     };
 
@@ -201,6 +254,20 @@ const Sidebar = forwardRef(
       };
     }, [isMobileMenuOpen]);
 
+    // Add this before the return statement, after other useEffects
+    useEffect(() => {
+      // Check if we have permission when component mounts
+      if (locationEnabled) {
+        navigator.permissions.query({ name: 'geolocation' })
+          .then(permissionStatus => {
+            if (permissionStatus.state === 'denied') {
+              setLocationEnabled(false);
+              localStorage.setItem("locationEnabled", false);
+            }
+          });
+      }
+    }, []);
+
     return (
       <>
         {/* Mobile Top Bar */}
@@ -278,17 +345,37 @@ const Sidebar = forwardRef(
                   Profile Settings
                 </button>
                 <hr />
-                <button
+                <div
                   className="Sidebar-settings-option"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onNotificationClick();
-                    setIsSettingsOpen(false);
-                  }}
+                  data-enabled
                   role="menuitem"
                 >
-                  Notification Settings
-                </button>
+                  Notifications
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      checked={notificationsEnabled}
+                      onChange={toggleNotifications}
+                    />
+                    <span className="slider"></span>
+                  </label>
+                </div>
+                <hr />
+                <div
+                  className="Sidebar-settings-option"
+                  data-enabled
+                  role="menuitem"
+                >
+                  Location
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      checked={locationEnabled}
+                      onChange={toggleLocation}
+                    />
+                    <span className="slider"></span>
+                  </label>
+                </div>
                 <hr />
                 <button
                   className="Sidebar-settings-option"
