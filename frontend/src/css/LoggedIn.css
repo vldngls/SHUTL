@@ -1125,3 +1125,9 @@ hr {
     margin-left: 12px;
   }
 }
+
+@media (max-width: 480px) {
+  .ShutlLoggedIn-taskbar {
+    display: none;
+  }
+}
