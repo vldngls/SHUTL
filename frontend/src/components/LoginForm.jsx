@@ -101,6 +101,24 @@ const LoginForm = ({ onClose }) => {
         const data = await response.json();
         document.cookie = `token=${data.token}; path=/; SameSite=None; Secure`;
 
+        if (data.isNewUser) {
+          // For new users, pre-fill the registration form with Google data
+          setIsRegistering(true);
+          // Pass Google data to RegisterForm
+          const googleData = {
+            email: decoded.email,
+            name: decoded.name,
+            profilePicture: decoded.picture,
+            token: data.token,
+          };
+          return (
+            <RegisterForm
+              onClose={() => setIsRegistering(false)}
+              googleData={googleData}
+            />
+          );
+        }
+
         switch (data.user.userType) {
           case "Commuter":
             navigate("/ShutlLoggedIn");

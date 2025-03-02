@@ -4,22 +4,23 @@ import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
-const RegisterForm = ({ onClose }) => {
+const RegisterForm = ({ onClose, googleData }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [section, setSection] = useState(1);
   const [formData, setFormData] = useState({
-    email: "",
-    username: "",
+    email: googleData?.email || "",
+    username: googleData?.email ? googleData.email.split("@")[0] : "",
     password: "",
     confirmPassword: "",
-    name: "",
+    name: googleData?.name || "",
     birthday: "",
     address: "",
     discountType: "REGULAR",
     paymentMethod: "",
     contactNumber: "",
-    profilePicture: null,
+    profilePicture: googleData?.profilePicture || null,
     idPicture: null,
   });
   const [error, setError] = useState("");
@@ -28,6 +29,7 @@ const RegisterForm = ({ onClose }) => {
   const [isChecked, setIsChecked] = useState(false);
   const [fares, setFares] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch available fares
@@ -195,50 +197,56 @@ const RegisterForm = ({ onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateSection()) return;
-
     setIsLoading(true);
+    setError("");
+
     try {
-      // Filter out preview fields and prepare data for submission
-      const dataToSend = Object.fromEntries(
-        Object.entries(formData).filter(([key]) => !key.includes("Preview"))
-      );
+      // If we have Google data, we don't need to validate password
+      if (!googleData && formData.password !== formData.confirmPassword) {
+        setError("Passwords do not match");
+        setIsLoading(false);
+        return;
+      }
+
+      // Create FormData object for file upload
+      const formDataObj = new FormData();
+      Object.keys(formData).forEach((key) => {
+        if (key === "profilePicture" || key === "idPicture") {
+          if (formData[key] instanceof File) {
+            formDataObj.append(key, formData[key]);
+          }
+        } else {
+          formDataObj.append(key, formData[key]);
+        }
+      });
+
+      // If we have Google data, add it to the request
+      if (googleData) {
+        formDataObj.append("googleAuth", "true");
+        formDataObj.append("token", googleData.token);
+      }
 
       const response = await fetch(`${API_BASE_URL}/users/register`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(dataToSend),
-        credentials: "include",
+        body: formDataObj,
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        const data = await response.json();
-        console.log("Registration successful", data);
-        if (formData.discountType !== "REGULAR") {
-          toast.success(
-            "Your account has been created! Your discount status is pending approval. You can still use the app with regular fare rates until your discount is approved.",
-            {
-              duration: 6000,
-              position: "top-center",
-            }
-          );
+        // If registration is successful and we have Google data, we can proceed directly
+        if (googleData) {
+          document.cookie = `token=${googleData.token}; path=/; SameSite=None; Secure`;
+          navigate("/ShutlLoggedIn");
         } else {
-          toast.success("Registration successful! Welcome to SHUTL!", {
-            duration: 3000,
-            position: "top-center",
-          });
+          toast.success("Registration successful! Please log in.");
+          onClose();
         }
-        onClose();
       } else {
-        const errorData = await response.json();
-        toast.error(errorData.message || "Registration failed");
-        setError(errorData.message || "Registration failed");
+        setError(data.message || "Registration failed");
       }
     } catch (error) {
-      console.error("Error:", error);
-      toast.error("An error occurred during registration");
+      console.error("Registration error:", error);
       setError("An error occurred during registration");
     } finally {
       setIsLoading(false);
@@ -266,81 +274,102 @@ const RegisterForm = ({ onClose }) => {
       case 1:
         return (
           <>
-            <div className="auth-input-group">
-              <input
-                type="email"
-                name="email"
-                className="auth-input"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
+            {!googleData && (
+              <>
+                <div className="auth-input-group">
+                  <input
+                    type="email"
+                    name="email"
+                    className="auth-input"
+                    placeholder="Email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    disabled={!!googleData}
+                  />
+                </div>
 
-            <div className="auth-input-group">
-              <input
-                type="text"
-                name="username"
-                className="auth-input"
-                placeholder="Username"
-                value={formData.username}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
+                <div className="auth-input-group">
+                  <input
+                    type="text"
+                    name="username"
+                    className="auth-input"
+                    placeholder="Username"
+                    value={formData.username}
+                    onChange={handleInputChange}
+                    required
+                    disabled={!!googleData}
+                  />
+                </div>
 
-            <div className="auth-input-group">
-              <div className="password-input-container">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  className="auth-input"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                />
-                <button
-                  type="button"
-                  className="password-toggle-btn"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </button>
-              </div>
-            </div>
+                <div className="auth-input-group">
+                  <div className="password-input-container">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      className="auth-input"
+                      placeholder="Password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required={!googleData}
+                      disabled={!!googleData}
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
+                </div>
 
-            <div className="auth-input-group">
-              <div className="password-input-container">
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  name="confirmPassword"
-                  className="auth-input"
-                  placeholder="Confirm Password"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  required
-                />
-                <button
-                  type="button"
-                  className="password-toggle-btn"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                </button>
-              </div>
-            </div>
+                <div className="auth-input-group">
+                  <div className="password-input-container">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      name="confirmPassword"
+                      className="auth-input"
+                      placeholder="Confirm Password"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      required={!googleData}
+                      disabled={!!googleData}
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                    >
+                      {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
 
-            <div className="auth-terms">
-              <input
-                type="checkbox"
-                id="terms"
-                checked={isChecked}
-                onChange={() => setIsChecked(!isChecked)}
-              />
-              <label htmlFor="terms">I agree to the Terms and Conditions</label>
-            </div>
+            {!googleData && (
+              <>
+                <div className="auth-divider">
+                  <span>or continue with</span>
+                </div>
+
+                <div className="google-login-container">
+                  <GoogleOAuthProvider clientId="213011039300-02odo46u0rflq0go5sqe1njkvqc0rtf3.apps.googleusercontent.com">
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={() => setError("Google login failed")}
+                      useOneTap
+                      theme="filled_blue"
+                      size="large"
+                      shape="rectangular"
+                    />
+                  </GoogleOAuthProvider>
+                </div>
+              </>
+            )}
           </>
         );
 
@@ -523,31 +552,14 @@ const RegisterForm = ({ onClose }) => {
 
         {section === 1 && (
           <>
-            <div className="auth-divider">
-              <span>or continue with</span>
-            </div>
-
-            <div className="google-login-container">
-              <GoogleOAuthProvider clientId="213011039300-02odo46u0rflq0go5sqe1njkvqc0rtf3.apps.googleusercontent.com">
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={() => setError("Google login failed")}
-                  useOneTap
-                  theme="filled_blue"
-                  size="large"
-                  shape="rectangular"
-                />
-              </GoogleOAuthProvider>
+            <div className="auth-footer">
+              <span>Already have an account? </span>
+              <button className="auth-link-button" onClick={onClose}>
+                Sign in here
+              </button>
             </div>
           </>
         )}
-
-        <div className="auth-footer">
-          <span>Already have an account? </span>
-          <button className="auth-link-button" onClick={onClose}>
-            Sign in here
-          </button>
-        </div>
       </div>
     </div>
   );

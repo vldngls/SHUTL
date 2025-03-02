@@ -15,11 +15,108 @@ import { authenticateToken } from "../middleware/authenticateToken.js";
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import UserData from "../models/userData.model.js";
+import bcrypt from "bcrypt";
+import multer from "multer";
 
 const router = express.Router();
 
 // User Authentication
-router.post("/register", registerUser); // Register a new user
+router.post(
+  "/register",
+  upload.fields([
+    { name: "profilePicture", maxCount: 1 },
+    { name: "idPicture", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const {
+        email,
+        username,
+        password,
+        name,
+        birthday,
+        address,
+        discountType,
+        paymentMethod,
+        contactNumber,
+        googleAuth,
+        token,
+      } = req.body;
+
+      // Check if user already exists
+      const existingUser = await User.findOne({
+        $or: [{ email }, { username }],
+      });
+
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists" });
+      }
+
+      // If this is a Google-authenticated registration, verify the token
+      if (googleAuth === "true" && token) {
+        try {
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          if (decoded.email !== email) {
+            return res.status(400).json({ message: "Invalid token" });
+          }
+        } catch (error) {
+          return res.status(400).json({ message: "Invalid token" });
+        }
+      }
+
+      // Handle file uploads
+      let profilePicturePath = null;
+      let idPicturePath = null;
+
+      if (req.files) {
+        if (req.files.profilePicture) {
+          profilePicturePath = req.files.profilePicture[0].path;
+        }
+        if (req.files.idPicture) {
+          idPicturePath = req.files.idPicture[0].path;
+        }
+      }
+
+      // Create new user
+      const newUser = await User.create({
+        email,
+        username,
+        password:
+          googleAuth === "true" ? undefined : await bcrypt.hash(password, 10),
+        name,
+        userType: "Commuter",
+        googleAuth: googleAuth === "true",
+      });
+
+      // Create user data
+      const userData = await UserData.create({
+        email,
+        name,
+        birthday,
+        address,
+        discountType,
+        paymentMethod,
+        contactNumber,
+        profilePicture: profilePicturePath,
+        idPicture: idPicturePath,
+      });
+
+      res.status(201).json({
+        message: "User registered successfully",
+        user: {
+          email: newUser.email,
+          username: newUser.username,
+          name: newUser.name,
+          userType: newUser.userType,
+        },
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "Error registering user" });
+    }
+  }
+);
+
 router.post("/login", loginUser); // Login a user
 
 // Admin-Specific Routes
@@ -142,8 +239,10 @@ router.post("/google-auth", async (req, res) => {
     // Check if user exists
     let user = await User.findOne({ email });
     let userData;
+    let isNewUser = false;
 
     if (!user) {
+      isNewUser = true;
       // Create new user if doesn't exist
       user = await User.create({
         name,
@@ -192,6 +291,7 @@ router.post("/google-auth", async (req, res) => {
         isAdmin: user.userType === "Admin",
         fullAccess: user.userType === "Admin",
       },
+      isNewUser,
     });
   } catch (error) {
     console.error("Google auth error:", error);
