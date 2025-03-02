@@ -15,107 +15,35 @@ import { authenticateToken } from "../middleware/authenticateToken.js";
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import UserData from "../models/userData.model.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import multer from "multer";
 
 const router = express.Router();
 
-// User Authentication
-router.post(
-  "/register",
-  upload.fields([
-    { name: "profilePicture", maxCount: 1 },
-    { name: "idPicture", maxCount: 1 },
-  ]),
-  async (req, res) => {
-    try {
-      const {
-        email,
-        username,
-        password,
-        name,
-        birthday,
-        address,
-        discountType,
-        paymentMethod,
-        contactNumber,
-        googleAuth,
-        token,
-      } = req.body;
-
-      // Check if user already exists
-      const existingUser = await User.findOne({
-        $or: [{ email }, { username }],
-      });
-
-      if (existingUser) {
-        return res.status(400).json({ message: "User already exists" });
-      }
-
-      // If this is a Google-authenticated registration, verify the token
-      if (googleAuth === "true" && token) {
-        try {
-          const decoded = jwt.verify(token, process.env.JWT_SECRET);
-          if (decoded.email !== email) {
-            return res.status(400).json({ message: "Invalid token" });
-          }
-        } catch (error) {
-          return res.status(400).json({ message: "Invalid token" });
-        }
-      }
-
-      // Handle file uploads
-      let profilePicturePath = null;
-      let idPicturePath = null;
-
-      if (req.files) {
-        if (req.files.profilePicture) {
-          profilePicturePath = req.files.profilePicture[0].path;
-        }
-        if (req.files.idPicture) {
-          idPicturePath = req.files.idPicture[0].path;
-        }
-      }
-
-      // Create new user
-      const newUser = await User.create({
-        email,
-        username,
-        password:
-          googleAuth === "true" ? undefined : await bcrypt.hash(password, 10),
-        name,
-        userType: "Commuter",
-        googleAuth: googleAuth === "true",
-      });
-
-      // Create user data
-      const userData = await UserData.create({
-        email,
-        name,
-        birthday,
-        address,
-        discountType,
-        paymentMethod,
-        contactNumber,
-        profilePicture: profilePicturePath,
-        idPicture: idPicturePath,
-      });
-
-      res.status(201).json({
-        message: "User registered successfully",
-        user: {
-          email: newUser.email,
-          username: newUser.username,
-          name: newUser.name,
-          userType: newUser.userType,
-        },
-      });
-    } catch (error) {
-      console.error("Registration error:", error);
-      res.status(500).json({ message: "Error registering user" });
-    }
+// File filter to only allow images
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image/")) {
+    cb(null, true);
+  } else {
+    cb(new Error("Not an image! Please upload an image file."), false);
   }
-);
+};
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+});
+
+// Helper function to convert buffer to base64
+const bufferToBase64 = (buffer, mimetype) => {
+  return `data:${mimetype};base64,${buffer.toString("base64")}`;
+};
+
+// User Authentication
+router.post("/register", upload.single("profilePicture"), registerUser);
 
 router.post("/login", loginUser); // Login a user
 
@@ -243,30 +171,22 @@ router.post("/google-auth", async (req, res) => {
 
     if (!user) {
       isNewUser = true;
-      // Create new user if doesn't exist
-      user = await User.create({
-        name,
-        email,
-        username: email.split("@")[0],
-        password: googleId,
-        userType: "Commuter",
-        googleId,
+      // Don't create user yet, just return isNewUser flag
+      return res.status(200).json({
+        isNewUser,
+        tempData: {
+          email,
+          name,
+          picture,
+          googleId,
+        },
       });
-
-      // Create corresponding userData for new user only
-      userData = await UserData.create({
-        email: user.email,
-        name: user.name,
-        profilePicture: picture,
-        discountType: "REGULAR",
-        discount: 0,
-      });
-    } else {
-      // For existing users, just get their userData without updating the picture
-      userData = await UserData.findOne({ email: user.email });
     }
 
-    // Generate JWT token
+    // For existing users, get their userData
+    userData = await UserData.findOne({ email: user.email });
+
+    // Generate JWT token for existing users
     const token = jwt.sign(
       {
         id: user._id,

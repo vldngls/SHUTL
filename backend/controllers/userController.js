@@ -20,7 +20,49 @@ export const registerUser = async (req, res) => {
       contactNumber,
       profilePicture,
       idPicture,
+      googleId,
+      agreeToTerms,
     } = req.body;
+
+    // Add detailed logging for request body and terms
+    console.log("Raw request body:", {
+      ...req.body,
+      password: "[REDACTED]",
+    });
+
+    console.log("Terms agreement debug:", {
+      rawValue: agreeToTerms,
+      typeOf: typeof agreeToTerms,
+      stringified: JSON.stringify(agreeToTerms),
+      booleanConversion: Boolean(agreeToTerms),
+      truthyCheck: !!agreeToTerms,
+    });
+
+    // Convert agreeToTerms to boolean explicitly and check both string and boolean values
+    const agreedToTerms =
+      agreeToTerms === true ||
+      agreeToTerms === "true" ||
+      agreeToTerms === "True";
+
+    console.log("Terms agreement validation:", {
+      original: agreeToTerms,
+      converted: agreedToTerms,
+      checkTrue: agreeToTerms === true,
+      checkStringTrue: agreeToTerms === "true",
+      checkStringTrueUpper: agreeToTerms === "True",
+    });
+
+    // Validate terms agreement
+    if (!agreedToTerms) {
+      console.log("Terms agreement validation failed:", {
+        received: agreeToTerms,
+        type: typeof agreeToTerms,
+        validationResult: agreedToTerms,
+      });
+      return res.status(400).json({
+        message: "You must agree to the terms and conditions",
+      });
+    }
 
     // Check if user exists
     const userExists = await User.findOne({
@@ -36,17 +78,21 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    // Hash password if provided
+    let hashedPassword;
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      hashedPassword = await bcrypt.hash(password, salt);
+    }
 
-    // Create user
+    // Create user with googleId if available
     const user = await User.create({
       name,
       email,
       username,
       password: hashedPassword,
       userType: "Commuter",
+      googleId: googleId || null,
     });
 
     // Create corresponding userData with initial discount settings
@@ -57,9 +103,7 @@ export const registerUser = async (req, res) => {
       birthday,
       address,
       discountType,
-      // Initially set discount to 0 regardless of type until approved
       discount: 0,
-      // Set status to PENDING for non-regular types
       discountStatus: discountType === "REGULAR" ? "APPROVED" : "PENDING",
       idPicture: idPicture || null,
       paymentMethod,
@@ -67,7 +111,7 @@ export const registerUser = async (req, res) => {
       profilePicture: profilePicture || "/avatar.png",
     });
 
-    // Generate token
+    // Generate token with additional user info
     const token = jwt.sign(
       {
         id: user._id,
@@ -75,10 +119,19 @@ export const registerUser = async (req, res) => {
         userType: user.userType,
         isAdmin: user.userType === "Admin",
         fullAccess: user.userType === "Admin",
+        username: user.username,
       },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
+
+    // Log successful registration
+    await MaintenanceLog.create({
+      action: "User registration",
+      status: "success",
+      details: `New user registered: ${user.email} (${user.userType})`,
+      userId: user._id,
+    });
 
     res.status(201).json({
       token,

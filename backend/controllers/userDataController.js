@@ -137,7 +137,23 @@ export const ensureUserData = async (email) => {
 // Get user data based on JWT token from cookies
 export const getUserDataFromToken = async (req, res) => {
   try {
+    if (!req.user || !req.user.email) {
+      console.error("No user or email in request:", req.user);
+      return res.status(401).json({
+        message: "User not authenticated or email not found",
+      });
+    }
+
+    console.log("Fetching user data for email:", req.user.email);
     const userData = await ensureUserData(req.user.email);
+
+    if (!userData) {
+      console.error("No user data found for email:", req.user.email);
+      return res.status(404).json({
+        message: "User data not found",
+      });
+    }
+
     res.status(200).json(userData);
   } catch (error) {
     console.error("Error in getUserDataFromToken:", error);

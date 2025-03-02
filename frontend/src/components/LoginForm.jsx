@@ -5,6 +5,7 @@ import RegisterForm from "./RegisterForm";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { toast } from "react-hot-toast";
 
 const LoginForm = ({ onClose }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -99,26 +100,24 @@ const LoginForm = ({ onClose }) => {
 
       if (response.ok) {
         const data = await response.json();
-        document.cookie = `token=${data.token}; path=/; SameSite=None; Secure`;
 
         if (data.isNewUser) {
-          // For new users, pre-fill the registration form with Google data
           setIsRegistering(true);
-          // Pass Google data to RegisterForm
-          const googleData = {
-            email: decoded.email,
-            name: decoded.name,
-            profilePicture: decoded.picture,
-            token: data.token,
-          };
-          return (
-            <RegisterForm
-              onClose={() => setIsRegistering(false)}
-              googleData={googleData}
-            />
+          // Store Google data in localStorage to persist through component remount
+          localStorage.setItem(
+            "googleRegistrationData",
+            JSON.stringify({
+              email: data.tempData.email,
+              name: data.tempData.name,
+              profilePicture: data.tempData.picture,
+              googleId: data.tempData.googleId,
+            })
           );
+          return;
         }
 
+        // For existing users, set the token and redirect
+        document.cookie = `token=${data.token}; path=/; SameSite=None; Secure`;
         switch (data.user.userType) {
           case "Commuter":
             navigate("/ShutlLoggedIn");
@@ -277,7 +276,16 @@ const LoginForm = ({ onClose }) => {
   };
 
   if (isRegistering) {
-    return <RegisterForm onClose={() => setIsRegistering(false)} />;
+    const googleData = localStorage.getItem("googleRegistrationData");
+    return (
+      <RegisterForm
+        onClose={() => {
+          setIsRegistering(false);
+          localStorage.removeItem("googleRegistrationData");
+        }}
+        googleData={googleData ? JSON.parse(googleData) : null}
+      />
+    );
   }
 
   if (showForgotPassword) {
@@ -477,11 +485,16 @@ const LoginForm = ({ onClose }) => {
           <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
-              onError={() => setError("Google login failed")}
-              useOneTap
+              onError={(error) => {
+                console.error("Google login error:", error);
+                setError("Google login failed");
+                toast.error("Google login failed");
+              }}
+              useOneTap={false}
               theme="filled_blue"
               size="large"
               shape="rectangular"
+              cookiePolicy={"single_host_origin"}
             />
           </GoogleOAuthProvider>
         </div>

@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import Cropper from "react-easy-crop";
 import { createPortal } from "react-dom";
 import "../css/ProfilePopup.css";
+import { FaEdit } from "react-icons/fa";
 
 // Move CropModal completely outside the main component
 const CropModal = ({ showModal, image, onCancel, onComplete }) => {
@@ -455,7 +456,7 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
               className="ShutlProfilePopup-edit-btn"
               onClick={() => setIsEditing(true)}
             >
-              Edit Profile
+              <FaEdit style={{ marginRight: "6px" }} /> Edit Profile
             </button>
           )}
         </div>

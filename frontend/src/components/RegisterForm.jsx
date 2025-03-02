@@ -29,6 +29,7 @@ const RegisterForm = ({ onClose, googleData }) => {
   const [isChecked, setIsChecked] = useState(false);
   const [fares, setFares] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [useGooglePicture, setUseGooglePicture] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -134,18 +135,33 @@ const RegisterForm = ({ onClose, googleData }) => {
   const validateSection = () => {
     switch (section) {
       case 1:
-        if (
-          !formData.email ||
-          !formData.username ||
-          !formData.password ||
-          !formData.confirmPassword
-        ) {
-          setError("Please fill in all fields");
-          return false;
-        }
-        if (formData.password !== formData.confirmPassword) {
-          setError("Passwords do not match");
-          return false;
+        if (!googleData) {
+          if (
+            !formData.email ||
+            !formData.username ||
+            !formData.password ||
+            !formData.confirmPassword
+          ) {
+            setError("Please fill in all fields");
+            return false;
+          }
+          if (formData.password !== formData.confirmPassword) {
+            setError("Passwords do not match");
+            return false;
+          }
+        } else {
+          if (
+            !formData.username ||
+            !formData.password ||
+            !formData.confirmPassword
+          ) {
+            setError("Please fill in all fields");
+            return false;
+          }
+          if (formData.password !== formData.confirmPassword) {
+            setError("Passwords do not match");
+            return false;
+          }
         }
         if (!isChecked) {
           setError("You must agree to the terms and conditions");
@@ -172,6 +188,16 @@ const RegisterForm = ({ onClose, googleData }) => {
         return true;
 
       case 3:
+        // For Google profile picture, require confirmation
+        if (googleData && googleData.profilePicture) {
+          if (!useGooglePicture) {
+            if (!formData.profilePicture) {
+              setError("Please upload a profile picture");
+              return false;
+            }
+          }
+          return true;
+        }
         if (!formData.profilePicture) {
           setError("Please upload a profile picture");
           return false;
@@ -197,57 +223,84 @@ const RegisterForm = ({ onClose, googleData }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Starting form submission...");
+
     setIsLoading(true);
     setError("");
 
     try {
-      // If we have Google data, we don't need to validate password
-      if (!googleData && formData.password !== formData.confirmPassword) {
-        setError("Passwords do not match");
+      // Double-check terms agreement
+      if (!isChecked) {
+        setError("You must agree to the terms and conditions");
         setIsLoading(false);
         return;
       }
 
-      // Create FormData object for file upload
-      const formDataObj = new FormData();
-      Object.keys(formData).forEach((key) => {
-        if (key === "profilePicture" || key === "idPicture") {
-          if (formData[key] instanceof File) {
-            formDataObj.append(key, formData[key]);
-          }
-        } else {
-          formDataObj.append(key, formData[key]);
-        }
+      // Create JSON data instead of FormData
+      const submitData = {
+        email: googleData ? googleData.email : formData.email,
+        username: formData.username,
+        name: formData.name,
+        password: formData.password,
+        userType: "Commuter",
+        agreeToTerms: Boolean(isChecked), // Convert to boolean
+        birthday: formData.birthday,
+        address: formData.address,
+        discountType: formData.discountType,
+        paymentMethod: formData.paymentMethod,
+        contactNumber: formData.contactNumber,
+        profilePicture:
+          googleData && useGooglePicture
+            ? googleData.profilePicture
+            : formData.profilePicture,
+        googleId: googleData?.googleId,
+        idPicture: formData.idPicture,
+      };
+
+      // Log the exact data being sent
+      console.log("Form submission details:", {
+        isChecked,
+        isCheckedType: typeof isChecked,
+        agreeToTerms: submitData.agreeToTerms,
+        agreeToTermsType: typeof submitData.agreeToTerms,
       });
+      console.log("Raw submission data:", JSON.stringify(submitData));
 
-      // If we have Google data, add it to the request
-      if (googleData) {
-        formDataObj.append("googleAuth", "true");
-        formDataObj.append("token", googleData.token);
-      }
-
+      console.log("Submitting registration data...");
       const response = await fetch(`${API_BASE_URL}/users/register`, {
         method: "POST",
-        body: formDataObj,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submitData),
       });
 
       const data = await response.json();
+      console.log("Registration response:", data);
 
-      if (response.ok) {
-        // If registration is successful and we have Google data, we can proceed directly
-        if (googleData) {
-          document.cookie = `token=${googleData.token}; path=/; SameSite=None; Secure`;
-          navigate("/ShutlLoggedIn");
-        } else {
-          toast.success("Registration successful! Please log in.");
-          onClose();
-        }
-      } else {
-        setError(data.message || "Registration failed");
+      if (!response.ok) {
+        throw new Error(data.message || "Registration failed");
       }
+
+      // Registration successful - set token and user data
+      document.cookie = `token=${data.token}; path=/; SameSite=Lax`;
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // Clear any Google registration data
+      localStorage.removeItem("googleRegistrationData");
+
+      toast.success("Registration successful! Welcome to Shutl!");
+
+      // Small delay to ensure cookie is set
+      setTimeout(() => {
+        navigate("/ShutlLoggedIn");
+        onClose();
+      }, 100);
     } catch (error) {
       console.error("Registration error:", error);
-      setError("An error occurred during registration");
+      const errorMessage = error.message || "Registration failed";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -256,11 +309,13 @@ const RegisterForm = ({ onClose, googleData }) => {
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const decoded = jwtDecode(credentialResponse.credential);
+      console.log("Google decoded data:", decoded); // Add logging
       setFormData((prev) => ({
         ...prev,
         email: decoded.email,
         name: decoded.name,
-        profilePicture: decoded.picture,
+        profilePicture: decoded.picture, // Store the Google profile picture URL
+        googleId: decoded.sub, // Store the Google ID
       }));
       setSection(2);
     } catch (error) {
@@ -269,12 +324,43 @@ const RegisterForm = ({ onClose, googleData }) => {
     }
   };
 
+  const handleCancel = () => {
+    // Clear all form data
+    setFormData({
+      email: "",
+      username: "",
+      password: "",
+      confirmPassword: "",
+      name: "",
+      birthday: "",
+      address: "",
+      discountType: "REGULAR",
+      paymentMethod: "",
+      contactNumber: "",
+      profilePicture: null,
+      idPicture: null,
+    });
+
+    // Reset all states
+    setError("");
+    setIsChecked(false);
+    setSection(1);
+    setIsLoading(false);
+    setUseGooglePicture(true);
+
+    // Clear Google registration data from localStorage
+    localStorage.removeItem("googleRegistrationData");
+
+    // Close the registration form
+    onClose();
+  };
+
   const renderSection = () => {
     switch (section) {
       case 1:
         return (
           <>
-            {!googleData && (
+            {!googleData ? (
               <>
                 <div className="auth-input-group">
                   <input
@@ -285,7 +371,6 @@ const RegisterForm = ({ onClose, googleData }) => {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    disabled={!!googleData}
                   />
                 </div>
 
@@ -298,7 +383,6 @@ const RegisterForm = ({ onClose, googleData }) => {
                     value={formData.username}
                     onChange={handleInputChange}
                     required
-                    disabled={!!googleData}
                   />
                 </div>
 
@@ -311,8 +395,7 @@ const RegisterForm = ({ onClose, googleData }) => {
                       placeholder="Password"
                       value={formData.password}
                       onChange={handleInputChange}
-                      required={!googleData}
-                      disabled={!!googleData}
+                      required
                     />
                     <button
                       type="button"
@@ -333,8 +416,109 @@ const RegisterForm = ({ onClose, googleData }) => {
                       placeholder="Confirm Password"
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
-                      required={!googleData}
-                      disabled={!!googleData}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                    >
+                      {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="auth-divider">
+                  <span>or continue with</span>
+                </div>
+
+                <div className="google-login-container">
+                  <GoogleOAuthProvider
+                    clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}
+                  >
+                    {console.log(
+                      "Google Client ID:",
+                      import.meta.env.VITE_GOOGLE_CLIENT_ID
+                    )}
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={(error) => {
+                        console.error("Google login error:", error);
+                        setError("Google login failed");
+                      }}
+                      useOneTap
+                      theme="filled_blue"
+                      size="large"
+                      shape="rectangular"
+                    />
+                  </GoogleOAuthProvider>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="auth-info-group">
+                  <p>Continuing registration with:</p>
+                  <div className="google-user-info">
+                    <img
+                      src={googleData.profilePicture}
+                      alt="Profile"
+                      className="google-profile-pic"
+                    />
+                    <div>
+                      <p className="google-name">{googleData.name}</p>
+                      <p className="google-email">{googleData.email}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="auth-input-group">
+                  <input
+                    type="text"
+                    name="username"
+                    className="auth-input"
+                    placeholder="Choose a username"
+                    value={formData.username}
+                    onChange={handleInputChange}
+                    required
+                  />
+                  <small className="input-hint">
+                    This will be your unique username for logging in
+                  </small>
+                </div>
+
+                <div className="auth-input-group">
+                  <div className="password-input-container">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      className="auth-input"
+                      placeholder="Choose a password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="auth-input-group">
+                  <div className="password-input-container">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      name="confirmPassword"
+                      className="auth-input"
+                      placeholder="Confirm password"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      required
                     />
                     <button
                       type="button"
@@ -350,26 +534,15 @@ const RegisterForm = ({ onClose, googleData }) => {
               </>
             )}
 
-            {!googleData && (
-              <>
-                <div className="auth-divider">
-                  <span>or continue with</span>
-                </div>
-
-                <div className="google-login-container">
-                  <GoogleOAuthProvider clientId="213011039300-02odo46u0rflq0go5sqe1njkvqc0rtf3.apps.googleusercontent.com">
-                    <GoogleLogin
-                      onSuccess={handleGoogleSuccess}
-                      onError={() => setError("Google login failed")}
-                      useOneTap
-                      theme="filled_blue"
-                      size="large"
-                      shape="rectangular"
-                    />
-                  </GoogleOAuthProvider>
-                </div>
-              </>
-            )}
+            <div className="auth-terms">
+              <input
+                type="checkbox"
+                id="terms"
+                checked={isChecked}
+                onChange={() => setIsChecked(!isChecked)}
+              />
+              <label htmlFor="terms">I agree to the Terms and Conditions</label>
+            </div>
           </>
         );
 
@@ -475,6 +648,59 @@ const RegisterForm = ({ onClose, googleData }) => {
         );
 
       case 3:
+        if (googleData && googleData.profilePicture) {
+          return (
+            <div className="auth-input-group">
+              <div className="profile-preview">
+                <img
+                  src={googleData.profilePicture}
+                  alt="Profile Preview"
+                  className="google-profile-pic"
+                />
+              </div>
+              <div className="auth-terms" style={{ marginTop: "1rem" }}>
+                <input
+                  type="checkbox"
+                  id="useGooglePicture"
+                  checked={useGooglePicture}
+                  onChange={() => setUseGooglePicture(!useGooglePicture)}
+                />
+                <label htmlFor="useGooglePicture">
+                  Use my Google profile picture as my account picture
+                </label>
+              </div>
+              {!useGooglePicture && (
+                <>
+                  <div
+                    className="profile-preview"
+                    style={{ marginTop: "1rem" }}
+                  >
+                    {formData.profilePicturePreview ? (
+                      <img
+                        src={formData.profilePicturePreview}
+                        alt="Profile Preview"
+                      />
+                    ) : (
+                      <div className="profile-placeholder">
+                        <span>Upload Profile Picture</span>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    name="profilePicture"
+                    className="auth-input"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, "profilePicture")}
+                    required
+                  />
+                  <small>Please upload a profile picture (max 5MB)</small>
+                </>
+              )}
+            </div>
+          );
+        }
+
         return (
           <div className="auth-input-group">
             <div className="profile-preview">
@@ -531,21 +757,39 @@ const RegisterForm = ({ onClose, googleData }) => {
               </button>
             )}
             {section < 3 ? (
-              <button
-                type="button"
-                className="auth-submit-button"
-                onClick={handleNext}
-              >
-                Next
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="auth-cancel-button"
+                  onClick={handleCancel}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="auth-submit-button"
+                  onClick={handleNext}
+                >
+                  Next
+                </button>
+              </>
             ) : (
-              <button
-                type="submit"
-                className="auth-submit-button"
-                disabled={isLoading}
-              >
-                {isLoading ? "Creating Account..." : "Create Account"}
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="auth-cancel-button"
+                  onClick={handleCancel}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="auth-submit-button"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Creating Account..." : "Create Account"}
+                </button>
+              </>
             )}
           </div>
         </form>

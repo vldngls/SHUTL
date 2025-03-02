@@ -98,52 +98,55 @@
 /* Button Styles */
 .auth-button-group {
   display: flex;
-  gap: 12px;
-  margin-top: 8px;
-  width: 100%;
-  box-sizing: border-box;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: center;
 }
 
-.auth-back-button {
-  padding: 14px 24px;
-  border: 2px solid #d9d9d9;
-  background-color: transparent;
-  color: #d9d9d9;
-  border-radius: 12px;
+.auth-submit-button,
+.auth-back-button,
+.auth-cancel-button {
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  font-size: 15px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  flex: 1;
-}
-
-.auth-back-button:hover {
-  background-color: rgba(217, 217, 217, 0.1);
+  transition: all 0.3s ease;
 }
 
 .auth-submit-button {
-  padding: 14px 24px;
-  background-color: #d9d9d9;
-  color: #232323;
+  background-color: #007bff;
+  color: white;
   border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  flex: 1;
 }
 
 .auth-submit-button:hover {
-  background-color: #ffffff;
-  transform: translateY(-1px);
+  background-color: #0056b3;
 }
 
 .auth-submit-button:disabled {
-  background-color: #333;
-  color: #666;
+  background-color: #ccc;
   cursor: not-allowed;
-  transform: none;
+}
+
+.auth-back-button {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+}
+
+.auth-back-button:hover {
+  background-color: #5a6268;
+}
+
+.auth-cancel-button {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+}
+
+.auth-cancel-button:hover {
+  background-color: #c82333;
 }
 
 /* Password Input Container */
@@ -423,4 +426,67 @@ select.auth-input {
   background-position: right 12px center;
   background-size: 20px;
   padding-right: 40px;
+}
+
+.auth-info-group {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.auth-info-group p {
+  color: #d9d9d9;
+  margin: 0 0 12px 0;
+}
+
+.google-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.google-profile-pic {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.google-name {
+  font-weight: 600;
+  font-size: 16px;
+  margin: 0 !important;
+}
+
+.google-email {
+  font-size: 14px;
+  color: #999 !important;
+  margin: 4px 0 0 0 !important;
+}
+
+.auth-terms {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.auth-terms input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #d9d9d9;
+}
+
+.auth-terms label {
+  color: #d9d9d9;
+  font-size: 14px;
+}
+
+.input-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #999;
+  padding-left: 4px;
 }
