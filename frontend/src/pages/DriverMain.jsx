@@ -278,6 +278,7 @@ const DriverMain = () => {
   const lastUpdateTimeRef = useRef(null);
   const recenterTimeoutRef = useRef(null);
   const [shouldRecenter, setShouldRecenter] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Add effect to handle recentering when shouldRecenter changes
   useEffect(() => {
@@ -1143,6 +1144,45 @@ const DriverMain = () => {
     setNotifications((prev) => [notification, ...prev].slice(0, 5));
   };
 
+  // Update toggle function for mobile menu
+  const toggleMobileMenu = useCallback((e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    console.log('Toggling mobile menu, current state:', isMobileMenuOpen);
+    setIsMobileMenuOpen((prev) => !prev);
+  }, [isMobileMenuOpen]);
+
+  // Add effect to handle clicks outside mobile menu
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      const mobileMenu = document.querySelector('.DriverMain-mobile-menu');
+      const hamburgerButton = document.querySelector('.DriverMain-hamburger');
+      
+      if (
+        isMobileMenuOpen && 
+        mobileMenu &&
+        hamburgerButton &&
+        !mobileMenu.contains(e.target) && 
+        !hamburgerButton.contains(e.target)
+      ) {
+        console.log('Clicking outside, closing menu');
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    if (isMobileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isMobileMenuOpen]);
+
   return (
     <div className="DriverMain-container">
       <div className="DriverMain-map-container">
@@ -1404,6 +1444,75 @@ const DriverMain = () => {
               alt="Profile Icon"
               className="DriverMain-profile-icon"
             />
+          </button>
+        </div>
+        <button 
+          className={`DriverMain-hamburger ${isMobileMenuOpen ? 'active' : ''}`}
+          onClick={toggleMobileMenu}
+          aria-label="Toggle mobile menu"
+          aria-expanded={isMobileMenuOpen}
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+
+      <div className={`DriverMain-mobile-menu ${isMobileMenuOpen ? 'active' : ''}`}>
+        <div className="DriverMain-navbar-buttons">
+          <button
+            onClick={() => {
+              toggleModal("isMessageOpen");
+              setIsMobileMenuOpen(false);
+            }}
+          >
+            <img src="/message.png" alt="Message Icon" />
+            <span>Messages</span>
+          </button>
+          <button
+            onClick={() => {
+              toggleModal("isScheduleOpen");
+              setIsMobileMenuOpen(false);
+            }}
+          >
+            <img src="/calendar.png" alt="Schedule Icon" />
+            <span>Schedule</span>
+          </button>
+          <button
+            onClick={() => {
+              toggleModal("isSummaryOpen");
+              setIsMobileMenuOpen(false);
+            }}
+          >
+            <img src="/summary.png" alt="Summary Icon" />
+            <span>Summary</span>
+          </button>
+          <button
+            onClick={() => {
+              setActivePopup(activePopup === "notifications" ? null : "notifications");
+              setIsMobileMenuOpen(false);
+            }}
+          >
+            <img src="/notif.png" alt="Notification Icon" />
+            <span>Notifications</span>
+          </button>
+          <button
+            onClick={() => {
+              toggleModal("isSettingsOpen");
+              setIsMobileMenuOpen(false);
+            }}
+          >
+            <img src="/settings.png" alt="Settings Icon" />
+            <span>Settings</span>
+          </button>
+          <button
+            onClick={() => {
+              toggleModal("isProfileOpen");
+              setIsMobileMenuOpen(false);
+            }}
+          >
+            <img src={profileImage} alt="Profile Icon" className="DriverMain-profile-icon" />
+            <span>Profile</span>
           </button>
         </div>
       </div>
