@@ -786,6 +786,16 @@ hr {
   cursor: pointer;
   padding: 0;
   margin-bottom: 20px;
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+}
+
+.ShutlLoggedIn-hamburger:focus {
+  outline: none;
+  background: none;
+}
+
+.ShutlLoggedIn-hamburger:active {
+  background: none;
 }
 
 .ShutlLoggedIn-hamburger span {
@@ -793,6 +803,15 @@ hr {
   height: 2px;
   background-color: white;
   transition: all 0.3s ease;
+}
+
+@media (max-width: 480px) {
+  .ShutlLoggedIn-hamburger {
+    display: flex;
+    order: 3;
+    margin-bottom: 0;
+    background: none !important; /* Force no background */
+  }
 }
 
 /* Mobile menu styles */
@@ -1071,4 +1090,48 @@ hr {
 .ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-money-btn:hover {
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
+}
+
+/* Hide icons in web view when expanded */
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-notif-icon,
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-setting-icon,
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-money-icon,
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-nav-icon {
+  display: none;
+}
+
+/* Show text labels in expanded state */
+.ShutlLoggedIn-navbar.expanded .button-label {
+  display: inline;
+  margin-left: 0;
+  opacity: 1;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Adjust button styles in expanded state */
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-notif-btn,
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-setting-btn,
+.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-money-btn {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 12px 16px;
+  border-radius: 8px;
+  height: auto;
+}
+
+/* Keep icons visible in mobile view even when expanded */
+@media (max-width: 480px) {
+  .ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-notif-icon,
+  .ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-setting-icon,
+  .ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-money-icon,
+  .ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-nav-icon {
+    display: block;
+    width: 24px;
+    height: 24px;
+  }
+
+  .ShutlLoggedIn-navbar.expanded .button-label {
+    margin-left: 12px;
+  }
 }
