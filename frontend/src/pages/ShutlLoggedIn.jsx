@@ -103,7 +103,8 @@ const ShutlLoggedIn = () => {
   const [selectedDestination, setSelectedDestination] = useState(null);
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobileSettingsExpanded, setIsMobileSettingsExpanded] = useState(false);
+  const [isMobileSettingsExpanded, setIsMobileSettingsExpanded] =
+    useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -359,7 +360,13 @@ const ShutlLoggedIn = () => {
     return dateTime.toLocaleTimeString("en-PH");
   }, [dateTime]);
 
-  const handleSettingsClick = () => setIsSettingsOpen(!isSettingsOpen);
+  const handleSettingsClick = () => {
+    setIsSettingsOpen(!isSettingsOpen);
+    // If opening the settings dropdown, ensure the sidebar is expanded
+    if (!isSettingsOpen) {
+      setIsSidebarExpanded(true);
+    }
+  };
 
   const handleProfileSettings = () => {
     setIsProfileEditMode(true);
@@ -550,20 +557,20 @@ const ShutlLoggedIn = () => {
   };
 
   const handleMobileMenuClick = (action) => {
-    if (action === 'settings') {
+    if (action === "settings") {
       setIsMobileSettingsExpanded(!isMobileSettingsExpanded);
     } else {
       setIsMobileMenuOpen(false);
       switch (action) {
-        case 'notifications':
-          setActivePopup('notifications');
+        case "notifications":
+          setActivePopup("notifications");
           break;
-        case 'payment':
+        case "payment":
           setShowPaymentQR(true);
           break;
-        case 'profile':
+        case "profile":
           setIsProfileEditMode(false);
-          setActivePopup('profile');
+          setActivePopup("profile");
           break;
         default:
           break;
@@ -574,18 +581,19 @@ const ShutlLoggedIn = () => {
   const handleMobileSettingsClick = (action) => {
     setIsMobileMenuOpen(false);
     setIsMobileSettingsExpanded(false);
-    
+
     switch (action) {
-      case 'profile':
+      case "profile":
         setIsProfileEditMode(true);
-        setActivePopup('profile');
+        setActivePopup("profile");
         break;
-      case 'notifications':
-        setActivePopup('notifications');
+      case "notifications":
+        setActivePopup("notifications");
         break;
-      case 'logout':
+      case "logout":
         // Assuming you have the handleLogout function from SettingsDropdown
-        document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        document.cookie =
+          "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
         navigate("/ShutlLoggedOut");
         break;
       default:
@@ -596,6 +604,10 @@ const ShutlLoggedIn = () => {
   // Add toggle function for sidebar
   const toggleSidebar = () => {
     setIsSidebarExpanded(!isSidebarExpanded);
+    // Close settings dropdown when sidebar is unexpanded
+    if (isSidebarExpanded) {
+      setIsSettingsOpen(false);
+    }
   };
 
   // Add useEffect for click outside handling
@@ -606,9 +618,9 @@ const ShutlLoggedIn = () => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -717,9 +729,11 @@ const ShutlLoggedIn = () => {
         </MapContainer>
       </div>
 
-      <div 
+      <div
         ref={sidebarRef}
-        className={`ShutlLoggedIn-navbar ${isSidebarExpanded ? 'expanded' : ''}`} 
+        className={`ShutlLoggedIn-navbar ${
+          isSidebarExpanded ? "expanded" : ""
+        }`}
         onClick={(e) => {
           e.stopPropagation();
           toggleSidebar();
@@ -731,11 +745,19 @@ const ShutlLoggedIn = () => {
             className="ShutlLoggedIn-notif-btn"
             onClick={(e) => {
               e.stopPropagation();
-              setActivePopup(activePopup === "notifications" ? null : "notifications");
+              setActivePopup(
+                activePopup === "notifications" ? null : "notifications"
+              );
             }}
           >
-            <img src="/notif.png" alt="Notification Icon" className="ShutlLoggedIn-notif-icon" />
-            {isSidebarExpanded && <span className="button-label">Notifications</span>}
+            <img
+              src="/notif.png"
+              alt="Notification Icon"
+              className="ShutlLoggedIn-notif-icon"
+            />
+            {isSidebarExpanded && (
+              <span className="button-label">Notifications</span>
+            )}
           </button>
           <button
             className="ShutlLoggedIn-money-btn"
@@ -744,19 +766,35 @@ const ShutlLoggedIn = () => {
               setShowPaymentQR(true);
             }}
           >
-            <img src="/money.png" alt="Money Icon" className="ShutlLoggedIn-money-icon" />
+            <img
+              src="/money.png"
+              alt="Money Icon"
+              className="ShutlLoggedIn-money-icon"
+            />
             {isSidebarExpanded && <span className="button-label">Payment</span>}
           </button>
-          <button
-            className="ShutlLoggedIn-setting-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleSettingsClick();
-            }}
-          >
-            <img src="/settings.png" alt="Settings Icon" className="ShutlLoggedIn-setting-icon" />
-            {isSidebarExpanded && <span className="button-label">Settings</span>}
-          </button>
+          <div style={{ position: "relative", width: "100%" }}>
+            <button
+              className="ShutlLoggedIn-setting-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSettingsClick();
+              }}
+            >
+              <img
+                src="/settings.png"
+                alt="Settings Icon"
+                className="ShutlLoggedIn-setting-icon"
+              />
+              <span className="button-label">Settings</span>
+            </button>
+            {isSettingsOpen && (
+              <SettingsDropdown
+                onClose={() => setIsSettingsOpen(false)}
+                onProfileSettings={() => setIsProfileEditMode(true)}
+              />
+            )}
+          </div>
         </div>
 
         <div className="ShutlLoggedIn-icon-container">
@@ -773,8 +811,10 @@ const ShutlLoggedIn = () => {
           />
           {isSidebarExpanded && <span className="button-label">Profile</span>}
         </div>
-        <button 
-          className={`ShutlLoggedIn-hamburger ${isMobileMenuOpen ? 'active' : ''}`}
+        <button
+          className={`ShutlLoggedIn-hamburger ${
+            isMobileMenuOpen ? "active" : ""
+          }`}
           onClick={toggleMobileMenu}
         >
           <span></span>
@@ -783,34 +823,48 @@ const ShutlLoggedIn = () => {
         </button>
       </div>
 
-      <div className={`ShutlLoggedIn-mobile-menu ${isMobileMenuOpen ? 'active' : ''}`}>
+      <div
+        className={`ShutlLoggedIn-mobile-menu ${
+          isMobileMenuOpen ? "active" : ""
+        }`}
+      >
         <div className="ShutlLoggedIn-mobile-menu-items">
-          <button onClick={() => handleMobileMenuClick('notifications')}>
+          <button onClick={() => handleMobileMenuClick("notifications")}>
             Notifications
           </button>
-          <button onClick={() => handleMobileMenuClick('payment')}>
+          <button onClick={() => handleMobileMenuClick("payment")}>
             Payment QR
           </button>
-          <button 
-            className={`${isMobileSettingsExpanded ? 'settings-expanded' : 'settings-collapsed'}`}
-            onClick={() => handleMobileMenuClick('settings')}
+          <button
+            className={`${
+              isMobileSettingsExpanded
+                ? "settings-expanded"
+                : "settings-collapsed"
+            }`}
+            onClick={() => handleMobileMenuClick("settings")}
           >
             Settings
           </button>
           {isMobileSettingsExpanded && (
-            <div className={`ShutlLoggedIn-mobile-settings ${isMobileSettingsExpanded ? 'active' : ''}`}>
-              <button onClick={() => handleMobileSettingsClick('profile')}>
+            <div
+              className={`ShutlLoggedIn-mobile-settings ${
+                isMobileSettingsExpanded ? "active" : ""
+              }`}
+            >
+              <button onClick={() => handleMobileSettingsClick("profile")}>
                 Profile Settings
               </button>
-              <button onClick={() => handleMobileSettingsClick('notifications')}>
+              <button
+                onClick={() => handleMobileSettingsClick("notifications")}
+              >
                 Notification Settings
               </button>
-              <button onClick={() => handleMobileSettingsClick('logout')}>
+              <button onClick={() => handleMobileSettingsClick("logout")}>
                 Logout
               </button>
             </div>
           )}
-          <button onClick={() => handleMobileMenuClick('profile')}>
+          <button onClick={() => handleMobileMenuClick("profile")}>
             Profile
           </button>
         </div>
@@ -878,13 +932,6 @@ const ShutlLoggedIn = () => {
       </div>
 
       <div ref={popupRef}>
-        {isSettingsOpen && (
-          <SettingsDropdown
-            onClose={() => setIsSettingsOpen(false)}
-            onProfileSettings={handleProfileSettings}
-          />
-        )}
-
         {activePopup === "profile" && (
           <ProfilePopup
             onClose={() => {

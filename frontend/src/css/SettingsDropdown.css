@@ -1,17 +1,23 @@
 .settings-dropdown {
-  position: fixed;
-  top: 50px; /* Consistent base positioning */
-  left: 89px;
-  z-index: 101;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%; /* Position it right below the settings button */
+  z-index: 1003;
+  background: #232323;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* When sidebar is expanded */
+.ShutlLoggedIn-navbar.expanded .settings-dropdown {
+  width: 100%; /* Keep full width of the expanded sidebar */
 }
 
 .settings-dropdown-content {
   background: #333;
   color: #fff;
-  border-radius: 16px;
-  padding: 10px 0;
-  width: 200px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -22,8 +28,23 @@
   color: white;
   text-align: left;
   cursor: pointer;
-  font-size: 1em;
-  padding: 10px 20px;
+  font-size: 14px;
+  padding: 12px 20px; /* Match the padding of other buttons */
+  transition: background-color 0.2s ease;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Add styles for the settings button to match other buttons */
+.ShutlLoggedIn-setting-btn {
+  width: 100%;
+  text-align: left;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .settings-option:hover {
@@ -32,19 +53,19 @@
 
 hr {
   border: none;
-  border-top: 1px solid #555;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   margin: 0;
 }
 
 /* Responsive Styles */
 @media (max-width: 768px) {
   .settings-dropdown {
-    top: 50px;
-    left: 60px;
-  }
-
-  .settings-dropdown-content {
-    width: 180px;
+    position: fixed;
+    left: 0;
+    top: 60px;
+    width: 100%;
+    border-radius: 0;
+    margin-top: 0;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   }
 
