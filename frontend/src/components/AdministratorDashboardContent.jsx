@@ -132,17 +132,37 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
   }, []);
 
   const handleSendNotification = async () => {
+    if (!notificationMessage.trim()) {
+      toast.error("Please enter a notification message");
+      return;
+    }
+
     try {
-      await notificationService.sendNotification(
+      // Send notification to the server
+      const response = await notificationService.sendNotification(
         notificationMessage,
         recipientType
       );
-      toast.success("Notification sent successfully", {
+
+      // Show success message
+      toast.success(`Notification sent to ${recipientType}s successfully`, {
         duration: 2000,
       });
+
+      // Clear the notification message input
       setNotificationMessage("");
+
+      // Set a temporary status message
+      setNotificationStatus(
+        `Notification sent to ${recipientType}s successfully`
+      );
+      setTimeout(() => setNotificationStatus(null), 3000);
     } catch (error) {
-      toast.error("Failed to send notification");
+      console.error("Failed to send notification:", error);
+      toast.error(
+        `Failed to send notification: ${error.message || "Unknown error"}`
+      );
+      setNotificationStatus("Failed to send notification");
     }
   };
 

@@ -14,6 +14,7 @@ import {
   connectSocket,
   disconnectSocket,
   subscribeToLocationUpdates,
+  subscribeToEvent,
 } from "../utils/websocketService";
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 
@@ -63,7 +64,7 @@ const AdministratorMain = () => {
   }, []);
 
   useEffect(() => {
-    // Initialize socket connection
+    let isMounted = true;
     let cleanupFn = () => {};
 
     const initializeSocket = async () => {
@@ -78,6 +79,42 @@ const AdministratorMain = () => {
         }
 
         socket.current = socketInstance;
+
+        // Subscribe to real-time notifications
+        const notificationCleanup = await subscribeToEvent(
+          "new_notification",
+          (notification) => {
+            // Check if this notification is for this user type (Administrator)
+            if (notification.recipientType !== "Administrator") return;
+
+            // Format the notification to match the expected structure
+            const formattedNotification = {
+              message: notification.message,
+              createdAt: notification.createdAt || new Date(),
+              // Add any other required fields
+            };
+
+            setNotifications((prev) => {
+              const updatedNotifications = [formattedNotification, ...prev];
+              return updatedNotifications.slice(0, 5); // Keep only 5 most recent
+            });
+
+            // Show notification popup
+            setShowPopup(true);
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+              setShowPopup(false);
+            }, 5000);
+          }
+        );
+
+        // Store cleanup function
+        const prevCleanup = cleanupFn;
+        cleanupFn = () => {
+          prevCleanup();
+          notificationCleanup();
+        };
 
         // Fetch active shuttle assignments and join their tracking rooms
         const fetchAndTrackShuttles = async () => {
@@ -178,13 +215,48 @@ const AdministratorMain = () => {
       }
     };
 
-    // Start the initialization process
+    // Fetch initial notifications
+    const fetchInitialNotifications = async () => {
+      try {
+        const token = getCookie("token");
+        if (!token) {
+          console.error("No token found");
+          return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/notifications/user`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          console.error(`Failed to fetch notifications: ${response.status}`);
+          return;
+        }
+
+        if (isMounted) {
+          const data = await response.json();
+          setNotifications(data.slice(0, 5)); // Keep only 5 most recent notifications
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
     initializeSocket();
+    fetchInitialNotifications();
 
     // Return cleanup function
     return () => {
+      isMounted = false;
       cleanupFn();
-      disconnectSocket();
+      if (socket.current) {
+        disconnectSocket();
+      }
     };
   }, [navigate]);
 

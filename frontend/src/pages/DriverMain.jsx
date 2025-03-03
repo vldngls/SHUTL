@@ -349,8 +349,18 @@ const DriverMain = () => {
 
         // Handle notifications
         socketInstance.on("new_notification", (notification) => {
+          // Check if this notification is for this user type (Driver)
+          if (notification.recipientType !== "Driver") return;
+
+          // Format the notification to match the expected structure
+          const formattedNotification = {
+            message: notification.message,
+            createdAt: notification.createdAt || new Date(),
+            // Add any other required fields
+          };
+
           setNotifications((prev) => {
-            const updatedNotifications = [notification, ...prev];
+            const updatedNotifications = [formattedNotification, ...prev];
             return updatedNotifications.slice(0, 5);
           });
           setActivePopup("notifications");

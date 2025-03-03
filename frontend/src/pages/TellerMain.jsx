@@ -17,6 +17,7 @@ import {
   joinShuttleTracking,
   getLocationUpdateInterval,
   leaveChatRoom,
+  subscribeToEvent,
 } from "../utils/websocketService";
 import L from "leaflet";
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
@@ -130,6 +131,37 @@ const TellerMain = () => {
         messageCleanup = await subscribeToMessages((message) => {
           setMessages((prev) => [...prev, message]);
         });
+
+        // Subscribe to real-time notifications
+        const notificationCleanup = await subscribeToEvent(
+          "new_notification",
+          (notification) => {
+            // Check if this notification is for this user type (Teller)
+            if (notification.recipientType !== "Teller") return;
+
+            // Format the notification to match the expected structure
+            const formattedNotification = {
+              message: notification.message,
+              createdAt: notification.createdAt || new Date(),
+              // Add any other required fields
+            };
+
+            setNotifications((prev) => {
+              const updatedNotifications = [formattedNotification, ...prev];
+              return updatedNotifications.slice(0, 5); // Keep only 5 most recent
+            });
+
+            // Show notification popup
+            setActivePopup("notifications");
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+              setActivePopup((current) =>
+                current === "notifications" ? null : current
+              );
+            }, 5000);
+          }
+        );
 
         // Fetch active shuttle assignments and join their tracking rooms
         const fetchAndTrackShuttles = async () => {

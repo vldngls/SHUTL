@@ -229,13 +229,47 @@ const ShutlLoggedIn = () => {
           }
         );
 
+        // Subscribe to real-time notifications
+        const notificationCleanup = await subscribeToEvent(
+          "new_notification",
+          (notification) => {
+            if (!isMounted) return;
+
+            // Check if this notification is for this user type (Commuter)
+            if (notification.recipientType !== "Commuter") return;
+
+            // Format the notification to match the expected structure
+            const formattedNotification = {
+              message: notification.message,
+              createdAt: notification.createdAt || new Date(),
+              // Add any other required fields
+            };
+
+            setNotifications((prev) => {
+              const updatedNotifications = [formattedNotification, ...prev];
+              return updatedNotifications.slice(0, 5); // Keep only 5 most recent
+            });
+
+            // Optionally show the notification popup
+            setActivePopup("notifications");
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+              setActivePopup((current) =>
+                current === "notifications" ? null : current
+              );
+            }, 5000);
+          }
+        );
+
         // Store cleanup functions
         cleanupFunctionsRef.current.push(
           pickupAcceptedCleanup,
           pickupCompletedCleanup,
           pickupCancelledCleanup,
           locationCleanup,
-          locationUpdateCleanup
+          locationUpdateCleanup,
+          notificationCleanup
         );
 
         // Fetch and track active shuttles
