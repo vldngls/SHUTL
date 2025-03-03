@@ -45,7 +45,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 28px;
+  gap: 16px;
   width: 100%;
   position: relative;
   flex: 1;
@@ -128,12 +128,11 @@
   position: absolute;
   left: 0;
   width: 100%;
-  background-color: #1a1a1a;
+  background-color: #232323;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   z-index: 1003;
   overflow: hidden;
-  margin-top: 350px;
+  margin-top: 380px;
   display: none;
 }
 
@@ -212,7 +211,7 @@
 
 /* Checked state */
 input:checked + .slider {
-  background-color: #00BFA5;
+  background-color: #00bfa5;
 }
 
 input:checked + .slider:before {
@@ -225,7 +224,7 @@ input:checked + .slider:before {
 }
 
 .Sidebar-settings-option[data-enabled]:hover input:checked + .slider {
-  background-color: #00BFA5;
+  background-color: #00bfa5;
   opacity: 0.9;
 }
 
@@ -263,7 +262,8 @@ input:checked + .slider:before {
 .Sidebar.expanded .Sidebar-profile-section {
   justify-content: flex-start;
   padding-left: 16px;
-  gap: 12px;
+  gap: 16px;
+  margin: auto;
 }
 
 .Sidebar.expanded .Sidebar-profile-text {
@@ -423,7 +423,7 @@ input:checked + .slider:before {
   .Sidebar-settings-option[data-enabled] {
     padding: 14px 20px;
   }
-  
+
   .switch {
     margin-right: 8px;
   }

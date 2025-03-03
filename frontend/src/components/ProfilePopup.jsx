@@ -468,7 +468,7 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => handleFileChange(e, "profilePicture")}
+                  onChange={handleImageChange}
                   className="ShutlProfilePopup-upload"
                 />
                 <div className="ShutlProfilePopup-picture-overlay">

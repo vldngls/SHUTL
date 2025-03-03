@@ -60,7 +60,7 @@
 /* Profile header */
 .ShutlProfilePopup-header {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: 20px;
   padding-bottom: 20px;
   border-bottom: 1px solid var(--shutl-border);
@@ -88,7 +88,10 @@
 /* Profile info */
 .ShutlProfilePopup-info {
   flex-grow: 1;
-  padding-top: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 6px;
 }
 
 .ShutlProfilePopup-info h2 {
@@ -96,16 +99,16 @@
   font-size: 22px;
   color: var(--shutl-dark);
   font-weight: 600;
+  line-height: 1.2;
 }
 
 /* Edit and History buttons container */
 .profile-buttons {
-  position: absolute;
-  top: 0;
-  right: 0;
   display: flex;
   gap: 12px;
   align-items: center;
+  padding-bottom: 6px;
+  margin-left: auto;
 }
 
 /* Transaction history button */
@@ -350,19 +353,19 @@
     max-height: calc(100vh - 32px);
   }
 
-  .profile-buttons {
-    position: absolute;
-    top: 0;
-    right: 0;
-    margin-left: 0;
-    z-index: 5;
-  }
-
   .ShutlProfilePopup-header {
     flex-wrap: wrap;
     gap: 16px;
     padding-bottom: 16px;
-    padding-top: 36px;
+    align-items: center;
+  }
+
+  .profile-buttons {
+    margin-left: 0;
+    padding-bottom: 0;
+    margin-top: 8px;
+    width: 100%;
+    justify-content: flex-end;
   }
 
   .ShutlProfilePopup-picture-container {
@@ -510,7 +513,6 @@
   }
 
   .ShutlProfilePopup-header {
-    padding-top: 40px;
     padding-bottom: 14px;
     gap: 12px;
   }
