@@ -1,14 +1,14 @@
-import { apiCall, getAuthHeaders } from "./index";
+import { apiRequest, getAuthHeaders } from "./index";
 
 export const shuttleService = {
   getSummary: async () => {
-    return await apiCall("/shuttle/summary", {
+    return await apiRequest("/shuttle/summary", {
       headers: getAuthHeaders(),
     });
   },
 
   getAssignments: async () => {
-    return await apiCall("/shuttle-assignments", {
+    return await apiRequest("/shuttle-assignments", {
       headers: getAuthHeaders(),
     });
   },

@@ -15,7 +15,7 @@ const CACHE_TTL = {
  * Get authentication headers with token
  * @returns {Object} Headers object with Authorization
  */
-const getAuthHeaders = () => {
+export const getAuthHeaders = () => {
   const token = document.cookie
     .split("; ")
     .find((row) => row.startsWith("token="))

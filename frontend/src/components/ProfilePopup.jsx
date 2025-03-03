@@ -1,10 +1,12 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-hot-toast";
 import Cropper from "react-easy-crop";
 import { createPortal } from "react-dom";
+import PropTypes from "prop-types";
+import { getCookie } from "../utils/cookieUtils";
 import "../css/ProfilePopup.css";
-import { FaEdit } from "react-icons/fa";
+import { FaEdit, FaHistory } from "react-icons/fa";
 
 // Move CropModal completely outside the main component
 const CropModal = ({ showModal, image, onCancel, onComplete }) => {
@@ -89,7 +91,9 @@ const CropModal = ({ showModal, image, onCancel, onComplete }) => {
               if (croppedAreaPixels) {
                 try {
                   const croppedImage = await onComplete(croppedAreaPixels);
-                  console.log("Crop applied successfully");
+                  if (croppedImage) {
+                    console.log("Crop applied successfully");
+                  }
                 } catch (error) {
                   console.error("Error applying crop:", error);
                 }
@@ -105,6 +109,14 @@ const CropModal = ({ showModal, image, onCancel, onComplete }) => {
     </div>,
     document.body
   );
+};
+
+// Add PropTypes validation
+CropModal.propTypes = {
+  showModal: PropTypes.bool.isRequired,
+  image: PropTypes.string,
+  onCancel: PropTypes.func.isRequired,
+  onComplete: PropTypes.func.isRequired,
 };
 
 const DISCOUNT_TYPES = {
@@ -130,6 +142,9 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
   const [transactions, setTransactions] = useState([]);
   const [imageSrc, setImageSrc] = useState(null);
   const [showCropModal, setShowCropModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const transactionsPerPage = 3;
+  const [showTransactions, setShowTransactions] = useState(false);
 
   // Get email from JWT token
   const getEmailFromToken = () => {
@@ -158,14 +173,16 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
       }
 
       console.log("Fetching transactions for email:", email);
-      const url = `${API_BASE_URL}/fare-transactions/commuter?commuterEmail=${encodeURIComponent(
+      const token = getCookie("token");
+      const url = `${API_BASE_URL}/fare-transactions/commuter/${encodeURIComponent(
         email
       )}`;
-      console.log("Request URL:", url); // Debug log
+      console.log("Request URL:", url);
 
       const response = await fetch(url, {
         method: "GET",
         headers: {
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         credentials: "include",
@@ -173,7 +190,7 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Raw response data:", data); // Debug log
+        console.log("Raw response data:", data);
         setTransactions(data);
       } else {
         const errorText = await response.text();
@@ -187,8 +204,13 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const token = getCookie("token");
         const response = await fetch(`${API_BASE_URL}/userdata/me`, {
           method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
           credentials: "include",
         });
 
@@ -196,7 +218,7 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
           const data = await response.json();
           setUserData(data);
           setProfileImage(
-            data.profilePicture || "https://via.placeholder.com/150"
+            data.profilePicture || "/icon.png" // Use local icon instead of placeholder
           );
 
           // Get email from token and fetch transactions
@@ -207,6 +229,7 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
+        toast.error("Failed to load profile data");
       }
     };
 
@@ -232,6 +255,17 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setEditedData({ ...editedData, [name]: value });
+  };
+
+  const handleFileChange = (e, fieldName) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        setEditedData({ ...editedData, [fieldName]: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const createImage = (url) =>
@@ -409,6 +443,15 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
 
   if (!userData) return <p>Loading...</p>; // Show a loading message while data is being fetched
 
+  // Calculate current transactions
+  const indexOfLastTransaction = currentPage * transactionsPerPage;
+  const indexOfFirstTransaction = indexOfLastTransaction - transactionsPerPage;
+  const currentTransactions = transactions.slice(
+    indexOfFirstTransaction,
+    indexOfLastTransaction
+  );
+  const totalPages = Math.ceil(transactions.length / transactionsPerPage);
+
   return (
     <div className="ShutlProfilePopup">
       <div ref={popupRef} className="ShutlProfilePopup-content">
@@ -425,7 +468,7 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={handleImageChange}
+                  onChange={(e) => handleFileChange(e, "profilePicture")}
                   className="ShutlProfilePopup-upload"
                 />
                 <div className="ShutlProfilePopup-picture-overlay">
@@ -451,111 +494,100 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
               </div>
             )}
           </div>
-          {!isEditing && (
-            <button
-              className="ShutlProfilePopup-edit-btn"
-              onClick={() => setIsEditing(true)}
-            >
-              <FaEdit style={{ marginRight: "6px" }} /> Edit Profile
-            </button>
-          )}
+          {!isEditing ? (
+            <div className="profile-buttons">
+              <button
+                className="ShutlProfilePopup-edit-btn"
+                onClick={() => setIsEditing(true)}
+                aria-label="Edit Profile"
+              >
+                <FaEdit />
+              </button>
+              <button
+                className="transaction-history-btn"
+                onClick={() => setShowTransactions(true)}
+              >
+                <FaHistory /> History
+              </button>
+            </div>
+          ) : null}
         </div>
 
-        {/* Profile Details Section */}
-        {!isEditing ? (
-          <div className="ShutlProfilePopup-details">
-            <p>
-              <strong>Email:</strong> {userData?.email || "N/A"}
-            </p>
-            <p>
-              <strong>Birthday:</strong>{" "}
-              {userData?.birthday
-                ? new Date(userData.birthday).toISOString().substring(0, 10)
-                : "N/A"}
-            </p>
-            <p>
-              <strong>Address:</strong> {userData?.address || "N/A"}
-            </p>
-            <p>
-              <strong>Discount Type:</strong>{" "}
-              {DISCOUNT_TYPES[userData?.discountType || "REGULAR"].label}
-            </p>
-            <p>
-              <strong>Discount:</strong> {userData?.discount || 0}%
-            </p>
-            {userData?.discountType !== "REGULAR" && (
-              <p>
-                <strong>Discount Status:</strong>{" "}
-                <span
-                  style={{
-                    color:
-                      DISCOUNT_STATUS[userData?.discountStatus || "PENDING"]
-                        .color,
-                  }}
-                >
-                  {DISCOUNT_STATUS[userData?.discountStatus || "PENDING"].label}
-                </span>
-              </p>
-            )}
-            <p>
-              <strong>Payment Method:</strong>{" "}
-              {userData?.paymentMethod || "N/A"}
-            </p>
-            <p>
-              <strong>Contact:</strong> {userData?.contactNumber || "N/A"}
-            </p>
-          </div>
-        ) : (
+        {/* User Details Section */}
+        {isEditing ? (
           <div className="ShutlProfilePopup-edit-details">
-            <input
-              name="name"
-              type="text"
-              value={editedData.name || userData?.name || ""}
-              onChange={handleInputChange}
-              placeholder="Name"
-            />
-            <input
-              name="birthday"
-              type="date"
-              value={
-                editedData.birthday ||
-                (userData?.birthday &&
-                  new Date(userData.birthday).toISOString().substring(0, 10)) ||
-                ""
-              }
-              onChange={handleInputChange}
-              placeholder="Birthday"
-            />
-            <input
-              name="address"
-              type="text"
-              value={editedData.address || userData?.address || ""}
-              onChange={handleInputChange}
-              placeholder="Address"
-            />
-            <select
-              name="discountType"
-              value={
-                editedData.discountType || userData?.discountType || "REGULAR"
-              }
-              onChange={(e) => {
-                const selectedType = e.target.value;
-                setEditedData({
-                  ...editedData,
-                  discountType: selectedType,
-                  discount: DISCOUNT_TYPES[selectedType].value,
-                });
-              }}
-            >
-              {Object.entries(DISCOUNT_TYPES).map(([key, { label }]) => (
-                <option key={key} value={key}>
-                  {label}
-                </option>
-              ))}
-            </select>
+            <div className="ShutlProfilePopup-form-group">
+              <label className="ShutlProfilePopup-edit-label">Full Name</label>
+              <input
+                name="name"
+                type="text"
+                value={editedData.name || userData?.name || ""}
+                onChange={handleInputChange}
+                placeholder="Name"
+              />
+            </div>
+
+            <div className="ShutlProfilePopup-form-group">
+              <label className="ShutlProfilePopup-edit-label">Birthday</label>
+              <input
+                name="birthday"
+                type="date"
+                value={
+                  editedData.birthday ||
+                  (userData?.birthday &&
+                    new Date(userData.birthday)
+                      .toISOString()
+                      .substring(0, 10)) ||
+                  ""
+                }
+                onChange={handleInputChange}
+                placeholder="Birthday"
+              />
+            </div>
+
+            <div className="ShutlProfilePopup-form-group">
+              <label className="ShutlProfilePopup-edit-label">Address</label>
+              <input
+                name="address"
+                type="text"
+                value={editedData.address || userData?.address || ""}
+                onChange={handleInputChange}
+                placeholder="Address"
+              />
+            </div>
+
+            <div className="ShutlProfilePopup-form-group">
+              <label className="ShutlProfilePopup-edit-label">
+                Discount Type
+              </label>
+              <select
+                name="discountType"
+                value={
+                  editedData.discountType || userData?.discountType || "REGULAR"
+                }
+                onChange={(e) => {
+                  const selectedType = e.target.value;
+                  setEditedData({
+                    ...editedData,
+                    discountType: selectedType,
+                    discount: DISCOUNT_TYPES[selectedType].value,
+                  });
+                }}
+              >
+                {Object.entries(DISCOUNT_TYPES).map(([key, { label }]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {(editedData.discountType || userData?.discountType) !==
               "REGULAR" && (
-              <div className="auth-input-group">
+              <div className="ShutlProfilePopup-form-group">
+                <label className="ShutlProfilePopup-edit-label">
+                  ID for Verification
+                </label>
                 <input
                   type="file"
                   name="idPicture"
@@ -563,51 +595,181 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
                   accept="image/*"
                   onChange={(e) => handleFileChange(e, "idPicture")}
                 />
-                <small>
+                <small className="ShutlProfilePopup-form-hint">
                   Please upload a valid ID for discount verification
                 </small>
               </div>
             )}
-            <input
-              name="paymentMethod"
-              type="text"
-              value={editedData.paymentMethod || userData?.paymentMethod || ""}
-              onChange={handleInputChange}
-              placeholder="Payment Method"
-            />
-            <input
-              name="contactNumber"
-              type="tel"
-              value={editedData.contactNumber || userData?.contactNumber || ""}
-              onChange={handleInputChange}
-              placeholder="Contact Number"
-            />
-            <button onClick={handleSave}>Save Changes</button>
+
+            <div className="ShutlProfilePopup-form-group">
+              <label className="ShutlProfilePopup-edit-label">
+                Payment Method
+              </label>
+              <input
+                name="paymentMethod"
+                type="text"
+                value={
+                  editedData.paymentMethod || userData?.paymentMethod || ""
+                }
+                onChange={handleInputChange}
+                placeholder="Payment Method"
+              />
+            </div>
+
+            <div className="ShutlProfilePopup-form-group">
+              <label className="ShutlProfilePopup-edit-label">
+                Contact Number
+              </label>
+              <input
+                name="contactNumber"
+                type="tel"
+                value={
+                  editedData.contactNumber || userData?.contactNumber || ""
+                }
+                onChange={handleInputChange}
+                placeholder="Contact Number"
+              />
+            </div>
+
+            <div className="ShutlProfilePopup-edit-actions">
+              <button
+                className="ShutlProfilePopup-cancel-btn"
+                onClick={() => setIsEditing(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="ShutlProfilePopup-save-btn"
+                onClick={handleSave}
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="ShutlProfilePopup-details">
+            <div className="details-category">
+              <h4>Personal Information</h4>
+              <p>
+                <strong>Email</strong> {userData?.email || "N/A"}
+              </p>
+              <p>
+                <strong>Birthday</strong>
+                {userData?.birthday
+                  ? new Date(userData.birthday).toLocaleDateString()
+                  : "N/A"}
+              </p>
+              <p>
+                <strong>Address</strong> {userData?.address || "N/A"}
+              </p>
+              <p>
+                <strong>Contact</strong> {userData?.contactNumber || "N/A"}
+              </p>
+            </div>
+
+            <div className="details-category">
+              <h4>Discount Information</h4>
+              <p>
+                <strong>Type</strong>
+                {DISCOUNT_TYPES[userData?.discountType || "REGULAR"].label}
+              </p>
+              <p>
+                <strong>Amount</strong> {userData?.discount || 0}%
+              </p>
+              {userData?.discountType !== "REGULAR" && (
+                <p>
+                  <strong>Status</strong>
+                  <span
+                    style={{
+                      color:
+                        DISCOUNT_STATUS[userData?.discountStatus || "PENDING"]
+                          .color,
+                    }}
+                  >
+                    {
+                      DISCOUNT_STATUS[userData?.discountStatus || "PENDING"]
+                        .label
+                    }
+                  </span>
+                </p>
+              )}
+            </div>
+
+            <div className="details-category">
+              <h4>Payment Information</h4>
+              <p>
+                <strong>Payment Method</strong>
+                {userData?.paymentMethod || "N/A"}
+              </p>
+            </div>
           </div>
         )}
+      </div>
 
-        {/* Transaction History Section */}
-        <div className="ShutlProfilePopup-transaction-history">
-          <h3>Transaction History</h3>
-          {transactions && transactions.length > 0 ? (
+      {/* Transaction History Popout */}
+      <div
+        className={`transaction-history-popout ${
+          showTransactions ? "active" : ""
+        }`}
+      >
+        <h3>
+          Transaction History
+          <button
+            className="close-history-btn"
+            onClick={() => setShowTransactions(false)}
+          >
+            ×
+          </button>
+        </h3>
+        {transactions && transactions.length > 0 ? (
+          <>
             <div className="transaction-list">
-              {transactions.map((transaction, index) => (
+              {currentTransactions.map((transaction, index) => (
                 <div key={transaction._id} className="transaction-item">
-                  <h4>Transaction {index + 1}</h4>
+                  <h4>Transaction {indexOfFirstTransaction + index + 1}</h4>
                   <p>
                     Date: {new Date(transaction.createdAt).toLocaleDateString()}
                   </p>
-                  <p>Regular Count: {transaction.regularCount}</p>
-                  <p>Discounted Count: {transaction.discountedCount}</p>
+                  <p>Regular: {transaction.passengerCounts?.Regular || 0}</p>
+                  <p>PWD: {transaction.passengerCounts?.PWD || 0}</p>
+                  <p>Student: {transaction.passengerCounts?.STUDENT || 0}</p>
+                  <p>Senior: {transaction.passengerCounts?.SENIOR || 0}</p>
                   <p>Total Fare: ₱{transaction.totalFare}</p>
                 </div>
               ))}
             </div>
-          ) : (
-            <p>No transactions found</p>
-          )}
-        </div>
+            {totalPages > 1 && (
+              <div className="pagination">
+                <button
+                  className="pagination-btn"
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(1, prev - 1))
+                  }
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </button>
+                <span className="page-info">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  className="pagination-btn"
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <p>No transactions found</p>
+        )}
       </div>
+
+      {/* Crop Modal */}
       <CropModal
         showModal={showCropModal}
         image={imageSrc}
@@ -646,6 +808,12 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
       />
     </div>
   );
+};
+
+// Add PropTypes validation
+ShutlProfilePopup.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  initialEditMode: PropTypes.bool,
 };
 
 export default ShutlProfilePopup;

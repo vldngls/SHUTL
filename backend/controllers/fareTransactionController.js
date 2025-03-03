@@ -5,142 +5,120 @@ import { isWithinOperationalHours } from "./operationalHoursController.js";
 export const createFareTransaction = async (req, res) => {
   try {
     const {
-      commuterEmail,
-      regularCount,
-      discountedCount,
+      shuttleID,
+      passengerCounts,
       totalFare,
       tender,
       change,
-      shuttleID,
+      commuterEmail,
+      date,
+      time,
     } = req.body;
 
     // Validate required fields
-    if (!shuttleID) {
-      return res.status(400).json({ message: "Shuttle ID is required" });
-    }
-
-    if (!commuterEmail) {
-      return res.status(400).json({ message: "Commuter email is required" });
-    }
-
-    if (regularCount === undefined || discountedCount === undefined) {
-      return res.status(400).json({ message: "Passenger counts are required" });
-    }
-
     if (
-      totalFare === undefined ||
-      tender === undefined ||
-      change === undefined
+      !shuttleID ||
+      !passengerCounts ||
+      !totalFare ||
+      !tender ||
+      !commuterEmail
     ) {
-      return res.status(400).json({ message: "Fare details are required" });
+      return res
+        .status(400)
+        .json({ message: "All required fields must be provided" });
     }
 
-    // Get current time in Philippines (GMT+8)
-    const now = new Date();
-    // Create a date string in ISO format with the Philippines timezone offset
-    const philippinesDateString = new Date(
-      now.getTime() + 8 * 60 * 60 * 1000
-    ).toISOString();
-    // Extract just the time portion in HH:MM format
-    const timeString = philippinesDateString.substring(11, 16);
-
-    console.log("Current time (UTC):", now.toISOString());
-    console.log("Philippines time string:", timeString);
-
-    // Get operational hours for debugging
-    const operationalHours = (await OperationalHours.findOne({
-      isActive: true,
-    })) || { startTime: "05:00", endTime: "22:00" };
-    console.log(
-      "Operational hours:",
-      operationalHours.startTime,
-      "to",
-      operationalHours.endTime
+    // Validate passenger counts
+    const totalPassengers = Object.values(passengerCounts).reduce(
+      (sum, count) => sum + count,
+      0
     );
-
-    // Check if the current time is within operational hours
-    const isWithinHours = await isWithinOperationalHours(timeString);
-    console.log("Is within operational hours:", isWithinHours);
-
-    // For testing purposes, temporarily bypass the operational hours check
-    // Comment out this section when going to production
-    /*
-    if (!isWithinHours) {
-      return res.status(400).json({
-        message: "Transaction cannot be created outside operational hours",
-      });
+    if (totalPassengers === 0) {
+      return res
+        .status(400)
+        .json({ message: "At least one passenger is required" });
     }
-    */
 
-    // Get current Philippine time (GMT+8)
-    const philippineTime = new Date(now.getTime() + 8 * 60 * 60 * 1000);
-
-    const newTransaction = new FareTransaction({
-      commuterEmail,
-      regularCount,
-      discountedCount,
+    // Create new transaction
+    const fareTransaction = new FareTransaction({
+      shuttleID,
+      passengerCounts,
       totalFare,
       tender,
       change,
-      shuttleID,
-      createdAt: philippineTime,
-      date: philippineTime.toISOString().split("T")[0], // Save the date in YYYY-MM-DD format
-      time: timeString, // Save the time in HH:mm format
+      commuterEmail,
+      date: date || new Date().toISOString().split("T")[0],
+      time: time || new Date().toTimeString().split(" ")[0].substring(0, 5),
     });
 
-    await newTransaction.save();
-    res.status(201).json(newTransaction);
+    const savedTransaction = await fareTransaction.save();
+    res.status(201).json(savedTransaction);
   } catch (error) {
-    console.error("Error creating fare transaction:", error);
+    console.error("Error in createFareTransaction:", error);
     res.status(500).json({
-      message: "Error creating fare transaction",
+      message: "Failed to create fare transaction",
       error: error.message,
     });
   }
 };
 
-export const getTransactionsByShuttleID = async (req, res) => {
-  const { shuttleID, date } = req.query;
+export const getFareTransactions = async (req, res) => {
   try {
-    let query = { shuttleID };
-
-    // If date is provided, filter by that date
-    if (date) {
-      query.date = date;
-      console.log(
-        `Filtering transactions for shuttle ${shuttleID} on date ${date}`
-      );
-    }
-
-    const transactions = await FareTransaction.find(query).sort({
-      createdAt: -1,
-    });
-    console.log(
-      `Found ${transactions.length} transactions for shuttle ${shuttleID}`
-    );
-
-    res.status(200).json(transactions);
+    const transactions = await FareTransaction.find({});
+    res.json(transactions);
   } catch (error) {
-    console.error("Error fetching transactions:", error);
-    res.status(500).json({ message: "Error fetching transactions", error });
+    console.error("Error in getFareTransactions:", error);
+    res.status(500).json({
+      message: "Failed to fetch fare transactions",
+      error: error.message,
+    });
   }
 };
 
-export const getTransactionsByCommuterEmail = async (req, res) => {
-  const { commuterEmail } = req.query;
+export const getFareTransactionsByShuttleId = async (req, res) => {
   try {
-    console.log("Searching for transactions with email:", commuterEmail); // Debug log
-
-    const transactions = await FareTransaction.find({ commuterEmail }).sort({
-      createdAt: -1,
-    });
-
-    console.log("Found transactions:", transactions); // Debug log
-
-    res.status(200).json(transactions);
+    const { shuttleId } = req.params;
+    const transactions = await FareTransaction.find({ shuttleID: shuttleId });
+    res.json(transactions);
   } catch (error) {
-    console.error("Error fetching transactions:", error);
-    res.status(500).json({ message: "Error fetching transactions", error });
+    console.error("Error in getFareTransactionsByShuttleId:", error);
+    res.status(500).json({
+      message: "Failed to fetch fare transactions",
+      error: error.message,
+    });
+  }
+};
+
+export const getFareTransactionsByDateRange = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const transactions = await FareTransaction.find({
+      date: {
+        $gte: startDate,
+        $lte: endDate,
+      },
+    });
+    res.json(transactions);
+  } catch (error) {
+    console.error("Error in getFareTransactionsByDateRange:", error);
+    res.status(500).json({
+      message: "Failed to fetch fare transactions",
+      error: error.message,
+    });
+  }
+};
+
+export const getFareTransactionsByCommuterEmail = async (req, res) => {
+  try {
+    const { email } = req.params;
+    const transactions = await FareTransaction.find({ commuterEmail: email });
+    res.json(transactions);
+  } catch (error) {
+    console.error("Error in getFareTransactionsByCommuterEmail:", error);
+    res.status(500).json({
+      message: "Failed to fetch fare transactions",
+      error: error.message,
+    });
   }
 };
 
@@ -171,8 +149,10 @@ export const getTotalEarnings = async (req, res) => {
         $group: {
           _id: null,
           totalFare: { $sum: "$totalFare" },
-          regularCount: { $sum: "$regularCount" },
-          discountedCount: { $sum: "$discountedCount" },
+          regularCount: { $sum: "$passengerCounts.Regular" },
+          pwdCount: { $sum: "$passengerCounts.PWD" },
+          studentCount: { $sum: "$passengerCounts.STUDENT" },
+          seniorCount: { $sum: "$passengerCounts.SENIOR" },
         },
       },
     ]);
@@ -180,11 +160,16 @@ export const getTotalEarnings = async (req, res) => {
     console.log("Transactions aggregation result:", transactions);
 
     if (transactions.length > 0) {
-      const { totalFare, regularCount, discountedCount } = transactions[0];
+      const { totalFare, regularCount, pwdCount, studentCount, seniorCount } =
+        transactions[0];
       res.status(200).json({
         totalFare,
-        regular: regularCount,
-        discounted: discountedCount,
+        passengerCounts: {
+          Regular: regularCount || 0,
+          PWD: pwdCount || 0,
+          STUDENT: studentCount || 0,
+          SENIOR: seniorCount || 0,
+        },
         operationalHours: {
           startTime: operationalHours.startTime,
           endTime: operationalHours.endTime,
@@ -193,8 +178,12 @@ export const getTotalEarnings = async (req, res) => {
     } else {
       res.status(200).json({
         totalFare: 0,
-        regular: 0,
-        discounted: 0,
+        passengerCounts: {
+          Regular: 0,
+          PWD: 0,
+          STUDENT: 0,
+          SENIOR: 0,
+        },
         operationalHours: {
           startTime: operationalHours.startTime,
           endTime: operationalHours.endTime,

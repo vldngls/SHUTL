@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import UserData from "../models/userData.model.js";
 import User from "../models/user.model.js"; // Import the users model
+import mongoose from "mongoose";
 
 // Save new user data
 export const saveUserData = async (req, res) => {
@@ -95,6 +96,11 @@ export const updateUserDataByEmail = async (req, res) => {
         ...updates,
       });
     } else {
+      // Check if discount type or ID picture is being updated
+      if (updates.discountType || updates.idPicture) {
+        updates.discountStatus = "PENDING";
+      }
+
       // Update only the fields that are provided
       Object.entries(updates).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
@@ -120,9 +126,31 @@ export const ensureUserData = async (email) => {
 
     if (!userData) {
       console.log("Creating new user data for:", email);
+
+      // Get user's name from User model
+      const user = await User.findOne({ email });
+      if (!user) {
+        throw new Error("User not found");
+      }
+
       userData = new UserData({
         email,
-        // All other fields will use their default values
+        name: user.name,
+        userId: user._id,
+        birthday: null,
+        address: "",
+        discountType: "REGULAR",
+        discount: 0,
+        discountStatus: "APPROVED",
+        idPicture: null,
+        paymentMethod: "",
+        contactNumber: "",
+        profilePicture: user.profilePicture || "/icon.png",
+        phoneNumber: "",
+        preferences: {
+          notifications: true,
+          language: "en",
+        },
       });
       await userData.save();
     }
@@ -145,16 +173,27 @@ export const getUserDataFromToken = async (req, res) => {
     }
 
     console.log("Fetching user data for email:", req.user.email);
-    const userData = await ensureUserData(req.user.email);
 
-    if (!userData) {
-      console.error("No user data found for email:", req.user.email);
+    // Use the UserData model to find the document
+    const userData = await UserData.findOne({ email: req.user.email });
+
+    if (userData) {
+      console.log("Found existing user data:", userData);
+      return res.status(200).json(userData);
+    }
+
+    // If no data exists, create new data
+    console.log("No existing user data found, creating new data");
+    const newUserData = await ensureUserData(req.user.email);
+
+    if (!newUserData) {
+      console.error("Failed to create user data for email:", req.user.email);
       return res.status(404).json({
-        message: "User data not found",
+        message: "User data not found and could not be created",
       });
     }
 
-    res.status(200).json(userData);
+    res.status(200).json(newUserData);
   } catch (error) {
     console.error("Error in getUserDataFromToken:", error);
     res.status(500).json({
@@ -194,14 +233,22 @@ export const createUserData = async (req, res) => {
 export const updateUserData = async (req, res) => {
   try {
     const { userId, email } = req.query;
+
+    // Check if discount type or ID picture is being updated
+    if (req.body.discountType || req.body.idPicture) {
+      req.body.discountStatus = "PENDING";
+    }
+
     const userData = await UserData.findOneAndUpdate(
       { $or: [{ userId }, { email }] },
       req.body,
       { new: true }
     );
+
     if (!userData) {
       return res.status(404).json({ message: "User data not found" });
     }
+
     res.json(userData);
   } catch (error) {
     res.status(500).json({ error: error.message });

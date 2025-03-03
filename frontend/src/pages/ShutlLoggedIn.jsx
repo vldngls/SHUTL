@@ -336,21 +336,31 @@ const ShutlLoggedIn = () => {
 
     const fetchUserProfile = async () => {
       try {
+        const token = getCookie("token");
         const response = await fetch(`${API_BASE_URL}/userdata/me`, {
           method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
           credentials: "include",
         });
 
-        if (response.ok && isMounted) {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch user profile: ${response.status}`);
+        }
+
+        if (isMounted) {
           const data = await response.json();
           if (data.profilePicture) {
             setProfilePicture(data.profilePicture);
           }
-        } else {
-          console.error("Failed to fetch user profile data");
         }
       } catch (error) {
         console.error("Error fetching user profile data:", error);
+        toast.error(
+          "Failed to load profile data. Please try refreshing the page."
+        );
       }
     };
 
@@ -466,20 +476,27 @@ const ShutlLoggedIn = () => {
 
     const fetchInitialNotifications = async () => {
       try {
+        const token = getCookie("token");
         const response = await fetch(`${API_BASE_URL}/notifications/user`, {
+          method: "GET",
           headers: {
-            Authorization: `Bearer ${getCookie("token")}`,
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
+          credentials: "include",
         });
 
-        if (response.ok && isMounted) {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch notifications: ${response.status}`);
+        }
+
+        if (isMounted) {
           const data = await response.json();
           setNotifications(data.slice(0, 5)); // Keep only 5 most recent notifications
-        } else {
-          console.error("Failed to fetch notifications:", response.statusText);
         }
       } catch (error) {
         console.error("Error fetching notifications:", error);
+        // Don't show error toast for notifications as it's not critical
       }
     };
 

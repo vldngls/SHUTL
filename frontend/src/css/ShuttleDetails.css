@@ -159,6 +159,13 @@
   font-style: italic;
 }
 
+.transaction-email {
+  font-size: 0.9em;
+  color: #666;
+  margin: 4px 0;
+  font-style: italic;
+}
+
 .close-btn {
   background-color: #007bff;
   color: white;
@@ -294,4 +301,39 @@
     padding: 8px;
     font-size: 14px;
   }
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.pagination-btn {
+  background-color: #232323;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.pagination-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.pagination-btn:not(:disabled):hover {
+  background-color: #4e4e4e;
+}
+
+.page-info {
+  color: #666;
+  font-size: 14px;
 }

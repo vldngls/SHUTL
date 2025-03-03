@@ -5,6 +5,7 @@ import CollectFare from "./CollectFare";
 const ShuttleDetails = ({ shuttle, onClose }) => {
   const [showCollectFare, setShowCollectFare] = useState(false);
   const [transactions, setTransactions] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [shuttleStats, setShuttleStats] = useState({
     roundTrips: 0,
     averagePassengers: 0,
@@ -13,6 +14,7 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const modalRef = useRef(null);
   const collectFareRef = useRef(null);
+  const transactionsPerPage = 2;
 
   // Add viewport height fix for mobile browsers
   useEffect(() => {
@@ -165,12 +167,36 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
     };
   }, [onClose]);
 
-  const totalRegular = transactions.reduce((sum, t) => sum + t.regularCount, 0);
-  const totalDiscounted = transactions.reduce(
-    (sum, t) => sum + t.discountedCount,
+  const totalRegular = transactions.reduce(
+    (sum, t) => sum + (t.passengerCounts?.Regular || 0),
+    0
+  );
+  const totalPWD = transactions.reduce(
+    (sum, t) => sum + (t.passengerCounts?.PWD || 0),
+    0
+  );
+  const totalStudent = transactions.reduce(
+    (sum, t) => sum + (t.passengerCounts?.STUDENT || 0),
+    0
+  );
+  const totalSenior = transactions.reduce(
+    (sum, t) => sum + (t.passengerCounts?.SENIOR || 0),
     0
   );
   const totalFare = transactions.reduce((sum, t) => sum + t.totalFare, 0);
+
+  // Calculate pagination values
+  const indexOfLastTransaction = currentPage * transactionsPerPage;
+  const indexOfFirstTransaction = indexOfLastTransaction - transactionsPerPage;
+  const currentTransactions = transactions.slice(
+    indexOfFirstTransaction,
+    indexOfLastTransaction
+  );
+  const totalPages = Math.ceil(transactions.length / transactionsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   const handleOverlayClick = (e) => {
     if (e.target.className === "ShuttleDetails-modal") {
@@ -211,8 +237,16 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
               Regular
             </div>
             <div>
-              <strong>{totalDiscounted}</strong>
-              Discounted
+              <strong>{totalPWD}</strong>
+              PWD
+            </div>
+            <div>
+              <strong>{totalStudent}</strong>
+              Student
+            </div>
+            <div>
+              <strong>{totalSenior}</strong>
+              Senior
             </div>
             <div>
               <strong>₱{totalFare}</strong>
@@ -227,32 +261,64 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
           <div className="ShuttleDetails-log">
             <h3>Transaction Log</h3>
             {transactions.length > 0 ? (
-              <ul>
-                {transactions.map((transaction, index) => (
-                  <li key={index}>
-                    <div className="transaction-details">
-                      <div className="transaction-counts">
-                        <span className="transaction-type">
-                          Regular: {transaction.regularCount}
-                        </span>
-                        <span className="transaction-type">
-                          Discounted: {transaction.discountedCount}
-                        </span>
-                      </div>
-                      <div className="transaction-total">
-                        <span className="transaction-amount">
-                          ₱{transaction.totalFare}
-                        </span>
-                        {transaction.timestamp && (
-                          <span className="transaction-time">
-                            {formatTime(transaction.timestamp)}
+              <>
+                <ul>
+                  {currentTransactions.map((transaction, index) => (
+                    <li key={index}>
+                      <div className="transaction-details">
+                        <div className="transaction-counts">
+                          <span className="transaction-type">
+                            Regular: {transaction.passengerCounts?.Regular || 0}
                           </span>
-                        )}
+                          <span className="transaction-type">
+                            PWD: {transaction.passengerCounts?.PWD || 0}
+                          </span>
+                          <span className="transaction-type">
+                            Student: {transaction.passengerCounts?.STUDENT || 0}
+                          </span>
+                          <span className="transaction-type">
+                            Senior: {transaction.passengerCounts?.SENIOR || 0}
+                          </span>
+                        </div>
+                        <div className="transaction-email">
+                          <span>{transaction.commuterEmail}</span>
+                        </div>
+                        <div className="transaction-total">
+                          <span className="transaction-amount">
+                            ₱{transaction.totalFare}
+                          </span>
+                          {transaction.timestamp && (
+                            <span className="transaction-time">
+                              {formatTime(transaction.timestamp)}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+                    </li>
+                  ))}
+                </ul>
+                {totalPages > 1 && (
+                  <div className="pagination">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="pagination-btn"
+                    >
+                      Previous
+                    </button>
+                    <span className="page-info">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="pagination-btn"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
               <p className="no-transactions">No transactions recorded today</p>
             )}

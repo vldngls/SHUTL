@@ -5,8 +5,12 @@ import { toast } from "react-hot-toast";
 import "../css/CollectFare.css";
 
 const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
-  const [regularCount, setRegularCount] = useState(0);
-  const [discountedCount, setDiscountedCount] = useState(0);
+  const [fareCounts, setFareCounts] = useState({
+    Regular: 0,
+    PWD: 0,
+    STUDENT: 0,
+    SENIOR: 0,
+  });
   const [tender, setTender] = useState("");
   const [change, setChange] = useState(0);
   const [commuterEmail, setCommuterEmail] = useState("");
@@ -15,11 +19,14 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
   const [qrResult, setQrResult] = useState("");
   const [qrError, setQrError] = useState("");
   const [scanner, setScanner] = useState(null);
-  const [fares, setFares] = useState({ regular: 30, discounted: 28 });
+  const [fares, setFares] = useState({
+    Regular: 30,
+    PWD: 24,
+    STUDENT: 24,
+    SENIOR: 24,
+  });
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-  // Add these preset amounts based on common bill denominations
   const presetAmounts = [20, 50, 100, 200, 500, 1000];
 
   useEffect(() => {
@@ -27,12 +34,11 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
       try {
         const response = await fetch(`${API_BASE_URL}/fares`);
         const data = await response.json();
-        const regularFare = data.find((fare) => fare.fare === "Regular");
-        const discountedFare = data.find((fare) => fare.fare === "Discounted");
-        setFares({
-          regular: regularFare ? parseFloat(regularFare.price) : 30,
-          discounted: discountedFare ? parseFloat(discountedFare.price) : 28,
+        const fareMap = {};
+        data.forEach((fare) => {
+          fareMap[fare.fare] = parseFloat(fare.price);
         });
+        setFares(fareMap);
       } catch (error) {
         console.error("Error fetching fares:", error);
       }
@@ -108,7 +114,16 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
   }, [showQrScanner]);
 
   const calculateTotal = () => {
-    return regularCount * fares.regular + discountedCount * fares.discounted;
+    return Object.entries(fareCounts).reduce((total, [fareType, count]) => {
+      return total + count * fares[fareType];
+    }, 0);
+  };
+
+  const handleCountChange = (fareType, increment) => {
+    setFareCounts((prev) => ({
+      ...prev,
+      [fareType]: Math.max(0, prev[fareType] + increment),
+    }));
   };
 
   // Modify handleTenderChange to handle string inputs
@@ -133,6 +148,16 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
       const totalFare = calculateTotal();
       const tenderAmount = parseFloat(tender);
 
+      // Validate if there are any passengers
+      const totalPassengers = Object.values(fareCounts).reduce(
+        (sum, count) => sum + count,
+        0
+      );
+      if (totalPassengers === 0) {
+        toast.error("Please add at least one passenger");
+        return;
+      }
+
       if (tenderAmount < totalFare) {
         toast.error("Tender amount is less than the total fare");
         return;
@@ -143,6 +168,11 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
         return;
       }
 
+      // Get current date and time
+      const now = new Date();
+      const date = now.toISOString().split("T")[0]; // YYYY-MM-DD
+      const time = now.toTimeString().split(" ")[0].substring(0, 5); // HH:MM
+
       const response = await fetch(`${API_BASE_URL}/fare-transactions`, {
         method: "POST",
         headers: {
@@ -150,12 +180,13 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
         },
         body: JSON.stringify({
           shuttleID,
-          regularCount,
-          discountedCount,
+          passengerCounts: fareCounts,
           totalFare,
           tender: tenderAmount,
           change: tenderAmount - totalFare,
           commuterEmail,
+          date,
+          time,
         }),
       });
 
@@ -182,8 +213,12 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
   };
 
   const resetCounts = () => {
-    setRegularCount(0);
-    setDiscountedCount(0);
+    setFareCounts({
+      Regular: 0,
+      PWD: 0,
+      STUDENT: 0,
+      SENIOR: 0,
+    });
     setTender("");
     setChange(0);
     setCommuterEmail("");
@@ -220,110 +255,125 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
     <div className="CollectFare-modal">
       <div className="CollectFare-container">
         <h2>Collect Fare</h2>
-        <div className="fare-calculator">
-          <div className="fare-row">
-            <span>Customer Type</span>
-            <span>Add/Minus</span>
-            <span>Passenger Count</span>
-          </div>
-          <div className="fare-row">
-            <span>Regular</span>
-            <div className="button-group">
-              <button onClick={() => setRegularCount(regularCount + 1)}>
-                +
-              </button>
-              <button
-                onClick={() => setRegularCount(Math.max(0, regularCount - 1))}
-              >
-                -
-              </button>
+        <div className="fare-calculator-grid">
+          {/* Left Column */}
+          <div className="fare-calculator-left">
+            <div className="fare-calculator">
+              <div className="fare-row header">
+                <span>Customer Type</span>
+                <span>Add/Minus</span>
+                <span>Count</span>
+                <span>Price</span>
+              </div>
+              {Object.entries(fares).map(([fareType, price]) => (
+                <div key={fareType} className="fare-row">
+                  <span>
+                    {fareType} (₱{price})
+                  </span>
+                  <div className="button-group">
+                    <button
+                      onClick={() => handleCountChange(fareType, 1)}
+                      className="control-button"
+                    >
+                      +
+                    </button>
+                    <button
+                      onClick={() => handleCountChange(fareType, -1)}
+                      className="control-button"
+                      disabled={fareCounts[fareType] === 0}
+                    >
+                      -
+                    </button>
+                  </div>
+                  <span className="passenger-count">
+                    {fareCounts[fareType]}
+                  </span>
+                  <span className="fare-amount">
+                    ₱{(fareCounts[fareType] * price).toFixed(2)}
+                  </span>
+                </div>
+              ))}
+              <div className="fare-total">
+                <span>Total Amount:</span>
+                <strong>₱{calculateTotal().toFixed(2)}</strong>
+              </div>
             </div>
-            <span>{regularCount}</span>
-          </div>
-          <div className="fare-row">
-            <span>Discounted</span>
-            <div className="button-group">
-              <button onClick={() => setDiscountedCount(discountedCount + 1)}>
-                +
-              </button>
-              <button
-                onClick={() =>
-                  setDiscountedCount(Math.max(0, discountedCount - 1))
-                }
-              >
-                -
-              </button>
-            </div>
-            <span>{discountedCount}</span>
           </div>
 
-          <div className="fare-total">
-            <span>Total Amount:</span>
-            <strong>₱{calculateTotal()}</strong>
-          </div>
-          <div className="fare-tender">
-            <label htmlFor="tender">Tender Amount:</label>
-            <div className="tender-input-container">
-              <span className="peso-sign">₱</span>
-              <input
-                id="tender"
-                type="text"
-                inputMode="decimal"
-                value={tender}
-                onChange={handleTenderChange}
-                placeholder="0.00"
-                className="tender-input"
+          {/* Right Column */}
+          <div className="fare-calculator-right">
+            <div className="fare-tender">
+              <label htmlFor="tender">Tender Amount:</label>
+              <div className="tender-input-container">
+                <span className="peso-sign">₱</span>
+                <input
+                  id="tender"
+                  type="text"
+                  inputMode="decimal"
+                  value={tender}
+                  onChange={handleTenderChange}
+                  placeholder="0.00"
+                  className="tender-input"
+                />
+              </div>
+              <div className="preset-amounts">
+                {presetAmounts.map((amount) => (
+                  <button
+                    key={amount}
+                    className="preset-amount-btn"
+                    onClick={() => handlePresetAmount(amount)}
+                  >
+                    ₱{amount}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="fare-change">
+              <span>Change:</span>
+              <strong>₱{change >= 0 ? change.toFixed(2) : "0.00"}</strong>
+            </div>
+
+            <div className="fare-commuter">
+              <label htmlFor="commuterEmail">Commuter Email:</label>
+              <Select
+                options={commuterEmails}
+                onChange={(selectedOption) =>
+                  setCommuterEmail(selectedOption?.value || "")
+                }
+                isClearable
+                placeholder="Select or type an email"
+                value={commuterEmails.find(
+                  (option) => option.value === commuterEmail
+                )}
               />
+              <button onClick={handleQrScannerToggle} className="qr-button">
+                {showQrScanner ? "Close QR Scanner" : "Scan QR Code"}
+              </button>
             </div>
-            <div className="preset-amounts">
-              {presetAmounts.map((amount) => (
-                <button
-                  key={amount}
-                  className="preset-amount-btn"
-                  onClick={() => handlePresetAmount(amount)}
-                >
-                  ₱{amount}
-                </button>
-              ))}
-            </div>
+
+            {showQrScanner && (
+              <div className="qr-scanner">
+                <div id="reader"></div>
+                <p>Scanning for QR code...</p>
+              </div>
+            )}
+            {qrResult && (
+              <div className="qr-confirmation">
+                <p>Detected QR Code: {qrResult}</p>
+              </div>
+            )}
+            {qrError && <p className="error-message">{qrError}</p>}
           </div>
-          <div className="fare-change">
-            <span>Change:</span>
-            <strong>₱{change >= 0 ? change.toFixed(2) : "0.00"}</strong>
-          </div>
-          <div className="fare-commuter">
-            <label htmlFor="commuterEmail">Commuter Email:</label>
-            <Select
-              options={commuterEmails}
-              onChange={(selectedOption) =>
-                setCommuterEmail(selectedOption.value)
-              }
-              isClearable
-              placeholder="Select or type an email"
-              value={commuterEmails.find(
-                (option) => option.value === commuterEmail
-              )}
-            />
-            <button onClick={handleQrScannerToggle}>
-              {showQrScanner ? "Close QR Scanner" : "Scan QR Code"}
-            </button>
-          </div>
-          {showQrScanner && (
-            <div className="qr-scanner">
-              <div id="reader"></div>
-              <p>Scanning for QR code...</p>
-            </div>
-          )}
-          {qrResult && (
-            <div className="qr-confirmation">
-              <p>Detected QR Code: {qrResult}</p>
-            </div>
-          )}
-          {qrError && <p style={{ color: "red" }}>{qrError}</p>}
         </div>
+
         <div className="fare-actions">
-          <button onClick={handleCancel}>Cancel</button>
-          <button onClick={handleSubmit}>Save</button>
+          <button onClick={handleCancel} className="secondary">
+            Cancel
+          </button>
+          <button onClick={handleSubmit} className="primary">
+            Save
+          </button>
         </div>
       </div>
     </div>

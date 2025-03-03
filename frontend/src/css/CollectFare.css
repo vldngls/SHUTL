@@ -4,211 +4,389 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(
-    0,
-    0,
-    0,
-    0.6
-  ); /* Slightly darker backdrop for better contrast */
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000; /* Ensure it appears above other elements */
+  z-index: 1000;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .CollectFare-container {
-  background: #ffffff; /* Clean white background */
-  padding: 30px; /* Increase padding for better spacing */
-  border-radius: 12px; /* More rounded corners for a modern look */
-  width: 420px; /* Slightly wider container for content */
-  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3); /* Stronger shadow for depth */
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 1000px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   display: flex;
-  flex-direction: column; /* Align content vertically */
-  align-items: stretch; /* Stretch child elements to fit container width */
+  flex-direction: column;
+  gap: 1.5rem;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.fare-calculator-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.fare-calculator-left,
+.fare-calculator-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.CollectFare-container h2 {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1.5rem;
+  text-align: center;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 1rem;
 }
 
 .fare-calculator {
   display: flex;
   flex-direction: column;
-  gap: 20px; /* Increased spacing for clearer grouping */
+  gap: 1rem;
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
 }
 
 .fare-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 0.8fr 1fr;
   align-items: center;
-  font-size: 16px; /* Slightly larger font for readability */
-  padding: 10px 0; /* Add spacing between rows */
-  border-bottom: 1px solid #e0e0e0; /* Light separator for visual grouping */
+  gap: 1rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid #eee;
+  font-size: 0.95rem;
 }
 
-.fare-row > * {
-  flex: 1; /* Ensure equal spacing between items */
-  text-align: left; /* Align text to the left for readability */
-}
-
-.fare-row span:last-child {
-  text-align: right; /* Align right-hand content for consistency */
-}
-.fare-row button {
-  width: 32px; /* Set width for square shape */
-  height: 32px; /* Set height for square shape */
-  font-size: 16px; /* Adjust font size for better readability */
-  border-radius: 4px; /* Slightly rounded corners for a modern look */
-  background-color: #007bff; /* Blue color for buttons */
-  color: white; /* White text for contrast */
-  border: none; /* Remove default borders */
-  cursor: pointer; /* Pointer cursor for interaction */
-  display: flex; /* Center align text horizontally */
-  align-items: center; /* Center align text vertically */
-  justify-content: center; /* Ensure text is perfectly centered */
-  transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth hover effect */
-  margin: 0 5px; /* Add horizontal space between buttons */
-}
-
-.fare-row button:hover {
-  background-color: #0056b3; /* Darker blue on hover */
-  transform: scale(1.05); /* Slight zoom effect on hover */
+.fare-row.header {
+  font-weight: 600;
+  color: #2c3e50;
+  border-bottom: 2px solid #ddd;
+  background-color: #fff;
+  border-radius: 6px;
 }
 
 .button-group {
-  display: flex; /* Arrange buttons horizontally */
-  justify-content: center; /* Center-align buttons within the group */
-  gap: 10px; /* Add space between buttons */
-}
-
-.fare-row button:disabled {
-  background-color: #d6d6d6; /* Light gray when disabled */
-  color: #999; /* Muted text color */
-  cursor: not-allowed; /* Disable interaction */
-}
-
-.fare-tender input {
-  width: 100%; /* Make the input box take full width of its container */
-  height: 40px; /* Increase height for better usability */
-  font-size: 16px; /* Larger font size for readability */
-  padding: 5px 10px; /* Add inner padding for better spacing */
-  border: 1px solid #ccc; /* Add a light border for visibility */
-  border-radius: 6px; /* Rounded edges for a modern look */
-  box-sizing: border-box; /* Ensure padding doesn't affect the total width */
-}
-
-.fare-tender input:focus {
-  outline: none; /* Remove default outline on focus */
-  border-color: #007bff; /* Highlight border with blue color on focus */
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Add a subtle glow effect */
-}
-.fare-total {
-  margin-bottom: 20px; /* Add space below the Total section */
-  font-weight: bold;
-  font-size: 18px;
-  text-align: left;
-  color: #333;
-  border-top: 1px solid #e0e0e0; /* Optional separator */
-  padding-top: 10px;
   display: flex;
-  justify-content: space-between;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.control-button {
+  width: 36px;
+  height: 36px;
+  font-size: 1.2rem;
+  border-radius: 8px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.control-button:hover:not(:disabled) {
+  background-color: #2980b9;
+  transform: scale(1.05);
+}
+
+.control-button:disabled {
+  background-color: #e0e0e0;
+  cursor: not-allowed;
+}
+
+.passenger-count {
+  text-align: center;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.fare-amount {
+  text-align: right;
+  font-weight: 500;
+  color: #2c3e50;
 }
 
 .fare-tender {
-  margin-top: 20px; /* Add space above the Tender section */
+  background-color: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
 }
 
-.fare-tender input {
-  width: 100%; /* Make the input box take full width of its container */
-  height: 40px; /* Increase height for better usability */
-  font-size: 16px; /* Larger font size for readability */
-  padding: 5px 10px; /* Add inner padding for better spacing */
-  border: 1px solid #ccc; /* Add a light border for visibility */
-  border-radius: 6px; /* Rounded edges for a modern look */
-  box-sizing: border-box; /* Ensure padding doesn't affect the total width */
+.fare-tender label {
+  display: block;
+  margin-bottom: 0.75rem;
+  color: #2c3e50;
+  font-weight: 500;
 }
 
-.fare-tender input:focus {
-  outline: none; /* Remove default outline on focus */
-  border-color: #007bff; /* Highlight border with blue color on focus */
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Add a subtle glow effect */
+.tender-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.peso-sign {
+  position: absolute;
+  left: 1rem;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.tender-input {
+  width: 100%;
+  height: 45px;
+  padding: 0.5rem 1rem 0.5rem 2rem;
+  font-size: 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.tender-input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.preset-amounts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.preset-amount-btn {
+  padding: 0.5rem;
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #2c3e50;
+  font-weight: 500;
+  text-align: center;
+}
+
+.preset-amount-btn:hover {
+  background-color: #f8f9fa;
+  transform: scale(1.05);
+  border-color: #3498db;
+}
+
+.fare-total,
+.fare-change {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-top: 1rem;
+}
+
+.fare-total {
+  background-color: #e8f4f8;
+  border: 1px solid #bee3f8;
 }
 
 .fare-change {
-  margin-top: 15px; /* Add consistent spacing between key sections */
-  font-weight: bold; /* Emphasize important fare details */
-  font-size: 18px; /* Larger font for better visibility */
-  text-align: left; /* Align text to the left */
-  color: #333; /* Darker text for better contrast */
-  border-top: 1px solid #e0e0e0; /* Add separator for clarity */
-  padding-top: 10px; /* Add padding above totals */
-  display: flex; /* Use flex for label and value alignment */
-  justify-content: space-between; /* Separate label and value */
+  background-color: #f0fff4;
+  border: 1px solid #c6f6d5;
 }
 
-.fare-total span,
-.fare-tender span,
-.fare-change span {
-  font-weight: normal; /* Lighter font for the value */
+.fare-commuter {
+  background-color: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  margin-top: 1rem;
 }
 
-.fare-actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 30px; /* Create space above buttons */
-  gap: 10px; /* Add space between buttons */
-}
-
-button {
-  padding: 12px 20px; /* Larger buttons for better usability */
-  cursor: pointer;
-  border: none; /* Remove default button borders */
-  border-radius: 6px; /* Slightly rounded button edges for modern design */
-  font-size: 16px; /* Larger font for better readability */
-  font-weight: bold; /* Emphasize action buttons */
-  transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth hover effect */
-}
-
-button:hover {
-  opacity: 0.9; /* Slight transparency on hover */
-}
-
-button.primary {
-  background-color: #007bff; /* Primary blue color */
-  color: white; /* White text */
-}
-
-button.primary:hover {
-  background-color: #0056b3; /* Darker blue on hover */
-}
-
-button.secondary {
-  background-color: #f8f9fa; /* Light gray for secondary actions */
-  color: #333; /* Dark text for contrast */
-  border: 1px solid #e0e0e0; /* Add border for definition */
-}
-
-button.secondary:hover {
-  background-color: #e9ecef; /* Slightly darker gray on hover */
-}
-
-.qr-scanner-container.hidden {
-  display: none;
-}
-
-.qr-scanner-container.visible {
+.fare-commuter label {
   display: block;
+  margin-bottom: 0.75rem;
+  color: #2c3e50;
+  font-weight: 500;
 }
 
+/* QR Scanner styles */
 .qr-scanner {
-  margin: 20px 0;
+  margin: 1.5rem 0;
+  text-align: center;
 }
 
 #reader {
   width: 100% !important;
-  max-width: 400px;
+  max-width: 300px;
   margin: 0 auto;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 #reader video {
   width: 100% !important;
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
-/* Remove any remaining toast-related styles */
+.qr-button {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: #4a5568;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.qr-button:hover {
+  background-color: #2d3748;
+}
+
+.qr-confirmation {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: #f0fff4;
+  border: 1px solid #c6f6d5;
+  border-radius: 8px;
+  color: #2c3e50;
+}
+
+.error-message {
+  color: #e53e3e;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  background-color: #fff5f5;
+  border: 1px solid #fed7d7;
+  border-radius: 6px;
+}
+
+.fare-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.fare-actions button {
+  flex: 1;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fare-actions button.primary {
+  background-color: #3498db;
+  color: white;
+  border: none;
+}
+
+.fare-actions button.primary:hover {
+  background-color: #2980b9;
+}
+
+.fare-actions button.secondary {
+  background-color: #f8f9fa;
+  color: #2c3e50;
+  border: 1px solid #dee2e6;
+}
+
+.fare-actions button.secondary:hover {
+  background-color: #e9ecef;
+}
+
+/* Mobile Responsiveness */
+@media screen and (max-width: 768px) {
+  .CollectFare-container {
+    padding: 1rem;
+    max-width: 95%;
+    max-height: 85vh;
+  }
+
+  .fare-calculator-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .fare-row {
+    font-size: 0.9rem;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .control-button {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+
+  .preset-amounts {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  }
+
+  .preset-amount-btn {
+    padding: 0.4rem;
+    font-size: 0.9rem;
+  }
+
+  .tender-input {
+    height: 40px;
+    font-size: 0.95rem;
+  }
+
+  .fare-total,
+  .fare-change {
+    font-size: 1rem;
+    padding: 0.75rem;
+  }
+
+  .fare-actions {
+    flex-direction: column;
+  }
+}
+
+/* Small mobile devices */
+@media screen and (max-width: 400px) {
+  .fare-row {
+    grid-template-columns: 1.5fr 1.2fr 0.8fr 1fr;
+    font-size: 0.85rem;
+    gap: 0.25rem;
+  }
+
+  .CollectFare-container h2 {
+    font-size: 1.25rem;
+  }
+
+  .control-button {
+    width: 28px;
+    height: 28px;
+  }
+
+  .preset-amounts {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  }
+}

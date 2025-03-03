@@ -33,6 +33,7 @@ const userDataSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    collection: "userdatas",
   }
 );
 

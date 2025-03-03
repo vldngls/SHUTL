@@ -1,8 +1,8 @@
-import { apiCall, getAuthHeaders } from "./index";
+import { apiRequest, getAuthHeaders } from "./index";
 
 export const userService = {
   getActiveCounts: async () => {
-    return await apiCall("/users/active-users", {
+    return await apiRequest("/users/active-users", {
       headers: getAuthHeaders(),
     });
   },

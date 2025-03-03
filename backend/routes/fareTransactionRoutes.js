@@ -1,23 +1,27 @@
 import express from "express";
 import {
   createFareTransaction,
-  getTransactionsByShuttleID,
-  getTransactionsByCommuterEmail,
-  getTotalEarnings,
+  getFareTransactions,
+  getFareTransactionsByShuttleId,
+  getFareTransactionsByDateRange,
+  getFareTransactionsByCommuterEmail,
 } from "../controllers/fareTransactionController.js";
 
 const router = express.Router();
 
-// Route to create a new fare transaction
+// Create a new fare transaction
 router.post("/", createFareTransaction);
 
-// Route to get transactions by shuttleID
-router.get("/", getTransactionsByShuttleID);
+// Get all fare transactions
+router.get("/", getFareTransactions);
 
-// Route to get transactions by commuter email
-router.get("/commuter", getTransactionsByCommuterEmail);
+// Get fare transactions by shuttle ID
+router.get("/shuttle/:shuttleId", getFareTransactionsByShuttleId);
 
-// Route to get total earnings
-router.get("/earnings", getTotalEarnings);
+// Get fare transactions by date range
+router.get("/date-range", getFareTransactionsByDateRange);
+
+// Get fare transactions by commuter email
+router.get("/commuter/:email", getFareTransactionsByCommuterEmail);
 
 export default router;
