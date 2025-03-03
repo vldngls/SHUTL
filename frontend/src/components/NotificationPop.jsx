@@ -4,8 +4,7 @@ import "../css/NotificationPop.css";
 
 const ShutlNotificationPop = ({
   notifications = [],
-  onClose,
-  show = false,
+  onClose
 }) => {
   const popupRef = useRef(null);
 
@@ -23,16 +22,6 @@ const ShutlNotificationPop = ({
     return () => window.removeEventListener("resize", setVhProperty);
   }, []);
 
-  useEffect(() => {
-    // Auto-close notification after 5 seconds if shown
-    if (show) {
-      const timer = setTimeout(() => {
-        onClose();
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [show, onClose]);
-
   // Handle click events to prevent closing when clicking inside content
   const handleContainerClick = (e) => {
     // Only close if clicking directly on the container, not its children
@@ -46,8 +35,6 @@ const ShutlNotificationPop = ({
     e.stopPropagation();
     onClose();
   };
-
-  if (!show) return null;
 
   return (
     <div

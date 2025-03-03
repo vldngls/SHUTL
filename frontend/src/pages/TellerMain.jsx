@@ -77,12 +77,12 @@ const TellerMain = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [currentRoom, setCurrentRoom] = useState(null);
+  const [notificationEnabled, setNotificationEnabled] = useState(true);
 
   // Modal/Popup States
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isProfilePopupOpen, setIsProfilePopupOpen] = useState(false);
   const [isMessageBoxOpen, setIsMessageBoxOpen] = useState(false);
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [isTripFormOpen, setIsTripFormOpen] = useState(false);
 
@@ -115,6 +115,8 @@ const TellerMain = () => {
   useEffect(() => {
     let socketCleanup;
     let messageCleanup;
+    let notificationCleanup;
+    let locationCleanup;
 
     const initializeChat = async () => {
       try {
@@ -127,13 +129,16 @@ const TellerMain = () => {
         socket.current = socketInstance;
         setIsConnected(true);
 
+        // Set initial notification preference
+        socketInstance.emit('notification_preference', { enabled: notificationEnabled });
+
         // Subscribe to messages with error handling
         messageCleanup = await subscribeToMessages((message) => {
           setMessages((prev) => [...prev, message]);
         });
 
         // Subscribe to real-time notifications
-        const notificationCleanup = await subscribeToEvent(
+        notificationCleanup = await subscribeToEvent(
           "new_notification",
           (notification) => {
             // Check if this notification is for this user type (Teller)
@@ -146,20 +151,23 @@ const TellerMain = () => {
               // Add any other required fields
             };
 
+            // Always update the notifications array regardless of enabled state
             setNotifications((prev) => {
               const updatedNotifications = [formattedNotification, ...prev];
               return updatedNotifications.slice(0, 5); // Keep only 5 most recent
             });
 
-            // Show notification popup
-            setActivePopup("notifications");
+            // Only show notification popup if notifications are enabled
+            if (notificationEnabled) {
+              setActivePopup("notifications");
 
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-              setActivePopup((current) =>
-                current === "notifications" ? null : current
-              );
-            }, 5000);
+              // Auto-hide after 5 seconds
+              setTimeout(() => {
+                setActivePopup((current) =>
+                  current === "notifications" ? null : current
+                );
+              }, 5000);
+            }
           }
         );
 
@@ -191,7 +199,7 @@ const TellerMain = () => {
         await fetchAndTrackShuttles();
 
         // Subscribe to location updates with enhanced logging and validation
-        const locationCleanup = await subscribeToLocationUpdates((data) => {
+        locationCleanup = await subscribeToLocationUpdates((data) => {
           console.log("TellerMain received location update:", data);
 
           // Validate incoming data
@@ -382,11 +390,10 @@ const TellerMain = () => {
 
         return () => {
           clearInterval(cleanupInterval);
-          messageCleanup();
-          locationCleanup();
-          if (socketCleanup) {
-            socketCleanup();
-          }
+          if (messageCleanup) messageCleanup();
+          if (locationCleanup) locationCleanup();
+          if (notificationCleanup) notificationCleanup();
+          if (socketCleanup) socketCleanup();
           window.removeEventListener("resize", setVH);
           window.removeEventListener("orientationchange", setVH);
         };
@@ -397,7 +404,21 @@ const TellerMain = () => {
     };
 
     initializeChat();
-  }, []);
+
+    // Cleanup function
+    return () => {
+      if (messageCleanup) messageCleanup();
+      if (locationCleanup) locationCleanup();
+      if (notificationCleanup) notificationCleanup();
+      if (socketCleanup) socketCleanup();
+      if (socket.current) {
+        socket.current.off("connect");
+        socket.current.off("disconnect");
+        socket.current.off("reconnect");
+        disconnectSocket();
+      }
+    };
+  }, [notificationEnabled]);
 
   // Add this useEffect after the socket initialization useEffect
   useEffect(() => {
@@ -464,6 +485,32 @@ const TellerMain = () => {
     };
 
     fetchUserProfile();
+  }, [email]);
+
+  // Fetch user preferences on mount
+  useEffect(() => {
+    const fetchUserPreferences = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/userdata/${email}`, {
+          headers: {
+            Authorization: `Bearer ${getCookie("token")}`,
+          },
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          setNotificationEnabled(userData.preferences?.notifications ?? true);
+        } else {
+          console.error("Failed to fetch user preferences");
+        }
+      } catch (error) {
+        console.error("Error fetching user preferences:", error);
+      }
+    };
+
+    if (email) {
+      fetchUserPreferences();
+    }
   }, [email]);
 
   // Add debug useEffect to monitor shuttle locations
@@ -534,9 +581,7 @@ const TellerMain = () => {
   };
 
   const handleNotificationClick = () => {
-    setActivePopup((prev) =>
-      prev === "notifications" ? null : "notifications"
-    );
+    toggleNotification();
   };
 
   // Add this useEffect for chat click outside handling
@@ -620,6 +665,53 @@ const TellerMain = () => {
       hour12: true,
     });
   }, [dateTime]);
+
+  // Add effect to handle notification preference changes
+  useEffect(() => {
+    // If notifications are disabled, close any active notification popup
+    if (!notificationEnabled && activePopup === "notifications") {
+      setActivePopup(null);
+    }
+  }, [notificationEnabled]);
+
+  // Function to update notification preference
+  const updateNotificationPreference = async (enabled) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/userdata`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getCookie("token")}`,
+        },
+        body: JSON.stringify({
+          email: email,
+          preferences: {
+            notifications: enabled
+          }
+        })
+      });
+
+      if (response.ok) {
+        setNotificationEnabled(enabled);
+        // Close any active notification popup when disabling notifications
+        if (!enabled && activePopup === "notifications") {
+          setActivePopup(null);
+        }
+        toast.success(`Notifications ${enabled ? 'enabled' : 'disabled'}`);
+
+        // Update socket preference without reconnecting
+        if (socket.current) {
+          socket.current.emit('notification_preference', { enabled });
+        }
+      } else {
+        console.error("Failed to update notification preference");
+        toast.error("Failed to update notification settings");
+      }
+    } catch (error) {
+      console.error("Error updating notification preference:", error);
+      toast.error("Failed to update notification settings");
+    }
+  };
 
   return (
     <div className="TellerMain-container">
@@ -729,11 +821,13 @@ const TellerMain = () => {
         onToggle={toggleSidebar}
         onProfileClick={toggleProfile}
         onMessageClick={toggleMessageBox}
-        onNotificationClick={toggleNotification}
+        onNotificationClick={handleNotificationClick}
         onSummaryClick={toggleSummary}
         onTripClick={toggleTripForm}
         profileImage={profileImage}
         notifications={notifications}
+        notificationEnabled={notificationEnabled}
+        onNotificationToggle={updateNotificationPreference}
         onSettingsClick={() => {
           if (!isSidebarExpanded) {
             setIsSidebarExpanded(true);

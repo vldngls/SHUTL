@@ -19,6 +19,8 @@ const Sidebar = forwardRef(
       profileImage,
       notifications = [],
       onSettingsClick,
+      notificationEnabled,
+      onNotificationToggle
     },
     ref
   ) => {
@@ -26,9 +28,6 @@ const Sidebar = forwardRef(
     const [settingsButtonRef, setSettingsButtonRef] = useState(null);
     const [username, setUsername] = useState(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [notificationsEnabled, setNotificationsEnabled] = useState(
-      localStorage.getItem("notificationsEnabled") === "true"
-    );
     const [locationEnabled, setLocationEnabled] = useState(
       localStorage.getItem("locationEnabled") === "true"
     );
@@ -129,9 +128,9 @@ const Sidebar = forwardRef(
 
     const toggleNotifications = (e) => {
       e.stopPropagation();
-      const newState = !notificationsEnabled;
-      setNotificationsEnabled(newState);
-      localStorage.setItem("notificationsEnabled", newState);
+      if (onNotificationToggle) {
+        onNotificationToggle(!notificationEnabled);
+      }
     };
 
     const toggleLocation = async (e) => {
@@ -354,7 +353,7 @@ const Sidebar = forwardRef(
                   <label className="switch">
                     <input
                       type="checkbox"
-                      checked={notificationsEnabled}
+                      checked={notificationEnabled}
                       onChange={toggleNotifications}
                     />
                     <span className="slider"></span>
@@ -423,6 +422,8 @@ Sidebar.propTypes = {
   profileImage: PropTypes.string,
   notifications: PropTypes.array,
   onSettingsClick: PropTypes.func,
+  notificationEnabled: PropTypes.bool,
+  onNotificationToggle: PropTypes.func
 };
 
 export default Sidebar;
