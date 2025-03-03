@@ -132,7 +132,7 @@
   border-radius: 8px;
   z-index: 1003;
   overflow: hidden;
-  margin-top: 380px;
+  margin-top: 340px;
   display: none;
 }
 
@@ -377,10 +377,11 @@ input:checked + .slider:before {
     position: absolute;
     width: 100% !important;
     margin: 8px 0;
-    background-color: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     display: block;
+    border-inline: none;
+    border-block: none;
   }
 
   .Sidebar-settings-option {
@@ -421,7 +422,7 @@ input:checked + .slider:before {
   }
 
   .Sidebar-settings-option[data-enabled] {
-    padding: 14px 20px;
+    padding: 14px 23px;
   }
 
   .switch {

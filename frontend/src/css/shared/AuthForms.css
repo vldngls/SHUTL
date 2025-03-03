@@ -54,6 +54,7 @@
 
 /* Form Elements */
 .auth-form {
+  margin-top: 56px;
   display: flex;
   flex-direction: column;
   gap: 24px;
