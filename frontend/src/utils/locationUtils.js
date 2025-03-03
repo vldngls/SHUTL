@@ -14,6 +14,61 @@ export const KNOWN_LOCATIONS = {
 // Cache for storing geocoded locations
 const geocodeCache = new Map();
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const STORAGE_KEY = "shutl_map_locations_cache";
+const LAST_USED_KEY = "shutl_map_locations_last_used";
+const MAX_CACHE_SIZE = 100; // Maximum number of locations to store
+
+// Initialize cache from localStorage
+const initializeCache = () => {
+  try {
+    const storedCache = localStorage.getItem(STORAGE_KEY);
+    const storedLastUsed = localStorage.getItem(LAST_USED_KEY);
+
+    if (storedCache) {
+      const parsedCache = JSON.parse(storedCache);
+      Object.entries(parsedCache).forEach(([key, value]) => {
+        geocodeCache.set(key, value);
+      });
+    }
+
+    // Initialize last used timestamps
+    if (!storedLastUsed) {
+      localStorage.setItem(LAST_USED_KEY, JSON.stringify({}));
+    }
+  } catch (error) {
+    console.warn("Failed to load location cache from localStorage:", error);
+  }
+};
+
+// Save cache to localStorage
+const saveCache = () => {
+  try {
+    const cacheObject = {};
+    geocodeCache.forEach((value, key) => {
+      cacheObject[key] = value;
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cacheObject));
+  } catch (error) {
+    console.warn("Failed to save location cache to localStorage:", error);
+  }
+};
+
+// Update last used timestamp for a location
+export const updateLastUsed = (lat, lon) => {
+  try {
+    const roundedLat = Number(lat).toFixed(6);
+    const roundedLon = Number(lon).toFixed(6);
+    const cacheKey = `${roundedLat},${roundedLon}`;
+
+    const storedLastUsed = localStorage.getItem(LAST_USED_KEY) || "{}";
+    const lastUsed = JSON.parse(storedLastUsed);
+
+    lastUsed[cacheKey] = Date.now();
+    localStorage.setItem(LAST_USED_KEY, JSON.stringify(lastUsed));
+  } catch (error) {
+    console.warn("Failed to update last used timestamp:", error);
+  }
+};
 
 // Helper function to find nearest known location
 const findNearestKnownLocation = (lat, lon) => {
@@ -40,10 +95,17 @@ export async function reverseGeocode(lat, lon) {
   const cacheKey = `${roundedLat},${roundedLon}`;
   const now = Date.now();
 
+  // Initialize cache if needed
+  if (geocodeCache.size === 0) {
+    initializeCache();
+  }
+
   // Check cache first
   if (geocodeCache.has(cacheKey)) {
     const cached = geocodeCache.get(cacheKey);
     if (now - cached.timestamp < CACHE_DURATION) {
+      // Update last used timestamp
+      updateLastUsed(roundedLat, roundedLon);
       return cached.value;
     }
   }
@@ -51,10 +113,13 @@ export async function reverseGeocode(lat, lon) {
   // Check predefined locations
   const exactLocation = KNOWN_LOCATIONS[cacheKey];
   if (exactLocation) {
-    geocodeCache.set(cacheKey, {
+    const cacheEntry = {
       value: exactLocation,
       timestamp: now,
-    });
+    };
+    geocodeCache.set(cacheKey, cacheEntry);
+    updateLastUsed(roundedLat, roundedLon);
+    saveCache();
     return exactLocation;
   }
 
@@ -62,10 +127,13 @@ export async function reverseGeocode(lat, lon) {
   const nearestLocation = findNearestKnownLocation(lat, lon);
   if (nearestLocation) {
     const locationDescription = `Near ${nearestLocation}`;
-    geocodeCache.set(cacheKey, {
+    const cacheEntry = {
       value: locationDescription,
       timestamp: now,
-    });
+    };
+    geocodeCache.set(cacheKey, cacheEntry);
+    updateLastUsed(roundedLat, roundedLon);
+    saveCache();
     return locationDescription;
   }
 
@@ -101,11 +169,19 @@ export async function reverseGeocode(lat, lon) {
       locationPriority.find((item) => item) || "Unknown location";
 
     // Cache successful result
-    geocodeCache.set(cacheKey, {
+    const cacheEntry = {
       value: locationDescription,
       timestamp: now,
-    });
+    };
+    geocodeCache.set(cacheKey, cacheEntry);
+    updateLastUsed(roundedLat, roundedLon);
 
+    // Check if cache is too large and clean up if needed
+    if (geocodeCache.size > MAX_CACHE_SIZE) {
+      cleanupUnusedLocations();
+    }
+
+    saveCache();
     return locationDescription;
   } catch (error) {
     console.warn("Geocoding failed:", error);
@@ -129,6 +205,31 @@ function getAreaDescription(lat, lon) {
 
 // Change the function declaration to export it
 export function calculateDistance(lat1, lon1, lat2, lon2) {
+  // Handle the case where the function is called with arrays instead of separate parameters
+  if (Array.isArray(lat1) && Array.isArray(lat2)) {
+    // Format: calculateDistance([lat1, lon1], [lat2, lon2])
+    const [lat1Value, lon1Value] = lat1;
+    const [lat2Value, lon2Value] = lat2;
+    return calculateDistance(lat1Value, lon1Value, lat2Value, lon2Value);
+  }
+
+  // Ensure all parameters are numbers
+  lat1 = Number(lat1);
+  lon1 = Number(lon1);
+  lat2 = Number(lat2);
+  lon2 = Number(lon2);
+
+  // Check for invalid inputs
+  if (isNaN(lat1) || isNaN(lon1) || isNaN(lat2) || isNaN(lon2)) {
+    console.warn("Invalid parameters to calculateDistance:", {
+      lat1,
+      lon1,
+      lat2,
+      lon2,
+    });
+    return 0;
+  }
+
   const R = 6371; // Earth's radius in km
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
@@ -150,13 +251,66 @@ function toRad(degrees) {
 
 export const clearGeocodeCache = () => {
   geocodeCache.clear();
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(LAST_USED_KEY);
 };
 
 export const cleanupExpiredCache = () => {
   const now = Date.now();
+  let hasChanges = false;
+
   for (const [key, data] of geocodeCache.entries()) {
     if (now - data.timestamp > CACHE_DURATION) {
       geocodeCache.delete(key);
+      hasChanges = true;
     }
   }
+
+  if (hasChanges) {
+    saveCache();
+  }
 };
+
+// Clean up locations that haven't been used recently
+export const cleanupUnusedLocations = () => {
+  try {
+    const storedLastUsed = localStorage.getItem(LAST_USED_KEY);
+    if (!storedLastUsed) return;
+
+    const lastUsed = JSON.parse(storedLastUsed);
+    const entries = Object.entries(lastUsed);
+
+    // Sort by last used timestamp (oldest first)
+    entries.sort((a, b) => a[1] - b[1]);
+
+    // Remove oldest 20% of entries
+    const removeCount = Math.ceil(entries.length * 0.2);
+    const keysToRemove = entries.slice(0, removeCount).map((entry) => entry[0]);
+
+    // Remove from cache and last used
+    keysToRemove.forEach((key) => {
+      geocodeCache.delete(key);
+      delete lastUsed[key];
+    });
+
+    // Save updated data
+    localStorage.setItem(LAST_USED_KEY, JSON.stringify(lastUsed));
+    saveCache();
+
+    console.log(`Cleaned up ${keysToRemove.length} unused map locations`);
+  } catch (error) {
+    console.warn("Failed to clean up unused locations:", error);
+  }
+};
+
+// Initialize cache when module loads
+initializeCache();
+
+// Set up periodic cleanup
+const CLEANUP_INTERVAL = 30 * 60 * 1000; // 30 minutes
+setInterval(() => {
+  cleanupExpiredCache();
+  if (geocodeCache.size > MAX_CACHE_SIZE * 0.8) {
+    cleanupUnusedLocations();
+  }
+}, CLEANUP_INTERVAL);

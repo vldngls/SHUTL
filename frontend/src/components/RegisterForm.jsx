@@ -663,7 +663,9 @@ const RegisterForm = ({ onClose, googleData }) => {
                   type="checkbox"
                   id="useGooglePicture"
                   checked={useGooglePicture}
-                  onChange={() => setUseGooglePicture(!useGooglePicture)}
+                  onChange={(e) => {
+                    setUseGooglePicture(e.target.checked);
+                  }}
                 />
                 <label htmlFor="useGooglePicture">
                   Use my Google profile picture as my account picture
@@ -739,7 +741,12 @@ const RegisterForm = ({ onClose, googleData }) => {
         <p className="auth-form-subtitle">Step {section} of 3</p>
 
         <form
-          onSubmit={section === 3 ? handleSubmit : (e) => e.preventDefault()}
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (section === 3) {
+              handleSubmit(e);
+            }
+          }}
           className="auth-form"
         >
           {renderSection()}

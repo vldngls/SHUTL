@@ -72,8 +72,24 @@ const setupSocket = (io, db) => {
     });
 
     socket.on("shuttle_location", (data) => {
-      const { shuttleId, coordinates, timestamp, metadata } = data;
+      const {
+        shuttleId,
+        coordinates,
+        timestamp,
+        speed,
+        heading,
+        accuracy,
+        streetName,
+      } = data;
       console.log("📍 Received shuttle location:", data);
+
+      // Create metadata object with all additional properties
+      const metadata = {
+        speed: speed || 0,
+        heading: heading || 0,
+        accuracy: accuracy,
+        streetName: streetName,
+      };
 
       // Store the location with metadata
       shuttleLocations.set(shuttleId, {
@@ -102,6 +118,10 @@ const setupSocket = (io, db) => {
         coordinates,
         timestamp,
         metadata,
+        // Include speed and heading directly in the top level for easier access
+        speed: speed || 0,
+        heading: heading || 0,
+        accuracy: accuracy,
       });
 
       // Also broadcast to all ShutlLoggedIn clients
@@ -110,13 +130,33 @@ const setupSocket = (io, db) => {
         coordinates,
         timestamp,
         metadata,
+        // Include speed and heading directly in the top level for easier access
+        speed: speed || 0,
+        heading: heading || 0,
+        accuracy: accuracy,
       });
     });
 
-    // Messaging system (from HEAD)
-    socket.on("message", (msg) => {
-      console.log("💬 Message received:", msg);
-      io.emit("message", msg);
+    // Chat Messaging within Rooms
+    socket.on("chat_message", ({ roomId, message }) => {
+      io.to(roomId).emit("chat_message", message);
+    });
+
+    // Handle messages from the client
+    socket.on("message", async (messageData) => {
+      console.log("💬 Message received:", messageData);
+
+      try {
+        // Extract roomId from the message data
+        const { roomId, ...messageWithoutRoomId } = messageData;
+
+        // Broadcast the message to all clients in the room
+        io.to(roomId).emit("message", messageWithoutRoomId);
+
+        // No need to save to database here as it's already done via HTTP endpoint
+      } catch (error) {
+        console.error("Error handling message:", error);
+      }
     });
 
     // Pickup requests
@@ -191,11 +231,6 @@ const setupSocket = (io, db) => {
     socket.on("leave_room", (roomId) => {
       socket.leave(roomId);
       console.log(`✅ Socket ${socket.id} left room ${roomId}`);
-    });
-
-    // Chat Messaging within Rooms
-    socket.on("chat_message", ({ roomId, message }) => {
-      io.to(roomId).emit("chat_message", message);
     });
 
     // SHUTL-Leb: User Status Updates (Commuters & Drivers/Tellers)

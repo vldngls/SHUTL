@@ -12,8 +12,10 @@ import { getCookie } from "../utils/cookieUtils";
 import PaymentQR from "../components/PaymentQR";
 import {
   connectSocket,
-  subscribeToLocationUpdates,
+  subscribeToEvent,
   joinShuttleTracking,
+  cleanupSocketService,
+  disconnectSocket,
 } from "../utils/websocketService";
 import { toast } from "react-hot-toast";
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
@@ -104,138 +106,206 @@ const ShutlLoggedIn = () => {
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
   const navigate = useNavigate();
 
+  // Add refs to track cleanup functions
+  const cleanupFunctionsRef = useRef([]);
+  const intervalsRef = useRef([]);
+
+  // Improved socket initialization
   useEffect(() => {
-    // Initialize socket connection
-    let cleanupFn = () => {};
+    let isMounted = true;
 
     const initializeSocket = async () => {
       try {
-        // Wait for socket connection
+        // Connect to socket
         const socketInstance = await connectSocket();
-        if (!socketInstance) {
-          toast.error(
-            "Unable to establish connection. Please refresh the page."
-          );
-          return;
-        }
+        if (!socketInstance || !isMounted) return;
 
         socket.current = socketInstance;
 
-        // Add socket event listeners for pickup request responses
-        socket.current.on("pickup_request_accepted", (data) => {
-          toast.success(
-            `Your pickup request for ${data.shuttleId} has been accepted!`,
-            {
+        // Subscribe to pickup request events
+        const pickupAcceptedCleanup = await subscribeToEvent(
+          "pickup_request_accepted",
+          (data) => {
+            toast.success(
+              `Your pickup request for ${data.shuttleId} has been accepted!`,
+              { duration: 2000 }
+            );
+          }
+        );
+
+        const pickupCompletedCleanup = await subscribeToEvent(
+          "pickup_request_completed",
+          () => {
+            toast(`Your pickup request has been completed.`, {
+              icon: "✅",
               duration: 2000,
-            }
-          );
-        });
+            });
+          }
+        );
 
-        socket.current.on("pickup_request_completed", () => {
-          toast(`Your pickup request has been completed.`, {
-            icon: "✅",
-            duration: 2000,
-          });
-        });
+        const pickupCancelledCleanup = await subscribeToEvent(
+          "pickup_request_cancelled",
+          () => {
+            toast(`Your pickup request has been cancelled.`, {
+              icon: "❌",
+              duration: 2000,
+            });
+          }
+        );
 
-        socket.current.on("pickup_request_cancelled", () => {
-          toast(`Your pickup request has been cancelled.`, {
-            icon: "❌",
-            duration: 2000,
-          });
-        });
+        // Subscribe to location updates with improved handler
+        const locationCleanup = await subscribeToEvent(
+          "shuttle_location",
+          (data) => {
+            if (!isMounted) return;
 
-        // Subscribe to location updates
-        const locationCleanup = await subscribeToLocationUpdates((data) => {
-          setShuttleLocations((prev) => ({
-            ...prev,
-            [data.shuttleId]: {
-              coordinates: data.coordinates || null,
-              lastUpdate: new Date(data.timestamp || Date.now()),
-              speed: data.metadata?.speed ?? 0,
-              heading: data.metadata?.heading ?? 0,
-              accuracy: data.metadata?.accuracy ?? 0,
-              isPredicted: false,
-              lastKnownCoordinates: data.coordinates || null,
-              lastKnownSpeed: data.metadata?.speed ?? 0,
-              lastKnownHeading: data.metadata?.heading ?? 0,
-            },
-          }));
-        });
+            setShuttleLocations((prev) => {
+              // Skip update if data is identical to prevent unnecessary re-renders
+              const existingData = prev[data.shuttleId];
+              if (
+                existingData &&
+                existingData.coordinates &&
+                data.coordinates &&
+                existingData.coordinates[0] === data.coordinates[0] &&
+                existingData.coordinates[1] === data.coordinates[1] &&
+                existingData.lastUpdate === data.timestamp
+              ) {
+                return prev;
+              }
+
+              return {
+                ...prev,
+                [data.shuttleId]: {
+                  coordinates: data.coordinates || null,
+                  lastUpdate: new Date(data.timestamp || Date.now()),
+                  speed: data.metadata?.speed ?? 0,
+                  heading: data.metadata?.heading ?? 0,
+                  accuracy: data.metadata?.accuracy ?? 0,
+                  isPredicted: false,
+                  lastKnownCoordinates: data.coordinates || null,
+                  lastKnownSpeed: data.metadata?.speed ?? 0,
+                  lastKnownHeading: data.metadata?.heading ?? 0,
+                },
+              };
+            });
+          }
+        );
+
+        // Also subscribe to location_update events
+        const locationUpdateCleanup = await subscribeToEvent(
+          "shuttle_location_update",
+          (data) => {
+            if (!isMounted) return;
+
+            setShuttleLocations((prev) => {
+              // Skip update if data is identical
+              const existingData = prev[data.shuttleId];
+              if (
+                existingData &&
+                existingData.coordinates &&
+                data.coordinates &&
+                existingData.coordinates[0] === data.coordinates[0] &&
+                existingData.coordinates[1] === data.coordinates[1] &&
+                existingData.lastUpdate === data.timestamp
+              ) {
+                return prev;
+              }
+
+              return {
+                ...prev,
+                [data.shuttleId]: {
+                  coordinates: data.coordinates || null,
+                  lastUpdate: new Date(data.timestamp || Date.now()),
+                  speed: data.metadata?.speed ?? 0,
+                  heading: data.metadata?.heading ?? 0,
+                  accuracy: data.metadata?.accuracy ?? 0,
+                  isPredicted: false,
+                  lastKnownCoordinates: data.coordinates || null,
+                  lastKnownSpeed: data.metadata?.speed ?? 0,
+                  lastKnownHeading: data.metadata?.heading ?? 0,
+                },
+              };
+            });
+          }
+        );
+
+        // Store cleanup functions
+        cleanupFunctionsRef.current.push(
+          pickupAcceptedCleanup,
+          pickupCompletedCleanup,
+          pickupCancelledCleanup,
+          locationCleanup,
+          locationUpdateCleanup
+        );
 
         // Fetch and track active shuttles
-        const fetchAndTrackShuttles = async () => {
-          try {
-            const token = getCookie("token");
-            const response = await fetch(
-              `${API_BASE_URL}/shuttle-assignments`,
-              {
-                method: "GET",
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  "Content-Type": "application/json",
-                },
-                credentials: "include",
-              }
-            );
-
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            const assignments = Array.isArray(data)
-              ? data
-              : data.assignments || [];
-
-            // Join tracking for each active shuttle
-            assignments.forEach((assignment) => {
-              if (assignment && assignment.shuttleId) {
-                joinShuttleTracking(assignment.shuttleId);
-              }
-            });
-          } catch (error) {
-            console.error("Error fetching shuttle assignments:", error);
-            toast.error("Failed to fetch shuttle assignments");
-          }
-        };
-
         await fetchAndTrackShuttles();
 
-        // Clean up stale locations every 10 seconds
+        // Clean up stale locations every 30 seconds
         const cleanupInterval = setInterval(() => {
+          if (!isMounted) return;
+
           setShuttleLocations((prev) => {
             const now = new Date();
             const updatedLocations = {};
+            let hasChanges = false;
 
             Object.entries(prev).forEach(([shuttleId, data]) => {
               const timeSinceUpdate = now - new Date(data.lastUpdate);
               if (timeSinceUpdate < 60000) {
                 updatedLocations[shuttleId] = data;
               } else {
+                hasChanges = true;
                 console.log(
                   `Removing stale location for ${shuttleId} after 1 minute`
                 );
               }
             });
 
-            return updatedLocations;
+            return hasChanges ? updatedLocations : prev;
           });
-        }, 10000);
+        }, 30000);
 
-        // Store the cleanup function
-        cleanupFn = () => {
-          clearInterval(cleanupInterval);
-          if (locationCleanup) locationCleanup();
-          if (socket.current) {
-            socket.current.off("pickup_request_accepted");
-            socket.current.off("pickup_request_completed");
-            socket.current.off("pickup_request_cancelled");
-          }
-        };
+        intervalsRef.current.push(cleanupInterval);
       } catch (error) {
         console.error("Socket connection error:", error);
-        toast.error("Failed to connect to server");
+        if (isMounted) {
+          toast.error("Failed to connect to server");
+        }
+      }
+    };
+
+    // Fetch and track shuttles function
+    const fetchAndTrackShuttles = async () => {
+      try {
+        const token = getCookie("token");
+        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const assignments = Array.isArray(data) ? data : data.assignments || [];
+
+        // Join tracking for each active shuttle
+        for (const assignment of assignments) {
+          if (assignment && assignment.shuttleId && isMounted) {
+            await joinShuttleTracking(assignment.shuttleId);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching shuttle assignments:", error);
+        if (isMounted) {
+          toast.error("Failed to fetch shuttle assignments");
+        }
       }
     };
 
@@ -244,15 +314,26 @@ const ShutlLoggedIn = () => {
 
     // Return cleanup function
     return () => {
-      cleanupFn();
+      isMounted = false;
+
+      // Clear all intervals
+      intervalsRef.current.forEach((interval) => clearInterval(interval));
+      intervalsRef.current = [];
+
+      // Execute all cleanup functions
+      cleanupFunctionsRef.current.forEach((cleanup) => {
+        if (typeof cleanup === "function") {
+          cleanup();
+        }
+      });
+      cleanupFunctionsRef.current = [];
     };
   }, []);
 
+  // Fetch user profile
   useEffect(() => {
-    console.log("Updated shuttle locations:", shuttleLocations);
-  }, [shuttleLocations]);
+    let isMounted = true;
 
-  useEffect(() => {
     const fetchUserProfile = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/userdata/me`, {
@@ -260,7 +341,7 @@ const ShutlLoggedIn = () => {
           credentials: "include",
         });
 
-        if (response.ok) {
+        if (response.ok && isMounted) {
           const data = await response.json();
           if (data.profilePicture) {
             setProfilePicture(data.profilePicture);
@@ -274,8 +355,13 @@ const ShutlLoggedIn = () => {
     };
 
     fetchUserProfile();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
+  // Update user location function
   const updateUserLocation = () => {
     if (!navigator.geolocation) {
       toast.error("Geolocation is not supported by your browser.");
@@ -296,40 +382,45 @@ const ShutlLoggedIn = () => {
       return;
     }
 
-    // Start watching location
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        const userCoords = [latitude, longitude];
-        setUserLocation(userCoords);
+    // Start watching location with error handling
+    try {
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const userCoords = [latitude, longitude];
+          setUserLocation(userCoords);
 
-        if (!hasShownToastRef.current) {
-          setIsLocationSharing(true);
-          hasShownToastRef.current = true;
-          toast.success("Location sharing started", {
-            icon: "📍",
-            duration: 2000,
-          });
-        }
+          if (!hasShownToastRef.current) {
+            setIsLocationSharing(true);
+            hasShownToastRef.current = true;
+            toast.success("Location sharing started", {
+              icon: "📍",
+              duration: 2000,
+            });
+          }
 
-        if (mapInstance) {
-          mapInstance.setView(userCoords, 15.5, { animate: true });
+          if (mapInstance) {
+            mapInstance.setView(userCoords, 15.5, { animate: true });
+          }
+        },
+        (error) => {
+          console.error("Location error:", error);
+          toast.error(`Location error: ${error.message}`);
+          setIsLocationSharing(false);
+          setUserLocation(null);
+          watchIdRef.current = null;
+          hasShownToastRef.current = false;
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
         }
-      },
-      (error) => {
-        console.error("Location error:", error);
-        toast.error(`Location error: ${error.message}`);
-        setIsLocationSharing(false);
-        setUserLocation(null);
-        watchIdRef.current = null;
-        hasShownToastRef.current = false;
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0,
-      }
-    );
+      );
+    } catch (error) {
+      console.error("Error setting up geolocation:", error);
+      toast.error("Failed to start location sharing");
+    }
   };
 
   // Clean up location watching on unmount
@@ -344,6 +435,7 @@ const ShutlLoggedIn = () => {
     };
   }, []);
 
+  // Date and time formatting
   const formattedDate = useMemo(() => {
     return dateTime.toLocaleDateString("en-PH", {
       weekday: "long",
@@ -362,12 +454,16 @@ const ShutlLoggedIn = () => {
     });
   }, [dateTime]);
 
+  // Profile settings handler
   const handleProfileSettings = () => {
     setIsProfileEditMode(true);
     setActivePopup("profile");
   };
 
+  // Fetch notifications
   useEffect(() => {
+    let isMounted = true;
+
     const fetchInitialNotifications = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/notifications/user`, {
@@ -376,7 +472,7 @@ const ShutlLoggedIn = () => {
           },
         });
 
-        if (response.ok) {
+        if (response.ok && isMounted) {
           const data = await response.json();
           setNotifications(data.slice(0, 5)); // Keep only 5 most recent notifications
         } else {
@@ -388,9 +484,13 @@ const ShutlLoggedIn = () => {
     };
 
     fetchInitialNotifications();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // Update the handlePickupRequest function
+  // Pickup request handler
   const handlePickupRequest = async (e, shuttleId) => {
     e.stopPropagation();
     if (!userLocation) {
@@ -412,22 +512,13 @@ const ShutlLoggedIn = () => {
         timestamp: new Date().toISOString(),
       };
 
-      if (!socket.current) {
-        try {
-          const socketInstance = await connectSocket();
-          if (!socketInstance) {
-            toast.error("Unable to establish connection. Please try again.");
-            return;
-          }
-          socket.current = socketInstance;
-        } catch (error) {
-          console.error("Socket connection error:", error);
-          toast.error("Failed to connect to server");
-          return;
-        }
+      const socketInstance = await connectSocket();
+      if (!socketInstance) {
+        toast.error("Unable to establish connection. Please try again.");
+        return;
       }
 
-      socket.current.emit("pickup_request", request);
+      socketInstance.emit("pickup_request", request);
       toast.success("Pickup request sent successfully!");
     } catch (error) {
       console.error("Error sending pickup request:", error);
@@ -435,117 +526,20 @@ const ShutlLoggedIn = () => {
     }
   };
 
-  // Add timer effect to update dateTime
+  // Update dateTime
   useEffect(() => {
     const timer = setInterval(() => {
       setDateTime(new Date());
     }, 1000);
 
-    // Cleanup timer on unmount
-    return () => clearInterval(timer);
-  }, []);
-
-  // Add prediction update effect
-  useEffect(() => {
-    // Function to update predicted positions
-    const updatePredictions = () => {
-      setShuttleLocations((prev) => {
-        const now = new Date();
-        const updatedLocations = { ...prev };
-        let hasUpdates = false;
-
-        Object.entries(prev).forEach(([shuttleId, data]) => {
-          const timeSinceUpdate = now - new Date(data.lastUpdate);
-
-          // Switch to prediction mode after 5 seconds of no updates
-          if (
-            timeSinceUpdate > 5000 &&
-            !data.isPredicted &&
-            data.lastKnownSpeed > 0
-          ) {
-            // Start prediction using last known values
-            const predictedPosition = predictNewPosition(
-              data.lastKnownCoordinates,
-              data.lastKnownSpeed,
-              data.lastKnownHeading,
-              timeSinceUpdate
-            );
-
-            if (predictedPosition) {
-              updatedLocations[shuttleId] = {
-                ...data,
-                coordinates: predictedPosition,
-                speed: data.lastKnownSpeed,
-                heading: data.lastKnownHeading,
-                isPredicted: true,
-              };
-              hasUpdates = true;
-            }
-          } else if (data.isPredicted && data.lastKnownSpeed > 0) {
-            // Continue prediction for already predicted locations
-            const predictedPosition = predictNewPosition(
-              data.coordinates,
-              data.lastKnownSpeed,
-              data.lastKnownHeading,
-              1000 // Update every second
-            );
-
-            if (predictedPosition) {
-              updatedLocations[shuttleId] = {
-                ...data,
-                coordinates: predictedPosition,
-                isPredicted: true,
-              };
-              hasUpdates = true;
-            }
-          }
-        });
-
-        return hasUpdates ? updatedLocations : prev;
-      });
-    };
-
-    // Update predictions every second for smooth movement
-    const predictionInterval = setInterval(updatePredictions, 1000);
+    intervalsRef.current.push(timer);
 
     return () => {
-      clearInterval(predictionInterval);
+      clearInterval(timer);
     };
   }, []);
 
-  // Helper function to calculate new position
-  const predictNewPosition = (coordinates, speed, heading, timeDelta) => {
-    if (!coordinates || !Array.isArray(coordinates) || speed <= 0) return null;
-
-    // Convert speed from km/h to meters per second
-    const speedMps = (speed * 1000) / 3600;
-
-    // Calculate distance traveled in meters
-    const distance = speedMps * (timeDelta / 1000);
-
-    // Convert heading to radians (heading is in degrees clockwise from north)
-    const headingRad = ((90 - heading) * Math.PI) / 180; // Adjust heading to match map orientation
-
-    // Current position
-    const lat = coordinates[0];
-    const lon = coordinates[1];
-
-    // Earth's radius in meters
-    const R = 6378137;
-
-    // Calculate new position using haversine formula
-    const dLat = (distance * Math.cos(headingRad)) / R;
-    const dLon =
-      (distance * Math.sin(headingRad)) / (R * Math.cos((lat * Math.PI) / 180));
-
-    // Convert back to degrees
-    const newLat = lat + (dLat * 180) / Math.PI;
-    const newLon = lon + (dLon * 180) / Math.PI;
-
-    return [Number(newLat.toFixed(6)), Number(newLon.toFixed(6))];
-  };
-
-  // Add toggle function for sidebar
+  // Toggle sidebar function
   const toggleSidebar = () => {
     if (window.innerWidth <= 480) {
       return; // Prevent expansion on mobile
@@ -553,7 +547,7 @@ const ShutlLoggedIn = () => {
     setIsSidebarExpanded(!isSidebarExpanded);
   };
 
-  // Add useEffect for click outside handling
+  // Click outside handling
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
@@ -564,6 +558,26 @@ const ShutlLoggedIn = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Final cleanup on component unmount
+  useEffect(() => {
+    return () => {
+      // Clear all intervals
+      intervalsRef.current.forEach((interval) => clearInterval(interval));
+      intervalsRef.current = [];
+
+      // Execute all cleanup functions
+      cleanupFunctionsRef.current.forEach((cleanup) => {
+        if (typeof cleanup === "function") {
+          cleanup();
+        }
+      });
+      cleanupFunctionsRef.current = [];
+
+      // Disconnect socket
+      disconnectSocket();
     };
   }, []);
 

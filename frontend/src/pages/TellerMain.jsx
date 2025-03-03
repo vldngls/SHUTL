@@ -16,6 +16,7 @@ import {
   disconnectSocket,
   joinShuttleTracking,
   getLocationUpdateInterval,
+  leaveChatRoom,
 } from "../utils/websocketService";
 import L from "leaflet";
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
@@ -46,9 +47,14 @@ const carIcon = new L.Icon({
 });
 
 const getTrafficCondition = (speed) => {
-  if (!speed || speed < 1) return { status: "Unknown", color: "gray" };
-  if (speed < 10) return { status: "Heavy Traffic", color: "red" };
-  if (speed < 20) return { status: "Moderate Traffic", color: "orange" };
+  // Ensure speed is a number
+  const numSpeed = Number(speed) || 0;
+
+  console.log("Calculating traffic condition for speed:", numSpeed);
+
+  if (numSpeed < 1) return { status: "Stationary", color: "gray" };
+  if (numSpeed < 10) return { status: "Heavy Traffic", color: "red" };
+  if (numSpeed < 20) return { status: "Moderate Traffic", color: "orange" };
   return { status: "Light Traffic", color: "green" };
 };
 
@@ -68,6 +74,8 @@ const TellerMain = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [currentRoom, setCurrentRoom] = useState(null);
 
   // Modal/Popup States
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -104,21 +112,22 @@ const TellerMain = () => {
 
   // Initialize socket and set up message subscription
   useEffect(() => {
-    const initializeSocket = async () => {
+    let socketCleanup;
+    let messageCleanup;
+
+    const initializeChat = async () => {
       try {
-        // Wait for socket connection
+        // Initialize socket connection
         const socketInstance = await connectSocket();
         if (!socketInstance) {
-          toast.error(
-            "Unable to establish connection. Please refresh the page."
-          );
+          console.error("Failed to connect socket");
           return;
         }
-
         socket.current = socketInstance;
+        setIsConnected(true);
 
         // Subscribe to messages with error handling
-        const messageCleanup = await subscribeToMessages((message) => {
+        messageCleanup = await subscribeToMessages((message) => {
           setMessages((prev) => [...prev, message]);
         });
 
@@ -151,7 +160,7 @@ const TellerMain = () => {
 
         // Subscribe to location updates with enhanced logging and validation
         const locationCleanup = await subscribeToLocationUpdates((data) => {
-          console.log("Received location update:", data);
+          console.log("TellerMain received location update:", data);
 
           // Validate incoming data
           if (!data || !data.shuttleId || !data.coordinates) {
@@ -173,6 +182,44 @@ const TellerMain = () => {
             return;
           }
 
+          // Extract speed and heading from the data
+          // The server might be restructuring the data, so we need to check multiple places
+          let speed = 0;
+          let heading = 0;
+          let accuracy = undefined;
+
+          // Check if speed/heading are directly in the data object
+          if (typeof data.speed === "number") {
+            speed = data.speed;
+            console.log("Found speed in top-level data:", speed);
+          }
+          if (typeof data.heading === "number") {
+            heading = data.heading;
+          }
+          if (typeof data.accuracy === "number") {
+            accuracy = data.accuracy;
+          }
+
+          // Check if they're in the metadata object
+          if (data.metadata) {
+            if (typeof data.metadata.speed === "number") {
+              speed = data.metadata.speed;
+              console.log("Found speed in metadata:", speed);
+            }
+            if (typeof data.metadata.heading === "number") {
+              heading = data.metadata.heading;
+            }
+            if (typeof data.metadata.accuracy === "number") {
+              accuracy = data.metadata.accuracy;
+            }
+          }
+
+          console.log("Final extracted speed data:", {
+            speed,
+            heading,
+            accuracy,
+          });
+
           setShuttleLocations((prev) => {
             const now = new Date();
             const newLocations = { ...prev };
@@ -181,15 +228,30 @@ const TellerMain = () => {
             // Check if this is a new shuttle or an update
             const isNewShuttle = !newLocations[shuttleId];
 
+            // Log the incoming data for debugging
+            console.log("Processing location update for shuttle", shuttleId, {
+              coordinates: data.coordinates,
+              speed,
+              heading,
+              accuracy,
+            });
+
             // Update the location for this shuttle
             newLocations[shuttleId] = {
               coordinates: data.coordinates,
               lastUpdate: now,
-              speed: data.metadata?.speed || 0,
-              heading: data.metadata?.heading || 0,
-              accuracy: data.metadata?.accuracy,
+              speed,
+              heading,
+              accuracy,
               status: "online",
             };
+
+            // Log the processed shuttle data
+            console.log(
+              "Updated shuttle data:",
+              shuttleId,
+              newLocations[shuttleId]
+            );
 
             if (isNewShuttle) {
               console.log(`New shuttle ${shuttleId} added to tracking`);
@@ -248,61 +310,33 @@ const TellerMain = () => {
         }, LOCATION_UPDATE_INTERVAL);
 
         // Set up socket event listeners
-        socketInstance.on("new_notification", (notification) => {
-          setNotifications((prev) => {
-            const updatedNotifications = [notification, ...prev];
-            return updatedNotifications.slice(0, 5);
-          });
-          setActivePopup("notifications");
-          setTimeout(() => {
-            setActivePopup((current) =>
-              current === "notifications" ? null : current
-            );
-          }, 5000);
+        socketInstance.on("connect", () => {
+          console.log("Socket connected");
+          setIsConnected(true);
         });
 
-        // Handle connection errors
-        socketInstance.on("connect_error", (error) => {
-          console.error("Socket connection error:", error);
-          toast.error("Connection error. Attempting to reconnect...");
+        socketInstance.on("disconnect", () => {
+          console.log("Socket disconnected");
+          setIsConnected(false);
+          toast.warning(
+            "Lost connection to server. Attempting to reconnect..."
+          );
         });
 
-        // Handle disconnections
-        socketInstance.on("disconnect", (reason) => {
-          console.log("Socket disconnected:", reason);
-          if (reason === "io server disconnect") {
-            toast.error("Disconnected from server. Please refresh the page.");
-          } else {
-            toast.warning("Connection lost. Attempting to reconnect...");
+        socketInstance.on("reconnect", () => {
+          console.log("Socket reconnected");
+          setIsConnected(true);
+          toast.success("Reconnected to server!");
+        });
 
-            // Mark all shuttles as offline when connection is lost
-            setShuttleLocations((prev) => {
-              const newLocations = { ...prev };
-              let changes = false;
-
-              Object.entries(newLocations).forEach(([id, data]) => {
-                if (data.status !== "offline") {
-                  newLocations[id] = {
-                    ...data,
-                    status: "offline",
-                  };
-                  changes = true;
-                }
-              });
-
-              return changes ? newLocations : prev;
-            });
+        socketCleanup = () => {
+          if (socketInstance) {
+            socketInstance.off("connect");
+            socketInstance.off("disconnect");
+            socketInstance.off("reconnect");
+            disconnectSocket();
           }
-        });
-
-        // Handle successful reconnection
-        socketInstance.on("reconnect", (attemptNumber) => {
-          console.log("Socket reconnected after", attemptNumber, "attempts");
-          toast.success("Connection restored!");
-
-          // Re-join all shuttle tracking rooms
-          fetchAndTrackShuttles();
-        });
+        };
 
         // Add viewport height fix for mobile browsers
         const setVH = () => {
@@ -318,22 +352,19 @@ const TellerMain = () => {
           clearInterval(cleanupInterval);
           messageCleanup();
           locationCleanup();
-          if (socketInstance) {
-            socketInstance.off("new_notification");
-            socketInstance.off("connect_error");
-            socketInstance.off("disconnect");
-            socketInstance.off("reconnect");
+          if (socketCleanup) {
+            socketCleanup();
           }
           window.removeEventListener("resize", setVH);
           window.removeEventListener("orientationchange", setVH);
         };
       } catch (error) {
-        console.error("Error initializing socket:", error);
-        toast.error("Failed to establish connection. Please refresh the page.");
+        console.error("Error initializing chat:", error);
+        toast.error("Failed to initialize chat connection");
       }
     };
 
-    initializeSocket();
+    initializeChat();
   }, []);
 
   // Add this useEffect after the socket initialization useEffect
@@ -416,8 +447,53 @@ const TellerMain = () => {
     setActivePopup(activePopup === "notifications" ? null : "notifications");
   };
   const toggleSummary = () => setIsSummaryOpen(!isSummaryOpen);
-  const openTripForm = () => setIsTripFormOpen(true);
-  const closeTripForm = () => setIsTripFormOpen(false);
+  const toggleTripForm = () => setIsTripFormOpen(!isTripFormOpen);
+  const toggleSidebar = (e) => {
+    if (e) {
+      e.stopPropagation(); // Prevent event bubbling
+    }
+
+    // Prevent expansion on mobile devices
+    if (window.innerWidth <= 480) {
+      return;
+    }
+
+    console.log("Toggling sidebar, current state:", isSidebarExpanded);
+
+    // Use callback form to ensure we're working with the latest state
+    setIsSidebarExpanded((prevState) => {
+      const newState = !prevState;
+      console.log("Setting sidebar expanded from", prevState, "to", newState);
+
+      // If we're collapsing the sidebar, also close settings
+      if (prevState && !newState) {
+        setIsSettingsOpen(false);
+      }
+
+      return newState;
+    });
+  };
+
+  // Add useEffect for click outside handling
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+        setIsSidebarExpanded(false);
+        // Also close settings dropdown when sidebar is closed by clicking outside
+        setIsSettingsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Add a useEffect to log sidebar state changes
+  useEffect(() => {
+    console.log("Sidebar expanded state changed:", isSidebarExpanded);
+  }, [isSidebarExpanded]);
 
   const handleSendMessage = (newMessage) => {
     const tellerMessage = { sender: "Teller", text: newMessage };
@@ -487,60 +563,12 @@ const TellerMain = () => {
         toggleSummary();
         break;
       case "trip":
-        openTripForm();
+        toggleTripForm();
         break;
       default:
         break;
     }
   };
-
-  // Add toggle function for sidebar
-  const toggleSidebar = (e) => {
-    if (e) {
-      e.stopPropagation(); // Prevent event bubbling
-    }
-
-    // Prevent expansion on mobile devices
-    if (window.innerWidth <= 480) {
-      return;
-    }
-
-    console.log("Toggling sidebar, current state:", isSidebarExpanded);
-
-    // Use callback form to ensure we're working with the latest state
-    setIsSidebarExpanded((prevState) => {
-      const newState = !prevState;
-      console.log("Setting sidebar expanded from", prevState, "to", newState);
-
-      // If we're collapsing the sidebar, also close settings
-      if (prevState && !newState) {
-        setIsSettingsOpen(false);
-      }
-
-      return newState;
-    });
-  };
-
-  // Add useEffect for click outside handling
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
-        setIsSidebarExpanded(false);
-        // Also close settings dropdown when sidebar is closed by clicking outside
-        setIsSettingsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  // Add a useEffect to log sidebar state changes
-  useEffect(() => {
-    console.log("Sidebar expanded state changed:", isSidebarExpanded);
-  }, [isSidebarExpanded]);
 
   // Add formatted date and time
   const formattedDate = useMemo(() => {
@@ -581,6 +609,12 @@ const TellerMain = () => {
             if (!data || !data.coordinates) return null;
 
             const trafficCondition = getTrafficCondition(data.speed || 0);
+            console.log(`Shuttle ${shuttleId} display data:`, {
+              speed: data.speed,
+              trafficCondition,
+              status: data.status,
+            });
+
             const isOffline = data.status === "offline";
 
             const shuttleIcon = new L.Icon({
@@ -615,10 +649,20 @@ const TellerMain = () => {
                         {isOffline ? "Offline" : "Online"}
                       </span>
                     </p>
-                    <p>Speed: {(data.speed || 0).toFixed(1)} km/h</p>
+                    <p>
+                      Speed:{" "}
+                      <span style={{ fontWeight: "bold" }}>
+                        {(data.speed || 0).toFixed(1)} km/h
+                      </span>
+                    </p>
                     <p>
                       Traffic:{" "}
-                      <span style={{ color: trafficCondition.color }}>
+                      <span
+                        style={{
+                          color: trafficCondition.color,
+                          fontWeight: "bold",
+                        }}
+                      >
                         {trafficCondition.status}
                       </span>
                     </p>
@@ -651,9 +695,11 @@ const TellerMain = () => {
         userType="teller"
         isExpanded={isSidebarExpanded}
         onToggle={toggleSidebar}
-        onProfileClick={toggleProfilePopup}
-        onMessageClick={() => setIsMessageBoxOpen(true)}
+        onProfileClick={toggleProfile}
+        onMessageClick={toggleMessageBox}
         onNotificationClick={toggleNotification}
+        onSummaryClick={toggleSummary}
+        onTripClick={toggleTripForm}
         profileImage={profileImage}
         notifications={notifications}
         onSettingsClick={() => {
@@ -718,10 +764,15 @@ const TellerMain = () => {
       )}
 
       {/* Summary Modal */}
-      {isSummaryOpen && <TellerSummary onClose={toggleSummary} />}
+      {isSummaryOpen && (
+        <TellerSummary
+          onClose={toggleSummary}
+          shuttleLocations={shuttleLocations}
+        />
+      )}
 
       {/* Trip Tracking Modal */}
-      {isTripFormOpen && <ShuttleTripTracking onClose={closeTripForm} />}
+      {isTripFormOpen && <ShuttleTripTracking onClose={toggleTripForm} />}
 
       {/* Message Box */}
       {isMessageBoxOpen && (

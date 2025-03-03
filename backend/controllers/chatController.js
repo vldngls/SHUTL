@@ -1,25 +1,25 @@
-import ChatRoom from '../models/chat.model.js';
-import User from '../models/user.model.js';
+import ChatRoom from "../models/chat.model.js";
+import User from "../models/user.model.js";
 
 export const initializeChatRooms = async (req, res) => {
   try {
     const existingRoom = await ChatRoom.findOne({ isGlobalRoom: true });
-    
+
     if (!existingRoom) {
       const globalRoom = new ChatRoom({
         isGlobalRoom: true,
-        messages: []
+        messages: [],
       });
-      
+
       await globalRoom.save();
-      console.log('Created global chat room:', globalRoom._id);
+      console.log("Created global chat room:", globalRoom._id);
       return res.json(globalRoom);
     }
-    
-    console.log('Found existing global room:', existingRoom._id);
+
+    console.log("Found existing global room:", existingRoom._id);
     return res.json(existingRoom);
   } catch (error) {
-    console.error('Error in initializeChatRooms:', error);
+    console.error("Error in initializeChatRooms:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -28,16 +28,16 @@ export const initializeChatRooms = async (req, res) => {
 export const getChatRoom = async (req, res) => {
   try {
     const { driverEmail, tellerEmail } = req.query;
-    
+
     let chatRoom = await ChatRoom.findOne({
-      'driver.email': driverEmail,
-      'teller.email': tellerEmail
+      "driver.email": driverEmail,
+      "teller.email": tellerEmail,
     });
 
     if (!chatRoom) {
       chatRoom = new ChatRoom({
         driver: { email: driverEmail },
-        teller: { email: tellerEmail }
+        teller: { email: tellerEmail },
       });
       await chatRoom.save();
     }
@@ -52,12 +52,12 @@ export const getChatRoom = async (req, res) => {
 export const getUserChatRooms = async (req, res) => {
   try {
     const { email, userType } = req.query;
-    console.log('Getting chat rooms for:', { email, userType });
+    console.log("Getting chat rooms for:", { email, userType });
 
     const globalRoom = await ChatRoom.findOne({ isGlobalRoom: true });
     res.json(globalRoom ? [globalRoom] : []);
   } catch (error) {
-    console.error('Error in getUserChatRooms:', error);
+    console.error("Error in getUserChatRooms:", error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -66,23 +66,37 @@ export const getUserChatRooms = async (req, res) => {
 export const addMessage = async (req, res) => {
   try {
     const { roomId, message } = req.body;
-    
+
     if (!roomId || !message) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({ error: "Missing required fields" });
     }
+
+    console.log("Adding message to room:", roomId, "Message:", message);
 
     const chatRoom = await ChatRoom.findById(roomId);
     if (!chatRoom) {
-      return res.status(404).json({ error: 'Chat room not found' });
+      return res.status(404).json({ error: "Chat room not found" });
     }
 
+    // Add the message to the messages array
     chatRoom.messages.push(message);
+
+    // Update the lastMessage timestamp
     chatRoom.lastMessage = new Date();
+
+    // Save the updated chat room
     await chatRoom.save();
 
+    console.log(
+      "Message added successfully, room now has",
+      chatRoom.messages.length,
+      "messages"
+    );
+
+    // Return the updated chat room
     res.json(chatRoom);
   } catch (error) {
-    console.error('Error in addMessage:', error);
+    console.error("Error in addMessage:", error);
     res.status(500).json({ error: error.message });
   }
-}; 
+};

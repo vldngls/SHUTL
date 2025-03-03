@@ -1,23 +1,47 @@
-import React, { useEffect, Suspense } from "react";
+import React, { useEffect, Suspense, lazy } from "react";
 import { Route, Routes } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import { MemoryMonitor } from "./utils/memoryMonitor";
+import {
+  startMemoryMonitoring,
+  takeMemorySnapshot,
+  formatMemoryUsage,
+  logMemoryTrend,
+  cleanupMemoryMonitor,
+} from "./utils/memoryMonitor";
+import { cleanupImageOptimizer } from "./utils/imageOptimizer";
 import ProtectedRoute from "./components/ProtectedRoute";
-import ResetPassword from "./components/ResetPassword";
+import { cleanupSocketService } from "./utils/websocketService";
 // import { MemoryMonitoringDashboard } from "./components/MemoryMonitoringDashboard";
 
-// Lazy load components
-const SplashScreen = React.lazy(() => import("./pages/SplashScreen"));
-const ShutlIntro = React.lazy(() => import("./pages/Intro"));
-const ShutlLoggedOut = React.lazy(() => import("./pages/ShutlLoggedOut"));
-const LoginForm = React.lazy(() => import("./components/LoginForm"));
-const ShutlLoggedIn = React.lazy(() => import("./pages/ShutlLoggedIn"));
-const DriverMain = React.lazy(() => import("./pages/DriverMain"));
-const AdministratorMain = React.lazy(() => import("./pages/AdministratorMain"));
-const TellerMain = React.lazy(() => import("./pages/TellerMain"));
-const NotFound = React.lazy(() => import("./pages/NotFound"));
+// Implement more granular code splitting with prefetching
+const SplashScreen = lazy(() =>
+  import(/* webpackPrefetch: true */ "./pages/SplashScreen")
+);
+const ShutlIntro = lazy(() =>
+  import(/* webpackPrefetch: true */ "./pages/Intro")
+);
+const ShutlLoggedOut = lazy(() =>
+  import(/* webpackPrefetch: true */ "./pages/ShutlLoggedOut")
+);
+const LoginForm = lazy(() =>
+  import(/* webpackPrefetch: true */ "./components/LoginForm")
+);
+const ShutlLoggedIn = lazy(() =>
+  import(/* webpackPrefetch: true */ "./pages/ShutlLoggedIn")
+);
+const DriverMain = lazy(() =>
+  import(/* webpackPrefetch: true */ "./pages/DriverMain")
+);
+const AdministratorMain = lazy(() =>
+  import(/* webpackPrefetch: true */ "./pages/AdministratorMain")
+);
+const TellerMain = lazy(() =>
+  import(/* webpackPrefetch: true */ "./pages/TellerMain")
+);
+const NotFound = lazy(() => import("./pages/NotFound"));
+const ResetPassword = lazy(() => import("./components/ResetPassword"));
 
-// Loading component
+// Improved loading component with progress indication
 const LoadingSpinner = () => (
   <div
     style={{
@@ -26,18 +50,23 @@ const LoadingSpinner = () => (
       alignItems: "center",
       height: "100vh",
       backgroundColor: "#f5f5f5",
+      flexDirection: "column",
     }}
   >
     <div
       style={{
-        width: "50px",
-        height: "50px",
-        border: "5px solid #f3f3f3",
-        borderTop: "5px solid #232323",
+        width: "60px",
+        height: "60px",
+        border: "6px solid #f3f3f3",
+        borderTop: "6px solid #232323",
         borderRadius: "50%",
         animation: "spin 1s linear infinite",
+        marginBottom: "20px",
       }}
     ></div>
+    <p style={{ fontFamily: "Arial, sans-serif", color: "#232323" }}>
+      Loading...
+    </p>
     <style>{`
       @keyframes spin {
         0% { transform: rotate(0deg); }
@@ -48,10 +77,51 @@ const LoadingSpinner = () => (
 );
 
 function App() {
+  // Preload critical components after initial render
   useEffect(() => {
-    const monitorId = MemoryMonitor.startMonitoring();
+    const preloadComponents = async () => {
+      // Preload components that are likely to be used soon
+      const preloadPromises = [
+        import("./pages/ShutlLoggedIn"),
+        import("./components/LoginForm"),
+      ];
+
+      try {
+        await Promise.all(preloadPromises);
+        console.log("Critical components preloaded successfully");
+      } catch (error) {
+        console.error("Error preloading components:", error);
+      }
+    };
+
+    // Start preloading after a short delay to prioritize initial render
+    const preloadTimeout = setTimeout(preloadComponents, 2000);
+
+    // Start memory monitoring with a more frequent interval (20 seconds)
+    startMemoryMonitoring(20000, true); // Enable leak detection
+
+    // Log initial memory usage
+    const initialSnapshot = takeMemorySnapshot();
+    if (initialSnapshot) {
+      console.log("Initial memory usage:", formatMemoryUsage(initialSnapshot));
+    }
+
+    // Setup periodic memory trend reporting
+    const trendReportInterval = setInterval(() => {
+      logMemoryTrend();
+    }, 60000); // Report every minute
+
     return () => {
-      clearInterval(monitorId);
+      // Clean up all resources
+      cleanupMemoryMonitor();
+      cleanupImageOptimizer();
+      cleanupSocketService();
+
+      // Clear intervals and timeouts
+      clearInterval(trendReportInterval);
+      clearTimeout(preloadTimeout);
+
+      console.log("All resources cleaned up on app unmount");
     };
   }, []);
 

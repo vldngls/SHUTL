@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import "../css/DriverMessage.css";
 import { FaPhoneAlt, FaArrowDown } from "react-icons/fa"; // Import the down arrow icon
 import {
@@ -6,12 +12,14 @@ import {
   joinChatRoom,
   leaveChatRoom,
   subscribeToMessages,
+  sendMessage as socketSendMessage,
 } from "../utils/websocketService";
 import {
   getChatRooms,
   sendChatMessage,
   initializeChatRooms,
 } from "../utils/chatService";
+import { toast } from "react-hot-toast";
 
 const DriverMessage = ({ onClose }) => {
   const [messages, setMessages] = useState([]);
@@ -20,130 +28,251 @@ const DriverMessage = ({ onClose }) => {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [chatRooms, setChatRooms] = useState([]);
   const [currentRoom, setCurrentRoom] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState("connecting");
+  const [isInitializing, setIsInitializing] = useState(true);
   const messageListRef = useRef(null);
   const lastMessageCountRef = useRef(messages.length);
   const socket = useRef(null);
   const cleanupRef = useRef(null);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const SOCKET_URL = API_BASE_URL.replace("/api", "");
-  const [userRole, setUserRole] = useState("Driver");
+  const userRole = useMemo(() => "Driver", []);
 
-  useEffect(() => {
-    const initializeChat = async () => {
+  // Memoize quick replies to prevent unnecessary re-renders
+  const quickReplies = useMemo(
+    () => [
+      "I'm on my way",
+      "Running late",
+      "Almost there",
+      "At the location",
+      "Send location",
+    ],
+    []
+  );
+
+  // Optimize initialization with useCallback
+  const initializeChat = useCallback(async () => {
+    try {
+      console.log("Initializing chat in DriverMessage component");
+
+      // Set a timeout to show loading state for at least 300ms to avoid flashing
+      const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 300));
+
+      // Initialize socket connection
+      const socketPromise = connectSocket();
+
+      // Wait for both the minimum loading time and socket connection
+      const [socketInstance] = await Promise.all([
+        socketPromise,
+        minLoadingTime,
+      ]);
+
+      if (!socketInstance) {
+        console.error("Failed to connect socket");
+        setConnectionStatus("disconnected");
+        toast.error("Failed to connect to chat server");
+        setIsInitializing(false);
+        return;
+      }
+
+      console.log("Socket connected successfully in DriverMessage");
+      socket.current = socketInstance;
+      setIsConnected(true);
+      setConnectionStatus("connected");
+
+      const token = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("token="))
+        ?.split("=")[1];
+      if (!token) {
+        console.error("No token found");
+        toast.error("Authentication error. Please log in again.");
+        setIsInitializing(false);
+        return;
+      }
+
+      // Try to get cached rooms first for immediate display
+      const cachedRooms = localStorage.getItem("chatRooms");
+      let globalRoom = null;
+
+      if (cachedRooms) {
+        try {
+          const parsedRooms = JSON.parse(cachedRooms);
+          if (parsedRooms && parsedRooms.length > 0) {
+            console.log("Using cached chat rooms:", parsedRooms);
+            setChatRooms(parsedRooms);
+            globalRoom = parsedRooms[0];
+            setCurrentRoom(globalRoom._id);
+            setMessages(globalRoom.messages || []);
+
+            // Join the room
+            await joinChatRoom(globalRoom._id);
+            console.log("Joined global room from cache:", globalRoom._id);
+
+            // We can finish initializing now and fetch fresh data in the background
+            setIsInitializing(false);
+          }
+        } catch (error) {
+          console.error("Error parsing cached rooms:", error);
+        }
+      }
+
+      // Decode token in parallel with other operations
+      let decodedToken;
       try {
-        // Initialize socket connection
-        const socketInstance = await connectSocket();
-        if (!socketInstance) {
-          console.error("Failed to connect socket");
-          return;
-        }
-        socket.current = socketInstance;
-
-        const token = document.cookie
-          .split("; ")
-          .find((row) => row.startsWith("token="))
-          ?.split("=")[1];
-        if (!token) {
-          console.error("No token found");
-          return;
-        }
-
-        const decodedToken = JSON.parse(atob(token.split(".")[1]));
+        decodedToken = JSON.parse(atob(token.split(".")[1]));
         console.log("Decoded token:", decodedToken);
-
-        let rooms = await getChatRooms(
-          decodedToken.email,
-          decodedToken.userType
-        );
-        console.log("Fetched chat rooms:", rooms);
-
-        if (rooms.length === 0) {
-          console.log("No chat rooms found, initializing...");
-          await initializeChatRooms();
-          rooms = await getChatRooms(decodedToken.email, decodedToken.userType);
-        }
-
-        if (rooms.length > 0) {
-          const globalRoom = rooms[0];
-          setChatRooms([globalRoom]);
-          setCurrentRoom(globalRoom._id);
-          setMessages(globalRoom.messages || []);
-
-          // Join the room using the websocketService function
-          await joinChatRoom(globalRoom._id);
-          console.log("Joined global room:", globalRoom._id);
-
-          // Set up message subscription
-          const cleanup = await subscribeToMessages((message) => {
-            console.log("Received message:", message);
-            setMessages((prev) => {
-              // Check if message already exists
-              const messageExists = prev.some(
-                (m) =>
-                  m.content === message.content &&
-                  m.sender.email === message.sender.email &&
-                  new Date(m.timestamp).getTime() ===
-                    new Date(message.timestamp).getTime()
-              );
-
-              if (messageExists) return prev;
-
-              const newMessages = [...prev, message];
-              // Scroll to bottom after messages update
-              setTimeout(scrollToBottom, 100);
-              return newMessages;
-            });
-          });
-
-          cleanupRef.current = cleanup;
-        }
-      } catch (error) {
-        console.error("Error initializing chat:", error);
-      }
-    };
-
-    initializeChat();
-
-    // Cleanup function
-    return () => {
-      try {
-        if (currentRoom) {
-          leaveChatRoom(currentRoom);
-        }
-        if (cleanupRef.current) {
-          cleanupRef.current();
-        }
-        if (socket.current) {
-          socket.current.disconnect();
-        }
-      } catch (error) {
-        console.error("Error during cleanup:", error);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    const token = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("token="))
-      ?.split("=")[1];
-
-    if (token) {
-      try {
-        const decodedToken = JSON.parse(atob(token.split(".")[1]));
-        setUserRole(decodedToken.role);
       } catch (error) {
         console.error("Error decoding token:", error);
+        setIsInitializing(false);
+        return;
       }
+
+      // Fetch fresh rooms in the background
+      getChatRooms(decodedToken.email, decodedToken.userType)
+        .then((rooms) => {
+          console.log("Fetched chat rooms:", rooms);
+
+          if (rooms.length === 0) {
+            console.log("No chat rooms found, initializing...");
+            return initializeChatRooms().then(() =>
+              getChatRooms(decodedToken.email, decodedToken.userType)
+            );
+          }
+          return rooms;
+        })
+        .then((rooms) => {
+          if (rooms.length > 0) {
+            // Cache rooms for future use
+            localStorage.setItem("chatRooms", JSON.stringify(rooms));
+
+            setChatRooms(rooms);
+            const freshGlobalRoom = rooms[0];
+            setCurrentRoom(freshGlobalRoom._id);
+            setMessages(freshGlobalRoom.messages || []);
+
+            // Only join the room if we haven't already joined from cache
+            if (!globalRoom || globalRoom._id !== freshGlobalRoom._id) {
+              joinChatRoom(freshGlobalRoom._id);
+              console.log("Joined global room:", freshGlobalRoom._id);
+            }
+
+            // If we haven't finished initializing yet, do it now
+            if (isInitializing) {
+              setIsInitializing(false);
+            }
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching chat rooms:", error);
+          if (isInitializing) {
+            setIsInitializing(false);
+          }
+        });
+
+      // Set up message subscription with optimized duplicate detection
+      const messageCleanup = await subscribeToMessages((message) => {
+        console.log("Received message:", message);
+        setMessages((prev) => {
+          // Check if message already exists by comparing content, sender and timestamp
+          const messageExists = prev.some(
+            (m) =>
+              m.content === message.content &&
+              m.sender.email === message.sender.email &&
+              Math.abs(
+                new Date(m.timestamp).getTime() -
+                  new Date(message.timestamp).getTime()
+              ) < 1000 // Within 1 second
+          );
+
+          if (messageExists) {
+            console.log("Duplicate message detected, ignoring");
+            return prev;
+          }
+
+          const newMessages = [...prev, message];
+          // Scroll to bottom after messages update
+          setTimeout(scrollToBottom, 100);
+          return newMessages;
+        });
+      });
+
+      // Set up socket event listeners
+      socketInstance.on("connect", () => {
+        console.log("Socket connected in DriverMessage");
+        setIsConnected(true);
+        setConnectionStatus("connected");
+        toast.success("Chat connection restored");
+
+        // Rejoin the room after reconnection
+        if (globalRoom && globalRoom._id) {
+          joinChatRoom(globalRoom._id);
+        }
+      });
+
+      socketInstance.on("disconnect", () => {
+        console.log("Socket disconnected in DriverMessage");
+        setIsConnected(false);
+        setConnectionStatus("disconnected");
+        toast.warning("Chat connection lost. Attempting to reconnect...");
+      });
+
+      socketInstance.on("reconnect", () => {
+        console.log("Socket reconnected in DriverMessage");
+        setIsConnected(true);
+        setConnectionStatus("connected");
+        toast.success("Chat connection restored");
+
+        // Rejoin the room after reconnection
+        if (globalRoom && globalRoom._id) {
+          joinChatRoom(globalRoom._id);
+        }
+      });
+
+      cleanupRef.current = () => {
+        try {
+          console.log("Cleaning up socket event listeners in DriverMessage");
+          socketInstance.off("connect");
+          socketInstance.off("disconnect");
+          socketInstance.off("reconnect");
+          if (messageCleanup) messageCleanup();
+        } catch (error) {
+          console.error("Error during socket cleanup:", error);
+        }
+      };
+
+      // If we haven't already set isInitializing to false, do it now
+      if (isInitializing) {
+        setIsInitializing(false);
+      }
+    } catch (error) {
+      console.error("Error initializing chat:", error);
+      toast.error("Failed to initialize chat. Please try again later.");
+      setIsInitializing(false);
     }
-  }, []);
+  }, [isInitializing]);
+
+  // Initialize chat on mount
+  useEffect(() => {
+    initializeChat();
+
+    return () => {
+      if (cleanupRef.current) {
+        cleanupRef.current();
+      }
+      if (currentRoom) {
+        leaveChatRoom(currentRoom);
+      }
+    };
+  }, [initializeChat]);
 
   const handleInputChange = (e) => {
     setNewMessage(e.target.value);
   };
 
   const handleSendClick = async () => {
-    if (isSending || !newMessage.trim() || !currentRoom) return;
+    if (isSending || !newMessage.trim() || !currentRoom || !isConnected) return;
 
     try {
       setIsSending(true);
@@ -162,19 +291,29 @@ const DriverMessage = ({ onClose }) => {
         timestamp: new Date().toISOString(),
       };
 
-      // Send message to server
+      console.log("Sending message:", messageData);
+
+      // First send via HTTP to ensure database persistence
       await sendChatMessage(currentRoom, messageData);
 
-      // Add message to local state immediately for instant feedback
-      setMessages((prev) => [...prev, messageData]);
+      // Then send via socket for real-time updates to other users
+      // Don't include roomId in the socket message as it's sent separately
+      await socketSendMessage({
+        ...messageData,
+        roomId: currentRoom,
+      });
 
-      // Clear input
+      // Clear input immediately for better UX
       setNewMessage("");
+
+      // Don't add to local state here - it will come back through the socket subscription
+      // This prevents duplicates
 
       // Scroll to bottom
       setTimeout(scrollToBottom, 100);
     } catch (error) {
       console.error("Error sending message:", error);
+      toast.error("Failed to send message. Please try again.");
     } finally {
       setIsSending(false);
     }
@@ -196,9 +335,12 @@ const DriverMessage = ({ onClose }) => {
   // Scroll to bottom when messages change
   useEffect(() => {
     if (messageListRef.current) {
-      messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+      const { scrollTop, scrollHeight, clientHeight } = messageListRef.current;
+      const isScrolledToBottom = scrollHeight - scrollTop - clientHeight < 50;
 
-      if (messages.length > lastMessageCountRef.current) {
+      if (isScrolledToBottom || messages.length > lastMessageCountRef.current) {
+        scrollToBottom();
+      } else {
         setShowScrollButton(true);
       }
 
@@ -209,7 +351,9 @@ const DriverMessage = ({ onClose }) => {
   const handleScroll = () => {
     if (messageListRef.current) {
       const { scrollTop, clientHeight, scrollHeight } = messageListRef.current;
-      setShowScrollButton(scrollTop + clientHeight < scrollHeight);
+      const isScrolledToBottom =
+        Math.abs(scrollHeight - scrollTop - clientHeight) < 50;
+      setShowScrollButton(!isScrolledToBottom);
     }
   };
 
@@ -236,9 +380,10 @@ const DriverMessage = ({ onClose }) => {
   };
 
   const handleQuickReplyClick = async (replyText) => {
-    if (!currentRoom || !socket.current) return;
+    if (!currentRoom || !isConnected) return;
 
     try {
+      setIsSending(true);
       const token = document.cookie
         .split("; ")
         .find((row) => row.startsWith("token="))
@@ -254,35 +399,29 @@ const DriverMessage = ({ onClose }) => {
         timestamp: new Date().toISOString(),
       };
 
-      // Add message to local state immediately for instant feedback
-      setMessages((prev) => [...prev, messageData]);
+      console.log("Sending quick reply:", messageData);
 
-      // Save to database
+      // First send via HTTP to ensure database persistence
       await sendChatMessage(currentRoom, messageData);
 
-      // Emit to socket
-      if (socket.current.connected) {
-        socket.current.emit("chat_message", {
-          roomId: currentRoom,
-          message: messageData,
-        });
-      }
+      // Then send via socket for real-time updates to other users
+      await socketSendMessage({
+        ...messageData,
+        roomId: currentRoom,
+      });
+
+      // Don't add to local state here - it will come back through the socket subscription
+      // This prevents duplicates
 
       // Scroll to bottom
       setTimeout(scrollToBottom, 100);
     } catch (error) {
       console.error("Error sending quick reply:", error);
+      toast.error("Failed to send quick reply. Please try again.");
+    } finally {
+      setIsSending(false);
     }
   };
-
-  // Quick reply options
-  const quickReplies = [
-    "I'm on my way",
-    "Running late",
-    "Almost there",
-    "At the location",
-    "Send location",
-  ];
 
   // Add this to your JSX where you want the quick replies to appear
   const renderQuickReplies = () => (
@@ -292,6 +431,7 @@ const DriverMessage = ({ onClose }) => {
           key={index}
           className="DriverMessage-quick-reply-button"
           onClick={() => handleQuickReplyClick(reply)}
+          disabled={!isConnected || isSending}
         >
           {reply}
         </button>
@@ -299,10 +439,22 @@ const DriverMessage = ({ onClose }) => {
     </div>
   );
 
+  // Render with loading state
   return (
     <div className="DriverMessage-driver-message-container">
       <div className="DriverMessage-driver-message-header">
-        <span className="DriverMessage-header-title">Camella - Shuttle ID</span>
+        <span className="DriverMessage-header-title">
+          Camella - Shuttle ID
+          {connectionStatus !== "connected" && (
+            <span className="connection-status">
+              (
+              {connectionStatus === "connecting"
+                ? "Connecting..."
+                : "Disconnected"}
+              )
+            </span>
+          )}
+        </span>
         <div className="DriverMessage-header-icons">
           <button
             className="DriverMessage-call-button"
@@ -310,47 +462,74 @@ const DriverMessage = ({ onClose }) => {
           >
             <FaPhoneAlt />
           </button>
+          <button className="DriverMessage-close-button" onClick={onClose}>
+            ✕
+          </button>
         </div>
       </div>
-      <div
-        className="DriverMessage-message-list"
-        ref={messageListRef}
-        onScroll={handleScroll}
-      >
-        {messages.map((message, index) => (
-          <div key={index} className={getMessageClassName(message)}>
-            <div className="message-header">
-              <span className="sender-info">{message.sender.email}</span>
-              <span className="timestamp">
-                {new Date(message.timestamp).toLocaleTimeString()}
-              </span>
-            </div>
-            <div className="message-content">{message.content}</div>
+
+      {isInitializing ? (
+        <div className="DriverMessage-loading">
+          <div className="DriverMessage-loading-spinner"></div>
+          <div>Loading messages...</div>
+        </div>
+      ) : (
+        <>
+          <div
+            className="DriverMessage-message-list"
+            ref={messageListRef}
+            onScroll={handleScroll}
+          >
+            {messages.length === 0 ? (
+              <div className="DriverMessage-no-messages">
+                No messages yet. Start a conversation!
+              </div>
+            ) : (
+              messages.map((message, index) => (
+                <div key={index} className={getMessageClassName(message)}>
+                  <div className="message-header">
+                    <span className="sender-info">{message.sender.email}</span>
+                    <span className="timestamp">
+                      {new Date(message.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
+                  <div className="message-content">{message.content}</div>
+                </div>
+              ))
+            )}
           </div>
-        ))}
-      </div>
-      {renderQuickReplies()}
-      {showScrollButton && (
-        <button
-          className="DriverMessage-scroll-button"
-          onClick={scrollToBottom}
-        >
-          <FaArrowDown />
-        </button>
+          {renderQuickReplies()}
+          {showScrollButton && (
+            <button
+              className="DriverMessage-scroll-button"
+              onClick={scrollToBottom}
+            >
+              <FaArrowDown />
+            </button>
+          )}
+        </>
       )}
+
       <div className="DriverMessage-message-input-container">
         <input
           type="text"
           value={newMessage}
           onChange={handleInputChange}
           onKeyPress={handleKeyPress}
-          placeholder="Type your message..."
+          placeholder={isConnected ? "Type your message..." : "Connecting..."}
           className="DriverMessage-message-input"
+          disabled={!isConnected || isSending || isInitializing}
         />
         <button
           onClick={handleSendClick}
           className="DriverMessage-send-button"
-          disabled={isSending || !newMessage.trim() || !currentRoom}
+          disabled={
+            isSending ||
+            !newMessage.trim() ||
+            !currentRoom ||
+            !isConnected ||
+            isInitializing
+          }
         >
           Send
         </button>

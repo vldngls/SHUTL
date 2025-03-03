@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "../css/DriverMain.css";
@@ -23,16 +23,6 @@ import Taskbar from "../components/Taskbar";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const carIcon = new L.Icon({
-  iconUrl: "/car.png",
-  iconRetinaUrl: "/car.png",
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  iconSize: [29, 59],
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  shadowSize: [41, 41],
-});
-
 const getCookie = (name) => {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -41,23 +31,76 @@ const getCookie = (name) => {
 };
 
 const createNotification = (type, message) => ({
-  id: Date.now(), // Add unique ID for each notification
+  id: Date.now(),
   type,
   message,
   timestamp: new Date().toISOString(),
 });
 
-const getStreetName = async (lat, lng) => {
-  try {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
-    );
-    const data = await response.json();
-    return data.address.road || "Unknown location";
-  } catch (error) {
-    console.error("Error getting street name:", error);
-    return "Unknown location";
+// Function to calculate speed in km/h using Haversine formula
+const calculateSpeed = (prevPosition, currentPosition, timeElapsedSeconds) => {
+  console.log("Speed calculation inputs:", {
+    prevPosition,
+    currentPosition,
+    timeElapsedSeconds,
+  });
+
+  if (!prevPosition || !currentPosition || timeElapsedSeconds <= 0) {
+    console.log("Speed calculation aborted:", {
+      hasPrevPosition: !!prevPosition,
+      hasCurrentPosition: !!currentPosition,
+      timeElapsedSeconds,
+    });
+    return 0;
   }
+
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const R = 6371; // Earth's radius in kilometers
+
+  const [lat1, lon1] = prevPosition;
+  const [lat2, lon2] = currentPosition;
+
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c; // Distance in kilometers
+
+  // Calculate speed in km/h
+  const speedKmH = (distance / timeElapsedSeconds) * 3600;
+  console.log("Speed calculation result:", { distance, speedKmH });
+
+  // Return speed if it's within reasonable bounds (0-120 km/h), otherwise return 0
+  const finalSpeed =
+    speedKmH >= 0 && speedKmH <= 120 ? Math.round(speedKmH * 10) / 10 : 0;
+  console.log("Final speed after bounds check:", finalSpeed);
+  return finalSpeed;
+};
+
+// Function to calculate heading in degrees
+const calculateHeading = (prevPosition, currentPosition) => {
+  if (!prevPosition || !currentPosition) return 0;
+
+  const [lat1, lon1] = prevPosition;
+  const [lat2, lon2] = currentPosition;
+
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const y = Math.sin(dLon) * Math.cos((lat2 * Math.PI) / 180);
+  const x =
+    Math.cos((lat1 * Math.PI) / 180) * Math.sin((lat2 * Math.PI) / 180) -
+    Math.sin((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.cos(dLon);
+
+  const heading = (Math.atan2(y, x) * 180) / Math.PI;
+  return (heading + 360) % 360;
 };
 
 // Function to group nearby pickups (within ~20 meters)
@@ -104,97 +147,58 @@ const groupNearbyPickups = (pickups) => {
   return groups;
 };
 
-// Updated marker style function that includes count
-const createPickupMarkerStyle = (count) => ({
-  className: "pickup-location-marker",
-  html: `
-    <div class="marker-container" style="
-      transform: translate(-50%, -50%);
-      width: 30px;
-      height: 30px;
-      position: relative;
-    ">
-      <div style="
-        width: 100%;
-        height: 100%;
-        background-color: #4CAF50;
-        border: 3px solid white;
-        border-radius: 50%;
-        box-shadow: 0 0 10px rgba(0,0,0,0.5);
-        animation: pulse 1.5s infinite;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-        font-size: ${count > 9 ? "12px" : "14px"};
-        font-family: Arial, sans-serif;
-      ">${count}</div>
-    </div>
-  `,
-  iconSize: [30, 30],
-  iconAnchor: [15, 15],
-});
-
-// Add this new component for the animated marker
-const MovingMarker = ({ position, icon, children }) => {
+// Memoize the MovingMarker component
+const MovingMarker = memo(({ position, icon, children }) => {
   const markerRef = useRef(null);
   const animationRef = useRef(null);
   const lastPosition = useRef(position);
 
   useEffect(() => {
     const marker = markerRef.current;
-    if (marker && position) {
-      // Get the current position of the marker
-      const currentPos = marker.getLatLng();
+    if (!marker || !position) return;
 
-      // Only animate if we have a previous position and it's different
-      if (
-        currentPos &&
-        (currentPos.lat !== position[0] || currentPos.lng !== position[1])
-      ) {
-        // Cancel any ongoing animation
-        if (animationRef.current) {
-          cancelAnimationFrame(animationRef.current);
-        }
-
-        const startTime = performance.now();
-        const duration = 3000; // Match the update interval
-        const startLat = currentPos.lat;
-        const startLng = currentPos.lng;
-        const endLat = position[0];
-        const endLng = position[1];
-
-        const animate = (currentTime) => {
-          const elapsed = currentTime - startTime;
-          const progress = Math.min(elapsed / duration, 1);
-
-          // Ease the animation using quadratic easing
-          const easeProgress =
-            progress < 0.5
-              ? 2 * progress * progress
-              : -1 + (4 - 2 * progress) * progress;
-
-          const newLat = startLat + (endLat - startLat) * easeProgress;
-          const newLng = startLng + (endLng - startLng) * easeProgress;
-
-          marker.setLatLng([newLat, newLng]);
-
-          if (progress < 1) {
-            animationRef.current = requestAnimationFrame(animate);
-          }
-        };
-
-        animationRef.current = requestAnimationFrame(animate);
-      } else if (!currentPos) {
-        // First position, just set it without animation
-        marker.setLatLng(position);
+    const currentPos = marker.getLatLng();
+    if (
+      !currentPos ||
+      currentPos.lat !== position[0] ||
+      currentPos.lng !== position[1]
+    ) {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
       }
 
-      lastPosition.current = position;
+      const startTime = performance.now();
+      const duration = 1000; // 1 second animation duration
+      const startLat = currentPos ? currentPos.lat : position[0];
+      const startLng = currentPos ? currentPos.lng : position[1];
+      const endLat = position[0];
+      const endLng = position[1];
+
+      const animate = (currentTime) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Smooth easing function
+        const easeProgress =
+          progress < 0.5
+            ? 2 * progress * progress
+            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+        const newLat = startLat + (endLat - startLat) * easeProgress;
+        const newLng = startLng + (endLng - startLng) * easeProgress;
+
+        marker.setLatLng([newLat, newLng]);
+
+        if (progress < 1) {
+          animationRef.current = requestAnimationFrame(animate);
+        }
+      };
+
+      animationRef.current = requestAnimationFrame(animate);
     }
 
-    // Cleanup animation on unmount or position change
+    lastPosition.current = position;
+
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
@@ -207,53 +211,27 @@ const MovingMarker = ({ position, icon, children }) => {
       {children}
     </Marker>
   );
-};
+});
 
-const calculateSpeed = (prevPosition, currentPosition, timeElapsedSeconds) => {
-  if (!prevPosition || !currentPosition || !timeElapsedSeconds) return 0;
-  if (timeElapsedSeconds <= 0) return 0;
-
-  // Haversine formula to calculate distance in kilometers
-  const R = 6371; // Earth's radius in km
-  const [lat1, lon1] = prevPosition;
-  const [lat2, lon2] = currentPosition;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const distance = R * c;
-
-  // Calculate speed in km/h
-  const speedKmH = (distance / timeElapsedSeconds) * 3600;
-
-  // Return 0 if speed is too small (likely noise) or too large (likely error)
-  if (speedKmH < 0.1 || speedKmH > 150) return 0;
-  return speedKmH;
-};
-
-const calculateHeading = (prevPosition, currentPosition) => {
-  if (!prevPosition || !currentPosition) return 0;
-
-  const [lat1, lon1] = prevPosition;
-  const [lat2, lon2] = currentPosition;
-
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const y = Math.sin(dLon) * Math.cos((lat2 * Math.PI) / 180);
-  const x =
-    Math.cos((lat1 * Math.PI) / 180) * Math.sin((lat2 * Math.PI) / 180) -
-    Math.sin((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.cos(dLon);
-  const heading = (Math.atan2(y, x) * 180) / Math.PI;
-  return (heading + 360) % 360; // Normalize to 0-360 degrees
-};
+MovingMarker.displayName = "MovingMarker";
 
 const DriverMain = () => {
+  // Create carIcon inside the component
+  const carIcon = useMemo(
+    () =>
+      new L.Icon({
+        iconUrl: "/car.png",
+        iconRetinaUrl: "/car.png",
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        iconSize: [29, 59],
+        shadowUrl:
+          "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        shadowSize: [41, 41],
+      }),
+    []
+  );
+
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
   const [activeModal, setActiveModal] = useState(null);
@@ -269,12 +247,10 @@ const DriverMain = () => {
   const shuttleIdRef = useRef(null);
   const [pickupRequests, setPickupRequests] = useState([]);
   const [activePickups, setActivePickups] = useState([]);
-  const [profileImage, setProfileImage] = useState("/profile.png"); // Default image
-  const [showProfileCard, setShowProfileCard] = useState(false);
+  const [profileImage, setProfileImage] = useState("/profile.png");
   const messageBoxRef = useRef(null);
   const hasInitialized = useRef(false);
   const hasShownToastRef = useRef(false);
-  const watchIdRef = useRef(null);
   const lastLocationRef = useRef(null);
   const lastUpdateTimeRef = useRef(null);
   const recenterTimeoutRef = useRef(null);
@@ -655,22 +631,16 @@ const DriverMain = () => {
       return;
     }
 
-    // Check for shuttleId in state or localStorage
-    let currentShuttleId = shuttleId;
+    // Check for shuttleId
+    let currentShuttleId = shuttleId || shuttleIdRef.current;
     if (!currentShuttleId) {
-      // Try to get from localStorage
       const cachedAssignment = localStorage.getItem("driverShuttleAssignment");
       if (cachedAssignment) {
         try {
           const parsedAssignment = JSON.parse(cachedAssignment);
           currentShuttleId = parsedAssignment.shuttleId;
-          // Update state and ref
           setShuttleId(currentShuttleId);
           shuttleIdRef.current = currentShuttleId;
-          console.log(
-            "Using cached shuttleId from localStorage:",
-            currentShuttleId
-          );
         } catch (error) {
           console.error("Error parsing cached assignment:", error);
         }
@@ -681,24 +651,18 @@ const DriverMain = () => {
       toast("No shuttle assigned. Location updates will not be sent.", {
         icon: "⚠️",
         duration: 3000,
-        style: {
-          backgroundColor: "#FFF3CD",
-          color: "#856404",
-        },
       });
-      // We'll still track location locally but won't send updates
     }
 
-    // Clear any existing intervals first
+    // Clear any existing intervals
     cleanupLocationServices();
 
     const updateLocation = async () => {
       try {
-        // Get current position with high accuracy
         const position = await new Promise((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject, {
             enableHighAccuracy: true,
-            timeout: 15000, // Increased timeout to 15 seconds
+            timeout: 15000,
             maximumAge: 0,
           });
         });
@@ -707,180 +671,84 @@ const DriverMain = () => {
         const currentTime = Date.now();
         const userCoords = [latitude, longitude];
 
-        // Calculate speed and heading only if we have moved
+        console.log("Location update:", {
+          currentCoords: userCoords,
+          lastCoords: lastLocationRef.current,
+          currentTime,
+          lastUpdateTime: lastUpdateTimeRef.current,
+        });
+
+        // Calculate speed and heading
         let speed = 0;
         let heading = 0;
 
         if (lastLocationRef.current && lastUpdateTimeRef.current) {
           const timeElapsedSeconds =
             (currentTime - lastUpdateTimeRef.current) / 1000;
-
-          // Only calculate if we've actually moved
-          const hasMoved =
-            lastLocationRef.current[0] !== latitude ||
-            lastLocationRef.current[1] !== longitude;
-
-          if (hasMoved && timeElapsedSeconds > 0) {
-            speed = calculateSpeed(
-              lastLocationRef.current,
-              userCoords,
-              timeElapsedSeconds
-            );
-            heading = calculateHeading(lastLocationRef.current, userCoords);
-          }
+          speed = calculateSpeed(
+            lastLocationRef.current,
+            userCoords,
+            timeElapsedSeconds
+          );
+          heading = calculateHeading(lastLocationRef.current, userCoords);
+          console.log("Calculated values:", {
+            speed,
+            heading,
+            timeElapsedSeconds,
+          });
+        } else {
+          console.log(
+            "No previous location data available for speed calculation"
+          );
         }
 
         // Update local state
         setUserLocation(userCoords);
 
-        // Always force center map on new location when location sharing is active and recentering is enabled
-        if (mapRef.current && isLocationSharing && shouldRecenter) {
+        // Center map if needed
+        if (mapRef.current && shouldRecenter) {
           mapRef.current.setView(userCoords, mapRef.current.getZoom(), {
             animate: true,
             duration: 0.5,
           });
         }
 
-        // Use shuttleIdRef.current instead of shuttleId state
-        const currentShuttleId = shuttleIdRef.current;
-
-        // Send to server if we have shuttleId
+        // Send location update if we have a shuttleId
         if (currentShuttleId) {
           const locationData = {
             shuttleId: currentShuttleId,
             coordinates: userCoords,
             metadata: {
-              speed: speed,
-              heading: heading,
-              accuracy: accuracy,
+              speed,
+              heading,
+              accuracy,
             },
             timestamp: new Date().toISOString(),
           };
 
-          const success = await sendLocation(locationData);
-          if (!success) {
-            console.warn("Failed to send location, will retry on next update");
-          }
-        } else {
-          console.warn("No shuttleId assigned, location update not sent");
-
-          // Check localStorage as a fallback
-          const cachedAssignment = localStorage.getItem(
-            "driverShuttleAssignment"
-          );
-          if (cachedAssignment) {
-            try {
-              const parsedAssignment = JSON.parse(cachedAssignment);
-              console.log(
-                "Found cached shuttle assignment, using shuttleId:",
-                parsedAssignment.shuttleId
-              );
-              setShuttleId(parsedAssignment.shuttleId);
-              shuttleIdRef.current = parsedAssignment.shuttleId;
-
-              // Send location with the cached shuttleId
-              const locationData = {
-                shuttleId: parsedAssignment.shuttleId,
-                coordinates: userCoords,
-                metadata: {
-                  speed: speed,
-                  heading: heading,
-                  accuracy: accuracy,
-                },
-                timestamp: new Date().toISOString(),
-              };
-
-              console.log(
-                "Sending location data with cached shuttleId:",
-                locationData
-              );
-              await sendLocation(locationData);
-            } catch (error) {
-              console.error("Error using cached assignment:", error);
-              localStorage.removeItem("driverShuttleAssignment"); // Remove invalid cache
-            }
-          } else {
-            // Try to fetch the assignment again in case it was missed
-            const fetchAssignment = async () => {
-              try {
-                const token = getTokenFromCookies();
-                const response = await fetch(
-                  `${API_BASE_URL}/shuttle-assignments/driver`,
-                  {
-                    headers: {
-                      Authorization: `Bearer ${token}`,
-                    },
-                    credentials: "include",
-                  }
-                );
-
-                if (response.ok) {
-                  const data = await response.json();
-                  if (data && data.shuttleId) {
-                    console.log(`Shuttle ID now assigned: ${data.shuttleId}`);
-                    setShuttleId(data.shuttleId);
-                    shuttleIdRef.current = data.shuttleId;
-                  }
-                }
-              } catch (error) {
-                console.error(
-                  "Error in retry fetch of shuttle assignment:",
-                  error
-                );
-              }
-            };
-
-            fetchAssignment();
-          }
+          console.log("Sending location update:", locationData);
+          await sendLocation(locationData);
         }
 
         // Update refs for next calculation
         lastLocationRef.current = userCoords;
         lastUpdateTimeRef.current = currentTime;
 
-        // Show success toast only on first update
         if (!hasShownToastRef.current) {
           hasShownToastRef.current = true;
-          toast.success("Location sharing started", {
-            duration: 2000,
-          });
+          toast.success("Location sharing started", { duration: 2000 });
         }
       } catch (error) {
         console.error("Location error:", error);
-        let errorMessage = "Unknown location error occurred";
-
-        if (error.code === 1) {
-          errorMessage =
-            "Location permission denied. Please enable location services.";
-          cleanupLocationServices();
-        } else if (error.code === 2) {
-          errorMessage = "Location information temporarily unavailable.";
-        } else if (error.code === 3) {
-          errorMessage =
-            "Location request timed out. Try turning location sharing off and on again.";
-          // Don't stop location sharing on timeout, just log the error
-          // The next interval will try again
-        }
-
-        toast.error(errorMessage, { duration: 4000 });
+        handleLocationError(error);
       }
     };
 
     // Run first update immediately
     updateLocation();
 
-    // Center map on initial location if available
-    if (userLocation && mapRef.current) {
-      mapRef.current.setView(userLocation, 15.5, {
-        animate: true,
-        duration: 1,
-      });
-    }
-
-    // Import the interval constant from websocketService
+    // Set up interval for updates
     const LOCATION_UPDATE_INTERVAL = getLocationUpdateInterval();
-
-    // Set up interval for continuous updates every 3 seconds
     locationUpdateInterval.current = setInterval(
       updateLocation,
       LOCATION_UPDATE_INTERVAL
@@ -890,12 +758,20 @@ const DriverMain = () => {
     localStorage.setItem("isLocationSharing", "true");
   };
 
-  // Helper function to calculate distance between two points
-  const calculateDistance = (point1, point2) => {
-    if (!point1 || !point2) return 0;
-    const [lat1, lon1] = point1;
-    const [lat2, lon2] = point2;
-    return Math.sqrt(Math.pow(lat2 - lat1, 2) + Math.pow(lon2 - lon1, 2));
+  // Helper function to handle location errors
+  const handleLocationError = (error) => {
+    let errorMessage = "Unknown location error occurred";
+    if (error.code === 1) {
+      errorMessage =
+        "Location permission denied. Please enable location services.";
+      cleanupLocationServices();
+    } else if (error.code === 2) {
+      errorMessage = "Location information temporarily unavailable.";
+    } else if (error.code === 3) {
+      errorMessage =
+        "Location request timed out. Try turning location sharing off and on again.";
+    }
+    toast.error(errorMessage, { duration: 4000 });
   };
 
   const cleanupLocationServices = () => {
@@ -1224,14 +1100,20 @@ const DriverMain = () => {
           whenReady={(map) => {
             map.target.on("movestart", handleMapMove);
           }}
+          preferCanvas={true}
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            maxZoom={19}
+            minZoom={12}
+            updateWhenIdle={true}
+            updateWhenZooming={false}
+            keepBuffer={2}
           />
           {userLocation && isLocationSharing && (
             <MovingMarker position={userLocation} icon={carIcon}>
-              <Popup>You are here.</Popup>
+              <Popup>You are here</Popup>
               <Tooltip direction="right" offset={[12, 0]} permanent>
                 {shuttleId}
               </Tooltip>

@@ -16,10 +16,9 @@ const SOCKET_URL = API_BASE_URL.replace("/api", ""); // Adjust as necessary
 delete L.Icon.Default.prototype._getIconUrl;
 
 L.Icon.Default.mergeOptions({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconUrl: "/marker-icon.png",
+  iconRetinaUrl: "/marker-icon-2x.png",
+  shadowUrl: "/marker-shadow.png",
 });
 
 const driverIcon = new L.Icon({
@@ -28,7 +27,7 @@ const driverIcon = new L.Icon({
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   iconSize: [29, 59],
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  shadowUrl: "/marker-shadow.png",
   shadowSize: [41, 41],
 });
 
@@ -55,8 +54,8 @@ const ShutlLoggedOut = () => {
         const updatedLocations = {};
 
         Object.entries(prev).forEach(([shuttleId, data]) => {
-          // Check if location is less than 3 seconds old
-          if (now - new Date(data.lastUpdate) < 3000) {
+          // Check if location is less than 5 seconds old (increased from 3)
+          if (now - new Date(data.lastUpdate) < 5000) {
             updatedLocations[shuttleId] = data;
           } else {
             console.log(`Removing stale location for ${shuttleId}`);
@@ -67,15 +66,16 @@ const ShutlLoggedOut = () => {
       });
     };
 
-    // Run cleanup every 3 seconds
-    const cleanupInterval = setInterval(cleanupStaleLocations, 3000);
+    // Run cleanup every 5 seconds (increased from 3)
+    const cleanupInterval = setInterval(cleanupStaleLocations, 5000);
 
     // Initialize socket connection
     socket.current = io(SOCKET_URL, {
       transports: ["websocket"],
       reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
+      reconnectionAttempts: 3,
+      reconnectionDelay: 2000,
+      timeout: 10000,
       path: "/socket.io",
     });
 
