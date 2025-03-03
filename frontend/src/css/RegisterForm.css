@@ -15,38 +15,38 @@
 /* Register Container Styles */
 .register-container {
   background-color: #f5f5f5; /* Light background */
-  padding: 30px 15px;
+  padding: 18px 15px;
   border-radius: 20px;
-  width: 320px;
+  width: 400px;
   box-shadow: 0 4px 8px rgba(35, 35, 35, 0.1); /* Slight shadow */
   text-align: center;
 }
 
 /* Title Styles */
 .register-title {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
   color: #232323; /* Dark color for title */
 }
 
 /* Input Styles */
 .register-input-group {
-  margin-bottom: 15px;
+  margin-bottom: 5px;
 }
 
 .register-label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 3px;
   color: #232323; /* Dark color for label */
   font-size: 14px;
 }
 
 .register-input {
   width: 100%;
-  padding: 8px;
+  padding: 7px;
   box-sizing: border-box;
-  border: 1px solid #ddd;
+  border: 1px solid #ddd; /* Light border */
   border-radius: 8px;
   font-size: 14px;
   background-color: #ffffff; /* Light background for input */
@@ -56,7 +56,7 @@
 /* Register Button Styles */
 .register-button {
   width: 100%;
-  padding: 10px;
+  padding: 8px;
   background-color: #232323; /* Dark background for button */
   color: #ffffff; /* Light text color */
   border: none;
@@ -73,25 +73,31 @@
 /* Error Styles */
 .register-error {
   color: #d9534f; /* Red color for errors */
-  margin-top: 10px;
+  margin-top: 6px;
   text-align: center;
+  font-size: 13px;
 }
 
 /* Terms Checkbox Section */
 .terms-checkbox {
-  font-size: 14px;
-  text-align: left;
-  margin-top: 10px;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 6px;
+  margin-bottom: 8px;
+  color: #232323;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .terms-link {
-  color: #007bff;
+  color: #232323;
   cursor: pointer;
   text-decoration: underline;
 }
 
 .terms-link:hover {
-  color: #0056b3;
+  color: #3a3a3a;
 }
 
 /* Modal Styles */
@@ -162,10 +168,4 @@
 .register-button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
-}
-
-.register-error {
-  color: red;
-  font-size: 14px;
-  margin-top: 10px;
 }

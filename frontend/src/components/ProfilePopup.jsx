@@ -591,7 +591,7 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
                 <input
                   type="file"
                   name="idPicture"
-                  className="auth-input"
+                  className="ProfilePopup-auth-input"
                   accept="image/*"
                   onChange={(e) => handleFileChange(e, "idPicture")}
                 />

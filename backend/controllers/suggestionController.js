@@ -55,7 +55,7 @@ export const submitSuggestion = async (req, res) => {
           to: "flakeysky.0418@gmail.com",
           subject: `New Suggestion: ${suggestion.subject}`,
           html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
               <h2 style="color: #333;">New Suggestion Received</h2>
               <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 10px 0;">
                 <p style="margin: 5px 0;"><strong>Name:</strong> ${

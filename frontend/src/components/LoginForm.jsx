@@ -427,7 +427,7 @@ const LoginForm = ({ onClose }) => {
   return (
     <div className="auth-form-overlay">
       <div className="auth-form-container" ref={formRef}>
-        <h2 className="auth-form-title">SHUTL</h2>
+        <h2 className="auth-form-title">SHUTL.</h2>
         <p className="auth-form-subtitle">Welcome to SHUTL</p>
 
         <form onSubmit={handleSubmit} className="auth-form">

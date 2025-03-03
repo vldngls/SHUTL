@@ -1160,7 +1160,7 @@ const DriverMain = () => {
                               ? "12px"
                               : "14px"
                           };
-                          font-family: Arial, sans-serif;
+                          font-family: Inter, sans-serif;
                         ">${group.pickups.reduce(
                           (sum, p) => sum + p.passengers,
                           0

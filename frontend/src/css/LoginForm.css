@@ -3,30 +3,27 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #f5f5f5; /* Lightest background color */
+  background: #f5f5f5; /* Light background color */
   border-radius: 20px;
-  padding: 30px 15px;
-  max-width: 320px;
+  padding: 18px 15px;
   width: 100%;
+  max-width: 400px;
   box-shadow: 0 4px 8px rgba(35, 35, 35, 0.1); /* Slight shadow with darkest color */
   z-index: 1000;
   text-align: center;
-  width: 100%;
-  max-width: 400px;
-  padding: 20px;
 }
 
 .ShutlLoginForm-title {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: bold;
-  margin-bottom: 10px;
-  color: #232323; /* Darkest color for text */
+  margin-bottom: 4px;
+  color: #232323; /* Dark color for text */
 }
 
 .ShutlLoginForm-subtitle {
   font-size: 14px;
-  color: #888; /* Slightly lighter for subtitle */
-  margin-bottom: 15px;
+  color: #232323; /* Dark color for subtitle */
+  margin-bottom: 10px;
 }
 
 .ShutlLoginForm-form {
@@ -35,12 +32,12 @@
 }
 
 .ShutlLoginForm-input-group {
-  margin-bottom: 12px;
+  margin-bottom: 3px;
 }
 
 .ShutlLoginForm-input {
   width: calc(100% - 20px);
-  padding: 8px;
+  padding: 7px;
   border: 1px solid #ddd; /* Light border */
   border-radius: 8px;
   box-sizing: border-box;
@@ -50,14 +47,15 @@
 }
 
 .ShutlLoginForm-button {
-  background-color: #232323; /* Darkest color */
+  background-color: #232323; /* Dark button */
   color: #ffffff; /* Light text color */
-  padding: 10px;
+  padding: 8px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   font-weight: bold;
+  margin-bottom: 12px;
 }
 
 .ShutlLoginForm-button:hover {
@@ -66,8 +64,8 @@
 
 .ShutlLoginForm-continue-with {
   font-size: 12px;
-  color: #888;
-  margin: 15px 0;
+  color: #232323;
+  margin: 10px 0;
 }
 
 .ShutlLoginForm-google-button {
@@ -89,14 +87,14 @@
 }
 
 .ShutlLoginForm-footer {
-  margin-top: 15px;
-  font-size: 12px;
-  color: #555;
+  margin-top: 10px;
+  font-size: 11px;
+  color: #232323;
 }
 
 .ShutlLoginForm-signup-button {
   background: none;
-  color: #555;
+  color: #232323;
   border: none;
   cursor: pointer;
   font-size: 12px;
@@ -104,7 +102,7 @@
 }
 
 .ShutlLoginForm-signup-button:hover {
-  color: #232323; /* Darker on hover */
+  color: #3a3a3a; /* Darker on hover */
 }
 
 .ShutlLoginForm-overlay {

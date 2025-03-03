@@ -14,11 +14,11 @@
 }
 
 .auth-form-container {
-  background: #232323;
-  padding: 32px;
+  background: #f5f5f5;
+  padding: 18px;
   border-radius: 16px;
   width: 90%;
-  max-width: 380px;
+  max-width: 400px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   animation: slideIn 0.3s ease-out;
   box-sizing: border-box;
@@ -37,17 +37,17 @@
 
 /* Typography */
 .auth-form-title {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   text-align: center;
-  color: #d9d9d9;
+  color: #232323;
 }
 
 .auth-form-subtitle {
-  font-size: 16px;
-  color: #d9d9d9;
-  margin-bottom: 32px;
+  font-size: 15px;
+  color: #232323;
+  margin-bottom: 16px;
   text-align: center;
   opacity: 0.8;
 }
@@ -56,7 +56,7 @@
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -69,21 +69,21 @@
 
 .auth-input {
   width: 100%;
-  padding: 14px 16px;
-  border: 2px solid #333;
+  padding: 8px 16px;
+  border: 2px solid #ddd;
   border-radius: 12px;
   font-size: 15px;
   transition: all 0.2s ease;
-  background-color: #2a2a2a;
+  background-color: #ffffff;
   box-sizing: border-box;
-  color: #d9d9d9;
+  color: #232323;
 }
 
 .auth-input:focus {
-  border-color: #d9d9d9;
-  background-color: #2a2a2a;
+  border-color: #232323;
+  background-color: #ffffff;
   outline: none;
-  box-shadow: 0 0 0 4px rgba(217, 217, 217, 0.1);
+  box-shadow: 0 0 0 4px rgba(35, 35, 35, 0.1);
 }
 
 .auth-input::placeholder {
@@ -99,29 +99,34 @@
 .auth-button-group {
   display: flex;
   gap: 10px;
-  margin-top: 20px;
+  margin-top: 12px;
   justify-content: center;
 }
 
+.auth-submit-button {
+  margin-top: 16px;
+}
 .auth-submit-button,
 .auth-back-button,
 .auth-cancel-button {
-  padding: 10px 20px;
+  padding: 8px 20px;
   border-radius: 5px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
+  margin-bottom: 12px;
 }
 
 .auth-submit-button {
-  background-color: #007bff;
+  background-color: #232323;
   color: white;
   border: none;
+  margin-bottom: 0px;
 }
 
 .auth-submit-button:hover {
-  background-color: #0056b3;
+  background-color: #3a3a3a;
 }
 
 .auth-submit-button:disabled {
@@ -165,7 +170,7 @@
   border: none;
   cursor: pointer;
   padding: 0;
-  color: #d9d9d9;
+  color: #232323;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -173,7 +178,7 @@
 }
 
 .password-toggle-btn:hover {
-  color: #ffffff;
+  color: #000000;
 }
 
 /* Google Sign In Container */
@@ -191,7 +196,8 @@
   display: flex;
   align-items: center;
   text-align: center;
-  margin: 24px 0;
+  margin-top: 24px;
+  margin-bottom: 24px;
   box-sizing: border-box;
 }
 
@@ -199,12 +205,12 @@
 .auth-divider::after {
   content: "";
   flex: 1;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #ddd;
 }
 
 .auth-divider span {
   padding: 0 16px;
-  color: #d9d9d9;
+  color: #232323;
   font-size: 14px;
 }
 
@@ -249,22 +255,24 @@
 /* Terms Checkbox */
 .auth-terms {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
   gap: 10px;
   margin-top: 16px;
   box-sizing: border-box;
+  text-align: center;
 }
 
 .auth-terms input[type="checkbox"] {
   width: 18px;
   height: 18px;
-  margin-top: 2px;
-  accent-color: #d9d9d9;
+  margin-top: 0;
+  accent-color: #232323;
 }
 
 .auth-terms label {
   font-size: 14px;
-  color: #d9d9d9;
+  color: #232323;
   line-height: 1.4;
 }
 
@@ -272,24 +280,25 @@
 .auth-link-button {
   background: none;
   border: none;
-  color: #d9d9d9;
+  color: #232323;
   font-weight: 500;
   cursor: pointer;
   padding: 4px 8px;
   font: inherit;
   transition: all 0.2s ease;
+  font-size: 13px;
 }
 
 .auth-link-button:hover {
-  color: #ffffff;
+  color: #3a3a3a;
   text-decoration: underline;
 }
 
 /* Footer */
 .auth-footer {
-  margin-top: 24px;
-  font-size: 14px;
-  color: #d9d9d9;
+  margin-top: 14px;
+  font-size: 13px;
+  color: #232323;
   text-align: center;
 }
 
@@ -368,7 +377,7 @@
 
 /* Small text */
 small {
-  color: #d9d9d9;
+  color: #3d3d3d;
   opacity: 0.8;
 }
 
@@ -479,7 +488,7 @@ select.auth-input {
 }
 
 .auth-terms label {
-  color: #d9d9d9;
+  color: #232323;
   font-size: 14px;
 }
 

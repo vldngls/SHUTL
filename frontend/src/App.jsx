@@ -64,7 +64,7 @@ const LoadingSpinner = () => (
         marginBottom: "20px",
       }}
     ></div>
-    <p style={{ fontFamily: "Arial, sans-serif", color: "#232323" }}>
+    <p style={{ fontFamily: "Inter, sans-serif", color: "#232323" }}>
       Loading...
     </p>
     <style>{`

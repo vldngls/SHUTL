@@ -1,4 +1,4 @@
-:root {
+/* :root {
   --shutl-primary: #4caf50;
   --shutl-primary-hover: #45a049;
   --shutl-primary-light: rgba(76, 175, 80, 0.2);
@@ -19,7 +19,7 @@
   --shutl-transition: 0.3s ease;
   --shutl-dark: #232323;
   --shutl-light: #f5f5f5;
-}
+} */
 
 /* Popup overlay */
 .ShutlProfilePopup {
@@ -470,7 +470,7 @@
 
   .ShutlProfilePopup-edit-details input,
   .ShutlProfilePopup-edit-details select,
-  .ShutlProfilePopup-edit-details .auth-input {
+  .ShutlProfilePopup-edit-details .ProfilePopup-auth-input {
     padding: 10px 14px;
     height: 44px;
     font-size: 14px;
@@ -616,7 +616,7 @@
 
   .ShutlProfilePopup-edit-details input,
   .ShutlProfilePopup-edit-details select,
-  .ShutlProfilePopup-edit-details .auth-input {
+  .ShutlProfilePopup-edit-details .ProfilePopup-auth-input {
     padding: 10px 12px;
     font-size: 13px;
     height: 42px;
@@ -765,7 +765,7 @@
 
 .ShutlProfilePopup-edit-details input,
 .ShutlProfilePopup-edit-details select,
-.ShutlProfilePopup-edit-details .auth-input {
+.ShutlProfilePopup-edit-details .ProfilePopup-auth-input {
   width: 100%;
   padding: 12px 16px;
   border: 1px solid #ddd;
@@ -836,11 +836,11 @@
 }
 
 /* File Upload Input Styling */
-.auth-input-group {
+.ProfilePopup-auth-input-group {
   margin-top: 16px;
 }
 
-.auth-input {
+.ProfilePopup-auth-input {
   width: 100%;
   padding: 12px;
   border: 1px solid #ddd;
@@ -849,7 +849,7 @@
   margin-bottom: 8px;
 }
 
-.auth-input-group small {
+.ProfilePopup-auth-input-group small {
   color: #666;
   font-size: 12px;
   display: block;
