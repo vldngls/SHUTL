@@ -1,8 +1,8 @@
-/* :root {
+:root {
   --shutl-primary: #4caf50;
   --shutl-primary-hover: #45a049;
   --shutl-primary-light: rgba(76, 175, 80, 0.2);
-  --shutl-bg: #fff;
+  --shutl-bg: #f5f5f5;
   --shutl-bg-secondary: #f9f9f9;
   --shutl-border: #e0e0e0;
   --shutl-text: #232323;
@@ -19,7 +19,7 @@
   --shutl-transition: 0.3s ease;
   --shutl-dark: #232323;
   --shutl-light: #f5f5f5;
-} */
+}
 
 /* Popup overlay */
 .ShutlProfilePopup {
