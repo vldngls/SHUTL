@@ -20,18 +20,17 @@ const Sidebar = forwardRef(
       notifications = [],
       onSettingsClick,
       notificationEnabled,
-      onNotificationToggle
+      onNotificationToggle,
+      locationEnabled,
+      onLocationToggle
     },
     ref
   ) => {
+    const navigate = useNavigate();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [settingsButtonRef, setSettingsButtonRef] = useState(null);
     const [username, setUsername] = useState(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [locationEnabled, setLocationEnabled] = useState(
-      localStorage.getItem("locationEnabled") === "true"
-    );
-    const navigate = useNavigate();
 
     // Get username from token
     useEffect(() => {
@@ -142,12 +141,10 @@ const Sidebar = forwardRef(
           // Directly request location permission - this should trigger the browser dialog
           navigator.geolocation.getCurrentPosition(
             () => {
-              setLocationEnabled(true);
-              localStorage.setItem("locationEnabled", "true");
+              onLocationToggle(true);
             },
             (error) => {
-              setLocationEnabled(false);
-              localStorage.setItem("locationEnabled", "false");
+              onLocationToggle(false);
               
               if (error.code === 1) { // PERMISSION_DENIED
                 alert('Please enable location access in your browser settings to use this feature.');
@@ -161,13 +158,11 @@ const Sidebar = forwardRef(
           );
         } catch (error) {
           console.error('Location error:', error);
-          setLocationEnabled(false);
-          localStorage.setItem("locationEnabled", "false");
+          onLocationToggle(false);
         }
       } else {
         // Turning OFF
-        setLocationEnabled(false);
-        localStorage.setItem("locationEnabled", "false");
+        onLocationToggle(false);
       }
     };
 
@@ -260,8 +255,7 @@ const Sidebar = forwardRef(
         navigator.permissions.query({ name: 'geolocation' })
           .then(permissionStatus => {
             if (permissionStatus.state === 'denied') {
-              setLocationEnabled(false);
-              localStorage.setItem("locationEnabled", false);
+              onLocationToggle(false);
             }
           });
       }
@@ -344,33 +338,25 @@ const Sidebar = forwardRef(
                   Profile Settings
                 </button>
                 <hr />
-                <div
-                  className="Sidebar-settings-option"
-                  data-enabled
-                  role="menuitem"
-                >
+                <div className="Sidebar-settings-option" data-enabled>
                   Notifications
                   <label className="switch">
                     <input
                       type="checkbox"
                       checked={notificationEnabled}
-                      onChange={toggleNotifications}
+                      onChange={(e) => onNotificationToggle(e.target.checked)}
                     />
                     <span className="slider"></span>
                   </label>
                 </div>
                 <hr />
-                <div
-                  className="Sidebar-settings-option"
-                  data-enabled
-                  role="menuitem"
-                >
+                <div className="Sidebar-settings-option" data-enabled>
                   Location
                   <label className="switch">
                     <input
                       type="checkbox"
                       checked={locationEnabled}
-                      onChange={toggleLocation}
+                      onChange={(e) => onLocationToggle(e.target.checked)}
                     />
                     <span className="slider"></span>
                   </label>
@@ -423,7 +409,9 @@ Sidebar.propTypes = {
   notifications: PropTypes.array,
   onSettingsClick: PropTypes.func,
   notificationEnabled: PropTypes.bool,
-  onNotificationToggle: PropTypes.func
+  onNotificationToggle: PropTypes.func,
+  locationEnabled: PropTypes.bool,
+  onLocationToggle: PropTypes.func
 };
 
 export default Sidebar;

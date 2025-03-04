@@ -78,6 +78,7 @@ const TellerMain = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [currentRoom, setCurrentRoom] = useState(null);
   const [notificationEnabled, setNotificationEnabled] = useState(true);
+  const [locationEnabled, setLocationEnabled] = useState(true);
 
   // Modal/Popup States
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -111,6 +112,47 @@ const TellerMain = () => {
     console.error("Invalid token:", error);
   }
 
+  // Function to update location preference
+  const updateLocationPreference = async (enabled) => {
+    // First clear locations if being disabled
+    if (!enabled) {
+      setShuttleLocations({});
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/userdata`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getCookie("token")}`,
+        },
+        body: JSON.stringify({
+          email: email,
+          preferences: {
+            location: enabled
+          }
+        })
+      });
+
+      if (response.ok) {
+        // Update the preference state
+        setLocationEnabled(enabled);
+        toast.success(`Location tracking ${enabled ? 'enabled' : 'disabled'}`);
+
+        // Update socket preference without reconnecting
+        if (socket.current) {
+          socket.current.emit('location_preference', { enabled });
+        }
+      } else {
+        console.error("Failed to update location preference");
+        toast.error("Failed to update location settings");
+      }
+    } catch (error) {
+      console.error("Error updating location preference:", error);
+      toast.error("Failed to update location settings");
+    }
+  };
+
   // Initialize socket and set up message subscription
   useEffect(() => {
     let socketCleanup;
@@ -129,8 +171,9 @@ const TellerMain = () => {
         socket.current = socketInstance;
         setIsConnected(true);
 
-        // Set initial notification preference
+        // Set initial preferences
         socketInstance.emit('notification_preference', { enabled: notificationEnabled });
+        socketInstance.emit('location_preference', { enabled: locationEnabled });
 
         // Subscribe to messages with error handling
         messageCleanup = await subscribeToMessages((message) => {
@@ -148,7 +191,6 @@ const TellerMain = () => {
             const formattedNotification = {
               message: notification.message,
               createdAt: notification.createdAt || new Date(),
-              // Add any other required fields
             };
 
             // Always update the notifications array regardless of enabled state
@@ -170,6 +212,66 @@ const TellerMain = () => {
             }
           }
         );
+
+        // Only subscribe to location updates if location tracking is enabled
+        if (locationEnabled) {
+          // Subscribe to location updates with enhanced logging and validation
+          locationCleanup = await subscribeToLocationUpdates((data) => {
+            console.log("TellerMain received location update:", data);
+
+            // Validate incoming data
+            if (!data || !data.shuttleId || !data.coordinates) {
+              console.warn("Invalid location data received:", data);
+              return;
+            }
+
+            // Validate coordinates
+            const [lat, lng] = data.coordinates;
+            if (
+              isNaN(lat) ||
+              isNaN(lng) ||
+              lat < -90 ||
+              lat > 90 ||
+              lng < -180 ||
+              lng > 180
+            ) {
+              console.warn("Invalid coordinates received:", data.coordinates);
+              return;
+            }
+
+            // Extract speed and heading from the data
+            let speed = 0;
+            let heading = 0;
+            let accuracy = undefined;
+
+            if (typeof data.speed === "number") speed = data.speed;
+            if (typeof data.heading === "number") heading = data.heading;
+            if (typeof data.accuracy === "number") accuracy = data.accuracy;
+
+            if (data.metadata) {
+              if (typeof data.metadata.speed === "number") speed = data.metadata.speed;
+              if (typeof data.metadata.heading === "number") heading = data.metadata.heading;
+              if (typeof data.metadata.accuracy === "number") accuracy = data.metadata.accuracy;
+            }
+
+            setShuttleLocations((prev) => {
+              const now = new Date();
+              const newLocations = { ...prev };
+              const shuttleId = data.shuttleId;
+
+              newLocations[shuttleId] = {
+                coordinates: data.coordinates,
+                lastUpdate: now,
+                speed,
+                heading,
+                accuracy,
+                status: "online",
+              };
+
+              return newLocations;
+            });
+          });
+        }
 
         // Fetch active shuttle assignments and join their tracking rooms
         const fetchAndTrackShuttles = async () => {
@@ -197,109 +299,6 @@ const TellerMain = () => {
         };
 
         await fetchAndTrackShuttles();
-
-        // Subscribe to location updates with enhanced logging and validation
-        locationCleanup = await subscribeToLocationUpdates((data) => {
-          console.log("TellerMain received location update:", data);
-
-          // Validate incoming data
-          if (!data || !data.shuttleId || !data.coordinates) {
-            console.warn("Invalid location data received:", data);
-            return;
-          }
-
-          // Validate coordinates
-          const [lat, lng] = data.coordinates;
-          if (
-            isNaN(lat) ||
-            isNaN(lng) ||
-            lat < -90 ||
-            lat > 90 ||
-            lng < -180 ||
-            lng > 180
-          ) {
-            console.warn("Invalid coordinates received:", data.coordinates);
-            return;
-          }
-
-          // Extract speed and heading from the data
-          // The server might be restructuring the data, so we need to check multiple places
-          let speed = 0;
-          let heading = 0;
-          let accuracy = undefined;
-
-          // Check if speed/heading are directly in the data object
-          if (typeof data.speed === "number") {
-            speed = data.speed;
-            console.log("Found speed in top-level data:", speed);
-          }
-          if (typeof data.heading === "number") {
-            heading = data.heading;
-          }
-          if (typeof data.accuracy === "number") {
-            accuracy = data.accuracy;
-          }
-
-          // Check if they're in the metadata object
-          if (data.metadata) {
-            if (typeof data.metadata.speed === "number") {
-              speed = data.metadata.speed;
-              console.log("Found speed in metadata:", speed);
-            }
-            if (typeof data.metadata.heading === "number") {
-              heading = data.metadata.heading;
-            }
-            if (typeof data.metadata.accuracy === "number") {
-              accuracy = data.metadata.accuracy;
-            }
-          }
-
-          console.log("Final extracted speed data:", {
-            speed,
-            heading,
-            accuracy,
-          });
-
-          setShuttleLocations((prev) => {
-            const now = new Date();
-            const newLocations = { ...prev };
-            const shuttleId = data.shuttleId;
-
-            // Check if this is a new shuttle or an update
-            const isNewShuttle = !newLocations[shuttleId];
-
-            // Log the incoming data for debugging
-            console.log("Processing location update for shuttle", shuttleId, {
-              coordinates: data.coordinates,
-              speed,
-              heading,
-              accuracy,
-            });
-
-            // Update the location for this shuttle
-            newLocations[shuttleId] = {
-              coordinates: data.coordinates,
-              lastUpdate: now,
-              speed,
-              heading,
-              accuracy,
-              status: "online",
-            };
-
-            // Log the processed shuttle data
-            console.log(
-              "Updated shuttle data:",
-              shuttleId,
-              newLocations[shuttleId]
-            );
-
-            if (isNewShuttle) {
-              console.log(`New shuttle ${shuttleId} added to tracking`);
-            }
-
-            return newLocations;
-          });
-        });
 
         // Import the interval constant from websocketService
         const LOCATION_UPDATE_INTERVAL = getLocationUpdateInterval();
@@ -418,7 +417,7 @@ const TellerMain = () => {
         disconnectSocket();
       }
     };
-  }, [notificationEnabled]);
+  }, [notificationEnabled, locationEnabled]);
 
   // Add this useEffect after the socket initialization useEffect
   useEffect(() => {
@@ -500,6 +499,7 @@ const TellerMain = () => {
         if (response.ok) {
           const userData = await response.json();
           setNotificationEnabled(userData.preferences?.notifications ?? true);
+          setLocationEnabled(userData.preferences?.location ?? true);
         } else {
           console.error("Failed to fetch user preferences");
         }
@@ -729,7 +729,7 @@ const TellerMain = () => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
-          {Object.entries(optimizedLocations).map(([shuttleId, data]) => {
+          {locationEnabled && Object.entries(optimizedLocations).map(([shuttleId, data]) => {
             if (!data || !data.coordinates) return null;
 
             const trafficCondition = getTrafficCondition(data.speed || 0);
@@ -828,6 +828,8 @@ const TellerMain = () => {
         notifications={notifications}
         notificationEnabled={notificationEnabled}
         onNotificationToggle={updateNotificationPreference}
+        locationEnabled={locationEnabled}
+        onLocationToggle={updateLocationPreference}
         onSettingsClick={() => {
           if (!isSidebarExpanded) {
             setIsSidebarExpanded(true);
