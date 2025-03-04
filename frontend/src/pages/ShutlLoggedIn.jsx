@@ -105,10 +105,120 @@ const ShutlLoggedIn = () => {
   const [selectedDestination, setSelectedDestination] = useState(null);
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
   const navigate = useNavigate();
+  const [notificationEnabled, setNotificationEnabled] = useState(true);
+  const [locationEnabled, setLocationEnabled] = useState(true);
 
   // Add refs to track cleanup functions
   const cleanupFunctionsRef = useRef([]);
   const intervalsRef = useRef([]);
+
+  // Function to update notification preference
+  const updateNotificationPreference = async (enabled) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/userdata`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getCookie("token")}`,
+        },
+        body: JSON.stringify({
+          email: getCookie("email"),
+          preferences: {
+            notifications: enabled
+          }
+        })
+      });
+
+      if (response.ok) {
+        // Update state first
+        setNotificationEnabled(enabled);
+        
+        // If disabling notifications, immediately close any active notification popup
+        if (!enabled) {
+          setActivePopup(null);
+        }
+        
+        toast.success(`Notifications ${enabled ? 'enabled' : 'disabled'}`);
+
+        // Update socket preference without reconnecting
+        if (socket.current) {
+          socket.current.emit('notification_preference', { enabled });
+        }
+      } else {
+        console.error("Failed to update notification preference");
+        toast.error("Failed to update notification settings");
+      }
+    } catch (error) {
+      console.error("Error updating notification preference:", error);
+      toast.error("Failed to update notification settings");
+    }
+  };
+
+  // Function to update location preference
+  const updateLocationPreference = async (enabled) => {
+    // First clear locations if being disabled
+    if (!enabled) {
+      setShuttleLocations({});
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/userdata`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getCookie("token")}`,
+        },
+        body: JSON.stringify({
+          email: getCookie("email"),
+          preferences: {
+            location: enabled
+          }
+        })
+      });
+
+      if (response.ok) {
+        setLocationEnabled(enabled);
+        toast.success(`Location tracking ${enabled ? 'enabled' : 'disabled'}`);
+
+        // Update socket preference without reconnecting
+        if (socket.current) {
+          socket.current.emit('location_preference', { enabled });
+        }
+      } else {
+        console.error("Failed to update location preference");
+        toast.error("Failed to update location settings");
+      }
+    } catch (error) {
+      console.error("Error updating location preference:", error);
+      toast.error("Failed to update location settings");
+    }
+  };
+
+  // Fetch user preferences on mount
+  useEffect(() => {
+    const fetchUserPreferences = async () => {
+      try {
+        const email = getCookie("email");
+        const response = await fetch(`${API_BASE_URL}/userdata/${email}`, {
+          headers: {
+            Authorization: `Bearer ${getCookie("token")}`,
+          },
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          setNotificationEnabled(userData.preferences?.notifications ?? true);
+          setLocationEnabled(userData.preferences?.location ?? true);
+        } else {
+          console.error("Failed to fetch user preferences");
+        }
+      } catch (error) {
+        console.error("Error fetching user preferences:", error);
+      }
+    };
+
+    fetchUserPreferences();
+  }, []);
 
   // Improved socket initialization
   useEffect(() => {
@@ -122,119 +232,14 @@ const ShutlLoggedIn = () => {
 
         socket.current = socketInstance;
 
-        // Subscribe to pickup request events
-        const pickupAcceptedCleanup = await subscribeToEvent(
-          "pickup_request_accepted",
-          (data) => {
-            toast.success(
-              `Your pickup request for ${data.shuttleId} has been accepted!`,
-              { duration: 2000 }
-            );
-          }
-        );
-
-        const pickupCompletedCleanup = await subscribeToEvent(
-          "pickup_request_completed",
-          () => {
-            toast(`Your pickup request has been completed.`, {
-              icon: "✅",
-              duration: 2000,
-            });
-          }
-        );
-
-        const pickupCancelledCleanup = await subscribeToEvent(
-          "pickup_request_cancelled",
-          () => {
-            toast(`Your pickup request has been cancelled.`, {
-              icon: "❌",
-              duration: 2000,
-            });
-          }
-        );
-
-        // Subscribe to location updates with improved handler
-        const locationCleanup = await subscribeToEvent(
-          "shuttle_location",
-          (data) => {
-            if (!isMounted) return;
-
-            setShuttleLocations((prev) => {
-              // Skip update if data is identical to prevent unnecessary re-renders
-              const existingData = prev[data.shuttleId];
-              if (
-                existingData &&
-                existingData.coordinates &&
-                data.coordinates &&
-                existingData.coordinates[0] === data.coordinates[0] &&
-                existingData.coordinates[1] === data.coordinates[1] &&
-                existingData.lastUpdate === data.timestamp
-              ) {
-                return prev;
-              }
-
-              return {
-                ...prev,
-                [data.shuttleId]: {
-                  coordinates: data.coordinates || null,
-                  lastUpdate: new Date(data.timestamp || Date.now()),
-                  speed: data.metadata?.speed ?? 0,
-                  heading: data.metadata?.heading ?? 0,
-                  accuracy: data.metadata?.accuracy ?? 0,
-                  isPredicted: false,
-                  lastKnownCoordinates: data.coordinates || null,
-                  lastKnownSpeed: data.metadata?.speed ?? 0,
-                  lastKnownHeading: data.metadata?.heading ?? 0,
-                },
-              };
-            });
-          }
-        );
-
-        // Also subscribe to location_update events
-        const locationUpdateCleanup = await subscribeToEvent(
-          "shuttle_location_update",
-          (data) => {
-            if (!isMounted) return;
-
-            setShuttleLocations((prev) => {
-              // Skip update if data is identical
-              const existingData = prev[data.shuttleId];
-              if (
-                existingData &&
-                existingData.coordinates &&
-                data.coordinates &&
-                existingData.coordinates[0] === data.coordinates[0] &&
-                existingData.coordinates[1] === data.coordinates[1] &&
-                existingData.lastUpdate === data.timestamp
-              ) {
-                return prev;
-              }
-
-              return {
-                ...prev,
-                [data.shuttleId]: {
-                  coordinates: data.coordinates || null,
-                  lastUpdate: new Date(data.timestamp || Date.now()),
-                  speed: data.metadata?.speed ?? 0,
-                  heading: data.metadata?.heading ?? 0,
-                  accuracy: data.metadata?.accuracy ?? 0,
-                  isPredicted: false,
-                  lastKnownCoordinates: data.coordinates || null,
-                  lastKnownSpeed: data.metadata?.speed ?? 0,
-                  lastKnownHeading: data.metadata?.heading ?? 0,
-                },
-              };
-            });
-          }
-        );
+        // Set initial preferences
+        socketInstance.emit('notification_preference', { enabled: notificationEnabled });
+        socketInstance.emit('location_preference', { enabled: locationEnabled });
 
         // Subscribe to real-time notifications
         const notificationCleanup = await subscribeToEvent(
           "new_notification",
           (notification) => {
-            if (!isMounted) return;
-
             // Check if this notification is for this user type (Commuter)
             if (notification.recipientType !== "Commuter") return;
 
@@ -242,35 +247,76 @@ const ShutlLoggedIn = () => {
             const formattedNotification = {
               message: notification.message,
               createdAt: notification.createdAt || new Date(),
-              // Add any other required fields
             };
 
+            // Always update the notifications array
             setNotifications((prev) => {
               const updatedNotifications = [formattedNotification, ...prev];
               return updatedNotifications.slice(0, 5); // Keep only 5 most recent
             });
 
-            // Optionally show the notification popup
-            setActivePopup("notifications");
-
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-              setActivePopup((current) =>
-                current === "notifications" ? null : current
-              );
-            }, 5000);
+            // Show automatic popup only when notifications are enabled
+            if (notificationEnabled) {
+              setActivePopup("notifications");
+              // Auto-hide after 5 seconds
+              setTimeout(() => {
+                setActivePopup((current) =>
+                  current === "notifications" ? null : current
+                );
+              }, 5000);
+            }
           }
         );
 
-        // Store cleanup functions
-        cleanupFunctionsRef.current.push(
-          pickupAcceptedCleanup,
-          pickupCompletedCleanup,
-          pickupCancelledCleanup,
-          locationCleanup,
-          locationUpdateCleanup,
-          notificationCleanup
-        );
+        // Subscribe to location updates if location tracking is enabled
+        let locationCleanup;
+        if (locationEnabled) {
+          locationCleanup = await subscribeToEvent(
+            "shuttle_location_update",
+            (data) => {
+              if (!isMounted || !locationEnabled) return;
+              
+              console.log("Received shuttle location update:", data);
+              console.log("Current location enabled state:", locationEnabled);
+
+              setShuttleLocations((prev) => {
+                // Skip update if data is identical to prevent unnecessary re-renders
+                const existingData = prev[data.shuttleId];
+                if (
+                  existingData &&
+                  existingData.coordinates &&
+                  data.coordinates &&
+                  existingData.coordinates[0] === data.coordinates[0] &&
+                  existingData.coordinates[1] === data.coordinates[1] &&
+                  existingData.lastUpdate === data.timestamp
+                ) {
+                  return prev;
+                }
+
+                return {
+                  ...prev,
+                  [data.shuttleId]: {
+                    coordinates: data.coordinates || null,
+                    lastUpdate: new Date(data.timestamp || Date.now()),
+                    speed: data.metadata?.speed ?? 0,
+                    heading: data.metadata?.heading ?? 0,
+                    accuracy: data.metadata?.accuracy ?? 0,
+                    isPredicted: false,
+                    lastKnownCoordinates: data.coordinates || null,
+                    lastKnownSpeed: data.metadata?.speed ?? 0,
+                    lastKnownHeading: data.metadata?.heading ?? 0,
+                  },
+                };
+              });
+            }
+          );
+        }
+
+        // Add cleanup functions
+        cleanupFunctionsRef.current.push(() => {
+          if (notificationCleanup) notificationCleanup();
+          if (locationCleanup) locationCleanup();
+        });
 
         // Fetch and track active shuttles
         await fetchAndTrackShuttles();
@@ -362,7 +408,7 @@ const ShutlLoggedIn = () => {
       });
       cleanupFunctionsRef.current = [];
     };
-  }, []);
+  }, [notificationEnabled, locationEnabled]);
 
   // Fetch user profile
   useEffect(() => {
@@ -667,7 +713,7 @@ const ShutlLoggedIn = () => {
             </Marker>
           )}
 
-          {Object.entries(optimizedLocations).map(([shuttleId, data]) => {
+          {locationEnabled && Object.entries(optimizedLocations).map(([shuttleId, data]) => {
             if (!data || !data.coordinates) return null;
 
             let distance = null;
@@ -759,6 +805,10 @@ const ShutlLoggedIn = () => {
             setIsSidebarExpanded(true);
           }
         }}
+        notificationEnabled={notificationEnabled}
+        onNotificationToggle={updateNotificationPreference}
+        locationEnabled={locationEnabled}
+        onLocationToggle={updateLocationPreference}
       />
 
       <div className="ShutlLoggedIn-bottom-actions">
