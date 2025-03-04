@@ -1,4 +1,4 @@
-import React, { forwardRef, useState, useEffect, useCallback } from "react";
+import React, { forwardRef, useState, useEffect, useCallback, useRef } from "react";
 import PropTypes from "prop-types";
 import "../css/Sidebar.css";
 import { useNavigate } from "react-router-dom";
@@ -31,6 +31,7 @@ const Sidebar = forwardRef(
     const [settingsButtonRef, setSettingsButtonRef] = useState(null);
     const [username, setUsername] = useState(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const mobileMenuRef = useRef(null);
 
     // Get username from token
     useEffect(() => {
@@ -222,31 +223,64 @@ const Sidebar = forwardRef(
       }
     };
 
-    const toggleMobileMenu = (e) => {
-      e.stopPropagation();
-      setIsMobileMenuOpen(!isMobileMenuOpen);
-    };
+    // Handle mobile menu toggle
+    const toggleMobileMenu = useCallback((e) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      setIsMobileMenuOpen(prev => !prev);
+      // Prevent body scroll when menu is open
+      document.body.style.overflow = !isMobileMenuOpen ? 'hidden' : '';
+    }, [isMobileMenuOpen]);
 
-    // Add mobile menu close handler
+    // Handle clicks outside mobile menu
     useEffect(() => {
-      const handleClickOutside = (event) => {
+      const handleClickOutside = (e) => {
         if (
-          isMobileMenuOpen &&
-          ref.current &&
-          !ref.current.contains(event.target)
+          mobileMenuRef.current &&
+          !mobileMenuRef.current.contains(e.target) &&
+          !e.target.closest('.hamburger-menu')
         ) {
           setIsMobileMenuOpen(false);
+          document.body.style.overflow = '';
         }
       };
 
       if (isMobileMenuOpen) {
-        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('touchstart', handleClickOutside, { passive: true });
       }
 
       return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener('touchstart', handleClickOutside);
       };
     }, [isMobileMenuOpen]);
+
+    // Clean up body overflow on unmount
+    useEffect(() => {
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }, []);
+
+    // Handle viewport height for mobile browsers
+    useEffect(() => {
+      const setViewportHeight = () => {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+      };
+
+      setViewportHeight();
+      window.addEventListener('resize', setViewportHeight);
+      window.addEventListener('orientationchange', setViewportHeight);
+
+      return () => {
+        window.removeEventListener('resize', setViewportHeight);
+        window.removeEventListener('orientationchange', setViewportHeight);
+      };
+    }, []);
 
     // Add this before the return statement, after other useEffects
     useEffect(() => {
@@ -263,17 +297,22 @@ const Sidebar = forwardRef(
 
     return (
       <>
-        {/* Mobile Top Bar */}
         <div className="Mobile-top-bar">
           <div className="mobile-logo">SHUTL.</div>
-          <button className="hamburger-menu" onClick={toggleMobileMenu}>
-            <FiMenu size={24} color="#fff" />
+          <button 
+            className={`hamburger-menu ${isMobileMenuOpen ? 'active' : ''}`}
+            onClick={toggleMobileMenu}
+            aria-label="Toggle menu"
+            aria-expanded={isMobileMenuOpen}
+          >
+            <span></span>
+            <span></span>
+            <span></span>
           </button>
         </div>
 
-        {/* Sidebar - Desktop and Mobile */}
         <nav
-          ref={ref}
+          ref={mobileMenuRef}
           className={`Sidebar ${isExpanded ? "expanded" : ""} ${
             isMobileMenuOpen ? "mobile-open" : ""
           }`}

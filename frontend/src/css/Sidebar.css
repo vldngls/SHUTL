@@ -299,32 +299,57 @@ input:checked + .slider:before {
   padding: 8px;
   cursor: pointer;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  color: #fff;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  position: relative;
+  z-index: 9999;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.hamburger-menu:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+.hamburger-menu span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  margin: 2px 0;
+  background-color: #fff;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 2px;
 }
 
-/* Remove the old hamburger image styles since we're using React Icons */
-.hamburger-menu img {
-  display: none;
+.hamburger-menu.active span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
 }
 
-/* Media Queries */
+.hamburger-menu.active span:nth-child(2) {
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+.hamburger-menu.active span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+@media (hover: hover) {
+  .hamburger-menu:hover span {
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+}
+
 @media (max-width: 768px) {
   .Mobile-top-bar {
     display: flex;
+    padding-top: env(safe-area-inset-top, 0px);
+    height: calc(60px + env(safe-area-inset-top, 0px));
   }
 
   .Sidebar {
-    top: 60px;
+    top: calc(60px + env(safe-area-inset-top, 0px));
     right: -100%;
     left: auto;
-    height: calc(100vh - 60px);
+    height: calc(100vh - 60px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
     width: 100% !important;
     max-width: 250px !important;
     border-radius: 0 !important;
@@ -332,8 +357,11 @@ input:checked + .slider:before {
     border-left: 1px solid rgba(255, 255, 255, 0.1);
     border-right: none;
     background-color: #232323;
-    transition: right 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 9998;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .Sidebar.mobile-open {
@@ -431,9 +459,24 @@ input:checked + .slider:before {
 }
 
 @media (max-width: 480px) {
+  .Mobile-top-bar {
+    padding-left: calc(16px + env(safe-area-inset-left, 0px));
+    padding-right: calc(16px + env(safe-area-inset-right, 0px));
+  }
+
   .Sidebar {
     width: 100% !important;
-    max-width: 250px !important;
+    max-width: 100% !important;
+    padding-left: calc(20px + env(safe-area-inset-left, 0px)) !important;
+    padding-right: calc(20px + env(safe-area-inset-right, 0px)) !important;
+  }
+
+  .Sidebar-buttons {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .Sidebar-profile-section {
+    margin-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   .Sidebar.expanded {
@@ -459,5 +502,15 @@ input:checked + .slider:before {
 
   .Sidebar-profile-text {
     display: block !important;
+  }
+
+  .hamburger-menu {
+    width: 36px;
+    height: 36px;
+    margin-right: env(safe-area-inset-right, 0px);
+  }
+
+  .hamburger-menu span {
+    width: 20px;
   }
 }
