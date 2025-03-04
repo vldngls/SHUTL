@@ -54,10 +54,10 @@
 
 /* Form Elements */
 .auth-form {
-  margin-top: 56px;
+  margin-top: 32px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 13px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -99,24 +99,24 @@
 /* Button Styles */
 .auth-button-group {
   display: flex;
-  gap: 10px;
-  margin-top: 12px;
+  gap: 8px;
+  margin-top: 1px;
   justify-content: center;
+  width: 100%;
 }
 
-.auth-submit-button {
-  margin-top: 16px;
-}
 .auth-submit-button,
 .auth-back-button,
 .auth-cancel-button {
-  padding: 8px 20px;
-  border-radius: 5px;
-  font-size: 14px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 15px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-bottom: 12px;
+  margin-bottom: 0;
+  width: 100%;
+  text-align: center;
 }
 
 .auth-submit-button {
@@ -188,7 +188,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 24px 0;
+  margin: 16px 0;
   box-sizing: border-box;
 }
 
@@ -197,8 +197,8 @@
   display: flex;
   align-items: center;
   text-align: center;
-  margin-top: 24px;
-  margin-bottom: 24px;
+  margin-top: 8px;
+  margin-bottom: 8px;
   box-sizing: border-box;
 }
 
@@ -259,7 +259,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin-top: 16px;
+  margin-top: 8px;
   box-sizing: border-box;
   text-align: center;
 }
@@ -407,12 +407,15 @@ small {
 
   .auth-button-group {
     flex-direction: column;
+    gap: 8px;
   }
 
   .auth-back-button,
-  .auth-submit-button {
+  .auth-submit-button,
+  .auth-cancel-button {
     width: 100%;
     padding: 12px 20px;
+    margin-bottom: 0;
   }
 
   .otp-input {
@@ -495,7 +498,7 @@ select.auth-input {
 
 .input-hint {
   display: block;
-  margin-top: 6px;
+  margin-top: 8px;
   font-size: 12px;
   color: #999;
   padding-left: 4px;
