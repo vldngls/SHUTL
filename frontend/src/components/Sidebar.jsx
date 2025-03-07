@@ -1,4 +1,10 @@
-import React, { forwardRef, useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  forwardRef,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
 import PropTypes from "prop-types";
 import "../css/Sidebar.css";
 import { useNavigate } from "react-router-dom";
@@ -16,13 +22,14 @@ const Sidebar = forwardRef(
       onNotificationClick,
       onSummaryClick,
       onTripClick,
+      onActiveShuttlesClick,
       profileImage,
       notifications = [],
       onSettingsClick,
       notificationEnabled,
       onNotificationToggle,
       locationEnabled,
-      onLocationToggle
+      onLocationToggle,
     },
     ref
   ) => {
@@ -146,19 +153,22 @@ const Sidebar = forwardRef(
             },
             (error) => {
               onLocationToggle(false);
-              
-              if (error.code === 1) { // PERMISSION_DENIED
-                alert('Please enable location access in your browser settings to use this feature.');
+
+              if (error.code === 1) {
+                // PERMISSION_DENIED
+                alert(
+                  "Please enable location access in your browser settings to use this feature."
+                );
               }
             },
-            { 
+            {
               enableHighAccuracy: true,
               maximumAge: 0,
-              timeout: 5000
+              timeout: 5000,
             }
           );
         } catch (error) {
-          console.error('Location error:', error);
+          console.error("Location error:", error);
           onLocationToggle(false);
         }
       } else {
@@ -216,6 +226,12 @@ const Sidebar = forwardRef(
               label: "Payment",
               onClick: onMessageClick,
             },
+            {
+              id: "active-shuttles",
+              icon: "/activeshutl.png",
+              label: "Active Shuttles",
+              onClick: onActiveShuttlesClick,
+            },
             ...commonButtons,
           ];
         default:
@@ -224,15 +240,18 @@ const Sidebar = forwardRef(
     };
 
     // Handle mobile menu toggle
-    const toggleMobileMenu = useCallback((e) => {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-      setIsMobileMenuOpen(prev => !prev);
-      // Prevent body scroll when menu is open
-      document.body.style.overflow = !isMobileMenuOpen ? 'hidden' : '';
-    }, [isMobileMenuOpen]);
+    const toggleMobileMenu = useCallback(
+      (e) => {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        setIsMobileMenuOpen((prev) => !prev);
+        // Prevent body scroll when menu is open
+        document.body.style.overflow = !isMobileMenuOpen ? "hidden" : "";
+      },
+      [isMobileMenuOpen]
+    );
 
     // Handle clicks outside mobile menu
     useEffect(() => {
@@ -240,28 +259,30 @@ const Sidebar = forwardRef(
         if (
           mobileMenuRef.current &&
           !mobileMenuRef.current.contains(e.target) &&
-          !e.target.closest('.hamburger-menu')
+          !e.target.closest(".hamburger-menu")
         ) {
           setIsMobileMenuOpen(false);
-          document.body.style.overflow = '';
+          document.body.style.overflow = "";
         }
       };
 
       if (isMobileMenuOpen) {
-        document.addEventListener('mousedown', handleClickOutside);
-        document.addEventListener('touchstart', handleClickOutside, { passive: true });
+        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("touchstart", handleClickOutside, {
+          passive: true,
+        });
       }
 
       return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-        document.removeEventListener('touchstart', handleClickOutside);
+        document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener("touchstart", handleClickOutside);
       };
     }, [isMobileMenuOpen]);
 
     // Clean up body overflow on unmount
     useEffect(() => {
       return () => {
-        document.body.style.overflow = '';
+        document.body.style.overflow = "";
       };
     }, []);
 
@@ -269,16 +290,16 @@ const Sidebar = forwardRef(
     useEffect(() => {
       const setViewportHeight = () => {
         const vh = window.innerHeight * 0.01;
-        document.documentElement.style.setProperty('--vh', `${vh}px`);
+        document.documentElement.style.setProperty("--vh", `${vh}px`);
       };
 
       setViewportHeight();
-      window.addEventListener('resize', setViewportHeight);
-      window.addEventListener('orientationchange', setViewportHeight);
+      window.addEventListener("resize", setViewportHeight);
+      window.addEventListener("orientationchange", setViewportHeight);
 
       return () => {
-        window.removeEventListener('resize', setViewportHeight);
-        window.removeEventListener('orientationchange', setViewportHeight);
+        window.removeEventListener("resize", setViewportHeight);
+        window.removeEventListener("orientationchange", setViewportHeight);
       };
     }, []);
 
@@ -286,9 +307,10 @@ const Sidebar = forwardRef(
     useEffect(() => {
       // Check if we have permission when component mounts
       if (locationEnabled) {
-        navigator.permissions.query({ name: 'geolocation' })
-          .then(permissionStatus => {
-            if (permissionStatus.state === 'denied') {
+        navigator.permissions
+          .query({ name: "geolocation" })
+          .then((permissionStatus) => {
+            if (permissionStatus.state === "denied") {
               onLocationToggle(false);
             }
           });
@@ -299,8 +321,8 @@ const Sidebar = forwardRef(
       <>
         <div className="Mobile-top-bar">
           <div className="mobile-logo">SHUTL.</div>
-          <button 
-            className={`hamburger-menu ${isMobileMenuOpen ? 'active' : ''}`}
+          <button
+            className={`hamburger-menu ${isMobileMenuOpen ? "active" : ""}`}
             onClick={toggleMobileMenu}
             aria-label="Toggle menu"
             aria-expanded={isMobileMenuOpen}
@@ -444,13 +466,14 @@ Sidebar.propTypes = {
   onNotificationClick: PropTypes.func,
   onSummaryClick: PropTypes.func,
   onTripClick: PropTypes.func,
+  onActiveShuttlesClick: PropTypes.func,
   profileImage: PropTypes.string,
   notifications: PropTypes.array,
   onSettingsClick: PropTypes.func,
   notificationEnabled: PropTypes.bool,
   onNotificationToggle: PropTypes.func,
   locationEnabled: PropTypes.bool,
-  onLocationToggle: PropTypes.func
+  onLocationToggle: PropTypes.func,
 };
 
 export default Sidebar;
