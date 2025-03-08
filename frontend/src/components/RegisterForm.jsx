@@ -458,7 +458,7 @@ const RegisterForm = ({ onClose, googleData }) => {
                   <span>or continue with</span>
                 </div>
 
-                <div className="google-login-container">
+                <div className="auth-input-group">
                   <GoogleOAuthProvider
                     clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}
                   >
