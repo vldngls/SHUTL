@@ -609,6 +609,7 @@ const ShutlLoggedIn = () => {
     setShowSuggestionForm(false);
     setShowPaymentQR(false);
     setShowPickMeUp(false);
+    setShowActiveShuttles(false);
   };
 
   const handleNotificationClick = (e) => {
@@ -619,6 +620,7 @@ const ShutlLoggedIn = () => {
     setShowSuggestionForm(false);
     setShowPaymentQR(false);
     setShowPickMeUp(false);
+    setShowActiveShuttles(false);
   };
 
   const handleSuggestionClick = (e) => {
@@ -629,6 +631,7 @@ const ShutlLoggedIn = () => {
     setActivePopup(null);
     setShowPaymentQR(false);
     setShowPickMeUp(false);
+    setShowActiveShuttles(false);
   };
 
   const handlePaymentClick = (e) => {
@@ -638,6 +641,18 @@ const ShutlLoggedIn = () => {
     setShowPaymentQR(prev => !prev);
     setActivePopup(null);
     setShowSuggestionForm(false);
+    setShowPickMeUp(false);
+    setShowActiveShuttles(false);
+  };
+
+  const handleActiveShuttlesClick = (e) => {
+    if (e && e.stopPropagation) {
+      e.stopPropagation();
+    }
+    setShowActiveShuttles(prev => !prev);
+    setActivePopup(null);
+    setShowSuggestionForm(false);
+    setShowPaymentQR(false);
     setShowPickMeUp(false);
   };
 
@@ -904,7 +919,7 @@ const ShutlLoggedIn = () => {
         onProfileClick={handleProfileClick}
         onMessageClick={handlePaymentClick}
         onNotificationClick={handleNotificationClick}
-        onActiveShuttlesClick={() => setShowActiveShuttles(!showActiveShuttles)}
+        onActiveShuttlesClick={handleActiveShuttlesClick}
         profileImage={profilePicture}
         notifications={notifications}
         onSettingsClick={() => {
@@ -943,7 +958,7 @@ const ShutlLoggedIn = () => {
 
         <button
           className="ShutlLoggedIn-active-shuttles-btn"
-          onClick={() => setShowActiveShuttles(!showActiveShuttles)}
+          onClick={handleActiveShuttlesClick}
           style={{
             backgroundColor: showActiveShuttles ? "#007bff" : "white",
             boxShadow: "0 2px 4px rgba(0,0,0,0.2)",

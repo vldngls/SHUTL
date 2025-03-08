@@ -9,6 +9,9 @@
   -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
   z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 .Taskbar-content {
@@ -19,7 +22,8 @@
   padding: 0 24px;
   margin-left: 70px;
   box-sizing: border-box;
-  transition: margin-left 0.3s ease;
+  width: calc(100% - 70px);
+  transition: margin-left 0.3s ease, width 0.3s ease;
 }
 
 .Taskbar-datetime {
@@ -53,4 +57,25 @@
 /* Adjust taskbar content when sidebar is expanded */
 .Sidebar.expanded ~ .Taskbar .Taskbar-content {
   margin-left: 200px;
+  width: calc(100% - 200px);
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+  .Taskbar-content {
+    padding: 0 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .Taskbar-content {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .Sidebar.expanded ~ .Taskbar .Taskbar-content {
+    margin-left: 0;
+    width: 100%;
+  }
 }
