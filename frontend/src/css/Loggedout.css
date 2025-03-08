@@ -21,6 +21,7 @@ body {
   width: 100%;
   position: relative;
   overflow: hidden;
+  background-color: #232323; /* Add background color to prevent white flash */
 }
 
 .ShutlLoggedOut-map-container {
@@ -32,7 +33,7 @@ body {
   height: calc(var(--vh, 1vh) * 100);
   z-index: 1;
   box-sizing: border-box;
-  /* Remove left and width transitions */
+  background-color: #232323; /* Add background color to prevent white flash */
 }
 
 /* Create a pseudo-element to create space for the sidebar instead of using left/width adjustments */
@@ -155,21 +156,24 @@ body {
   display: none;
   position: fixed;
   top: 0;
-  left: -100%;
-  width: 250px;
+  right: -100%;
+  width: 100%;
   height: 100vh;
   background-color: #232323;
   padding: 20px;
-  z-index: 4;
-  transition: left 0.3s ease;
+  z-index: 1002;
+  transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
 }
 
 .ShutlLoggedOut-mobile-menu.active {
-  left: 0;
+  right: 0;
 }
 
 .ShutlLoggedOut-mobile-menu-header {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 40px;
   padding-top: 20px;
 }
@@ -178,7 +182,26 @@ body {
   font-size: 1.8em;
   font-weight: bold;
   color: white;
-  margin-bottom: 10px;
+}
+
+.ShutlLoggedOut-mobile-menu-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.ShutlLoggedOut-mobile-menu-close:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .ShutlLoggedOut-mobile-menu-items {
@@ -255,158 +278,329 @@ body {
 }
 
 @media (max-width: 480px) {
-  .ShutlLoggedOut-navbar {
+  /* Container and map adjustments */
+  .ShutlLoggedOut-container {
+    height: 100dvh;
     width: 100%;
-    height: 60px;
-    min-height: auto;
-    padding: 0 16px;
-    border-radius: 0;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    background-color: #232323; /* Add background color to prevent white flash */
+  }
+
+  .ShutlLoggedOut-map-container {
+    position: fixed !important;
+    top: calc(env(safe-area-inset-top, 0px) + 60px) !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: calc(
+      100dvh - 60px - env(safe-area-inset-top, 0px) -
+        env(safe-area-inset-bottom, 0px)
+    ) !important;
+    z-index: 1 !important;
+    background-color: #232323; /* Add background color to prevent white flash */
+  }
+
+  /* Make sure Leaflet map container takes full height */
+  .ShutlLoggedOut-map-container .leaflet-container {
+    height: 100% !important;
+    width: 100% !important;
+    z-index: 1 !important;
+    background-color: #232323 !important; /* Add background color to prevent white flash */
+  }
+
+  /* Force the map to be visible */
+  .leaflet-container {
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 1 !important;
+  }
+
+  /* Ensure map tiles are visible */
+  .leaflet-tile-container {
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 1 !important;
+  }
+
+  /* Mobile Top Bar */
+  .Mobile-top-bar {
+    position: fixed;
     top: 0;
     left: 0;
-    z-index: 3;
+    right: 0;
+    height: calc(env(safe-area-inset-top, 0px) + 60px);
     background-color: #232323;
-    position: fixed;
+    z-index: 1001;
+    padding: env(safe-area-inset-top, 0px) 20px 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 
-  .ShutlLoggedOut-hamburger {
-    order: 3;
-    margin-bottom: 0;
-  }
-
-  .ShutlLoggedOut-logo {
-    display: block;
-    order: 1;
-    font-size: 1.4em;
+  .mobile-logo {
+    color: #ffffff;
+    font-size: 20px;
     font-weight: bold;
-    margin: 0;
-    padding: 0;
-    color: white;
-    text-align: left;
+    letter-spacing: 1px;
+    text-align: right; /* Align text to the right */
+    margin-right: 4px; /* Add a bit of margin */
   }
 
-  .ShutlLoggedOut-status {
-    display: none;
+  /* Hamburger Menu Button */
+  .hamburger-menu {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 44px;
+    height: 44px;
+    position: relative;
+    z-index: 10000;
+    -webkit-tap-highlight-color: transparent;
+    border-radius: 50%;
+    margin-left: -8px; /* Change from margin-right to margin-left */
   }
 
-  .ShutlLoggedOut-icon-container {
-    display: none;
+  .hamburger-menu:active {
+    background-color: rgba(255, 255, 255, 0.1);
   }
 
-  .ShutlLoggedOut-line {
-    display: none;
+  .hamburger-menu span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    margin: 2px 0;
+    background-color: #fff;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 2px;
   }
 
+  .hamburger-menu.active span:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+  }
+
+  .hamburger-menu.active span:nth-child(2) {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+
+  .hamburger-menu.active span:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  /* Improved Mobile Menu */
   .ShutlLoggedOut-mobile-menu {
-    top: 60px;
-    height: calc((var(--vh, 1vh) * 100) - 60px);
+    top: 0;
+    height: 100dvh;
+    width: 100%;
     right: -100%;
-    transition: right 0.3s ease;
+    left: auto;
+    padding: 0; /* Remove top padding completely */
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: #232323;
+    z-index: 9999; /* Increase z-index to be higher than everything */
+    box-shadow: none;
   }
 
   .ShutlLoggedOut-mobile-menu.active {
-    left: auto;
     right: 0;
+    left: auto;
   }
 
+  /* Improved Mobile Menu Header */
   .ShutlLoggedOut-mobile-menu-header {
-    display: none;
-  }
-
-  .ShutlLoggedOut-mobile-menu-items {
-    margin-top: 20px;
-  }
-
-  /* Adjust taskbar position for top navbar */
-  .ShutlLoggedOut-taskbar {
-    position: fixed;
-    bottom: 0;
-    padding-bottom: 8px;
-    width: 100%;
-    margin-left: 0;
-    background-color: #f5f5f5;
-  }
-
-  /* Adjust map container for top navbar */
-  .ShutlLoggedOut-map-container {
-    position: fixed;
-    top: 60px;
-    height: calc((var(--vh, 1vh) * 100) - 60px);
-    width: 100%;
-    left: 0;
-  }
-
-  /* Adjust update location button position */
-  .ShutlLoggedOut-update-location-btn {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
-    right: 10px;
-  }
-
-  .ShutlLoggedOut-hamburger.active span:nth-child(1) {
-    transform: translateY(9px) rotate(45deg);
-  }
-
-  .ShutlLoggedOut-hamburger.active span:nth-child(2) {
-    opacity: 0;
-  }
-
-  .ShutlLoggedOut-hamburger.active span:nth-child(3) {
-    transform: translateY(-9px) rotate(-45deg);
+    padding: calc(env(safe-area-inset-top, 0px) + 16px) 24px 24px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10000;
+    background-color: #232323;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    height: 80px; /* Fixed height for better positioning */
+    position: relative; /* Add position relative for absolute positioning of X */
   }
 
   .ShutlLoggedOut-mobile-menu-logo {
-    font-size: 1.6em;
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    letter-spacing: 1px;
+    margin-left: 4px; /* Add a bit of margin */
+  }
+
+  .ShutlLoggedOut-mobile-menu-close {
+    background: none;
+    border: none;
+    color: white;
+    padding: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+    z-index: 10001;
+    position: absolute; /* Position absolutely */
+    top: calc(env(safe-area-inset-top, 0px) + 16px); /* Position at the top */
+    right: 16px; /* Position at the right */
+  }
+
+  .ShutlLoggedOut-mobile-menu-close:active {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .ShutlLoggedOut-mobile-menu-close svg {
+    width: 28px;
+    height: 28px;
+    stroke-width: 2px;
+  }
+
+  .ShutlLoggedOut-mobile-menu-items {
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px; /* Add some spacing from header */
   }
 
   .ShutlLoggedOut-mobile-menu button {
-    font-size: 15px;
-    padding: 12px 20px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    padding: 16px 20px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
   }
 
-  .ShutlLoggedOut-status {
-    font-size: 0.9em;
-    margin-top: 0;
-    align-self: center;
+  .ShutlLoggedOut-mobile-menu button:active {
+    background-color: rgba(255, 255, 255, 0.1);
   }
 
-  .ShutlLoggedOut-nav-icon {
-    width: 32px;
-    height: 32px;
+  /* Reload map button */
+  .ShutlLoggedOut-reload-map-btn {
+    z-index: 1002; /* Lower than mobile menu */
   }
 
-  .ShutlLoggedOut-icon-container {
-    width: 25px;
-    height: 25px;
-    margin-top: auto; /* Center icon vertically */
-    margin-bottom: 10px; /* Space from the bottom */
+  /* Ensure the map container adjusts for iOS safe areas */
+  @supports (-webkit-touch-callout: none) {
+    .ShutlLoggedOut-map-container {
+      height: calc(
+        100vh - 60px - env(safe-area-inset-top, 0px) -
+          env(safe-area-inset-bottom, 0px)
+      ) !important;
+    }
   }
 
-  .ShutlLoggedOut-line {
-    top: -4px;
-    width: 12px;
+  /* Add reload map button styling */
+  .ShutlLoggedOut-reload-map-btn {
+    position: fixed;
+    left: 20px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 70px);
+    z-index: 1002;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    padding: 12px;
+    cursor: pointer;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
+  /* Fix for map visibility issues on mobile */
+  #map-container {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
+    background-color: #232323 !important;
+  }
+
+  /* Force leaflet container to be visible */
+  .leaflet-container {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
+    background-color: #232323 !important;
+  }
+
+  /* Force map panes to be visible */
+  .leaflet-map-pane,
+  .leaflet-tile,
+  .leaflet-marker-icon,
+  .leaflet-marker-shadow,
+  .leaflet-tile-pane,
+  .leaflet-overlay-pane,
+  .leaflet-shadow-pane,
+  .leaflet-marker-pane,
+  .leaflet-popup-pane {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
+    z-index: auto !important;
+  }
+
+  /* Ensure map tiles are loaded */
+  .leaflet-tile-loaded {
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  /* Update location button */
+  .ShutlLoggedOut-update-location-btn {
+    position: fixed;
+    right: 20px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 70px);
+    z-index: 1002; /* Lower than mobile menu */
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    padding: 12px;
+    cursor: pointer;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Taskbar adjustments */
   .ShutlLoggedOut-taskbar {
-    font-size: 0.9em;
-    padding: 8px 16px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    width: calc(100% + 80px); /* Expand width to cover entire screen width */
-    margin-left: -80px; /* Shift taskbar left to align with the navbar's edge */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100vw; /* Use viewport width to ensure full width */
+    background-color: #f5f5f5;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: calc(12px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid #e0e0e0;
+    font-size: 14px;
+    z-index: 2;
+    box-sizing: border-box;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+    margin: 0; /* Remove any margin */
   }
 
-  .ShutlLoggedOut-line {
-    display: none; /* Hide the line on smaller portrait devices */
-  }
-
-  .Sidebar ~ .ShutlLoggedOut-map-container::before {
-    width: 64px; /* Match mobile sidebar width */
-  }
-
-  .Sidebar.expanded ~ .ShutlLoggedOut-map-container::before {
-    width: 64px; /* Keep the same width on mobile */
+  .desktop-only {
+    display: none;
   }
 }
 
@@ -423,60 +617,17 @@ body {
   @media (max-width: 480px) {
     .ShutlLoggedOut-map-container {
       height: calc(
-        100vh - 60px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
-      );
+        100vh - 60px - env(safe-area-inset-top, 0px) -
+          env(safe-area-inset-bottom, 0px)
+      ) !important;
     }
 
     .ShutlLoggedOut-mobile-menu {
       height: calc(
-        100vh - 60px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
-      );
+        100vh - 60px - env(safe-area-inset-top, 0px) -
+          env(safe-area-inset-bottom, 0px)
+      ) !important;
     }
-  }
-}
-
-/* ShutlLoggedOut Update Location Button */
-.ShutlLoggedOut-update-location-btn {
-  position: fixed;
-  right: 20px;
-  bottom: 60px; /* Adjust this value to position it above the taskbar */
-  background: none; /* Remove default button styles */
-  border: none; /* Remove default button border */
-  padding: 0; /* Remove default padding */
-  cursor: pointer;
-  z-index: 3; /* Ensure it stays above the map and taskbar */
-}
-
-.ShutlLoggedOut-update-location-icon {
-  width: 40px; /* Adjust the icon size */
-  height: 40px; /* Adjust the icon size */
-}
-
-.ShutlLoggedOut-update-location-btn:hover .ShutlLoggedOut-update-location-icon {
-  opacity: 0.8; /* Add hover effect */
-}
-
-@media (max-width: 768px) {
-  .ShutlLoggedOut-update-location-btn {
-    right: 10px;
-    bottom: 50px; /* Adjust for smaller screens */
-  }
-
-  .ShutlLoggedOut-update-location-icon {
-    width: 30px;
-    height: 30px;
-  }
-}
-
-@media (max-width: 480px) {
-  .ShutlLoggedOut-update-location-btn {
-    right: 10px;
-    bottom: 80px; /* Adjust for smaller screens */
-  }
-
-  .ShutlLoggedOut-update-location-icon {
-    width: 25px;
-    height: 25px;
   }
 }
 
@@ -515,4 +666,33 @@ body {
   margin: 0;
   font-size: 12px;
   color: #666;
+}
+
+.ShutlLoggedOut-update-location-icon {
+  width: 24px;
+  height: 24px;
+  filter: none;
+}
+
+/* Desktop-only elements */
+.desktop-only {
+  display: block;
+}
+
+/* Fix for marker images */
+.leaflet-marker-icon {
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+}
+
+@media (max-width: 480px) {
+  .desktop-only {
+    display: none;
+  }
+
+  /* Remove the reload map button styles since we removed the button */
+  .ShutlLoggedOut-reload-map-btn {
+    display: none;
+  }
 }

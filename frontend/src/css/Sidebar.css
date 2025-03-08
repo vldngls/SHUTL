@@ -2,7 +2,8 @@
   position: fixed;
   top: 0;
   left: 0;
-  height: 100vh;
+  height: 100dvh;
+  min-height: -webkit-fill-available;
   width: 70px;
   background-color: #232323;
   display: flex;
@@ -12,7 +13,7 @@
   z-index: 1000;
   border-top-right-radius: 38.5px;
   border-bottom-right-radius: 38.5px;
-  padding: 0px 8px;
+  padding: env(safe-area-inset-top, 0px) 8px env(safe-area-inset-bottom, 0px);
   box-sizing: border-box;
   justify-content: space-between;
 }
@@ -130,7 +131,7 @@
   width: 100%;
   background-color: #232323;
   border-radius: 8px;
-  z-index: 1003;
+  z-index: 1001;
   overflow: hidden;
   margin-top: 340px;
   display: none;
@@ -277,13 +278,14 @@ input:checked + .slider:before {
   top: 0;
   left: 0;
   right: 0;
-  height: 60px;
+  height: calc(env(safe-area-inset-top, 0px) + 60px);
   background-color: #232323;
-  z-index: 9999;
-  padding: 0 16px;
-  align-items: center;
+  z-index: 1000;
+  padding: env(safe-area-inset-top, 0px) 16px 0;
+  align-items: flex-end;
   justify-content: space-between;
   flex-direction: row-reverse;
+  padding-bottom: 12px;
 }
 
 .mobile-logo {
@@ -341,43 +343,51 @@ input:checked + .slider:before {
 @media (max-width: 768px) {
   .Mobile-top-bar {
     display: flex;
-    padding-top: env(safe-area-inset-top, 0px);
-    height: calc(60px + env(safe-area-inset-top, 0px));
   }
 
   .Sidebar {
-    top: calc(60px + env(safe-area-inset-top, 0px));
-    right: -100%;
-    left: auto;
-    height: calc(100vh - 60px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-    width: 100% !important;
-    max-width: 250px !important;
-    border-radius: 0 !important;
-    padding: 20px !important;
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
-    border-right: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100dvh;
+    height: 100vh; /* Fallback */
+    height: -webkit-fill-available;
+    border-radius: 0;
+    transform: translateX(-100%);
+    display: flex;
+    flex-direction: column;
     background-color: #232323;
-    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 9998;
-    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+    z-index: 1000;
+    padding: 0;
+    margin: 0;
+  }
+
+  .Sidebar-content {
+    padding: calc(env(safe-area-inset-top, 0px) + 60px)
+      env(safe-area-inset-right, 16px) env(safe-area-inset-bottom, 0px)
+      env(safe-area-inset-left, 16px);
+    height: 100%;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
   }
 
   .Sidebar.mobile-open {
-    right: 0;
-    left: auto;
-    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+    transform: translateX(0);
+  }
+
+  .Sidebar-buttons {
+    padding: 32px 0;
+    height: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: auto;
   }
 
   .Sidebar-logo {
     display: none;
-  }
-
-  .Sidebar-buttons {
-    padding-top: 0;
-    width: 100%;
-    gap: 8px;
   }
 
   .Sidebar-icon-btn {
@@ -424,13 +434,10 @@ input:checked + .slider:before {
   }
 
   .Sidebar-profile-section {
-    justify-content: flex-start;
-    padding: 16px 24px;
-    margin-top: auto;
     background-color: rgba(255, 255, 255, 0.03);
     border-radius: 8px;
-    width: 100%;
-    gap: 12px;
+    padding: 16px;
+    margin-bottom: max(16px, env(safe-area-inset-bottom, 0px));
   }
 
   .Sidebar-profile-text {
@@ -444,9 +451,9 @@ input:checked + .slider:before {
   }
 
   .Sidebar-icon-container {
-    margin-top: 20px;
-    margin-bottom: 0;
+    margin-top: auto;
     width: 100%;
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
   }
 
   .Sidebar-settings-option[data-enabled] {
@@ -460,18 +467,22 @@ input:checked + .slider:before {
 
 @media (max-width: 480px) {
   .Mobile-top-bar {
-    padding-left: calc(16px + env(safe-area-inset-left, 0px));
-    padding-right: calc(16px + env(safe-area-inset-right, 0px));
+    height: calc(env(safe-area-inset-top, 0px) + 60px);
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-left: max(16px, env(safe-area-inset-left, 16px));
+    padding-right: max(16px, env(safe-area-inset-right, 16px));
   }
 
-  .Sidebar {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding-left: calc(20px + env(safe-area-inset-left, 0px)) !important;
-    padding-right: calc(20px + env(safe-area-inset-right, 0px)) !important;
+  .Sidebar-content {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 60px);
   }
 
   .Sidebar-buttons {
+    padding: 24px 0;
+  }
+
+  .Sidebar-icon-container {
+    margin-bottom: 0;
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
@@ -479,19 +490,10 @@ input:checked + .slider:before {
     margin-bottom: env(safe-area-inset-bottom, 0px);
   }
 
-  .Sidebar.expanded {
-    width: 100% !important;
-  }
-
-  .Sidebar.expanded .button-label {
-    display: block !important;
-  }
-
   .Sidebar-settings-dropdown {
-    position: relative;
-    width: 100% !important;
+    position: static;
     margin: 8px 0;
-    border-radius: 8px;
+    width: 100% !important;
   }
 
   .Sidebar-settings-option {
@@ -507,10 +509,49 @@ input:checked + .slider:before {
   .hamburger-menu {
     width: 36px;
     height: 36px;
-    margin-right: env(safe-area-inset-right, 0px);
+    padding: 8px;
+    margin-right: 0;
   }
 
   .hamburger-menu span {
     width: 20px;
   }
+
+  .Sidebar-close-button {
+    top: 12px;
+    right: 12px;
+  }
+}
+
+/* Add support for iOS devices */
+@supports (-webkit-touch-callout: none) {
+  .Sidebar,
+  .Mobile-top-bar {
+    height: -webkit-fill-available;
+  }
+}
+
+.Sidebar-close-button {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1002;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.Sidebar-close-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }

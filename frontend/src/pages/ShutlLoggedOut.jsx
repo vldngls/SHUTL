@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "../css/Loggedout.css";
@@ -7,6 +7,8 @@ import L from "leaflet";
 import { io } from "socket.io-client"; // Import socket.io-client
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 import Sidebar from "../components/Sidebar";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 // Define SOCKET_URL
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Ensure this is set in your environment
@@ -16,19 +18,17 @@ const SOCKET_URL = API_BASE_URL.replace("/api", ""); // Adjust as necessary
 delete L.Icon.Default.prototype._getIconUrl;
 
 L.Icon.Default.mergeOptions({
-  iconUrl: "/marker-icon.png",
-  iconRetinaUrl: "/marker-icon-2x.png",
-  shadowUrl: "/marker-shadow.png",
+  iconRetinaUrl: markerIcon,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
 });
 
+// Create a custom icon for the driver marker
 const driverIcon = new L.Icon({
-  iconUrl: "/car.png",
-  iconRetinaUrl: "/car.png",
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  iconSize: [29, 59],
-  shadowUrl: "/marker-shadow.png",
-  shadowSize: [41, 41],
+  iconUrl: "/driver.png",
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32],
 });
 
 const ShutlLoggedOut = () => {
@@ -41,6 +41,7 @@ const ShutlLoggedOut = () => {
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -139,15 +140,29 @@ const ShutlLoggedOut = () => {
       }));
     });
 
-    // Add viewport height fix for mobile browsers
-    const setVH = () => {
+    // Ensure the map is properly sized on component mount and window resize
+    const handleResize = () => {
+      // Set a custom viewport height variable
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty("--vh", `${vh}px`);
+
+      // Force map to resize if it exists
+      if (mapRef.current) {
+        mapRef.current.invalidateSize();
+      }
     };
 
-    setVH();
-    window.addEventListener("resize", setVH);
-    window.addEventListener("orientationchange", setVH);
+    // Run on mount
+    handleResize();
+
+    // Add event listener for resize
+    window.addEventListener("resize", handleResize);
+
+    // Add event listener for orientation change (important for mobile)
+    window.addEventListener("orientationchange", () => {
+      // Delay to ensure the orientation change is complete
+      setTimeout(handleResize, 200);
+    });
 
     return () => {
       clearInterval(timer);
@@ -157,8 +172,59 @@ const ShutlLoggedOut = () => {
         socket.current.off("shuttle_location_update");
         socket.current.disconnect();
       }
-      window.removeEventListener("resize", setVH);
-      window.removeEventListener("orientationchange", setVH);
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("orientationchange", handleResize);
+    };
+  }, []);
+
+  // Add this effect to ensure map is properly initialized after refresh
+  useEffect(() => {
+    // Force map to refresh and resize after component mounts
+    const initMap = () => {
+      if (mapRef.current) {
+        // Invalidate map size to force recalculation
+        mapRef.current.invalidateSize();
+
+        // If user location exists, center map on it
+        if (userLocation) {
+          mapRef.current.setView(userLocation, 15.5, { animate: false });
+        }
+
+        // Mark map as ready
+        setMapReady(true);
+      }
+    };
+
+    // Run immediately
+    initMap();
+
+    // Also run after a short delay to ensure everything is loaded
+    const timer = setTimeout(initMap, 500);
+
+    // Run again after a longer delay (helps with some mobile browsers)
+    const secondTimer = setTimeout(initMap, 2000);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(secondTimer);
+    };
+  }, [userLocation]);
+
+  // Use layout effect to set up the map container before rendering
+  useLayoutEffect(() => {
+    // Set a custom viewport height variable
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty("--vh", `${vh}px`);
+
+    // Make sure the map container is visible
+    const mapContainer = document.getElementById("map-container");
+    if (mapContainer) {
+      mapContainer.style.visibility = "visible";
+      mapContainer.style.opacity = "1";
+    }
+
+    return () => {
+      // Clean up
     };
   }, []);
 
@@ -191,6 +257,7 @@ const ShutlLoggedOut = () => {
   const handleLoginClick = () => {
     setShowLogin(true);
     setIsMobileMenuOpen(false);
+    setIsSidebarExpanded(false);
   };
 
   const handleCloseLogin = () => {
@@ -205,16 +272,45 @@ const ShutlLoggedOut = () => {
     setIsSidebarExpanded((prev) => !prev);
   };
 
+  // Add this function to force map reload if needed
+  const forceMapReload = () => {
+    if (mapRef.current) {
+      // Force map to recalculate its size
+      mapRef.current.invalidateSize(true);
+
+      // If user location exists, center map on it
+      if (userLocation) {
+        mapRef.current.setView(userLocation, 15.5, { animate: false });
+      }
+    }
+  };
+
   return (
     <div className="ShutlLoggedOut-container">
-      <div className="ShutlLoggedOut-map-container">
+      <div
+        className="ShutlLoggedOut-map-container"
+        id="map-container"
+        onClick={forceMapReload}
+      >
         <MapContainer
-          style={{ height: "100%", width: "100%" }}
+          key="map-container"
+          style={{
+            height: "100%",
+            width: "100%",
+            visibility: "visible",
+            opacity: 1,
+          }}
           center={[14.377, 120.983]}
           zoom={15.5}
           zoomControl={false}
-          whenCreated={(mapInstance) => {
-            mapRef.current = mapInstance;
+          whenReady={(map) => {
+            mapRef.current = map.target;
+            setTimeout(() => {
+              if (mapRef.current) {
+                mapRef.current.invalidateSize(true);
+                setMapReady(true);
+              }
+            }, 100);
           }}
         >
           <TileLayer
@@ -254,24 +350,104 @@ const ShutlLoggedOut = () => {
         </MapContainer>
       </div>
 
-      <Sidebar
-        userType="guest"
-        isExpanded={isSidebarExpanded}
-        onToggle={toggleSidebar}
-        onProfileClick={handleLoginClick}
-        profileImage="/icon.png"
-      />
+      {/* Desktop Sidebar - only visible on desktop */}
+      <div className="desktop-only">
+        <Sidebar
+          userType="guest"
+          isExpanded={isSidebarExpanded}
+          onToggle={toggleSidebar}
+          onProfileClick={handleLoginClick}
+          profileImage="/icon.png"
+        />
+      </div>
 
-      <button
-        className={`ShutlLoggedOut-hamburger ${
+      {/* Mobile top bar with hamburger on the left and logo on the right */}
+      <div className="Mobile-top-bar">
+        <button
+          className={`hamburger-menu ${isMobileMenuOpen ? "active" : ""}`}
+          onClick={toggleMobileMenu}
+          aria-label="Toggle menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div className="mobile-logo">SHUTL.</div>
+      </div>
+
+      {/* Mobile menu - moved to the end to ensure it's on top */}
+      <div
+        className={`ShutlLoggedOut-mobile-menu ${
           isMobileMenuOpen ? "active" : ""
         }`}
-        onClick={toggleMobileMenu}
       >
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
+        <div className="ShutlLoggedOut-mobile-menu-header">
+          <div className="ShutlLoggedOut-mobile-menu-logo">SHUTL.</div>
+          <button
+            className="ShutlLoggedOut-mobile-menu-close"
+            onClick={toggleMobileMenu}
+            aria-label="Close menu"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 6L6 18"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M6 6L18 18"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+        <div className="ShutlLoggedOut-mobile-menu-items">
+          <button onClick={handleLoginClick}>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{ marginRight: "12px" }}
+            >
+              <path
+                d="M15 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H15"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M10 17L15 12L10 7"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M15 12H3"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Login
+          </button>
+        </div>
+      </div>
 
       <div className="ShutlLoggedOut-taskbar">
         {dateTime.toLocaleDateString("en-PH", {

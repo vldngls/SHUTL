@@ -2,7 +2,19 @@ import React, { useState, useEffect } from "react";
 import "../css/shared/AuthForms.css";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import {
+  FaRegEye,
+  FaRegEyeSlash,
+  FaUser,
+  FaLock,
+  FaEnvelope,
+  FaCalendar,
+  FaMapMarkerAlt,
+  FaIdCard,
+  FaPhone,
+  FaTimes,
+} from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
@@ -363,70 +375,82 @@ const RegisterForm = ({ onClose, googleData }) => {
             {!googleData ? (
               <>
                 <div className="auth-input-group">
-                  <input
-                    type="email"
-                    name="email"
-                    className="auth-input"
-                    placeholder="Email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div className="auth-input-group">
-                  <input
-                    type="text"
-                    name="username"
-                    className="auth-input"
-                    placeholder="Username"
-                    value={formData.username}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div className="auth-input-group">
-                  <div className="password-input-container">
+                  <div className="input-with-icon">
+                    <FaEnvelope className="input-icon" />
                     <input
-                      type={showPassword ? "text" : "password"}
-                      name="password"
-                      className="auth-input"
-                      placeholder="Password"
-                      value={formData.password}
+                      type="email"
+                      name="email"
+                      className="auth-input with-icon"
+                      placeholder="Email"
+                      value={formData.email}
                       onChange={handleInputChange}
                       required
                     />
-                    <button
-                      type="button"
-                      className="password-toggle-btn"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <FaEyeSlash /> : <FaEye />}
-                    </button>
                   </div>
                 </div>
 
                 <div className="auth-input-group">
-                  <div className="password-input-container">
+                  <div className="input-with-icon">
+                    <FaUser className="input-icon" />
                     <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      name="confirmPassword"
-                      className="auth-input"
-                      placeholder="Confirm Password"
-                      value={formData.confirmPassword}
+                      type="text"
+                      name="username"
+                      className="auth-input with-icon"
+                      placeholder="Username"
+                      value={formData.username}
                       onChange={handleInputChange}
                       required
                     />
-                    <button
-                      type="button"
-                      className="password-toggle-btn"
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                    >
-                      {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                    </button>
+                  </div>
+                </div>
+
+                <div className="auth-input-group">
+                  <div className="input-with-icon">
+                    <FaLock className="input-icon" />
+                    <div className="password-input-container">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        className="auth-input with-icon"
+                        placeholder="Password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle-btn"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <FaRegEyeSlash /> : <FaRegEye />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="auth-input-group">
+                  <div className="input-with-icon">
+                    <FaLock className="input-icon" />
+                    <div className="password-input-container">
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        name="confirmPassword"
+                        className="auth-input with-icon"
+                        placeholder="Confirm Password"
+                        value={formData.confirmPassword}
+                        onChange={handleInputChange}
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle-btn"
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                      >
+                        {showConfirmPassword ? <FaRegEyeSlash /> : <FaRegEye />}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -438,21 +462,33 @@ const RegisterForm = ({ onClose, googleData }) => {
                   <GoogleOAuthProvider
                     clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}
                   >
-                    {console.log(
-                      "Google Client ID:",
-                      import.meta.env.VITE_GOOGLE_CLIENT_ID
-                    )}
-                    <GoogleLogin
-                      onSuccess={handleGoogleSuccess}
-                      onError={(error) => {
-                        console.error("Google login error:", error);
-                        setError("Google login failed");
+                    <div
+                      className="custom-google-btn"
+                      onClick={() => {
+                        const googleLoginButton =
+                          document.querySelector(".google-login");
+                        if (googleLoginButton) {
+                          googleLoginButton.click();
+                        }
                       }}
-                      useOneTap
-                      theme="filled_blue"
-                      size="large"
-                      shape="rectangular"
-                    />
+                    >
+                      <FcGoogle size={24} />
+                      <span>Sign up with Google</span>
+                      <div style={{ display: "none" }}>
+                        <GoogleLogin
+                          onSuccess={handleGoogleSuccess}
+                          onError={(error) => {
+                            console.error("Google login error:", error);
+                            setError("Google login failed");
+                          }}
+                          useOneTap
+                          theme="filled_blue"
+                          size="large"
+                          shape="rectangular"
+                          className="google-login"
+                        />
+                      </div>
+                    </div>
                   </GoogleOAuthProvider>
                 </div>
               </>
@@ -474,61 +510,70 @@ const RegisterForm = ({ onClose, googleData }) => {
                 </div>
 
                 <div className="auth-input-group">
-                  <input
-                    type="text"
-                    name="username"
-                    className="auth-input"
-                    placeholder="Choose a username"
-                    value={formData.username}
-                    onChange={handleInputChange}
-                    required
-                  />
+                  <div className="input-with-icon">
+                    <FaUser className="input-icon" />
+                    <input
+                      type="text"
+                      name="username"
+                      className="auth-input with-icon"
+                      placeholder="Choose a username"
+                      value={formData.username}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
                   <small className="input-hint">
                     This will be your unique username for logging in
                   </small>
                 </div>
 
                 <div className="auth-input-group">
-                  <div className="password-input-container">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      name="password"
-                      className="auth-input"
-                      placeholder="Choose a password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      required
-                    />
-                    <button
-                      type="button"
-                      className="password-toggle-btn"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <FaEyeSlash /> : <FaEye />}
-                    </button>
+                  <div className="input-with-icon">
+                    <FaLock className="input-icon" />
+                    <div className="password-input-container">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        className="auth-input with-icon"
+                        placeholder="Choose a password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle-btn"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <FaRegEyeSlash /> : <FaRegEye />}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
                 <div className="auth-input-group">
-                  <div className="password-input-container">
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      name="confirmPassword"
-                      className="auth-input"
-                      placeholder="Confirm password"
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      required
-                    />
-                    <button
-                      type="button"
-                      className="password-toggle-btn"
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                    >
-                      {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                    </button>
+                  <div className="input-with-icon">
+                    <FaLock className="input-icon" />
+                    <div className="password-input-container">
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        name="confirmPassword"
+                        className="auth-input with-icon"
+                        placeholder="Confirm password"
+                        value={formData.confirmPassword}
+                        onChange={handleInputChange}
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle-btn"
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                      >
+                        {showConfirmPassword ? <FaRegEyeSlash /> : <FaRegEye />}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </>
@@ -539,9 +584,11 @@ const RegisterForm = ({ onClose, googleData }) => {
                 type="checkbox"
                 id="terms"
                 checked={isChecked}
-                onChange={() => setIsChecked(!isChecked)}
+                onChange={(e) => setIsChecked(e.target.checked)}
               />
-              <label htmlFor="terms">I agree to the Terms and Conditions</label>
+              <label htmlFor="terms">
+                I agree to the Terms of Service and Privacy Policy
+              </label>
             </div>
           </>
         );
@@ -550,99 +597,62 @@ const RegisterForm = ({ onClose, googleData }) => {
         return (
           <>
             <div className="auth-input-group">
-              <input
-                type="text"
-                name="name"
-                className="auth-input"
-                placeholder="Full Name"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            <div className="auth-input-group">
-              <input
-                type="date"
-                name="birthday"
-                className="auth-input"
-                value={formData.birthday}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            <div className="auth-input-group">
-              <input
-                type="text"
-                name="address"
-                className="auth-input"
-                placeholder="Address"
-                value={formData.address}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            <div className="auth-input-group">
-              <select
-                name="discountType"
-                className="auth-input"
-                value={formData.discountType}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="REGULAR">Regular</option>
-                {fares.map(
-                  (fare) =>
-                    fare.fare !== "Regular" && (
-                      <option key={fare._id} value={fare.fare.toUpperCase()}>
-                        {fare.fare}
-                      </option>
-                    )
-                )}
-              </select>
-            </div>
-
-            {formData.discountType !== "REGULAR" && (
-              <div className="auth-input-group">
+              <div className="input-with-icon">
+                <FaUser className="input-icon" />
                 <input
-                  type="file"
-                  name="idPicture"
-                  className="auth-input"
-                  accept="image/*"
-                  onChange={(e) => handleFileChange(e, "idPicture")}
+                  type="text"
+                  name="name"
+                  className="auth-input with-icon"
+                  placeholder="Full Name"
+                  value={formData.name}
+                  onChange={handleInputChange}
                   required
                 />
-                <small>
-                  Please upload a valid ID for discount verification. You can
-                  still use the app while your discount is pending approval.
-                </small>
               </div>
-            )}
-
-            <div className="auth-input-group">
-              <input
-                type="text"
-                name="paymentMethod"
-                className="auth-input"
-                placeholder="Payment Method"
-                value={formData.paymentMethod}
-                onChange={handleInputChange}
-                required
-              />
             </div>
 
             <div className="auth-input-group">
-              <input
-                type="tel"
-                name="contactNumber"
-                className="auth-input"
-                placeholder="Contact Number"
-                value={formData.contactNumber}
-                onChange={handleInputChange}
-                required
-              />
+              <div className="input-with-icon">
+                <FaCalendar className="input-icon" />
+                <input
+                  type="date"
+                  name="birthday"
+                  className="auth-input with-icon"
+                  value={formData.birthday}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="auth-input-group">
+              <div className="input-with-icon">
+                <FaMapMarkerAlt className="input-icon" />
+                <input
+                  type="text"
+                  name="address"
+                  className="auth-input with-icon"
+                  placeholder="Address"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="auth-input-group">
+              <div className="input-with-icon">
+                <FaPhone className="input-icon" />
+                <input
+                  type="tel"
+                  name="contactNumber"
+                  className="auth-input with-icon"
+                  placeholder="Contact Number"
+                  value={formData.contactNumber}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
             </div>
           </>
         );
@@ -736,81 +746,40 @@ const RegisterForm = ({ onClose, googleData }) => {
 
   return (
     <div className="auth-form-overlay">
-      <div className="auth-form-container">
-        <h2 className="auth-form-title">Create Account</h2>
-        <p className="auth-form-subtitle">Step {section} of 3</p>
+      <div className="auth-nav-bar">
+        <button className="close-button" onClick={onClose}>
+          <FaTimes />
+        </button>
+        <div className="logo">SHUTL.</div>
+      </div>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (section === 3) {
-              handleSubmit(e);
-            }
-          }}
-          className="auth-form"
-        >
-          {renderSection()}
+      <div className="auth-form-container registration-form">
+        <div className="auth-form-title">Create Account</div>
+        <div className="auth-form-subtitle">Step {section} of 3</div>
 
+        <form className="auth-form" onSubmit={(e) => e.preventDefault()}>
           {error && <div className="auth-error">{error}</div>}
-
-          <div className="auth-button-group">
-            {section > 1 && (
-              <button
-                type="button"
-                className="auth-back-button"
-                onClick={handleBack}
-              >
-                Back
-              </button>
-            )}
-            {section < 3 ? (
-              <>
-                <button
-                  type="button"
-                  className="auth-cancel-button"
-                  onClick={handleCancel}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="auth-submit-button"
-                  onClick={handleNext}
-                >
-                  Next
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  className="auth-cancel-button"
-                  onClick={handleCancel}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="auth-submit-button"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Creating Account..." : "Create Account"}
-                </button>
-              </>
-            )}
-          </div>
+          {renderSection()}
         </form>
 
-        {section === 1 && (
-          <>
-            <div className="auth-footer">
-              <span>Already have an account? </span>
-              <button className="auth-link-button" onClick={onClose}>
-                Sign in here
-              </button>
-            </div>
-          </>
-        )}
+        <div className="auth-button-group">
+          {section > 1 ? (
+            <button className="auth-cancel-button" onClick={handleBack}>
+              Back
+            </button>
+          ) : (
+            <button className="auth-cancel-button" onClick={onClose}>
+              Cancel
+            </button>
+          )}
+          <button
+            className="auth-submit-button"
+            onClick={section === 3 ? handleSubmit : handleNext}
+            disabled={isLoading}
+          >
+            {section === 3 ? "Create Account" : "Next"}
+          </button>
+        </div>
       </div>
     </div>
   );

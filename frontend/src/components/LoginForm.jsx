@@ -4,8 +4,16 @@ import "../css/shared/AuthForms.css";
 import RegisterForm from "./RegisterForm";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import {
+  FaRegEye,
+  FaRegEyeSlash,
+  FaUser,
+  FaLock,
+  FaTimes,
+} from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-hot-toast";
+import shuttlIcon from "/shuttl.svg";
 
 const LoginForm = ({ onClose }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -291,8 +299,11 @@ const LoginForm = ({ onClose }) => {
   if (showForgotPassword) {
     return (
       <div className="auth-form-overlay">
-        <div className="auth-form-container" ref={formRef}>
-          <h2 className="auth-form-title">Reset Password</h2>
+        <div className="auth-form-container login-form" ref={formRef}>
+          <div className="auth-title-container">
+            <img src={shuttlIcon} alt="SHUTL" className="auth-logo" />
+            <h2 className="auth-form-title">Reset Password</h2>
+          </div>
           <p className="auth-form-subtitle">
             {!showOTPInput
               ? "Enter your email to receive OTP"
@@ -355,7 +366,7 @@ const LoginForm = ({ onClose }) => {
                       className="password-toggle-btn"
                       onClick={() => setShowNewPassword(!showNewPassword)}
                     >
-                      {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                      {showNewPassword ? <FaRegEyeSlash /> : <FaRegEye />}
                     </button>
                   </div>
                 </div>
@@ -377,7 +388,7 @@ const LoginForm = ({ onClose }) => {
                         setShowConfirmPassword(!showConfirmPassword)
                       }
                     >
-                      {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                      {showConfirmPassword ? <FaRegEyeSlash /> : <FaRegEye />}
                     </button>
                   </div>
                 </div>
@@ -426,89 +437,254 @@ const LoginForm = ({ onClose }) => {
 
   return (
     <div className="auth-form-overlay">
-      <div className="auth-form-container" ref={formRef}>
-        <h2 className="auth-form-title">SHUTL.</h2>
-        <p className="auth-form-subtitle">Welcome to SHUTL</p>
+      <div className="auth-nav-bar">
+        <button className="close-button" onClick={onClose}>
+          <FaTimes />
+        </button>
+        <div className="logo">SHUTL.</div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="auth-input-group">
-            <input
-              type="text"
-              className="auth-input"
-              placeholder="Email or Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
+      <div className="auth-form-container login-form" ref={formRef}>
+        {!showForgotPassword ? (
+          <>
+            <div className="auth-title-container">
+              <img src={shuttlIcon} alt="SHUTL" className="auth-logo" />
+              <h1 className="auth-form-title">SHUTL</h1>
+            </div>
 
-          <div className="auth-input-group">
-            <div className="password-input-container">
-              <input
-                type={showPassword ? "text" : "password"}
-                className="auth-input"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+            <form className="auth-form" onSubmit={handleSubmit}>
+              {error && <div className="auth-error">{error}</div>}
+
+              <div className="auth-input-group">
+                <div className="input-with-icon">
+                  <FaUser className="input-icon" />
+                  <input
+                    type="text"
+                    placeholder="Username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="auth-input with-icon"
+                  />
+                </div>
+              </div>
+
+              <div className="auth-input-group">
+                <div className="input-with-icon">
+                  <FaLock className="input-icon" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="auth-input with-icon"
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle-btn"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <FaRegEyeSlash /> : <FaRegEye />}
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" className="auth-submit-button">
+                Sign In
+              </button>
+
+              <div className="auth-divider">
+                <span>or continue with</span>
+              </div>
+
+              <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => {
+                    setError("Google Sign In failed");
+                  }}
+                  useOneTap
+                  type="standard"
+                  theme="outline"
+                  size="large"
+                  text="continue_with"
+                  shape="rectangular"
+                  render={({ onClick }) => (
+                    <button
+                      onClick={onClick}
+                      type="button"
+                      className="custom-google-btn"
+                    >
+                      <FcGoogle size={20} />
+                      Sign in with Google
+                    </button>
+                  )}
+                />
+              </GoogleOAuthProvider>
+
+              <div className="auth-footer">
+                <button
+                  type="button"
+                  className="auth-link-button"
+                  onClick={() => setShowForgotPassword(true)}
+                >
+                  Forgot Password?
+                </button>
+                <button
+                  type="button"
+                  className="auth-link-button"
+                  onClick={() => setIsRegistering(true)}
+                >
+                  Don't have an account? Sign up
+                </button>
+              </div>
+            </form>
+          </>
+        ) : (
+          <div className="auth-form-container login-form" ref={formRef}>
+            <div className="auth-title-container">
+              <img src={shuttlIcon} alt="SHUTL" className="auth-logo" />
+              <h2 className="auth-form-title">Reset Password</h2>
+            </div>
+            <p className="auth-form-subtitle">
+              {!showOTPInput
+                ? "Enter your email to receive OTP"
+                : isOTPVerified
+                ? "Enter your new password"
+                : "Enter the OTP sent to your email"}
+            </p>
+
+            <form
+              onSubmit={
+                !showOTPInput
+                  ? handleForgotPassword
+                  : isOTPVerified
+                  ? handleResetPassword
+                  : handleVerifyOTP
+              }
+              className="auth-form"
+            >
+              {!showOTPInput ? (
+                <div className="auth-input-group">
+                  <input
+                    type="email"
+                    className="auth-input"
+                    placeholder="Email"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              ) : !isOTPVerified ? (
+                <div className="otp-input-container">
+                  {otpValues.map((value, index) => (
+                    <input
+                      key={index}
+                      ref={(el) => (otpRefs.current[index] = el)}
+                      type="text"
+                      className="otp-input"
+                      value={value}
+                      onChange={(e) => handleOTPChange(index, e.target.value)}
+                      onKeyDown={(e) => handleOTPKeyDown(index, e)}
+                      maxLength={1}
+                      required
+                    />
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <div className="auth-input-group">
+                    <div className="password-input-container">
+                      <input
+                        type={showNewPassword ? "text" : "password"}
+                        className="auth-input"
+                        placeholder="New Password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle-btn"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                      >
+                        {showNewPassword ? <FaRegEyeSlash /> : <FaRegEye />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="auth-input-group">
+                    <div className="password-input-container">
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        className="auth-input"
+                        placeholder="Confirm New Password"
+                        value={confirmNewPassword}
+                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle-btn"
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                      >
+                        {showConfirmPassword ? <FaRegEyeSlash /> : <FaRegEye />}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {error && <div className="auth-error">{error}</div>}
+              {resetMessage && (
+                <div className="auth-success">{resetMessage}</div>
+              )}
+
+              <button type="submit" className="auth-submit-button">
+                {!showOTPInput
+                  ? "Send OTP"
+                  : isOTPVerified
+                  ? "Reset Password"
+                  : "Verify OTP"}
+              </button>
+
               <button
                 type="button"
-                className="password-toggle-btn"
-                onClick={() => setShowPassword(!showPassword)}
+                className="auth-link-button"
+                onClick={() => {
+                  if (isOTPVerified) {
+                    setIsOTPVerified(false);
+                    setOtpValues(Array(6).fill(""));
+                  } else if (showOTPInput) {
+                    setShowOTPInput(false);
+                    setOtpValues(Array(6).fill(""));
+                  } else {
+                    setShowForgotPassword(false);
+                  }
+                  setError("");
+                  setResetMessage("");
+                }}
               >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                {isOTPVerified
+                  ? "Back to OTP"
+                  : showOTPInput
+                  ? "Back to Email"
+                  : "Back to Login"}
               </button>
-            </div>
+            </form>
           </div>
-
-          {error && <div className="auth-error">{error}</div>}
-
-          <button type="submit" className="auth-submit-button">
-            Login
-          </button>
-
-          <button
-            type="button"
-            className="auth-link-button"
-            onClick={() => setShowForgotPassword(true)}
-          >
-            Forgot Password?
-          </button>
-        </form>
-
-        <div className="auth-divider">
-          <span>or continue with</span>
-        </div>
-
-        <div className="google-login-container">
-          <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={(error) => {
-                console.error("Google login error:", error);
-                setError("Google login failed");
-                toast.error("Google login failed");
-              }}
-              useOneTap={false}
-              theme="filled_blue"
-              size="large"
-              shape="rectangular"
-              cookiePolicy={"single_host_origin"}
-            />
-          </GoogleOAuthProvider>
-        </div>
-
-        <div className="auth-footer">
-          <span>Don't have an account? </span>
-          <button
-            className="auth-link-button"
-            onClick={() => setIsRegistering(true)}
-          >
-            Sign up here
-          </button>
-        </div>
+        )}
       </div>
+
+      {isRegistering && (
+        <RegisterForm
+          onClose={() => setIsRegistering(false)}
+          googleData={JSON.parse(
+            localStorage.getItem("googleRegistrationData")
+          )}
+        />
+      )}
     </div>
   );
 };
