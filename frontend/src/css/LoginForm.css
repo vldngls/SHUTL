@@ -5,7 +5,7 @@
   transform: translate(-50%, -50%);
   background: #f5f5f5; /* Light background color */
   border-radius: 20px;
-  padding: 18px 15px;
+  padding: 8px 8px; /* Further reduced padding for desktop view */
   width: 100%;
   max-width: 400px;
   box-shadow: 0 4px 8px rgba(35, 35, 35, 0.1); /* Slight shadow with darkest color */
@@ -69,21 +69,7 @@
 }
 
 .ShutlLoginForm-google-button {
-  background-color: #ffffff;
-  color: #232323;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-}
-
-.ShutlLoginForm-google-button img {
-  margin-right: 10px;
+  display: none;
 }
 
 .ShutlLoginForm-footer {
@@ -124,8 +110,9 @@
 /* Responsive design adjustments */
 @media (max-width: 480px) {
   .ShutlLoginForm-container {
-    padding: 20px 10px;
-    max-width: 280px;
+    width: 90%;
+    max-width: 350px;
+    padding: 18px 15px; /* Maintain original padding for mobile view */
   }
 
   .ShutlLoginForm-title {

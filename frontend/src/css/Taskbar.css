@@ -47,6 +47,12 @@
   letter-spacing: -0.01em;
 }
 
+.Taskbar-operational-hours {
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: #007bff;
+}
+
 .Taskbar-separator {
   color: #666;
   font-size: 8px;
@@ -73,7 +79,7 @@
     width: 100%;
     justify-content: center;
   }
-  
+
   .Sidebar.expanded ~ .Taskbar .Taskbar-content {
     margin-left: 0;
     width: 100%;

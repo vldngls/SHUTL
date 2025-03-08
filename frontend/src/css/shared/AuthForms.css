@@ -19,7 +19,7 @@
   background-color: #ffffff;
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  padding: 32px;
+  padding: 20px;
   width: 100%;
   max-width: 420px;
   max-height: 90vh;
@@ -596,7 +596,7 @@ small {
 
   /* Adjust title spacing */
   .auth-title-container {
-    margin: 32px 0 40px;
+    margin: 64px 0 48px;
   }
 
   .auth-form-title {
@@ -607,6 +607,7 @@ small {
 
   .auth-form-subtitle {
     margin-top: 0;
+    margin-bottom: 24px;
     font-size: 18px;
   }
 
@@ -656,6 +657,7 @@ small {
   .auth-form-container.registration-form {
     display: flex;
     flex-direction: column;
+    margin-top: 24px;
   }
 
   .auth-form-container.registration-form form {
@@ -1004,8 +1006,8 @@ input[type="date"].auth-input::-webkit-calendar-picker-indicator:hover {
 /* Desktop specific styles */
 @media (min-width: 769px) {
   .auth-form-container {
-    max-width: 420px;
-    padding: 32px;
+    padding: 16px;
+    max-width: 400px;
   }
 
   .auth-submit-button {

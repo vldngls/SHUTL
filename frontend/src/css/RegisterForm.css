@@ -15,7 +15,7 @@
 /* Register Container Styles */
 .register-container {
   background-color: #f5f5f5; /* Light background */
-  padding: 18px 15px;
+  padding: 8px 8px; /* Further reduced padding for desktop view */
   border-radius: 20px;
   width: 400px;
   box-shadow: 0 4px 8px rgba(35, 35, 35, 0.1); /* Slight shadow */
@@ -136,8 +136,9 @@
 /* Responsive design adjustments */
 @media (max-width: 480px) {
   .register-container {
-    padding: 20px 10px;
-    width: 280px;
+    width: 90%;
+    max-width: 350px;
+    padding: 18px 15px; /* Maintain original padding for mobile view */
   }
 
   .register-title {

@@ -111,7 +111,14 @@ body {
   margin-bottom: 2px;
 }
 
-/* ShutlLoggedOut Taskbar */
+/* Ensure Taskbar is styled correctly in ShutlLoggedOut */
+.ShutlLoggedOut .Taskbar {
+  width: calc(100% + 80px);
+  margin-left: -80px;
+  z-index: 2;
+}
+
+/* Maintain existing ShutlLoggedOut-taskbar styles for backward compatibility */
 .ShutlLoggedOut-taskbar {
   position: fixed;
   bottom: 0;
@@ -272,6 +279,11 @@ body {
   }
 
   .ShutlLoggedOut-taskbar {
+    width: calc(100% + 48px);
+    margin-left: -48px;
+  }
+
+  .ShutlLoggedOut .Taskbar {
     width: calc(100% + 48px);
     margin-left: -48px;
   }
@@ -597,6 +609,17 @@ body {
     box-sizing: border-box;
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
     margin: 0; /* Remove any margin */
+  }
+
+  .ShutlLoggedOut .Taskbar {
+    width: 100vw;
+    margin-left: 0;
+    justify-content: center;
+  }
+
+  .ShutlLoggedOut .Taskbar-content {
+    justify-content: center;
+    padding: calc(12px + env(safe-area-inset-bottom, 0px));
   }
 
   .desktop-only {

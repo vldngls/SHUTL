@@ -9,6 +9,7 @@ import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 import Sidebar from "../components/Sidebar";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import Taskbar from "../components/Taskbar";
 
 // Define SOCKET_URL
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Ensure this is set in your environment
@@ -164,6 +165,11 @@ const ShutlLoggedOut = () => {
       setTimeout(handleResize, 200);
     });
 
+    // Update date and time every second
+    const dateTimeInterval = setInterval(() => {
+      setDateTime(new Date());
+    }, 1000);
+
     return () => {
       clearInterval(timer);
       clearInterval(cleanupInterval);
@@ -174,6 +180,7 @@ const ShutlLoggedOut = () => {
       }
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("orientationchange", handleResize);
+      clearInterval(dateTimeInterval);
     };
   }, []);
 
@@ -284,6 +291,15 @@ const ShutlLoggedOut = () => {
       }
     }
   };
+
+  // Format date and time for Taskbar
+  const formattedDate = dateTime.toLocaleDateString("en-PH", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  const formattedTime = dateTime.toLocaleTimeString("en-PH");
 
   return (
     <div className="ShutlLoggedOut-container">
@@ -449,15 +465,7 @@ const ShutlLoggedOut = () => {
         </div>
       </div>
 
-      <div className="ShutlLoggedOut-taskbar">
-        {dateTime.toLocaleDateString("en-PH", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        })}{" "}
-        - {dateTime.toLocaleTimeString("en-PH")}
-      </div>
+      <Taskbar date={formattedDate} time={formattedTime} />
 
       <button
         className="ShutlLoggedOut-update-location-btn"
