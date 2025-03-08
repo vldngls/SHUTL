@@ -1,15 +1,8 @@
-import React, {
-  forwardRef,
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-} from "react";
+import { forwardRef, useState, useEffect, useCallback, useRef } from "react";
 import PropTypes from "prop-types";
 import "../css/Sidebar.css";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import { FiMenu } from "react-icons/fi";
 
 const Sidebar = forwardRef(
   (
@@ -24,7 +17,6 @@ const Sidebar = forwardRef(
       onTripClick,
       onActiveShuttlesClick,
       profileImage,
-      notifications = [],
       onSettingsClick,
       notificationEnabled,
       onNotificationToggle,
@@ -60,7 +52,7 @@ const Sidebar = forwardRef(
     // Add click outside handler
     useEffect(() => {
       const handleClickOutside = (event) => {
-        if (ref.current && !ref.current.contains(event.target)) {
+        if (ref && ref.current && !ref.current.contains(event.target)) {
           setIsSettingsOpen(false);
         }
       };
@@ -72,7 +64,7 @@ const Sidebar = forwardRef(
       return () => {
         document.removeEventListener("mousedown", handleClickOutside);
       };
-    }, [isSettingsOpen]);
+    }, [isSettingsOpen, ref]);
 
     // Add keyboard handler for accessibility
     useEffect(() => {
@@ -127,53 +119,11 @@ const Sidebar = forwardRef(
 
     const handleProfileClick = (e) => {
       e.stopPropagation();
-      onProfileClick();
+      if (onProfileClick) {
+        onProfileClick();
+      }
       if (window.innerWidth <= 768) {
         setIsMobileMenuOpen(false);
-      }
-    };
-
-    const toggleNotifications = (e) => {
-      e.stopPropagation();
-      if (onNotificationToggle) {
-        onNotificationToggle(!notificationEnabled);
-      }
-    };
-
-    const toggleLocation = async (e) => {
-      e.stopPropagation();
-      const newState = !locationEnabled;
-
-      if (newState) {
-        try {
-          // Directly request location permission - this should trigger the browser dialog
-          navigator.geolocation.getCurrentPosition(
-            () => {
-              onLocationToggle(true);
-            },
-            (error) => {
-              onLocationToggle(false);
-
-              if (error.code === 1) {
-                // PERMISSION_DENIED
-                alert(
-                  "Please enable location access in your browser settings to use this feature."
-                );
-              }
-            },
-            {
-              enableHighAccuracy: true,
-              maximumAge: 0,
-              timeout: 5000,
-            }
-          );
-        } catch (error) {
-          console.error("Location error:", error);
-          onLocationToggle(false);
-        }
-      } else {
-        // Turning OFF
-        onLocationToggle(false);
       }
     };
 
@@ -234,6 +184,9 @@ const Sidebar = forwardRef(
             },
             ...commonButtons,
           ];
+        case "guest":
+          // For guest users, only show login button
+          return [];
         default:
           return [];
       }
@@ -311,11 +264,16 @@ const Sidebar = forwardRef(
           .query({ name: "geolocation" })
           .then((permissionStatus) => {
             if (permissionStatus.state === "denied") {
-              onLocationToggle(false);
+              if (onLocationToggle) {
+                onLocationToggle(false);
+              }
             }
+          })
+          .catch((error) => {
+            console.error("Error checking location permission:", error);
           });
       }
-    }, []);
+    }, [locationEnabled, onLocationToggle]);
 
     return (
       <>
@@ -334,7 +292,7 @@ const Sidebar = forwardRef(
         </div>
 
         <nav
-          ref={mobileMenuRef}
+          ref={ref}
           className={`Sidebar ${isExpanded ? "expanded" : ""} ${
             isMobileMenuOpen ? "mobile-open" : ""
           }`}
@@ -415,7 +373,7 @@ const Sidebar = forwardRef(
             ))}
 
             {/* Settings Dropdown */}
-            {isSettingsOpen && settingsButtonRef && (
+            {isSettingsOpen && settingsButtonRef && userType !== "guest" && (
               <div
                 className="Sidebar-settings-dropdown"
                 onClick={(e) => e.stopPropagation()}
@@ -430,30 +388,40 @@ const Sidebar = forwardRef(
                   Profile Settings
                 </button>
                 <hr />
-                <div className="Sidebar-settings-option" data-enabled>
-                  Notifications
-                  <label className="switch">
-                    <input
-                      type="checkbox"
-                      checked={notificationEnabled}
-                      onChange={(e) => onNotificationToggle(e.target.checked)}
-                    />
-                    <span className="slider"></span>
-                  </label>
-                </div>
-                <hr />
-                <div className="Sidebar-settings-option" data-enabled>
-                  Location
-                  <label className="switch">
-                    <input
-                      type="checkbox"
-                      checked={locationEnabled}
-                      onChange={(e) => onLocationToggle(e.target.checked)}
-                    />
-                    <span className="slider"></span>
-                  </label>
-                </div>
-                <hr />
+                {onNotificationToggle && (
+                  <>
+                    <div className="Sidebar-settings-option" data-enabled>
+                      Notifications
+                      <label className="switch">
+                        <input
+                          type="checkbox"
+                          checked={notificationEnabled}
+                          onChange={(e) =>
+                            onNotificationToggle(e.target.checked)
+                          }
+                        />
+                        <span className="slider"></span>
+                      </label>
+                    </div>
+                    <hr />
+                  </>
+                )}
+                {onLocationToggle && (
+                  <>
+                    <div className="Sidebar-settings-option" data-enabled>
+                      Location
+                      <label className="switch">
+                        <input
+                          type="checkbox"
+                          checked={locationEnabled}
+                          onChange={(e) => onLocationToggle(e.target.checked)}
+                        />
+                        <span className="slider"></span>
+                      </label>
+                    </div>
+                    <hr />
+                  </>
+                )}
                 <button
                   className="Sidebar-settings-option"
                   onClick={handleLogout}
@@ -476,7 +444,7 @@ const Sidebar = forwardRef(
                 style={{ cursor: "pointer" }}
               />
               <span className="Sidebar-profile-text">
-                {username || "Login"}
+                {userType === "guest" ? "Login" : username || "Profile"}
               </span>
             </div>
           </div>
@@ -499,7 +467,6 @@ Sidebar.propTypes = {
   onTripClick: PropTypes.func,
   onActiveShuttlesClick: PropTypes.func,
   profileImage: PropTypes.string,
-  notifications: PropTypes.array,
   onSettingsClick: PropTypes.func,
   notificationEnabled: PropTypes.bool,
   onNotificationToggle: PropTypes.func,

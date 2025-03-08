@@ -256,7 +256,10 @@ const DriverMain = () => {
   const recenterTimeoutRef = useRef(null);
   const [shouldRecenter, setShouldRecenter] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [notificationEnabled, setNotificationEnabled] = useState(true);
+  const [locationEnabled, setLocationEnabled] = useState(true);
+  const sidebarRef = useRef(null);
 
   // Add formatted date and time
   const formattedDate = useMemo(() => {
@@ -1098,6 +1101,102 @@ const DriverMain = () => {
     setIsSidebarExpanded((prev) => !prev);
   };
 
+  // Add this function to update notification preference
+  const updateNotificationPreference = async (enabled) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/userdata`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getCookie("token")}`,
+        },
+        body: JSON.stringify({
+          email: getCookie("email"),
+          preferences: {
+            notifications: enabled,
+          },
+        }),
+      });
+
+      if (response.ok) {
+        setNotificationEnabled(enabled);
+        toast.success(`Notifications ${enabled ? "enabled" : "disabled"}`);
+
+        // Update socket preference without reconnecting
+        if (socket.current) {
+          socket.current.emit("notification_preference", { enabled });
+        }
+      } else {
+        console.error("Failed to update notification preference");
+        toast.error("Failed to update notification settings");
+      }
+    } catch (error) {
+      console.error("Error updating notification preference:", error);
+      toast.error("Failed to update notification settings");
+    }
+  };
+
+  // Add this function to update location preference
+  const updateLocationPreference = async (enabled) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/userdata`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getCookie("token")}`,
+        },
+        body: JSON.stringify({
+          email: getCookie("email"),
+          preferences: {
+            location: enabled,
+          },
+        }),
+      });
+
+      if (response.ok) {
+        setLocationEnabled(enabled);
+        toast.success(`Location tracking ${enabled ? "enabled" : "disabled"}`);
+
+        // Update socket preference without reconnecting
+        if (socket.current) {
+          socket.current.emit("location_preference", { enabled });
+        }
+      } else {
+        console.error("Failed to update location preference");
+        toast.error("Failed to update location settings");
+      }
+    } catch (error) {
+      console.error("Error updating location preference:", error);
+      toast.error("Failed to update location settings");
+    }
+  };
+
+  // Fetch user preferences on mount
+  useEffect(() => {
+    const fetchUserPreferences = async () => {
+      try {
+        const email = getCookie("email");
+        const response = await fetch(`${API_BASE_URL}/userdata/${email}`, {
+          headers: {
+            Authorization: `Bearer ${getCookie("token")}`,
+          },
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          setNotificationEnabled(userData.preferences?.notifications ?? true);
+          setLocationEnabled(userData.preferences?.location ?? true);
+        } else {
+          console.error("Failed to fetch user preferences");
+        }
+      } catch (error) {
+        console.error("Error fetching user preferences:", error);
+      }
+    };
+
+    fetchUserPreferences();
+  }, []);
+
   return (
     <div className="DriverMain-container">
       <div className="DriverMain-map-container">
@@ -1316,6 +1415,7 @@ const DriverMain = () => {
       </div>
 
       <Sidebar
+        ref={sidebarRef}
         userType="driver"
         isExpanded={isSidebarExpanded}
         onToggle={toggleSidebar}
@@ -1329,12 +1429,15 @@ const DriverMain = () => {
         onSummaryClick={() => toggleModal("isSummaryOpen")}
         onTripClick={() => toggleModal("isScheduleOpen")}
         profileImage={profileImage}
-        notifications={notifications}
         onSettingsClick={() => {
           if (!isSidebarExpanded) {
             setIsSidebarExpanded(true);
           }
         }}
+        notificationEnabled={notificationEnabled}
+        onNotificationToggle={updateNotificationPreference}
+        locationEnabled={locationEnabled}
+        onLocationToggle={updateLocationPreference}
       />
 
       <Taskbar date={formattedDate} time={formattedTime} />

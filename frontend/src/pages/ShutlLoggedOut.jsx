@@ -43,6 +43,7 @@ const ShutlLoggedOut = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [mapReady, setMapReady] = useState(false);
+  const sidebarRef = useRef(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -276,7 +277,10 @@ const ShutlLoggedOut = () => {
   };
 
   const toggleSidebar = () => {
-    setIsSidebarExpanded((prev) => !prev);
+    if (window.innerWidth <= 480) {
+      return; // Prevent expansion on mobile
+    }
+    setIsSidebarExpanded(!isSidebarExpanded);
   };
 
   // Add this function to force map reload if needed
@@ -366,104 +370,19 @@ const ShutlLoggedOut = () => {
         </MapContainer>
       </div>
 
-      {/* Desktop Sidebar - only visible on desktop */}
-      <div className="desktop-only">
-        <Sidebar
-          userType="guest"
-          isExpanded={isSidebarExpanded}
-          onToggle={toggleSidebar}
-          onProfileClick={handleLoginClick}
-          profileImage="/icon.png"
-        />
-      </div>
+      {/* Remove the desktop-only div and use the Sidebar directly */}
+      <Sidebar
+        ref={sidebarRef}
+        userType="guest"
+        isExpanded={isSidebarExpanded}
+        onToggle={toggleSidebar}
+        onProfileClick={handleLoginClick}
+        profileImage="/icon.png"
+      />
 
-      {/* Mobile top bar with hamburger on the left and logo on the right */}
-      <div className="Mobile-top-bar">
-        <button
-          className={`hamburger-menu ${isMobileMenuOpen ? "active" : ""}`}
-          onClick={toggleMobileMenu}
-          aria-label="Toggle menu"
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-        <div className="mobile-logo">SHUTL.</div>
-      </div>
+      {/* Remove the Mobile top bar since it's now handled by Sidebar */}
 
-      {/* Mobile menu - moved to the end to ensure it's on top */}
-      <div
-        className={`ShutlLoggedOut-mobile-menu ${
-          isMobileMenuOpen ? "active" : ""
-        }`}
-      >
-        <div className="ShutlLoggedOut-mobile-menu-header">
-          <div className="ShutlLoggedOut-mobile-menu-logo">SHUTL.</div>
-          <button
-            className="ShutlLoggedOut-mobile-menu-close"
-            onClick={toggleMobileMenu}
-            aria-label="Close menu"
-          >
-            <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M18 6L6 18"
-                stroke="white"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M6 6L18 18"
-                stroke="white"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
-        <div className="ShutlLoggedOut-mobile-menu-items">
-          <button onClick={handleLoginClick}>
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              style={{ marginRight: "12px" }}
-            >
-              <path
-                d="M15 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H15"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M10 17L15 12L10 7"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M15 12H3"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            Login
-          </button>
-        </div>
-      </div>
+      {/* Remove the Mobile menu since it's now handled by Sidebar */}
 
       <Taskbar date={formattedDate} time={formattedTime} />
 

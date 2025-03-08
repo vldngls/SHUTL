@@ -1,4 +1,9 @@
 /* Shared Container Styles */
+/* Hide auth-nav-bar on desktop by default */
+.auth-form-overlay .auth-nav-bar {
+  display: none;
+}
+
 .auth-form-overlay {
   position: fixed;
   top: 0;
@@ -57,7 +62,6 @@
   width: 32px;
   height: 32px;
   object-fit: contain;
-  background-color: #1a1a1a;
   border-radius: 50%;
   padding: 6px;
 }
@@ -616,7 +620,9 @@ small {
     margin: 32px 0 40px;
   }
 
-  .auth-nav-bar {
+  /* Show auth-nav-bar on mobile */
+  .auth-form-overlay .auth-nav-bar {
+    display: flex;
     position: fixed;
     top: 0;
     left: 0;
@@ -626,13 +632,12 @@ small {
     z-index: 1101;
     padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 16px) 0
       env(safe-area-inset-left, 16px);
-    display: flex;
     align-items: flex-end;
     justify-content: space-between;
     padding-bottom: 12px;
   }
 
-  .auth-nav-bar .close-button {
+  .auth-form-overlay .auth-nav-bar .close-button {
     background: none;
     border: none;
     color: #ffffff;
@@ -647,7 +652,7 @@ small {
     height: 40px;
   }
 
-  .auth-nav-bar .logo {
+  .auth-form-overlay .auth-nav-bar .logo {
     color: #ffffff;
     font-size: 18px;
     font-weight: bold;
