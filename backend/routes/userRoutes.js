@@ -194,6 +194,7 @@ router.post("/google-auth", async (req, res) => {
         userType: user.userType,
         isAdmin: user.userType === "Admin",
         fullAccess: user.userType === "Admin",
+        username: user.username,
       },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }

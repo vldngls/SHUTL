@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import io from "socket.io-client";
 import { toast } from "react-hot-toast";
 import { KNOWN_LOCATIONS } from "../utils/locationUtils";
+import { getCookie } from "../utils/cookieUtils";
 import PropTypes from "prop-types";
 
 const styles = {
@@ -90,7 +91,7 @@ const locationOptions = [
   { id: "custom", label: "Other Location (Specify)" },
 ];
 
-const PickMeUp = ({ onClose, onDestinationSelect }) => {
+const PickMeUp = ({ onClose, onDestinationSelect, shuttleId }) => {
   const [pickupDetails, setPickupDetails] = useState({
     pickupPoint: "select",
     customPickupPoint: "",
@@ -140,7 +141,11 @@ const PickMeUp = ({ onClose, onDestinationSelect }) => {
         ? pickupDetails.pickupPoint.split(",").map(Number)
         : null;
 
+    const userEmail = getCookie("email");
+
     const request = {
+      shuttleId,
+      userEmail,
       location: {
         coordinates: pickupCoords,
         streetName: finalPickupPoint,
@@ -255,6 +260,7 @@ const PickMeUp = ({ onClose, onDestinationSelect }) => {
 PickMeUp.propTypes = {
   onClose: PropTypes.func.isRequired,
   onDestinationSelect: PropTypes.func.isRequired,
+  shuttleId: PropTypes.string.isRequired,
 };
 
 export default PickMeUp;

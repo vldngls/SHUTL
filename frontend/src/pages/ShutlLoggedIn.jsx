@@ -6,6 +6,7 @@ import NotificationPop from "../components/NotificationPop";
 import ProfilePopup from "../components/ProfilePopup";
 import SuggestionForm from "../components/SuggestionForm";
 import PickMeUp from "../components/PickMeUp";
+import ActiveShuttles from "../components/ActiveShuttles";
 import L from "leaflet";
 import { calculateDistance, reverseGeocode } from "../utils/locationUtils";
 import { getCookie } from "../utils/cookieUtils";
@@ -96,6 +97,7 @@ const ShutlLoggedIn = () => {
   const [isProfileEditMode, setIsProfileEditMode] = useState(false);
   const [showPaymentQR, setShowPaymentQR] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [showActiveShuttles, setShowActiveShuttles] = useState(false);
   const socket = useRef(null);
   const watchIdRef = useRef(null);
   const popupRef = useRef(null);
@@ -103,6 +105,7 @@ const ShutlLoggedIn = () => {
   const [isLocationSharing, setIsLocationSharing] = useState(false);
   const hasShownToastRef = useRef(false);
   const [selectedDestination, setSelectedDestination] = useState(null);
+  const [selectedShuttleId, setSelectedShuttleId] = useState(null);
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
   const navigate = useNavigate();
   const [notificationEnabled, setNotificationEnabled] = useState(true);
@@ -116,33 +119,33 @@ const ShutlLoggedIn = () => {
   const updateNotificationPreference = async (enabled) => {
     try {
       const response = await fetch(`${API_BASE_URL}/userdata`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${getCookie("token")}`,
         },
         body: JSON.stringify({
           email: getCookie("email"),
           preferences: {
-            notifications: enabled
-          }
-        })
+            notifications: enabled,
+          },
+        }),
       });
 
       if (response.ok) {
         // Update state first
         setNotificationEnabled(enabled);
-        
+
         // If disabling notifications, immediately close any active notification popup
         if (!enabled) {
           setActivePopup(null);
         }
-        
-        toast.success(`Notifications ${enabled ? 'enabled' : 'disabled'}`);
+
+        toast.success(`Notifications ${enabled ? "enabled" : "disabled"}`);
 
         // Update socket preference without reconnecting
         if (socket.current) {
-          socket.current.emit('notification_preference', { enabled });
+          socket.current.emit("notification_preference", { enabled });
         }
       } else {
         console.error("Failed to update notification preference");
@@ -163,26 +166,26 @@ const ShutlLoggedIn = () => {
 
     try {
       const response = await fetch(`${API_BASE_URL}/userdata`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${getCookie("token")}`,
         },
         body: JSON.stringify({
           email: getCookie("email"),
           preferences: {
-            location: enabled
-          }
-        })
+            location: enabled,
+          },
+        }),
       });
 
       if (response.ok) {
         setLocationEnabled(enabled);
-        toast.success(`Location tracking ${enabled ? 'enabled' : 'disabled'}`);
+        toast.success(`Location tracking ${enabled ? "enabled" : "disabled"}`);
 
         // Update socket preference without reconnecting
         if (socket.current) {
-          socket.current.emit('location_preference', { enabled });
+          socket.current.emit("location_preference", { enabled });
         }
       } else {
         console.error("Failed to update location preference");
@@ -233,8 +236,12 @@ const ShutlLoggedIn = () => {
         socket.current = socketInstance;
 
         // Set initial preferences
-        socketInstance.emit('notification_preference', { enabled: notificationEnabled });
-        socketInstance.emit('location_preference', { enabled: locationEnabled });
+        socketInstance.emit("notification_preference", {
+          enabled: notificationEnabled,
+        });
+        socketInstance.emit("location_preference", {
+          enabled: locationEnabled,
+        });
 
         // Subscribe to real-time notifications
         const notificationCleanup = await subscribeToEvent(
@@ -275,7 +282,7 @@ const ShutlLoggedIn = () => {
             "shuttle_location_update",
             (data) => {
               if (!isMounted || !locationEnabled) return;
-              
+
               console.log("Received shuttle location update:", data);
               console.log("Current location enabled state:", locationEnabled);
 
@@ -312,11 +319,59 @@ const ShutlLoggedIn = () => {
           );
         }
 
+        // Subscribe to pickup_accepted notifications
+        const pickupAcceptedCleanup = await subscribeToEvent(
+          "pickup_accepted",
+          (data) => {
+            if (!isMounted) return;
+
+            // Only show notification if it's for the current user
+            const userEmail = getCookie("email");
+            if (data.userEmail !== userEmail) return;
+
+            // Create a notification for the accepted pickup
+            const formattedNotification = {
+              message: `Your pickup request has been accepted by Shuttle ${data.shuttleId}!`,
+              createdAt: new Date(),
+              type: "pickup_accepted",
+            };
+
+            // Update notifications array
+            setNotifications((prev) => {
+              const updatedNotifications = [formattedNotification, ...prev];
+              return updatedNotifications.slice(0, 5); // Keep only 5 most recent
+            });
+
+            // Show notification popup if enabled
+            if (notificationEnabled) {
+              setActivePopup("notifications");
+              // Auto-hide after 5 seconds
+              setTimeout(() => {
+                setActivePopup((current) =>
+                  current === "notifications" ? null : current
+                );
+              }, 5000);
+
+              // Also show a toast notification
+              toast.success(
+                `Pickup request accepted by Shuttle ${data.shuttleId}!`,
+                {
+                  duration: 4000,
+                  position: "bottom-center",
+                }
+              );
+            }
+          }
+        );
+
         // Add cleanup functions
         cleanupFunctionsRef.current.push(() => {
           if (notificationCleanup) notificationCleanup();
           if (locationCleanup) locationCleanup();
         });
+
+        // Add pickup_accepted cleanup function to the ref array
+        cleanupFunctionsRef.current.push(pickupAcceptedCleanup);
 
         // Fetch and track active shuttles
         await fetchAndTrackShuttles();
@@ -642,8 +697,10 @@ const ShutlLoggedIn = () => {
 
     try {
       const streetName = await reverseGeocode(userLocation[0], userLocation[1]);
+      const userEmail = getCookie("email");
       const request = {
         shuttleId,
+        userEmail,
         location: {
           coordinates: userLocation,
           streetName,
@@ -750,6 +807,7 @@ const ShutlLoggedIn = () => {
               eventHandlers={{
                 click: () => {
                   setShowPickMeUp(true);
+                  setSelectedShuttleId(null);
                 },
               }}
             >
@@ -763,73 +821,78 @@ const ShutlLoggedIn = () => {
             </Marker>
           )}
 
-          {locationEnabled && Object.entries(optimizedLocations).map(([shuttleId, data]) => {
-            if (!data || !data.coordinates) return null;
+          {locationEnabled &&
+            Object.entries(optimizedLocations).map(([shuttleId, data]) => {
+              if (!data || !data.coordinates) return null;
 
-            let distance = null;
-            let eta = null;
-            const speed = data.speed || 0;
-            const trafficCondition = getTrafficCondition(speed);
+              let distance = null;
+              let eta = null;
+              const speed = data.speed || 0;
+              const trafficCondition = getTrafficCondition(speed);
 
-            if (userLocation) {
-              distance = calculateDistance(
-                userLocation[0],
-                userLocation[1],
-                data.coordinates[0],
-                data.coordinates[1]
-              );
-              eta = calculateETA(distance, speed);
-            }
+              if (userLocation) {
+                distance = calculateDistance(
+                  userLocation[0],
+                  userLocation[1],
+                  data.coordinates[0],
+                  data.coordinates[1]
+                );
+                eta = calculateETA(distance, speed);
+              }
 
-            return (
-              <MovingMarker
-                key={shuttleId}
-                position={data.coordinates}
-                icon={carIcon}
-                rotationAngle={data.heading || 0}
-                duration={1000}
-                className={data.isPredicted ? "predicted-marker" : ""}
-              >
-                <Popup>
-                  <div className="ShutlLoggedIn-shuttle-info">
-                    <h3>{shuttleId}</h3>
-                    <p>
-                      Last updated:{" "}
-                      {data.lastUpdate
-                        ? data.lastUpdate.toLocaleTimeString()
-                        : "N/A"}
-                    </p>
-                    <p>
-                      Speed: {speed ? `${speed.toFixed(1)} km/h` : "0.0 km/h"}
-                    </p>
-                    <p style={{ color: trafficCondition.color }}>
-                      Traffic: {trafficCondition.status}
-                    </p>
-                    {data.isPredicted && (
-                      <p style={{ color: "orange" }}>
-                        ⚠️ Predicted Position (Signal Lost)
+              return (
+                <MovingMarker
+                  key={shuttleId}
+                  position={data.coordinates}
+                  icon={carIcon}
+                  rotationAngle={data.heading || 0}
+                  duration={1000}
+                  className={data.isPredicted ? "predicted-marker" : ""}
+                >
+                  <Popup>
+                    <div className="ShutlLoggedIn-shuttle-info">
+                      <h3>{shuttleId}</h3>
+                      <p>
+                        Last updated:{" "}
+                        {data.lastUpdate
+                          ? data.lastUpdate.toLocaleTimeString()
+                          : "N/A"}
                       </p>
-                    )}
-                    {distance !== null && (
-                      <>
-                        <p>Distance: {distance.toFixed(2)} km</p>
-                        <p>ETA: {eta} minutes</p>
-                        <button
-                          className="pickup-request-btn"
-                          onClick={(e) => handlePickupRequest(e, shuttleId)}
-                        >
-                          Pick Me Up
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </Popup>
-                <Tooltip direction="right" offset={[10, 0]} permanent>
-                  {data.isPredicted ? "📡 " : ""}Shuttle {shuttleId}
-                </Tooltip>
-              </MovingMarker>
-            );
-          })}
+                      <p>
+                        Speed: {speed ? `${speed.toFixed(1)} km/h` : "0.0 km/h"}
+                      </p>
+                      <p style={{ color: trafficCondition.color }}>
+                        Traffic: {trafficCondition.status}
+                      </p>
+                      {data.isPredicted && (
+                        <p style={{ color: "orange" }}>
+                          ⚠️ Predicted Position (Signal Lost)
+                        </p>
+                      )}
+                      {distance !== null && (
+                        <>
+                          <p>Distance: {distance.toFixed(2)} km</p>
+                          <p>ETA: {eta} minutes</p>
+                          <button
+                            className="pickup-request-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedShuttleId(shuttleId);
+                              setShowPickMeUp(true);
+                            }}
+                          >
+                            Pick Me Up
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </Popup>
+                  <Tooltip direction="right" offset={[10, 0]} permanent>
+                    {data.isPredicted ? "📡 " : ""}Shuttle {shuttleId}
+                  </Tooltip>
+                </MovingMarker>
+              );
+            })}
         </MapContainer>
       </div>
 
@@ -841,6 +904,7 @@ const ShutlLoggedIn = () => {
         onProfileClick={handleProfileClick}
         onMessageClick={handlePaymentClick}
         onNotificationClick={handleNotificationClick}
+        onActiveShuttlesClick={() => setShowActiveShuttles(!showActiveShuttles)}
         profileImage={profilePicture}
         notifications={notifications}
         onSettingsClick={() => {
@@ -878,6 +942,32 @@ const ShutlLoggedIn = () => {
         </button>
 
         <button
+          className="ShutlLoggedIn-active-shuttles-btn"
+          onClick={() => setShowActiveShuttles(!showActiveShuttles)}
+          style={{
+            backgroundColor: showActiveShuttles ? "#007bff" : "white",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+            border: "none",
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "10px",
+            marginRight: "10px",
+          }}
+        >
+          <img
+            src="/car.png"
+            alt="Active Shuttles"
+            style={{
+              width: "24px",
+              height: "24px",
+              filter: showActiveShuttles ? "brightness(0) invert(1)" : "none",
+            }}
+          />
+        </button>
+
+        <button
           className="ShutlLoggedIn-update-location-btn"
           onClick={updateUserLocation}
           style={{
@@ -903,6 +993,19 @@ const ShutlLoggedIn = () => {
       </div>
 
       <Taskbar date={formattedDate} time={formattedTime} />
+
+      {showActiveShuttles && (
+        <ActiveShuttles
+          shuttleLocations={optimizedLocations}
+          onClose={() => setShowActiveShuttles(false)}
+          onRequestPickup={(shuttleId) => {
+            setSelectedShuttleId(shuttleId);
+            setShowPickMeUp(true);
+            setShowActiveShuttles(false);
+          }}
+          userLocation={userLocation}
+        />
+      )}
 
       <div ref={popupRef}>
         {activePopup === "profile" && (
@@ -935,8 +1038,10 @@ const ShutlLoggedIn = () => {
           onClose={() => {
             setShowPickMeUp(false);
             setSelectedDestination(null);
+            setSelectedShuttleId(null);
           }}
           onDestinationSelect={setSelectedDestination}
+          shuttleId={selectedShuttleId}
         />
       )}
 
