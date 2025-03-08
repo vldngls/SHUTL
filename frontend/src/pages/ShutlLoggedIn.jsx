@@ -544,10 +544,55 @@ const ShutlLoggedIn = () => {
     });
   }, [dateTime]);
 
-  // Profile settings handler
-  const handleProfileSettings = () => {
-    setIsProfileEditMode(true);
-    setActivePopup("profile");
+  // Modified click handlers to handle optional event parameter
+  const handleProfileClick = (e) => {
+    if (e && e.stopPropagation) {
+      e.stopPropagation();
+    }
+    setIsProfileEditMode(false);
+    setActivePopup(prev => prev === "profile" ? null : "profile");
+    setShowSuggestionForm(false);
+    setShowPaymentQR(false);
+    setShowPickMeUp(false);
+  };
+
+  const handleNotificationClick = (e) => {
+    if (e && e.stopPropagation) {
+      e.stopPropagation();
+    }
+    setActivePopup(prev => prev === "notifications" ? null : "notifications");
+    setShowSuggestionForm(false);
+    setShowPaymentQR(false);
+    setShowPickMeUp(false);
+  };
+
+  const handleSuggestionClick = (e) => {
+    if (e && e.stopPropagation) {
+      e.stopPropagation();
+    }
+    setShowSuggestionForm(prev => !prev);
+    setActivePopup(null);
+    setShowPaymentQR(false);
+    setShowPickMeUp(false);
+  };
+
+  const handlePaymentClick = (e) => {
+    if (e && e.stopPropagation) {
+      e.stopPropagation();
+    }
+    setShowPaymentQR(prev => !prev);
+    setActivePopup(null);
+    setShowSuggestionForm(false);
+    setShowPickMeUp(false);
+  };
+
+  // Close all popups function
+  const closeAllPopups = () => {
+    setActivePopup(null);
+    setShowSuggestionForm(false);
+    setShowPaymentQR(false);
+    setShowPickMeUp(false);
+    setIsProfileEditMode(false);
   };
 
   // Fetch notifications
@@ -647,8 +692,13 @@ const ShutlLoggedIn = () => {
   // Click outside handling
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
-        setIsSidebarExpanded(false);
+      if (
+        sidebarRef.current && 
+        !sidebarRef.current.contains(event.target) &&
+        popupRef.current &&
+        !popupRef.current.contains(event.target)
+      ) {
+        closeAllPopups();
       }
     };
 
@@ -788,16 +838,9 @@ const ShutlLoggedIn = () => {
         userType="shutl"
         isExpanded={isSidebarExpanded}
         onToggle={toggleSidebar}
-        onProfileClick={() => {
-          setIsProfileEditMode(false);
-          setActivePopup("profile");
-        }}
-        onMessageClick={() => setShowPaymentQR(true)}
-        onNotificationClick={() =>
-          setActivePopup(
-            activePopup === "notifications" ? null : "notifications"
-          )
-        }
+        onProfileClick={handleProfileClick}
+        onMessageClick={handlePaymentClick}
+        onNotificationClick={handleNotificationClick}
         profileImage={profilePicture}
         notifications={notifications}
         onSettingsClick={() => {
@@ -814,10 +857,7 @@ const ShutlLoggedIn = () => {
       <div className="ShutlLoggedIn-bottom-actions">
         <button
           className="ShutlLoggedIn-profile-btn"
-          onClick={() => {
-            setIsProfileEditMode(false);
-            setActivePopup("profile");
-          }}
+          onClick={handleProfileClick}
         >
           <img
             src={profilePicture}
@@ -828,7 +868,7 @@ const ShutlLoggedIn = () => {
 
         <button
           className="ShutlLoggedIn-suggestion-btn"
-          onClick={() => setShowSuggestionForm(true)}
+          onClick={handleSuggestionClick}
         >
           <img
             src="/ask.png"
