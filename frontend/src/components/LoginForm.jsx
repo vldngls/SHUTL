@@ -496,30 +496,36 @@ const LoginForm = ({ onClose }) => {
                 <span>or continue with</span>
               </div>
 
-              <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={() => {
-                    setError("Google Sign In failed");
-                  }}
-                  useOneTap
-                  type="standard"
-                  theme="outline"
-                  size="large"
-                  text="continue_with"
-                  shape="rectangular"
-                  render={({ onClick }) => (
-                    <button
-                      onClick={onClick}
-                      type="button"
-                      className="custom-google-btn"
-                    >
-                      <FcGoogle size={20} />
-                      Sign in with Google
-                    </button>
-                  )}
-                />
-              </GoogleOAuthProvider>
+              <div className="auth-input-group">
+                <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+                  <div
+                    className="custom-google-btn"
+                    onClick={() => {
+                      const googleLoginButton =
+                        document.querySelector(".google-login");
+                      if (googleLoginButton) {
+                        googleLoginButton.click();
+                      }
+                    }}
+                  >
+                    <FcGoogle size={24} />
+                    <span>Sign in with Google</span>
+                    <div style={{ display: "none" }}>
+                      <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={() => {
+                          setError("Google Sign In failed");
+                        }}
+                        useOneTap
+                        theme="filled_blue"
+                        size="large"
+                        shape="rectangular"
+                        className="google-login"
+                      />
+                    </div>
+                  </div>
+                </GoogleOAuthProvider>
+              </div>
 
               <div className="auth-footer">
                 <button

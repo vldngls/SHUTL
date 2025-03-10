@@ -605,7 +605,7 @@ const ShutlLoggedIn = () => {
       e.stopPropagation();
     }
     setIsProfileEditMode(false);
-    setActivePopup(prev => prev === "profile" ? null : "profile");
+    setActivePopup((prev) => (prev === "profile" ? null : "profile"));
     setShowSuggestionForm(false);
     setShowPaymentQR(false);
     setShowPickMeUp(false);
@@ -616,7 +616,9 @@ const ShutlLoggedIn = () => {
     if (e && e.stopPropagation) {
       e.stopPropagation();
     }
-    setActivePopup(prev => prev === "notifications" ? null : "notifications");
+    setActivePopup((prev) =>
+      prev === "notifications" ? null : "notifications"
+    );
     setShowSuggestionForm(false);
     setShowPaymentQR(false);
     setShowPickMeUp(false);
@@ -627,7 +629,7 @@ const ShutlLoggedIn = () => {
     if (e && e.stopPropagation) {
       e.stopPropagation();
     }
-    setShowSuggestionForm(prev => !prev);
+    setShowSuggestionForm((prev) => !prev);
     setActivePopup(null);
     setShowPaymentQR(false);
     setShowPickMeUp(false);
@@ -638,7 +640,7 @@ const ShutlLoggedIn = () => {
     if (e && e.stopPropagation) {
       e.stopPropagation();
     }
-    setShowPaymentQR(prev => !prev);
+    setShowPaymentQR((prev) => !prev);
     setActivePopup(null);
     setShowSuggestionForm(false);
     setShowPickMeUp(false);
@@ -649,7 +651,7 @@ const ShutlLoggedIn = () => {
     if (e && e.stopPropagation) {
       e.stopPropagation();
     }
-    setShowActiveShuttles(prev => !prev);
+    setShowActiveShuttles((prev) => !prev);
     setActivePopup(null);
     setShowSuggestionForm(false);
     setShowPaymentQR(false);
@@ -765,7 +767,7 @@ const ShutlLoggedIn = () => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
-        sidebarRef.current && 
+        sidebarRef.current &&
         !sidebarRef.current.contains(event.target) &&
         popupRef.current &&
         !popupRef.current.contains(event.target)
@@ -921,7 +923,6 @@ const ShutlLoggedIn = () => {
         onNotificationClick={handleNotificationClick}
         onActiveShuttlesClick={handleActiveShuttlesClick}
         profileImage={profilePicture}
-        notifications={notifications}
         onSettingsClick={() => {
           if (!isSidebarExpanded) {
             setIsSidebarExpanded(true);

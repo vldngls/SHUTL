@@ -92,7 +92,7 @@ const TellerMain = () => {
   const mapRef = useRef();
   const chatRef = useRef();
   const mobileMenuRef = useRef();
-  const sidebarRef = useRef();
+  const sidebarRef = useRef(null);
 
   // Extract email from token
   const getCookie = (name) => {
@@ -121,27 +121,27 @@ const TellerMain = () => {
 
     try {
       const response = await fetch(`${API_BASE_URL}/userdata`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${getCookie("token")}`,
         },
         body: JSON.stringify({
           email: email,
           preferences: {
-            location: enabled
-          }
-        })
+            location: enabled,
+          },
+        }),
       });
 
       if (response.ok) {
         // Update the preference state
         setLocationEnabled(enabled);
-        toast.success(`Location tracking ${enabled ? 'enabled' : 'disabled'}`);
+        toast.success(`Location tracking ${enabled ? "enabled" : "disabled"}`);
 
         // Update socket preference without reconnecting
         if (socket.current) {
-          socket.current.emit('location_preference', { enabled });
+          socket.current.emit("location_preference", { enabled });
         }
       } else {
         console.error("Failed to update location preference");
@@ -172,8 +172,12 @@ const TellerMain = () => {
         setIsConnected(true);
 
         // Set initial preferences
-        socketInstance.emit('notification_preference', { enabled: notificationEnabled });
-        socketInstance.emit('location_preference', { enabled: locationEnabled });
+        socketInstance.emit("notification_preference", {
+          enabled: notificationEnabled,
+        });
+        socketInstance.emit("location_preference", {
+          enabled: locationEnabled,
+        });
 
         // Subscribe to messages with error handling
         messageCleanup = await subscribeToMessages((message) => {
@@ -249,9 +253,12 @@ const TellerMain = () => {
             if (typeof data.accuracy === "number") accuracy = data.accuracy;
 
             if (data.metadata) {
-              if (typeof data.metadata.speed === "number") speed = data.metadata.speed;
-              if (typeof data.metadata.heading === "number") heading = data.metadata.heading;
-              if (typeof data.metadata.accuracy === "number") accuracy = data.metadata.accuracy;
+              if (typeof data.metadata.speed === "number")
+                speed = data.metadata.speed;
+              if (typeof data.metadata.heading === "number")
+                heading = data.metadata.heading;
+              if (typeof data.metadata.accuracy === "number")
+                accuracy = data.metadata.accuracy;
             }
 
             setShuttleLocations((prev) => {
@@ -678,17 +685,17 @@ const TellerMain = () => {
   const updateNotificationPreference = async (enabled) => {
     try {
       const response = await fetch(`${API_BASE_URL}/userdata`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${getCookie("token")}`,
         },
         body: JSON.stringify({
           email: email,
           preferences: {
-            notifications: enabled
-          }
-        })
+            notifications: enabled,
+          },
+        }),
       });
 
       if (response.ok) {
@@ -697,11 +704,11 @@ const TellerMain = () => {
         if (!enabled && activePopup === "notifications") {
           setActivePopup(null);
         }
-        toast.success(`Notifications ${enabled ? 'enabled' : 'disabled'}`);
+        toast.success(`Notifications ${enabled ? "enabled" : "disabled"}`);
 
         // Update socket preference without reconnecting
         if (socket.current) {
-          socket.current.emit('notification_preference', { enabled });
+          socket.current.emit("notification_preference", { enabled });
         }
       } else {
         console.error("Failed to update notification preference");
@@ -729,88 +736,89 @@ const TellerMain = () => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
-          {locationEnabled && Object.entries(optimizedLocations).map(([shuttleId, data]) => {
-            if (!data || !data.coordinates) return null;
+          {locationEnabled &&
+            Object.entries(optimizedLocations).map(([shuttleId, data]) => {
+              if (!data || !data.coordinates) return null;
 
-            const trafficCondition = getTrafficCondition(data.speed || 0);
-            console.log(`Shuttle ${shuttleId} display data:`, {
-              speed: data.speed,
-              trafficCondition,
-              status: data.status,
-            });
+              const trafficCondition = getTrafficCondition(data.speed || 0);
+              console.log(`Shuttle ${shuttleId} display data:`, {
+                speed: data.speed,
+                trafficCondition,
+                status: data.status,
+              });
 
-            const isOffline = data.status === "offline";
+              const isOffline = data.status === "offline";
 
-            const shuttleIcon = new L.Icon({
-              iconUrl: "/car.png",
-              iconRetinaUrl: "/car.png",
-              iconAnchor: [12, 41],
-              popupAnchor: [1, -34],
-              iconSize: [29, 59],
-              shadowUrl:
-                "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-              shadowSize: [41, 41],
-              className: isOffline ? "grayscale-icon" : "",
-            });
+              const shuttleIcon = new L.Icon({
+                iconUrl: "/car.png",
+                iconRetinaUrl: "/car.png",
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                iconSize: [29, 59],
+                shadowUrl:
+                  "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+                shadowSize: [41, 41],
+                className: isOffline ? "grayscale-icon" : "",
+              });
 
-            return (
-              <MovingMarker
-                key={shuttleId}
-                position={data.coordinates}
-                icon={shuttleIcon}
-              >
-                <Popup>
-                  <div className="TellerMain-shuttle-info">
-                    <h3>SHUTL {shuttleId}</h3>
-                    <p>
-                      Status:{" "}
-                      <span
-                        style={{
-                          color: isOffline ? "red" : "green",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {isOffline ? "Offline" : "Online"}
-                      </span>
-                    </p>
-                    <p>
-                      Speed:{" "}
-                      <span style={{ fontWeight: "bold" }}>
-                        {(data.speed || 0).toFixed(1)} km/h
-                      </span>
-                    </p>
-                    <p>
-                      Traffic:{" "}
-                      <span
-                        style={{
-                          color: trafficCondition.color,
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {trafficCondition.status}
-                      </span>
-                    </p>
-                    <p>
-                      Last Update:{" "}
-                      {new Date(data.lastUpdate).toLocaleTimeString()}
-                    </p>
-                    <p>
-                      Time Since Update:{" "}
-                      {Math.round(
-                        (new Date() - new Date(data.lastUpdate)) / 1000
-                      )}
-                      s ago
-                    </p>
-                  </div>
-                </Popup>
-                <Tooltip direction="right" offset={[10, 0]} permanent>
-                  <span style={{ color: isOffline ? "#999" : "#000" }}>
-                    Shuttle {shuttleId} {isOffline ? "(Offline)" : ""}
-                  </span>
-                </Tooltip>
-              </MovingMarker>
-            );
-          })}
+              return (
+                <MovingMarker
+                  key={shuttleId}
+                  position={data.coordinates}
+                  icon={shuttleIcon}
+                >
+                  <Popup>
+                    <div className="TellerMain-shuttle-info">
+                      <h3>SHUTL {shuttleId}</h3>
+                      <p>
+                        Status:{" "}
+                        <span
+                          style={{
+                            color: isOffline ? "red" : "green",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {isOffline ? "Offline" : "Online"}
+                        </span>
+                      </p>
+                      <p>
+                        Speed:{" "}
+                        <span style={{ fontWeight: "bold" }}>
+                          {(data.speed || 0).toFixed(1)} km/h
+                        </span>
+                      </p>
+                      <p>
+                        Traffic:{" "}
+                        <span
+                          style={{
+                            color: trafficCondition.color,
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {trafficCondition.status}
+                        </span>
+                      </p>
+                      <p>
+                        Last Update:{" "}
+                        {new Date(data.lastUpdate).toLocaleTimeString()}
+                      </p>
+                      <p>
+                        Time Since Update:{" "}
+                        {Math.round(
+                          (new Date() - new Date(data.lastUpdate)) / 1000
+                        )}
+                        s ago
+                      </p>
+                    </div>
+                  </Popup>
+                  <Tooltip direction="right" offset={[10, 0]} permanent>
+                    <span style={{ color: isOffline ? "#999" : "#000" }}>
+                      Shuttle {shuttleId} {isOffline ? "(Offline)" : ""}
+                    </span>
+                  </Tooltip>
+                </MovingMarker>
+              );
+            })}
         </MapContainer>
       </div>
 
@@ -825,7 +833,6 @@ const TellerMain = () => {
         onSummaryClick={toggleSummary}
         onTripClick={toggleTripForm}
         profileImage={profileImage}
-        notifications={notifications}
         notificationEnabled={notificationEnabled}
         onNotificationToggle={updateNotificationPreference}
         locationEnabled={locationEnabled}
