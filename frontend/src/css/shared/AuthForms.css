@@ -58,17 +58,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 16px;
   margin: 32px 0 40px;
   width: 100%;
+  height: 40px;
 }
 
 .auth-logo {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
   border-radius: 50%;
-  padding: 6px;
+  display: block;
 }
 
 /* Typography */
@@ -77,8 +78,10 @@
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
-  text-align: center;
-  margin-top: 32px;
+  padding: 0;
+  height: 40px;
+  line-height: 40px;
+  display: block;
 }
 
 .auth-form-subtitle {
@@ -165,8 +168,10 @@
   padding: 0 16px;
 }
 
-.auth-submit-button,
-.auth-cancel-button {
+.auth-submit-button {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  border: none;
   padding: 14px 24px;
   border-radius: 12px;
   font-size: 16px;
@@ -176,12 +181,9 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-}
-
-.auth-submit-button {
-  background-color: #1a1a1a;
-  color: #ffffff;
-  border: none;
+  width: 100%;
+  max-width: 360px;
+  margin: 8px 0;
 }
 
 .auth-submit-button:hover {
@@ -685,6 +687,27 @@ small {
     position: relative;
     z-index: 11;
   }
+
+  .auth-submit-button {
+    width: 100%;
+    height: 52px;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 8px 0 16px;
+    border-radius: 12px;
+    background-color: #232323;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-width: none;
+  }
+
+  .auth-submit-button:active {
+    transform: scale(0.98);
+  }
 }
 
 /* iPhone-specific adjustments */
@@ -1031,10 +1054,6 @@ input[type="date"].auth-input:focus::-webkit-calendar-picker-indicator {
   .auth-link-button:hover {
     color: #232323;
     text-decoration: underline;
-  }
-
-  .auth-form-title {
-    margin-top: 40px;
   }
 
   .auth-form-subtitle {
