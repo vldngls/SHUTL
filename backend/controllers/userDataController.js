@@ -91,23 +91,24 @@ export const updateUserDataByEmail = async (req, res) => {
     let userData = await UserData.findOne({ email });
 
     if (!userData) {
-      userData = new UserData({
-        email,
-        ...updates,
-      });
-    } else {
-      // Check if discount type or ID picture is being updated
-      if (updates.discountType || updates.idPicture) {
-        updates.discountStatus = "PENDING";
-      }
-
-      // Update only the fields that are provided
-      Object.entries(updates).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          userData[key] = value;
-        }
-      });
+      return res.status(404).json({ message: "User data not found" });
     }
+
+    // Check if discount type or ID picture is being updated
+    if (updates.discountType || updates.idPicture) {
+      // If updating discount type, require ID picture
+      if (updates.discountType && updates.discountType !== "REGULAR" && !updates.idPicture) {
+        return res.status(400).json({ message: "ID picture is required for discount type updates" });
+      }
+      updates.discountStatus = "PENDING";
+    }
+
+    // Update only the fields that are provided
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        userData[key] = value;
+      }
+    });
 
     await userData.save();
     res.status(200).json(userData);

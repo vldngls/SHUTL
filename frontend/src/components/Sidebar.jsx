@@ -21,6 +21,7 @@ const Sidebar = forwardRef(
       onNotificationToggle,
       locationEnabled,
       onLocationToggle,
+      onTripClick,
     },
     ref
   ) => {
@@ -171,6 +172,27 @@ const Sidebar = forwardRef(
 
       switch (userType) {
         case "teller":
+          return [
+            {
+              id: "message",
+              icon: "/message.png",
+              label: "Message",
+              onClick: onMessageClick,
+            },
+            {
+              id: "summary",
+              icon: "/summary.png",
+              label: "Summary",
+              onClick: onSummaryClick,
+            },
+            {
+              id: "trip",
+              icon: "/trip.png",
+              label: "Shuttle Trip",
+              onClick: onTripClick,
+            },
+            ...commonButtons,
+          ];
         case "driver":
           return [
             {
@@ -494,6 +516,7 @@ Sidebar.propTypes = {
   onNotificationToggle: PropTypes.func,
   locationEnabled: PropTypes.bool,
   onLocationToggle: PropTypes.func,
+  onTripClick: PropTypes.func,
 };
 
 export default Sidebar;

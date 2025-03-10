@@ -145,6 +145,12 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const transactionsPerPage = 3;
   const [showTransactions, setShowTransactions] = useState(false);
+  const [discountTypes, setDiscountTypes] = useState({
+    REGULAR: { label: "Regular", value: 0 },
+    PWD: { label: "PWD", value: 20 },
+    STUDENT: { label: "Student", value: 20 },
+    SENIOR: { label: "Senior Citizen", value: 20 },
+  });
 
   // Get email from JWT token
   const getEmailFromToken = () => {
@@ -441,6 +447,28 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
     }
   };
 
+  // Fetch fares when component mounts
+  useEffect(() => {
+    const fetchFares = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/fares`);
+        const data = await response.json();
+        const fareMap = {};
+        data.forEach((fare) => {
+          fareMap[fare.fare] = {
+            label: fare.fare,
+            value: parseFloat(fare.price),
+          };
+        });
+        setDiscountTypes(fareMap);
+      } catch (error) {
+        console.error("Error fetching fares:", error);
+      }
+    };
+
+    fetchFares();
+  }, [API_BASE_URL]);
+
   if (!userData) return <p>Loading...</p>; // Show a loading message while data is being fetched
 
   // Calculate current transactions
@@ -570,11 +598,11 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
                   setEditedData({
                     ...editedData,
                     discountType: selectedType,
-                    discount: DISCOUNT_TYPES[selectedType].value,
+                    discount: discountTypes[selectedType]?.value || 0,
                   });
                 }}
               >
-                {Object.entries(DISCOUNT_TYPES).map(([key, { label }]) => (
+                {Object.entries(discountTypes).map(([key, { label }]) => (
                   <option key={key} value={key}>
                     {label}
                   </option>
@@ -671,7 +699,7 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
               <h4>Discount Information</h4>
               <p>
                 <strong>Type</strong>
-                {DISCOUNT_TYPES[userData?.discountType || "REGULAR"].label}
+                {discountTypes[userData?.discountType || "REGULAR"]?.label || "Regular"}
               </p>
               <p>
                 <strong>Amount</strong> {userData?.discount || 0}%

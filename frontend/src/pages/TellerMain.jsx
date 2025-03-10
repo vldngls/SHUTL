@@ -907,7 +907,12 @@ const TellerMain = () => {
       )}
 
       {/* Trip Tracking Modal */}
-      {isTripFormOpen && <ShuttleTripTracking onClose={toggleTripForm} />}
+      {isTripFormOpen && (
+        <ShuttleTripTracking 
+          onClose={toggleTripForm} 
+          socket={socket.current}
+        />
+      )}
 
       {/* Message Box */}
       {isMessageBoxOpen && (

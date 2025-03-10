@@ -310,19 +310,17 @@ textarea {
   align-items: center;
   z-index: 1000;
   padding: 20px;
-  background-color: transparent !important; /* Force transparent background */
-  touch-action: pan-y; /* Only allow vertical scrolling */
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
 }
 
 .shuttle-tracking-container {
-  background-color: #f5f7fa;
+  background-color: white;
   border-radius: 12px;
   padding: 24px;
   width: 95%;
   max-width: 1400px;
   max-height: 90vh;
-  max-height: calc(var(--vh, 1vh) * 90);
   overflow: auto;
   position: relative;
   display: grid;
@@ -330,8 +328,6 @@ textarea {
   gap: 24px;
   margin: 0 auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  touch-action: pan-y; /* Only allow vertical scrolling */
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 /* Close Button */
@@ -778,4 +774,20 @@ textarea {
   .sidebar-settings-container {
     left: 64px;
   }
+}
+
+/* Trip button styles */
+.TellerMain-trip-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.TellerMain-trip-btn:hover {
+  background-color: #45a049;
 }

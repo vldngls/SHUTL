@@ -601,61 +601,33 @@ const ShutlLoggedIn = () => {
 
   // Modified click handlers to handle optional event parameter
   const handleProfileClick = (e) => {
-    if (e && e.stopPropagation) {
-      e.stopPropagation();
-    }
-    setIsProfileEditMode(false);
-    setActivePopup((prev) => (prev === "profile" ? null : "profile"));
-    setShowSuggestionForm(false);
-    setShowPaymentQR(false);
-    setShowPickMeUp(false);
-    setShowActiveShuttles(false);
+    e.preventDefault();
+    e.stopPropagation();
+    setActivePopup(activePopup === "profile" ? null : "profile");
   };
 
   const handleNotificationClick = (e) => {
-    if (e && e.stopPropagation) {
-      e.stopPropagation();
-    }
-    setActivePopup((prev) =>
-      prev === "notifications" ? null : "notifications"
-    );
-    setShowSuggestionForm(false);
-    setShowPaymentQR(false);
-    setShowPickMeUp(false);
-    setShowActiveShuttles(false);
+    e.preventDefault();
+    e.stopPropagation();
+    setActivePopup(activePopup === "notifications" ? null : "notifications");
   };
 
   const handleSuggestionClick = (e) => {
-    if (e && e.stopPropagation) {
-      e.stopPropagation();
-    }
-    setShowSuggestionForm((prev) => !prev);
-    setActivePopup(null);
-    setShowPaymentQR(false);
-    setShowPickMeUp(false);
-    setShowActiveShuttles(false);
+    e.preventDefault();
+    e.stopPropagation();
+    setActivePopup(activePopup === "suggestions" ? null : "suggestions");
   };
 
   const handlePaymentClick = (e) => {
-    if (e && e.stopPropagation) {
-      e.stopPropagation();
-    }
-    setShowPaymentQR((prev) => !prev);
-    setActivePopup(null);
-    setShowSuggestionForm(false);
-    setShowPickMeUp(false);
-    setShowActiveShuttles(false);
+    e.preventDefault();
+    e.stopPropagation();
+    setActivePopup(activePopup === "payment" ? null : "payment");
   };
 
   const handleActiveShuttlesClick = (e) => {
-    if (e && e.stopPropagation) {
-      e.stopPropagation();
-    }
-    setShowActiveShuttles((prev) => !prev);
-    setActivePopup(null);
-    setShowSuggestionForm(false);
-    setShowPaymentQR(false);
-    setShowPickMeUp(false);
+    e.preventDefault();
+    e.stopPropagation();
+    setActivePopup(activePopup === "activeShuttles" ? null : "activeShuttles");
   };
 
   // Close all popups function
@@ -666,6 +638,29 @@ const ShutlLoggedIn = () => {
     setShowPickMeUp(false);
     setIsProfileEditMode(false);
   };
+
+  // Handle clicks outside of popups
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (popupRef.current && !popupRef.current.contains(event.target)) {
+        // Only close if clicking outside of any popup or component
+        const isClickingInsidePopup = event.target.closest('.popup-content') || 
+                                    event.target.closest('.suggestion-form-overlay') ||
+                                    event.target.closest('.payment-qr-overlay') ||
+                                    event.target.closest('.pick-me-up-overlay') ||
+                                    event.target.closest('.active-shuttles-overlay');
+        
+        if (!isClickingInsidePopup) {
+          closeAllPopups();
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Fetch notifications
   useEffect(() => {
@@ -763,25 +758,6 @@ const ShutlLoggedIn = () => {
     setIsSidebarExpanded(!isSidebarExpanded);
   };
 
-  // Click outside handling
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        sidebarRef.current &&
-        !sidebarRef.current.contains(event.target) &&
-        popupRef.current &&
-        !popupRef.current.contains(event.target)
-      ) {
-        closeAllPopups();
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
   // Final cleanup on component unmount
   useEffect(() => {
     return () => {
@@ -862,44 +838,17 @@ const ShutlLoggedIn = () => {
                   key={shuttleId}
                   position={data.coordinates}
                   icon={carIcon}
-                  rotationAngle={data.heading || 0}
-                  duration={1000}
-                  className={data.isPredicted ? "predicted-marker" : ""}
+                  speed={speed}
+                  isOffline={!data.coordinates}
                 >
                   <Popup>
-                    <div className="ShutlLoggedIn-shuttle-info">
-                      <h3>{shuttleId}</h3>
-                      <p>
-                        Last updated:{" "}
-                        {data.lastUpdate
-                          ? data.lastUpdate.toLocaleTimeString()
-                          : "N/A"}
-                      </p>
-                      <p>
-                        Speed: {speed ? `${speed.toFixed(1)} km/h` : "0.0 km/h"}
-                      </p>
-                      <p style={{ color: trafficCondition.color }}>
-                        Traffic: {trafficCondition.status}
-                      </p>
-                      {data.isPredicted && (
-                        <p style={{ color: "orange" }}>
-                          ⚠️ Predicted Position (Signal Lost)
-                        </p>
-                      )}
+                    <div>
+                      <h3>Shuttle {shuttleId}</h3>
+                      <p>Status: {trafficCondition.status}</p>
                       {distance !== null && (
                         <>
                           <p>Distance: {distance.toFixed(2)} km</p>
                           <p>ETA: {eta} minutes</p>
-                          <button
-                            className="pickup-request-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedShuttleId(shuttleId);
-                              setShowPickMeUp(true);
-                            }}
-                          >
-                            Pick Me Up
-                          </button>
                         </>
                       )}
                     </div>

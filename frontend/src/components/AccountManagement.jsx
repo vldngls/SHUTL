@@ -510,7 +510,9 @@ const AccountManagement = () => {
                 </div>
                 <div className="adm-user-detail">
                   <div className="adm-detail-label">Discount Status</div>
-                  <div className="adm-detail-value">{viewingUser.discountStatus || "None"}</div>
+                  <div className={`adm-detail-value ${viewingUser.discountStatus?.toLowerCase()}`}>
+                    {viewingUser.discountStatus || "None"}
+                  </div>
                 </div>
 
                 {viewingUser.idImage && (

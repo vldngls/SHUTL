@@ -486,29 +486,20 @@ export const sendLocation = async (locationData) => {
 };
 
 // Use the generic subscribeToEvent function
-export const subscribeToLocationUpdates = async (callback) => {
-  const wrappedCallback = (data) => {
-    console.log("Websocket received location update:", {
-      shuttleId: data.shuttleId,
-      coordinates: data.coordinates,
-      speed: data.metadata?.speed,
-      directSpeed: data.speed,
-      heading: data.metadata?.heading,
-      timestamp: data.timestamp,
-    });
-    callback(data);
-  };
+export const subscribeToLocationUpdates = (callback) => {
+  if (!socket) return;
 
-  const cleanup1 = await subscribeToEvent("shuttle_location", wrappedCallback);
-  const cleanup2 = await subscribeToEvent(
-    "shuttle_location_update",
-    wrappedCallback
-  );
+  socket.on("location_update", (data) => {
+    if (data && data.coordinates) {
+      callback(data);
+    }
+  });
 
-  return () => {
-    cleanup1();
-    cleanup2();
-  };
+  socket.on("speed_update", (data) => {
+    if (data && data.speed !== undefined) {
+      callback({ ...data, type: "speed" });
+    }
+  });
 };
 
 export const joinShuttleTracking = async (shuttleId) => {
@@ -524,7 +515,9 @@ export const joinShuttleTracking = async (shuttleId) => {
 };
 
 // Export the location update interval for consistency
-export const getLocationUpdateInterval = () => LOCATION_UPDATE_INTERVAL;
+export const getLocationUpdateInterval = () => {
+  return 5000; // 5 seconds
+};
 
 // Add a cleanup function for application shutdown
 export const cleanupSocketService = () => {
