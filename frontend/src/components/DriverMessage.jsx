@@ -21,12 +21,11 @@ import {
 } from "../utils/chatService";
 import { toast } from "react-hot-toast";
 
-const DriverMessage = ({ onClose }) => {
+const DriverMessage = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false); // Prevent duplicate sends
   const [showScrollButton, setShowScrollButton] = useState(false);
-  const [chatRooms, setChatRooms] = useState([]);
   const [currentRoom, setCurrentRoom] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState("connecting");
@@ -35,9 +34,6 @@ const DriverMessage = ({ onClose }) => {
   const lastMessageCountRef = useRef(messages.length);
   const socket = useRef(null);
   const cleanupRef = useRef(null);
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  const SOCKET_URL = API_BASE_URL.replace("/api", "");
-  const userRole = useMemo(() => "Driver", []);
 
   // Memoize quick replies to prevent unnecessary re-renders
   const quickReplies = useMemo(
@@ -101,10 +97,9 @@ const DriverMessage = ({ onClose }) => {
           const parsedRooms = JSON.parse(cachedRooms);
           if (parsedRooms && parsedRooms.length > 0) {
             console.log("Using cached chat rooms:", parsedRooms);
-            setChatRooms(parsedRooms);
+            setMessages(parsedRooms[0].messages || []);
             globalRoom = parsedRooms[0];
             setCurrentRoom(globalRoom._id);
-            setMessages(globalRoom.messages || []);
 
             // Join the room
             await joinChatRoom(globalRoom._id);
@@ -147,15 +142,14 @@ const DriverMessage = ({ onClose }) => {
             // Cache rooms for future use
             localStorage.setItem("chatRooms", JSON.stringify(rooms));
 
-            setChatRooms(rooms);
-            const freshGlobalRoom = rooms[0];
-            setCurrentRoom(freshGlobalRoom._id);
-            setMessages(freshGlobalRoom.messages || []);
+            setMessages(rooms[0].messages || []);
+            globalRoom = rooms[0];
+            setCurrentRoom(globalRoom._id);
 
             // Only join the room if we haven't already joined from cache
-            if (!globalRoom || globalRoom._id !== freshGlobalRoom._id) {
-              joinChatRoom(freshGlobalRoom._id);
-              console.log("Joined global room:", freshGlobalRoom._id);
+            if (!globalRoom || globalRoom._id !== rooms[0]._id) {
+              joinChatRoom(rooms[0]._id);
+              console.log("Joined global room:", rooms[0]._id);
             }
 
             // If we haven't finished initializing yet, do it now
@@ -461,9 +455,6 @@ const DriverMessage = ({ onClose }) => {
             onClick={handleCallClick}
           >
             <FaPhoneAlt />
-          </button>
-          <button className="DriverMessage-close-button" onClick={onClose}>
-            ✕
           </button>
         </div>
       </div>

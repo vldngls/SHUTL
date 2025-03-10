@@ -14,6 +14,122 @@
   z-index: 1000;
 }
 
+/* Mobile view styles */
+@media screen and (max-width: 768px) {
+  .DriverMessage-driver-message-container {
+    position: fixed;
+    top: 60px; /* Leave space for mobile top bar */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: calc(100vh - 60px); /* Subtract top bar height */
+    border-radius: 0;
+    margin: 0;
+    z-index: 999; /* Ensure it's below the top bar */
+  }
+
+  .DriverMessage-driver-message-header {
+    padding: 8px 16px;  /* Reduced padding from 16px to 8px */
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    min-height: 40px;  /* Added fixed height */
+  }
+
+  .DriverMessage-header-title {
+    font-size: 1em;  /* Reduced font size for mobile */
+  }
+
+  .DriverMessage-call-button {
+    padding: 8px;  /* Reduced padding */
+    width: 32px;  /* Added fixed width */
+    height: 32px;  /* Added fixed height */
+  }
+
+  .DriverMessage-message-list {
+    height: calc(100vh - 220px) !important;  /* Adjusted height due to smaller header */
+    padding-bottom: 70px;
+  }
+
+  .DriverMessage-quick-replies {
+    position: fixed;
+    bottom: 60px;
+    left: 0;
+    right: 0;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 6;
+    border-top: 1px solid #e0e0e0;
+    max-height: 80px;  /* Smaller max-height for mobile */
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+  }
+
+  .DriverMessage-message-input-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #f5f5f5;
+    padding: 12px;
+    z-index: 5;
+  }
+
+  .DriverMessage-message-input {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  .DriverMessage-scroll-button {
+    bottom: 120px; /* Adjust position to account for quick replies */
+  }
+
+  /* Improve touch targets */
+  .DriverMessage-call-button,
+  .DriverMessage-send-button,
+  .DriverMessage-quick-reply-button {
+    min-height: 44px;
+    padding: 12px 20px;
+  }
+
+  .DriverMessage-quick-reply-button {
+    padding: 8px 12px;
+    font-size: 0.85em;
+    width: 100%;  /* Take full width of grid cell */
+    text-align: center;
+    white-space: normal;  /* Allow text to wrap */
+    height: auto;  /* Allow height to adjust to content */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+  }
+
+  /* Adjust message list to account for quick replies */
+  .DriverMessage-message-list {
+    height: calc(100vh - 280px) !important;  /* Account for header, quick replies, and input */
+    padding-bottom: 100px;  /* Extra padding to prevent content being hidden */
+  }
+}
+
+/* Small mobile screens */
+@media screen and (max-width: 380px) {
+  .DriverMessage-quick-replies {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));  /* Smaller minimum width */
+    padding: 6px 10px;
+    gap: 6px;
+  }
+
+  .DriverMessage-quick-reply-button {
+    padding: 6px 10px;
+    font-size: 0.8em;
+    min-height: 32px;
+  }
+}
+
 /* Header styling for the driver message container */
 .DriverMessage-driver-message-header {
   padding: 16px;
@@ -158,31 +274,45 @@
 
 /* Quick replies section styling */
 .DriverMessage-quick-replies {
-  padding: 12px;
+  padding: 12px 16px;
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 10px;
   overflow-x: auto;
-  background: #f5f5f5;
-  border-top: 1px solid #d9d9d9;
+  background: #ffffff;
+  border-top: 2px solid #e0e0e0;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;  /* Firefox */
+  max-height: 120px;  /* Maximum height for larger screens */
+  overflow-y: auto;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.DriverMessage-quick-replies::-webkit-scrollbar {
+  display: none;
 }
 
 /* Quick reply button styling */
 .DriverMessage-quick-reply-button {
-  background: #d9d9d9;
-  color: #333;
+  background: #232323;
+  color: #ffffff;
   border: none;
-  padding: 10px 15px;
+  padding: 8px 16px;
   border-radius: 20px;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  font-weight: bold;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-weight: 500;
+  font-size: 0.9em;
+  flex: 0 1 auto;  /* Allow buttons to shrink but not grow */
+  min-width: min-content;  /* Ensure buttons don't get too small */
 }
 
 .DriverMessage-quick-reply-button:hover {
-  background: #c0c0c0;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  background: #424242;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* Scroll button styling */

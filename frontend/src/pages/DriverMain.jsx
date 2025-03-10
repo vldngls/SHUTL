@@ -255,7 +255,6 @@ const DriverMain = () => {
   const lastUpdateTimeRef = useRef(null);
   const recenterTimeoutRef = useRef(null);
   const [shouldRecenter, setShouldRecenter] = useState(true);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [notificationEnabled, setNotificationEnabled] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
@@ -1055,48 +1054,6 @@ const DriverMain = () => {
     setNotifications((prev) => [notification, ...prev].slice(0, 5));
   };
 
-  // Update toggle function for mobile menu
-  const toggleMobileMenu = useCallback(
-    (e) => {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-      console.log("Toggling mobile menu, current state:", isMobileMenuOpen);
-      setIsMobileMenuOpen((prev) => !prev);
-    },
-    [isMobileMenuOpen]
-  );
-
-  // Add effect to handle clicks outside mobile menu
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      const mobileMenu = document.querySelector(".DriverMain-mobile-menu");
-      const hamburgerButton = document.querySelector(".DriverMain-hamburger");
-
-      if (
-        isMobileMenuOpen &&
-        mobileMenu &&
-        hamburgerButton &&
-        !mobileMenu.contains(e.target) &&
-        !hamburgerButton.contains(e.target)
-      ) {
-        console.log("Clicking outside, closing menu");
-        setIsMobileMenuOpen(false);
-      }
-    };
-
-    if (isMobileMenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("touchstart", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-    };
-  }, [isMobileMenuOpen]);
-
   const toggleSidebar = () => {
     setIsSidebarExpanded((prev) => !prev);
   };
@@ -1440,19 +1397,6 @@ const DriverMain = () => {
       />
 
       <Taskbar date={formattedDate} time={formattedTime} />
-
-      <button
-        className={`DriverMain-hamburger ${isMobileMenuOpen ? "active" : ""}`}
-        onClick={toggleMobileMenu}
-      >
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-
-      <div className="DriverMain-taskbar">
-        {dateTime.toLocaleDateString()} - {dateTime.toLocaleTimeString()}
-      </div>
 
       <button
         className="DriverMain-update-location-btn"
