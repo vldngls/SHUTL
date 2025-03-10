@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getCookie } from '../../utils/cookieUtils';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -10,9 +11,9 @@ const axiosConfig = {
   }
 };
 
-// Get token from localStorage
+// Get token from cookies
 const getAuthHeader = () => {
-  const token = localStorage.getItem('token');
+  const token = getCookie('token');
   return {
     headers: {
       'Authorization': `Bearer ${token}`
@@ -67,5 +68,30 @@ export const maintenanceService = {
   getUserStats: async () => {
     const response = await axios.get(`${API_BASE_URL}/maintenance/users/stats`, { ...axiosConfig, ...getAuthHeader() });
     return response.data;
-  }
+  },
+
+  getMaintenanceMode: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/maintenance/maintenance/status`, { 
+        ...axiosConfig
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error getting maintenance mode status:', error);
+      throw new Error('Failed to get maintenance mode status');
+    }
+  },
+
+  toggleMaintenanceMode: async (enabled) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/maintenance/maintenance/toggle`, 
+        { enabled }, 
+        { ...axiosConfig, ...getAuthHeader() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error toggling maintenance mode:', error);
+      throw new Error('Failed to toggle maintenance mode');
+    }
+  },
 }; 

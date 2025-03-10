@@ -1,5 +1,5 @@
-import React, { useEffect, Suspense, lazy } from "react";
-import { Route, Routes } from "react-router-dom";
+import React, { useEffect, Suspense, lazy, useState } from "react";
+import { Route, Routes, useLocation } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import {
   startMemoryMonitoring,
@@ -11,6 +11,7 @@ import {
 import { cleanupImageOptimizer } from "./utils/imageOptimizer";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { cleanupSocketService } from "./utils/websocketService";
+import { maintenanceService } from "./services/api/maintenance";
 // import { MemoryMonitoringDashboard } from "./components/MemoryMonitoringDashboard";
 
 // Implement more granular code splitting with prefetching
@@ -40,6 +41,9 @@ const TellerMain = lazy(() =>
 );
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ResetPassword = lazy(() => import("./components/ResetPassword"));
+const MaintenancePage = lazy(() =>
+  import(/* webpackPrefetch: true */ "./pages/MaintenancePage")
+);
 
 // Improved loading component with progress indication
 const LoadingSpinner = () => (
@@ -77,6 +81,11 @@ const LoadingSpinner = () => (
 );
 
 function App() {
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const location = useLocation();
+  const isAdminRoute = location.pathname.includes('AdministratorMain');
+  const isLoginRoute = location.pathname.includes('LoginForm');
+
   // Preload critical components after initial render
   useEffect(() => {
     const preloadComponents = async () => {
@@ -124,6 +133,33 @@ function App() {
       console.log("All resources cleaned up on app unmount");
     };
   }, []);
+
+  // Check maintenance mode on app load and periodically
+  useEffect(() => {
+    const checkMaintenanceMode = async () => {
+      try {
+        const status = await maintenanceService.getMaintenanceMode();
+        setMaintenanceMode(status.enabled);
+      } catch (error) {
+        console.error('Error checking maintenance mode:', error);
+      }
+    };
+
+    checkMaintenanceMode();
+    const interval = setInterval(checkMaintenanceMode, 30000); // Check every 30 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Redirect to maintenance page if in maintenance mode and not on admin or login routes
+  if (maintenanceMode && !isAdminRoute && !isLoginRoute) {
+    return (
+      <Suspense fallback={<LoadingSpinner />}>
+        <MaintenancePage />
+        <Toaster position="bottom-center" />
+      </Suspense>
+    );
+  }
 
   return (
     <div

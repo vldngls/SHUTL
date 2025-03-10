@@ -427,3 +427,75 @@
     grid-column: 1;
   }
 }
+
+.AdministratorMaintenance-maintenance-toggle {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.AdministratorMaintenance-control-panel .maintenance-toggle-container {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #e9ecef;
+}
+
+.AdministratorMaintenance-control-panel .maintenance-toggle-container h4 {
+  margin: 0 0 12px 0;
+  color: #232323;
+  font-size: 16px;
+}
+
+.AdministratorMaintenance-control-panel .maintenance-toggle-button {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 8px;
+  border: none;
+  border-radius: 6px;
+  background-color: #e9ecef;
+  color: #495057;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.AdministratorMaintenance-control-panel .maintenance-toggle-button.active {
+  background-color: #dc3545;
+  color: white;
+}
+
+.AdministratorMaintenance-control-panel .maintenance-toggle-button:hover:not(:disabled) {
+  background-color: #dee2e6;
+}
+
+.AdministratorMaintenance-control-panel .maintenance-toggle-button.active:hover:not(:disabled) {
+  background-color: #c82333;
+}
+
+.AdministratorMaintenance-control-panel .maintenance-status {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #495057;
+}
+
+.AdministratorMaintenance-control-panel .maintenance-status .status-enabled {
+  color: #dc3545;
+  font-weight: 500;
+}
+
+.AdministratorMaintenance-control-panel .maintenance-status .status-disabled {
+  color: #28a745;
+  font-weight: 500;
+}
+
+.AdministratorMaintenance-control-panel .maintenance-description {
+  margin: 0;
+  font-size: 13px;
+  color: #6c757d;
+  line-height: 1.4;
+}
+

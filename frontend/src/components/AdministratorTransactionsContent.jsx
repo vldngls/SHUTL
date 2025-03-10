@@ -28,7 +28,7 @@ ChartJS.register(
 
 const AdministratorTransactionsContent = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  const [dateRange, setDateRange] = useState("today"); // today, week, month, year, custom
+  const [dateRange, setDateRange] = useState("today"); // today, week, month, year, all, custom
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
   const [transactions, setTransactions] = useState([]);
@@ -65,6 +65,10 @@ const AdministratorTransactionsContent = () => {
         break;
       case "year":
         startDate.setFullYear(today.getFullYear() - 1);
+        break;
+      case "all":
+        // Set to a very old date to get all records
+        startDate.setFullYear(2000);
         break;
       case "custom":
         return {
@@ -206,6 +210,12 @@ const AdministratorTransactionsContent = () => {
             onClick={() => setDateRange("year")}
           >
             Last Year
+          </button>
+          <button
+            className={dateRange === "all" ? "active" : ""}
+            onClick={() => setDateRange("all")}
+          >
+            All Time
           </button>
           <button
             className={dateRange === "custom" ? "active" : ""}

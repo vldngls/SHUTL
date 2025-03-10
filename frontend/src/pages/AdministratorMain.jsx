@@ -327,7 +327,7 @@ const AdministratorMain = () => {
   return (
     <div className="AdministratorMain-container">
       <div className="AdministratorMain-navbar">
-        <div className="AdministratorMain-logo">SHU TL.</div>
+        <div className="AdministratorMain-logo">SHUTL.</div>
         <div className="AdministratorMain-navbar-buttons">
           <button
             className={`AdministratorMain-nav-btn ${

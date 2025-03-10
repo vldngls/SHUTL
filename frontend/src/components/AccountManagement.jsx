@@ -262,115 +262,150 @@ const AccountManagement = () => {
     <div className="account-management">
       <h1>Account Management</h1>
 
-      {/* Search Bar */}
-      <div className="search-bar">
-        <input
-          type="text"
-          placeholder="Search users..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-
-      {/* User Form */}
-      <div className="form-container">
-        <h2>{editingUser ? "Update User" : "Add User"}</h2>
-        {errorMessage && <p className="error-message">{errorMessage}</p>}
-        <form onSubmit={handleSaveUser}>
-          <input
-            type="text"
-            name="name"
-            placeholder="Name"
-            value={formData.name}
-            onChange={handleFormChange}
-            required
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleFormChange}
-            required
-          />
-          <input
-            type="text"
-            name="username"
-            placeholder="Username"
-            value={formData.username}
-            onChange={handleFormChange}
-            required
-          />
-          {!editingUser && (
+      {/* Top Section - Two Columns */}
+      <div className="account-management-top-section">
+        {/* Left Column - Add User Form */}
+        <div className="form-container">
+          <h2>{editingUser ? "Update User" : "Add User"}</h2>
+          {errorMessage && <p className="error-message">{errorMessage}</p>}
+          <form onSubmit={handleSaveUser}>
             <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={formData.password}
+              type="text"
+              name="name"
+              placeholder="Name"
+              value={formData.name}
               onChange={handleFormChange}
               required
             />
-          )}
-          <select
-            name="userType"
-            value={formData.userType}
-            onChange={handleFormChange}
-            required
-          >
-            <option value="Commuter">Commuter</option>
-            <option value="Admin">Admin</option>
-            <option value="Driver">Driver</option>
-            <option value="Teller">Teller</option>
-          </select>
-          <button type="submit">
-            {editingUser ? "Update User" : "Add User"}
-          </button>
-        </form>
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={handleFormChange}
+              required
+            />
+            <input
+              type="text"
+              name="username"
+              placeholder="Username"
+              value={formData.username}
+              onChange={handleFormChange}
+              required
+            />
+            {!editingUser && (
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleFormChange}
+                required
+              />
+            )}
+            <select
+              name="userType"
+              value={formData.userType}
+              onChange={handleFormChange}
+              required
+            >
+              <option value="Commuter">Commuter</option>
+              <option value="Admin">Admin</option>
+              <option value="Driver">Driver</option>
+              <option value="Teller">Teller</option>
+            </select>
+            <button type="submit">
+              {editingUser ? "Update User" : "Add User"}
+            </button>
+          </form>
+        </div>
+
+        {/* Right Column - Pending Discounts */}
+        <div className="pending-discounts-section">
+          <h2>Pending Discount Requests</h2>
+          <div className="pending-discounts-grid">
+            {users
+              .filter(user => user.discountStatus === "PENDING")
+              .map(user => (
+                <div key={user._id} className="pending-discount-card">
+                  <div className="discount-card-header">
+                    <h3>{user.name}</h3>
+                    <span className="discount-type">{user.discountType}</span>
+                  </div>
+                  <div className="discount-card-body">
+                    <p><strong>Email:</strong> {user.email}</p>
+                    <p><strong>Username:</strong> {user.username}</p>
+                    <p><strong>Status:</strong> <span className="status-pending">Pending</span></p>
+                  </div>
+                  <div className="discount-card-actions">
+                    <button onClick={() => handleViewUser(user)} className="view-btn">View Details</button>
+                  </div>
+                </div>
+              ))}
+            {users.filter(user => user.discountStatus === "PENDING").length === 0 && (
+              <div className="no-pending-discounts">
+                <p>No pending discount requests</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Users Table */}
-      <div className="users-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Username</th>
-              <th>User Type</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedUsers.map((user) => (
-              <tr key={user._id}>
-                <td>{user.name}</td>
-                <td>{user.email}</td>
-                <td>{user.username}</td>
-                <td>{user.userType}</td>
-                <td>
-                  <button onClick={() => handleViewUser(user)}>View</button>
-                  <button onClick={() => handleEditUser(user)}>Edit</button>
-                </td>
+      {/* Bottom Section - Full Width Users Table */}
+      <div className="users-table-section">
+        {/* Search Bar */}
+        <div className="search-bar">
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <div className="users-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Username</th>
+                <th>User Type</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {paginatedUsers.map((user) => (
+                <tr key={user._id}>
+                  <td>{user.name}</td>
+                  <td>{user.email}</td>
+                  <td>{user.username}</td>
+                  <td>{user.userType}</td>
+                  <td>
+                    <button onClick={() => handleViewUser(user)}>View</button>
+                    <button onClick={() => handleEditUser(user)}>Edit</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="pagination">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              className={currentPage === page ? "active" : ""}
+            >
+              {page}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Pagination */}
-      <div className="pagination">
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-          <button
-            key={page}
-            onClick={() => handlePageChange(page)}
-            className={currentPage === page ? "active" : ""}
-          >
-            {page}
-          </button>
-        ))}
-      </div>
-
-      {/* User Details Modal */}
+      {/* Modals */}
       {showUserModal && viewingUser && (
         <div className="modal">
           <div className="modal-content">

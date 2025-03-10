@@ -218,7 +218,7 @@ button:hover {
 
 .account-management {
   padding: 2rem;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -226,88 +226,166 @@ button:hover {
   text-align: center;
   margin-bottom: 2rem;
   color: #333;
+  font-size: 2.5rem;
 }
 
+/* Search Bar */
 .search-bar {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  padding: 0 0.5rem;
 }
 
 .search-bar input {
   width: 100%;
-  padding: 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
+  padding: 0.8rem 1rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease;
+  background-color: #f8f9fa;
 }
 
-.form-container {
-  background-color: #f8f9fa;
-  padding: 2rem;
-  border-radius: 8px;
+.search-bar input:focus {
+  border-color: #2196f3;
+  outline: none;
+  background-color: white;
+}
+
+.search-bar input::placeholder {
+  color: #6c757d;
+}
+
+/* Top Section - Two Columns */
+.account-management-top-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
   margin-bottom: 2rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Form Container */
+.form-container {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  height: fit-content;
 }
 
 .form-container h2 {
   margin-bottom: 1.5rem;
-  color: #333;
+  color: #232323;
+  font-size: 1.5rem;
 }
 
 .form-container form {
   display: grid;
-  gap: 1rem;
+  gap: 1.2rem;
 }
 
 .form-container input,
 .form-container select {
-  padding: 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 1rem;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
   font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.form-container input:focus,
+.form-container select:focus {
+  border-color: #2196f3;
+  outline: none;
 }
 
 .form-container button {
-  background-color: #007bff;
+  background-color: #2196f3;
   color: white;
-  padding: 0.8rem;
+  padding: 1rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
-  transition: background-color 0.2s;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
 }
 
 .form-container button:hover {
-  background-color: #0056b3;
+  background-color: #1976d2;
 }
 
-.error-message {
-  color: #dc3545;
-  margin-bottom: 1rem;
+/* Pending Discounts Section */
+.pending-discounts-section {
+  background-color: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+}
+
+.pending-discounts-section h2 {
+  color: #232323;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.pending-discounts-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.pending-discount-card {
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 1.5rem;
+  border: 1px solid #e9ecef;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pending-discount-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Users Table Section */
+.users-table-section {
+  background-color: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .users-table {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   overflow-x: auto;
+  margin-bottom: 2rem;
 }
 
 .users-table table {
   width: 100%;
-  border-collapse: collapse;
-}
-
-.users-table th,
-.users-table td {
-  padding: 1rem;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .users-table th {
   background-color: #f8f9fa;
+  padding: 1rem;
+  text-align: left;
   font-weight: 600;
+  color: #232323;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.users-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e9ecef;
+  color: #495057;
+}
+
+.users-table tr:last-child td {
+  border-bottom: none;
 }
 
 .users-table tr:hover {
@@ -315,21 +393,30 @@ button:hover {
 }
 
 .users-table button {
-  background-color: #6c757d;
-  color: white;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  padding: 0.6rem 1.2rem;
   margin-right: 0.5rem;
+  border-radius: 6px;
   font-size: 0.9rem;
-  transition: background-color 0.2s;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.users-table button:first-child {
+  background-color: #2196f3;
+  color: white;
+}
+
+.users-table button:last-child {
+  background-color: #28a745;
+  color: white;
 }
 
 .users-table button:hover {
-  background-color: #5a6268;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Pagination */
 .pagination {
   display: flex;
   justify-content: center;
@@ -338,12 +425,13 @@ button:hover {
 }
 
 .pagination button {
-  padding: 0.5rem 1rem;
-  border: 1px solid #ddd;
+  padding: 0.6rem 1.2rem;
+  border: 1px solid #e9ecef;
   background-color: white;
+  border-radius: 6px;
   cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
 }
 
 .pagination button:hover {
@@ -351,11 +439,12 @@ button:hover {
 }
 
 .pagination button.active {
-  background-color: #007bff;
+  background-color: #2196f3;
   color: white;
-  border-color: #007bff;
+  border-color: #2196f3;
 }
 
+/* Modal Styles */
 .modal {
   position: fixed;
   top: 0;
@@ -372,11 +461,12 @@ button:hover {
 .modal-content {
   background-color: white;
   padding: 2rem;
-  border-radius: 8px;
+  border-radius: 12px;
   max-width: 600px;
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .modal-content h2 {
@@ -441,4 +531,46 @@ button:hover {
 
 .modal-content > button:hover {
   background-color: #5a6268;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .account-management-top-section {
+    grid-template-columns: 1fr;
+  }
+  
+  .pending-discounts-grid {
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .account-management {
+    padding: 1rem;
+  }
+
+  .account-management h1 {
+    font-size: 2rem;
+  }
+
+  .form-container,
+  .pending-discounts-section,
+  .users-table-section {
+    padding: 1.5rem;
+  }
+
+  .users-table {
+    overflow-x: auto;
+  }
+
+  .users-table th,
+  .users-table td {
+    padding: 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .users-table button {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
 }

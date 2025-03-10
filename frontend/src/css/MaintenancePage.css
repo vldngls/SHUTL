@@ -1,0 +1,77 @@
+.maintenance-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  padding: 20px;
+}
+
+.maintenance-content {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 500px;
+  width: 90%;
+}
+
+.maintenance-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.maintenance-icon {
+  font-size: 48px;
+}
+
+.maintenance-logo {
+  font-size: 36px;
+  font-weight: bold;
+  color: #232323;
+  letter-spacing: 1px;
+}
+
+.maintenance-content h1 {
+  color: #232323;
+  margin-bottom: 16px;
+  font-size: 28px;
+}
+
+.maintenance-content p {
+  color: #666;
+  margin-bottom: 12px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.maintenance-content .notice {
+  color: #0056b3;
+  font-weight: 500;
+  margin: 24px 0;
+}
+
+.actions {
+  margin-top: 32px;
+}
+
+.login-button {
+  display: inline-block;
+  padding: 12px 24px;
+  background-color: #232323;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.login-button:hover {
+  background-color: #000;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+} 

@@ -8,6 +8,7 @@ const AdministratorMaintenanceContent = () => {
   const [users, setUsers] = useState([]);
   const [maintenanceLogs, setMaintenanceLogs] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [systemHealth, setSystemHealth] = useState({
     cpu: { usage: 0, cores: 0 },
     memory: { usagePercentage: 0, total: 0, used: 0, free: 0 },
@@ -34,6 +35,10 @@ const AdministratorMaintenanceContent = () => {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
+        // Fetch maintenance mode status
+        const maintenanceStatus = await maintenanceService.getMaintenanceMode();
+        setMaintenanceMode(maintenanceStatus.enabled);
+
         // Fetch system health
         const healthData = await maintenanceService.getSystemHealth();
         setSystemHealth(healthData);
@@ -194,6 +199,33 @@ const AdministratorMaintenanceContent = () => {
     return "/images/avatar.png"; // Default avatar if no profile picture
   };
 
+  const toggleMaintenanceMode = async () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    try {
+      const result = await maintenanceService.toggleMaintenanceMode(!maintenanceMode);
+      setMaintenanceMode(result.enabled);
+      toast.success(result.enabled ? "Maintenance mode enabled" : "Maintenance mode disabled");
+      
+      // Add to maintenance logs
+      const timestamp = new Date().toLocaleTimeString();
+      setMaintenanceLogs((prev) => [
+        {
+          time: timestamp,
+          action: result.enabled ? "Maintenance mode enabled" : "Maintenance mode disabled",
+          status: "success",
+        },
+        ...prev,
+      ]);
+    } catch (error) {
+      console.error("Error toggling maintenance mode:", error);
+      toast.error("Failed to toggle maintenance mode");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="AdministratorMaintenance-maintenance-content">
       {/* System Health Panel */}
@@ -326,6 +358,26 @@ const AdministratorMaintenanceContent = () => {
         <div className="AdministratorMaintenance-control-panel">
           <h3>System Controls</h3>
           <div className="control-buttons">
+            <div className="maintenance-toggle-container">
+              <h4>Site Maintenance Mode</h4>
+              <button
+                className={`maintenance-toggle-button ${maintenanceMode ? 'active' : ''}`}
+                onClick={toggleMaintenanceMode}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Updating...' : (maintenanceMode ? 'Disable Maintenance Mode' : 'Enable Maintenance Mode')}
+              </button>
+              <p className="maintenance-status">
+                Status: <span className={maintenanceMode ? 'status-enabled' : 'status-disabled'}>
+                  {maintenanceMode ? 'Maintenance Mode Active' : 'Normal Operation'}
+                </span>
+              </p>
+              <p className="maintenance-description">
+                {maintenanceMode 
+                  ? "The site is currently in maintenance mode. Only administrators can access the system."
+                  : "The site is operating normally. All users can access the system."}
+              </p>
+            </div>
             <button
               onClick={() => handleSystemAction("System backup")}
               className="control-btn backup"
