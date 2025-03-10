@@ -37,6 +37,7 @@ const AdministratorMain = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [isLocationSharing, setIsLocationSharing] = useState(false);
   const [shuttleLocations, setShuttleLocations] = useState({});
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
   const watchIdRef = useRef(null);
   const hasShownToastRef = useRef(false);
@@ -324,13 +325,18 @@ const AdministratorMain = () => {
     };
   }, []);
 
+  // Toggle mobile menu
+  const toggleMobileMenu = () => {
+    setShowMobileMenu(prev => !prev);
+  };
+
   return (
-    <div className="AdministratorMain-container">
-      <div className="AdministratorMain-navbar">
-        <div className="AdministratorMain-logo">SHUTL.</div>
-        <div className="AdministratorMain-navbar-buttons">
+    <div className="adm-container">
+      <div className="adm-sidebar">
+        <div className="adm-logo">SHUTL.</div>
+        <div className="adm-nav">
           <button
-            className={`AdministratorMain-nav-btn ${
+            className={`adm-nav-btn ${
               activeTab === "Dashboard" ? "active" : ""
             }`}
             onClick={() => setActiveTab("Dashboard")}
@@ -338,7 +344,7 @@ const AdministratorMain = () => {
             Dashboard
           </button>
           <button
-            className={`AdministratorMain-nav-btn ${
+            className={`adm-nav-btn ${
               activeTab === "Maintenance" ? "active" : ""
             }`}
             onClick={() => setActiveTab("Maintenance")}
@@ -346,7 +352,7 @@ const AdministratorMain = () => {
             Maintenance
           </button>
           <button
-            className={`AdministratorMain-nav-btn ${
+            className={`adm-nav-btn ${
               activeTab === "Fare" ? "active" : ""
             }`}
             onClick={() => setActiveTab("Fare")}
@@ -354,7 +360,7 @@ const AdministratorMain = () => {
             Fare
           </button>
           <button
-            className={`AdministratorMain-nav-btn ${
+            className={`adm-nav-btn ${
               activeTab === "ShuttlesRoutes" ? "active" : ""
             }`}
             onClick={() => setActiveTab("ShuttlesRoutes")}
@@ -362,7 +368,7 @@ const AdministratorMain = () => {
             Shuttles & Routes
           </button>
           <button
-            className={`AdministratorMain-nav-btn ${
+            className={`adm-nav-btn ${
               activeTab === "ShuttleManagement" ? "active" : ""
             }`}
             onClick={() => setActiveTab("ShuttleManagement")}
@@ -370,7 +376,7 @@ const AdministratorMain = () => {
             Shuttle Management
           </button>
           <button
-            className={`AdministratorMain-nav-btn ${
+            className={`adm-nav-btn ${
               activeTab === "Transactions" ? "active" : ""
             }`}
             onClick={() => setActiveTab("Transactions")}
@@ -378,7 +384,7 @@ const AdministratorMain = () => {
             Transactions
           </button>
           <button
-            className={`AdministratorMain-nav-btn ${
+            className={`adm-nav-btn ${
               activeTab === "AccountManagement" ? "active" : ""
             }`}
             onClick={() => setActiveTab("AccountManagement")}
@@ -386,15 +392,15 @@ const AdministratorMain = () => {
             Account Management
           </button>
         </div>
-        <div className="AdministratorMain-bottom-buttons">
+        <div className="adm-bottom-nav">
           <button
-            className="AdministratorMain-notif-btn"
+            className="adm-notif-btn"
             onClick={() => setShowPopup(!showPopup)}
           >
             <img src="/notif.png" alt="Notifications" />
           </button>
           <button
-            className="AdministratorMain-logout-btn"
+            className="adm-logout-btn"
             onClick={handleLogout}
           >
             Logout
@@ -403,34 +409,24 @@ const AdministratorMain = () => {
       </div>
 
       <button
-        className="AdministratorMain-update-location-btn"
+        className="adm-fab"
         onClick={updateUserLocation}
         style={{
-          backgroundColor: isLocationSharing ? "#4CAF50" : "white",
-          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-          border: "none",
-          borderRadius: "50%",
-          padding: "10px",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          transition: "background-color 0.3s ease",
+          backgroundColor: isLocationSharing ? "var(--adm-success)" : "var(--adm-primary)",
         }}
       >
         <img
           src="/locup.png"
           alt={isLocationSharing ? "Stop Sharing Location" : "Share Location"}
-          className="AdministratorMain-update-location-icon"
           style={{
             width: "24px",
             height: "24px",
-            filter: isLocationSharing ? "brightness(0) invert(1)" : "none",
+            filter: "brightness(0) invert(1)",
           }}
         />
       </button>
 
-      <div className="AdministratorMain-content">
+      <div className="adm-content">
         {activeTab === "Dashboard" && (
           <AdministratorDashboardContent
             initialShuttleLocations={optimizedLocations}
@@ -448,7 +444,7 @@ const AdministratorMain = () => {
         {activeTab === "AccountManagement" && <AccountManagement />}
       </div>
 
-      <div className="AdministratorMain-taskbar">
+      <div className="adm-taskbar">
         {dateTime.toLocaleDateString("en-PH", {
           weekday: "long",
           year: "numeric",
@@ -457,6 +453,18 @@ const AdministratorMain = () => {
         })}{" "}
         - {dateTime.toLocaleTimeString("en-PH")}
       </div>
+
+      {/* Mobile menu toggle button */}
+      <button className="adm-menu-toggle" onClick={toggleMobileMenu}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
+      {/* Mobile overlay */}
+      <div className={`adm-overlay ${showMobileMenu ? 'show' : ''}`}></div>
 
       {showPopup && (
         <NotificationPop

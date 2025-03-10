@@ -1,181 +1,614 @@
-/* Layout for the Shuttles and Routes page */
-.AdministratorShuttlesRoutes-shuttles-routes-content {
+/* AdministratorShuttlesRoutesContent Styles
+ * Using 'adm-' prefix to avoid CSS conflicts
+ */
+
+.adm-routes-management {
   display: grid;
-  grid-template-columns: 3fr 1fr;
-  gap: 20px;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--adm-spacing-6);
+  width: 100%;
 }
 
-/* Time Period Filter Styles */
-.AdministratorShuttlesRoutes-time-filter {
+/* Routes Header Section */
+.adm-routes-header {
+  grid-column: span 12;
+  margin-bottom: var(--adm-spacing-4);
+}
+
+.adm-routes-title {
+  font-size: var(--adm-font-size-2xl);
+  font-weight: 700;
+  color: var(--adm-gray-800);
+  margin-bottom: var(--adm-spacing-2);
+}
+
+.adm-routes-description {
+  color: var(--adm-gray-600);
+  font-size: var(--adm-font-size-base);
+}
+
+/* Routes Form Section */
+.adm-routes-form-section {
+  grid-column: span 4;
   background-color: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  grid-column: span 2;
-  margin-bottom: 10px;
+  border-radius: var(--adm-radius-lg);
+  box-shadow: var(--adm-shadow);
+  padding: var(--adm-spacing-6);
 }
 
-.AdministratorShuttlesRoutes-time-filter h3 {
-  margin-bottom: 15px;
+.adm-routes-form-title {
+  font-size: var(--adm-font-size-xl);
+  font-weight: 600;
+  color: var(--adm-gray-800);
+  margin: 0 0 var(--adm-spacing-5) 0;
+  padding-bottom: var(--adm-spacing-3);
+  border-bottom: 1px solid var(--adm-gray-200);
 }
 
-.AdministratorShuttlesRoutes-time-buttons {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+.adm-routes-form-group {
+  margin-bottom: var(--adm-spacing-4);
 }
 
-.AdministratorShuttlesRoutes-time-buttons button {
-  padding: 8px 16px;
-  background-color: #f5f5f5;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.adm-routes-form-label {
+  display: block;
+  font-size: var(--adm-font-size-sm);
   font-weight: 500;
+  color: var(--adm-gray-700);
+  margin-bottom: var(--adm-spacing-2);
 }
 
-.AdministratorShuttlesRoutes-time-buttons button:hover {
-  background-color: #e9e9e9;
-}
-
-.AdministratorShuttlesRoutes-time-buttons button.active {
-  background-color: #ff6b35;
-  color: white;
-  border-color: #ff6b35;
-}
-
-.AdministratorShuttlesRoutes-summary {
+.adm-routes-form-input,
+.adm-routes-form-select,
+.adm-routes-form-textarea {
+  width: 100%;
+  padding: var(--adm-spacing-3);
+  border: 1px solid var(--adm-gray-300);
+  border-radius: var(--adm-radius);
+  font-family: var(--adm-font-main);
+  font-size: var(--adm-font-size-sm);
   background-color: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  grid-column: span 2;
+  transition: var(--adm-transition);
+}
+
+.adm-routes-form-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.adm-routes-form-input:focus,
+.adm-routes-form-select:focus,
+.adm-routes-form-textarea:focus {
+  border-color: var(--adm-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+}
+
+.adm-routes-form-error {
+  color: var(--adm-danger);
+  font-size: var(--adm-font-size-xs);
+  margin-top: var(--adm-spacing-1);
+}
+
+.adm-routes-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--adm-spacing-3);
+  margin-top: var(--adm-spacing-6);
+}
+
+.adm-routes-btn {
+  padding: var(--adm-spacing-3) var(--adm-spacing-5);
+  border-radius: var(--adm-radius);
+  font-size: var(--adm-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--adm-transition);
+  border: none;
+}
+
+.adm-routes-btn-primary {
+  background-color: var(--adm-primary);
+  color: white;
+}
+
+.adm-routes-btn-primary:hover {
+  background-color: var(--adm-primary-dark);
+}
+
+.adm-routes-btn-secondary {
+  background-color: white;
+  color: var(--adm-gray-700);
+  border: 1px solid var(--adm-gray-300);
+}
+
+.adm-routes-btn-secondary:hover {
+  background-color: var(--adm-gray-100);
+}
+
+/* Waypoints Section */
+.adm-waypoints-section {
+  margin-top: var(--adm-spacing-4);
+  padding-top: var(--adm-spacing-4);
+  border-top: 1px solid var(--adm-gray-200);
+}
+
+.adm-waypoints-title {
+  font-size: var(--adm-font-size-lg);
+  font-weight: 600;
+  color: var(--adm-gray-800);
+  margin-bottom: var(--adm-spacing-3);
+}
+
+.adm-waypoint-item {
+  display: flex;
+  align-items: center;
+  gap: var(--adm-spacing-3);
+  margin-bottom: var(--adm-spacing-3);
+  background-color: var(--adm-gray-100);
+  padding: var(--adm-spacing-3);
+  border-radius: var(--adm-radius);
+}
+
+.adm-waypoint-info {
+  flex: 1;
+}
+
+.adm-waypoint-name {
+  font-weight: 600;
+  font-size: var(--adm-font-size-sm);
+  margin-bottom: var(--adm-spacing-1);
+}
+
+.adm-waypoint-coords {
+  font-size: var(--adm-font-size-xs);
+  color: var(--adm-gray-600);
+}
+
+.adm-waypoint-remove {
+  background-color: rgba(239, 71, 111, 0.1);
+  color: var(--adm-danger);
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--adm-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--adm-transition);
+}
+
+.adm-waypoint-remove:hover {
+  background-color: rgba(239, 71, 111, 0.2);
+}
+
+.adm-add-waypoint {
+  display: flex;
+  align-items: center;
+  gap: var(--adm-spacing-3);
+  margin-top: var(--adm-spacing-3);
+}
+
+.adm-waypoint-input {
+  flex: 1;
+}
+
+.adm-add-waypoint-btn {
+  background-color: var(--adm-primary);
+  color: white;
+  border: none;
+  padding: var(--adm-spacing-3) var(--adm-spacing-4);
+  border-radius: var(--adm-radius);
+  font-size: var(--adm-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--adm-transition);
+}
+
+.adm-add-waypoint-btn:hover {
+  background-color: var(--adm-primary-dark);
+}
+
+/* Routes List Section */
+.adm-routes-list-section {
+  grid-column: span 8;
+  background-color: white;
+  border-radius: var(--adm-radius-lg);
+  box-shadow: var(--adm-shadow);
+  padding: var(--adm-spacing-6);
+  overflow: hidden;
+}
+
+.adm-routes-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--adm-spacing-5);
+  padding-bottom: var(--adm-spacing-3);
+  border-bottom: 1px solid var(--adm-gray-200);
+}
+
+.adm-routes-list-title {
+  font-size: var(--adm-font-size-xl);
+  font-weight: 600;
+  color: var(--adm-gray-800);
+  margin: 0;
+}
+
+.adm-routes-search {
+  flex: 1;
+  max-width: 300px;
+  position: relative;
+}
+
+.adm-routes-search-input {
+  width: 100%;
+  padding: var(--adm-spacing-2) var(--adm-spacing-3);
+  padding-left: 36px;
+  border: 1px solid var(--adm-gray-300);
+  border-radius: var(--adm-radius);
+  font-family: var(--adm-font-main);
+  font-size: var(--adm-font-size-sm);
+  background-color: white;
+  transition: var(--adm-transition);
+}
+
+.adm-routes-search-input:focus {
+  border-color: var(--adm-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+}
+
+.adm-routes-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--adm-gray-500);
+  font-size: var(--adm-font-size-base);
+}
+
+.adm-routes-table-container {
+  overflow-x: auto;
+}
+
+.adm-routes-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.adm-routes-table th {
+  text-align: left;
+  padding: var(--adm-spacing-3) var(--adm-spacing-4);
+  font-weight: 600;
+  font-size: var(--adm-font-size-sm);
+  color: var(--adm-gray-700);
+  background-color: var(--adm-gray-100);
+  border-bottom: 1px solid var(--adm-gray-200);
+  position: relative;
+  cursor: pointer;
+}
+
+.adm-routes-table th:hover {
+  background-color: var(--adm-gray-200);
+}
+
+.adm-routes-table td {
+  padding: var(--adm-spacing-3) var(--adm-spacing-4);
+  border-bottom: 1px solid var(--adm-gray-200);
+  font-size: var(--adm-font-size-sm);
+  color: var(--adm-gray-800);
+}
+
+.adm-routes-table tr:last-child td {
+  border-bottom: none;
+}
+
+.adm-routes-table tr:hover td {
+  background-color: var(--adm-gray-100);
+}
+
+.adm-routes-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: var(--adm-radius-full);
+  font-size: var(--adm-font-size-xs);
+  font-weight: 600;
+}
+
+.adm-routes-status.active {
+  background-color: rgba(6, 214, 160, 0.1);
+  color: var(--adm-success);
+}
+
+.adm-routes-status.suspended {
+  background-color: rgba(255, 209, 102, 0.1);
+  color: var(--adm-warning);
+}
+
+.adm-routes-status.inactive {
+  background-color: rgba(239, 71, 111, 0.1);
+  color: var(--adm-danger);
+}
+
+.adm-routes-actions {
+  display: flex;
+  gap: var(--adm-spacing-2);
+}
+
+.adm-routes-action-btn {
+  padding: var(--adm-spacing-2) var(--adm-spacing-3);
+  border-radius: var(--adm-radius);
+  font-size: var(--adm-font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--adm-transition);
+  border: none;
+}
+
+.adm-routes-btn-edit {
+  background-color: rgba(6, 214, 160, 0.1);
+  color: var(--adm-success);
+}
+
+.adm-routes-btn-edit:hover {
+  background-color: rgba(6, 214, 160, 0.2);
+}
+
+.adm-routes-btn-view {
+  background-color: rgba(67, 97, 238, 0.1);
+  color: var(--adm-primary);
+}
+
+.adm-routes-btn-view:hover {
+  background-color: rgba(67, 97, 238, 0.2);
+}
+
+.adm-routes-btn-delete {
+  background-color: rgba(239, 71, 111, 0.1);
+  color: var(--adm-danger);
+}
+
+.adm-routes-btn-delete:hover {
+  background-color: rgba(239, 71, 111, 0.2);
+}
+
+/* Map Container */
+.adm-routes-map-section {
+  grid-column: span 12;
+  background-color: white;
+  border-radius: var(--adm-radius-lg);
+  box-shadow: var(--adm-shadow);
+  padding: var(--adm-spacing-6);
+  margin-top: var(--adm-spacing-6);
+}
+
+.adm-routes-map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--adm-spacing-4);
+}
+
+.adm-routes-map-title {
+  font-size: var(--adm-font-size-xl);
+  font-weight: 600;
+  color: var(--adm-gray-800);
+  margin: 0;
+}
+
+.adm-routes-map-container {
+  height: 400px;
+  width: 100%;
+  border-radius: var(--adm-radius);
+  overflow: hidden;
+}
+
+/* Modal */
+.adm-routes-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: var(--adm-spacing-4);
+}
+
+.adm-routes-modal {
+  background-color: white;
+  border-radius: var(--adm-radius-lg);
+  box-shadow: var(--adm-shadow-lg);
+  width: 100%;
+  max-width: 600px;
+  padding: var(--adm-spacing-6);
+  position: relative;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.adm-routes-modal-header {
+  margin-bottom: var(--adm-spacing-4);
+  padding-bottom: var(--adm-spacing-3);
+  border-bottom: 1px solid var(--adm-gray-200);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.AdministratorShuttlesRoutes-summary h3 {
-  margin-bottom: 10px;
+.adm-routes-modal-title {
+  font-size: var(--adm-font-size-xl);
+  font-weight: 600;
+  color: var(--adm-gray-800);
+  margin: 0;
 }
 
-.AdministratorShuttlesRoutes-summary-grid {
-  display: flex;
-  justify-content: space-between;
-  width: 50%;
-}
-
-.AdministratorShuttlesRoutes-summary-grid div {
-  text-align: center;
-}
-
-.AdministratorShuttlesRoutes-summary-grid span {
-  font-size: 24px;
-  font-weight: bold;
-}
-
-.AdministratorShuttlesRoutes-logs {
-  color: #777;
-  font-size: 12px;
-}
-
-.AdministratorShuttlesRoutes-refresh-btn {
-  background-color: white;
-  border: 2px solid #ddd;
-  border-radius: 50%;
-  padding: 10px;
-  cursor: pointer;
-}
-
-.AdministratorShuttlesRoutes-refresh-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.AdministratorShuttlesRoutes-shuttles,
-.AdministratorShuttlesRoutes-routes {
-  background-color: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  grid-column: span 2;
-}
-
-.AdministratorShuttlesRoutes-shuttles h3,
-.AdministratorShuttlesRoutes-routes h3 {
-  margin-bottom: 10px;
-}
-
-.AdministratorShuttlesRoutes-shuttles table,
-.AdministratorShuttlesRoutes-routes table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 10px;
-}
-
-.AdministratorShuttlesRoutes-shuttles th,
-.AdministratorShuttlesRoutes-shuttles td,
-.AdministratorShuttlesRoutes-routes th,
-.AdministratorShuttlesRoutes-routes td {
-  padding: 10px;
-  border: 1px solid #ddd;
-  text-align: left;
-}
-
-.AdministratorShuttlesRoutes-status-circle {
-  display: inline-block;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-}
-
-.AdministratorShuttlesRoutes-status-circle.green {
-  background-color: green;
-}
-
-.AdministratorShuttlesRoutes-status-circle.yellow {
-  background-color: yellow;
-}
-
-.AdministratorShuttlesRoutes-add-btn {
-  background-color: #ff6b35;
-  color: white;
+.adm-routes-modal-close {
+  background: none;
   border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
+  font-size: var(--adm-font-size-xl);
+  color: var(--adm-gray-600);
   cursor: pointer;
-  float: right;
+  transition: var(--adm-transition);
 }
 
-/* Loading and No Data States */
-.AdministratorShuttlesRoutes-loading {
-  text-align: center;
-  padding: 20px;
-  color: #666;
-  font-style: italic;
+.adm-routes-modal-close:hover {
+  color: var(--adm-gray-800);
 }
 
-.AdministratorShuttlesRoutes-no-data {
-  text-align: center;
-  padding: 20px;
-  color: #666;
-  font-style: italic;
+.adm-routes-modal-content {
+  margin-bottom: var(--adm-spacing-4);
 }
 
-/* Animation for loading state */
-@keyframes pulse {
-  0% {
-    opacity: 0.6;
+.adm-routes-detail {
+  margin-bottom: var(--adm-spacing-3);
+  padding-bottom: var(--adm-spacing-3);
+  border-bottom: 1px solid var(--adm-gray-200);
+}
+
+.adm-routes-detail:last-child {
+  border-bottom: none;
+}
+
+.adm-routes-detail-label {
+  font-size: var(--adm-font-size-sm);
+  font-weight: 600;
+  color: var(--adm-gray-700);
+  margin-bottom: var(--adm-spacing-1);
+}
+
+.adm-routes-detail-value {
+  font-size: var(--adm-font-size-base);
+  color: var(--adm-gray-800);
+}
+
+.adm-routes-modal-map {
+  height: 300px;
+  width: 100%;
+  border-radius: var(--adm-radius);
+  overflow: hidden;
+  margin-bottom: var(--adm-spacing-4);
+}
+
+.adm-routes-waypoints-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.adm-routes-waypoint-item {
+  display: flex;
+  align-items: center;
+  padding: var(--adm-spacing-2) 0;
+  border-bottom: 1px dashed var(--adm-gray-200);
+}
+
+.adm-routes-waypoint-item:last-child {
+  border-bottom: none;
+}
+
+.adm-routes-waypoint-number {
+  width: 24px;
+  height: 24px;
+  background-color: var(--adm-primary);
+  color: white;
+  border-radius: var(--adm-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--adm-font-size-xs);
+  font-weight: 600;
+  margin-right: var(--adm-spacing-3);
+}
+
+.adm-routes-waypoint-name {
+  font-size: var(--adm-font-size-sm);
+  font-weight: 500;
+}
+
+.adm-routes-modal-actions {
+  display: flex;
+  gap: var(--adm-spacing-3);
+  justify-content: flex-end;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+  .adm-routes-form-section {
+    grid-column: span 12;
+    margin-bottom: var(--adm-spacing-6);
   }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0.6;
+  
+  .adm-routes-list-section {
+    grid-column: span 12;
   }
 }
 
-.AdministratorShuttlesRoutes-loading {
-  animation: pulse 1.5s infinite ease-in-out;
+@media (max-width: 768px) {
+  .adm-routes-management {
+    gap: var(--adm-spacing-4);
+  }
+  
+  .adm-routes-list-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--adm-spacing-3);
+  }
+  
+  .adm-routes-search {
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .adm-routes-actions {
+    flex-direction: column;
+    gap: var(--adm-spacing-2);
+  }
+  
+  .adm-routes-action-btn {
+    padding: var(--adm-spacing-2);
+    width: 100%;
+  }
+  
+  .adm-routes-map-container {
+    height: 300px;
+  }
+}
+
+@media (max-width: 576px) {
+  .adm-routes-management {
+    gap: var(--adm-spacing-3);
+  }
+  
+  .adm-routes-form-actions,
+  .adm-routes-modal-actions {
+    flex-direction: column;
+  }
+  
+  .adm-routes-btn {
+    width: 100%;
+  }
+  
+  .adm-add-waypoint {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .adm-routes-modal {
+    padding: var(--adm-spacing-4);
+  }
+  
+  .adm-routes-map-container {
+    height: 250px;
+  }
+  
+  .adm-routes-modal-map {
+    height: 200px;
+  }
 }

@@ -196,39 +196,33 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
   };
 
   return (
-    <div className="AdministratorDashboard-dashboard-content">
+    <div className="adm-dashboard">
       {/* Real-Time Status */}
-      <div className="AdministratorDashboard-real-time-status">
-        <h3>Real Time Status</h3>
-        {shuttleStats && (
-          <div className="AdministratorDashboard-status-grid">
-            <div className="status-item">
-              <span>{shuttleStats.roundTrips}</span>
-              <p>Round Trips</p>
-            </div>
-            <div className="status-item">
-              <span>{shuttleStats.inTrips}</span>
-              <p>Active Shuttles</p>
-            </div>
-            <div className="status-item">
-              <span>{shuttleStats.outTrips}</span>
-              <p>Total Routes</p>
-            </div>
-            <div className="status-item">
-              <span>{shuttleStats.totalPassengers}</span>
-              <p>Total Passengers</p>
-            </div>
-          </div>
-        )}
+      <div className="adm-status-section">
+        <div className="adm-status-card">
+          <div className="adm-status-card-value">{shuttleStats?.roundTrips || 0}</div>
+          <div className="adm-status-card-label">Round Trips</div>
+        </div>
+        <div className="adm-status-card">
+          <div className="adm-status-card-value">{shuttleStats?.inTrips || 0}</div>
+          <div className="adm-status-card-label">Active Shuttles</div>
+        </div>
+        <div className="adm-status-card">
+          <div className="adm-status-card-value">{shuttleStats?.outTrips || 0}</div>
+          <div className="adm-status-card-label">Total Routes</div>
+        </div>
+        <div className="adm-status-card">
+          <div className="adm-status-card-value">{shuttleStats?.totalPassengers || 0}</div>
+          <div className="adm-status-card-label">Total Passengers</div>
+        </div>
       </div>
 
       {/* SHUTL Tracking */}
-      <div className="AdministratorDashboard-shutl-tracking">
-        <h3>SHUTL Tracking</h3>
-        <div
-          className="AdministratorDashboard-map-container"
-          style={{ height: "400px", width: "100%" }}
-        >
+      <div className="adm-map-section">
+        <div className="adm-map-section-header">
+          <h3 className="adm-map-section-title">SHUTL Tracking</h3>
+        </div>
+        <div className="adm-map-container">
           <MapContainer
             style={{ height: "100%", width: "100%" }}
             center={[14.377, 120.983]}
@@ -251,31 +245,31 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
                   icon={carIcon}
                 >
                   <Popup>
-                    <div className="AdministratorDashboard-shuttle-info">
-                      <h3>SHUTL {shuttleId}</h3>
-                      <p>
+                    <div className="adm-shuttle-item">
+                      <h3 className="adm-shuttle-item-name">SHUTL {shuttleId}</h3>
+                      <p className="adm-shuttle-details">
                         Status:{" "}
                         <span
                           style={{
-                            color: data.status === "offline" ? "red" : "green",
+                            color: data.status === "offline" ? "var(--adm-danger)" : "var(--adm-success)",
                             fontWeight: "bold",
                           }}
                         >
                           {data.status === "offline" ? "Offline" : "Online"}
                         </span>
                       </p>
-                      <p>Speed: {(data.speed || 0).toFixed(1)} km/h</p>
-                      <p>
+                      <p className="adm-shuttle-details">Speed: {(data.speed || 0).toFixed(1)} km/h</p>
+                      <p className="adm-shuttle-details">
                         Traffic:{" "}
                         <span style={{ color: trafficCondition.color }}>
                           {trafficCondition.status}
                         </span>
                       </p>
-                      <p>
+                      <p className="adm-shuttle-details">
                         Last Update:{" "}
                         {new Date(data.lastUpdate).toLocaleTimeString()}
                       </p>
-                      <p>
+                      <p className="adm-shuttle-details">
                         Time Since Update:{" "}
                         {Math.round(
                           (new Date() - new Date(data.lastUpdate)) / 1000
@@ -292,7 +286,14 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
             })}
           </MapContainer>
         </div>
-        <div className="AdministratorDashboard-shutl-grid">
+      </div>
+
+      {/* Shuttle Details */}
+      <div className="adm-shuttles-section">
+        <div className="adm-shuttles-section-header">
+          <h3 className="adm-shuttles-section-title">Shuttle Details</h3>
+        </div>
+        <div className="adm-shuttles-list">
           {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
             const status = data?.status || "unknown";
             const lastUpdate = data?.lastUpdate
@@ -305,95 +306,83 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
               : 0;
 
             return (
-              <div key={shuttleId} className="shuttle-status-card">
-                <h4>SHUTL {shuttleId}</h4>
-                <p>
-                  Status:{" "}
-                  <span
-                    style={{
-                      color: status === "offline" ? "red" : "green",
-                      fontWeight: "bold",
-                    }}
-                  >
+              <div key={shuttleId} className="adm-shuttle-item">
+                <div className="adm-shuttle-item-header">
+                  <h4 className="adm-shuttle-item-name">SHUTL {shuttleId}</h4>
+                  <div className={`adm-shuttle-status ${status === "offline" ? "inactive" : "active"}`}>
                     {status === "offline" ? "Offline" : "Online"}
-                  </span>
-                </p>
-                <p>Speed: {speed ? `${speed.toFixed(1)} km/h` : "0.0 km/h"}</p>
-                <p style={{ color: trafficCondition.color }}>
-                  Traffic: {trafficCondition.status}
-                </p>
-                <p>Last Update: {lastUpdate}</p>
-                <p>Time Since Update: {timeSinceUpdate}s ago</p>
-                {data?.streetName && <p>Location: {data.streetName}</p>}
+                  </div>
+                </div>
+                <p className="adm-shuttle-details">Speed: {speed ? `${speed.toFixed(1)} km/h` : "0.0 km/h"}</p>
+                <p className="adm-shuttle-details">Traffic: {trafficCondition.status}</p>
+                <p className="adm-shuttle-details">Last Update: {lastUpdate}</p>
+                <p className="adm-shuttle-details">Time Since Update: {timeSinceUpdate}s ago</p>
+                {data?.streetName && <p className="adm-shuttle-details">Location: {data.streetName}</p>}
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* User Statistics */}
-      <div className="AdministratorDashboard-user-stats">
-        <h3>User Statistics</h3>
-        <div className="AdministratorDashboard-users-number">
-          <p>
-            <strong>Current Users:</strong> {totalUsers}
-          </p>
-          <p>
-            <strong>Active Users:</strong>{" "}
-            <span style={{ color: "green" }}>{activeUsers}</span>
-          </p>
+      {/* Notification Section */}
+      <div className="adm-notification-section">
+        <div className="adm-notification-section-header">
+          <h3 className="adm-notification-section-title">Send Announcement</h3>
         </div>
-      </div>
-
-      {/* Announcements Section */}
-      <div className="AdministratorDashboard-announcements">
-        <h3>Announcements</h3>
         <textarea
-          placeholder="Post an announcement..."
+          className="adm-notification-textarea"
           value={notificationMessage}
           onChange={(e) => setNotificationMessage(e.target.value)}
+          placeholder="Enter announcement message to send to all users"
         />
         <select
+          className="adm-notification-select"
           value={recipientType}
           onChange={(e) => setRecipientType(e.target.value)}
         >
-          <option value="Commuter">Commuter</option>
-          <option value="Driver">Driver</option>
-          <option value="Administrator">Administrator</option>
-          <option value="Teller">Teller</option>
+          <option value="Commuter">Commuters</option>
+          <option value="Driver">Drivers</option>
+          <option value="All">All Users</option>
         </select>
-        <button onClick={handleSendNotification}>Post</button>
+        <button className="adm-notification-btn" onClick={handleSendNotification}>
+          Send Notification
+        </button>
         {notificationStatus && (
-          <p className="notification-status">{notificationStatus}</p>
+          <div className="adm-notification-status">{notificationStatus}</div>
         )}
       </div>
 
-      {/* Operational Hours */}
-      <div className="AdministratorDashboard-operational-hours">
-        <h3>Operational Hours</h3>
-        <div className="AdministratorDashboard-hours-input">
-          <input
-            type="time"
-            value={operationalHours.startTime}
-            onChange={(e) =>
-              setOperationalHours((prev) => ({
-                ...prev,
-                startTime: e.target.value,
-              }))
-            }
-          />
-          <span>to</span>
-          <input
-            type="time"
-            value={operationalHours.endTime}
-            onChange={(e) =>
-              setOperationalHours((prev) => ({
-                ...prev,
-                endTime: e.target.value,
-              }))
-            }
-          />
-          <button onClick={handleOperationalHoursUpdate}>Save</button>
+      {/* Operational Hours Section */}
+      <div className="adm-hours-section">
+        <div className="adm-hours-section-header">
+          <h3 className="adm-hours-section-title">Operational Hours</h3>
+        </div>
+        <div className="adm-hours-form">
+          <div className="adm-hours-input-group">
+            <label className="adm-hours-label">Start Time</label>
+            <input
+              type="time"
+              className="adm-hours-input"
+              value={operationalHours.startTime}
+              onChange={(e) =>
+                setOperationalHours({ ...operationalHours, startTime: e.target.value })
+              }
+            />
+          </div>
+          <div className="adm-hours-input-group">
+            <label className="adm-hours-label">End Time</label>
+            <input
+              type="time"
+              className="adm-hours-input"
+              value={operationalHours.endTime}
+              onChange={(e) =>
+                setOperationalHours({ ...operationalHours, endTime: e.target.value })
+              }
+            />
+          </div>
+          <button className="adm-hours-btn" onClick={handleOperationalHoursUpdate}>
+            Update Hours
+          </button>
         </div>
       </div>
     </div>

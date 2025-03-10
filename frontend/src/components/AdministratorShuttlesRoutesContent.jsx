@@ -335,85 +335,97 @@ const AdministratorShuttlesRoutesContent = () => {
   };
 
   return (
-    <div className="AdministratorShuttlesRoutes-shuttles-routes-content">
+    <div className="adm-routes-management">
+      <div className="adm-routes-header">
+        <h2 className="adm-routes-title">Shuttles & Routes</h2>
+        <p className="adm-routes-description">Manage shuttle routes and track performance</p>
+      </div>
+      
       {/* Time Period Filter */}
-      <div className="AdministratorShuttlesRoutes-time-filter">
-        <h3>Time Period</h3>
-        <div className="AdministratorShuttlesRoutes-time-buttons">
-          <button
-            className={timePeriod === "24h" ? "active" : ""}
-            onClick={() => handleTimePeriodChange("24h")}
-          >
-            24 Hours
-          </button>
-          <button
-            className={timePeriod === "1w" ? "active" : ""}
-            onClick={() => handleTimePeriodChange("1w")}
-          >
-            1 Week
-          </button>
-          <button
-            className={timePeriod === "1m" ? "active" : ""}
-            onClick={() => handleTimePeriodChange("1m")}
-          >
-            1 Month
-          </button>
-          <button
-            className={timePeriod === "1y" ? "active" : ""}
-            onClick={() => handleTimePeriodChange("1y")}
-          >
-            1 Year
-          </button>
-          <button
-            className={timePeriod === "all" ? "active" : ""}
-            onClick={() => handleTimePeriodChange("all")}
-          >
-            All Time
-          </button>
+      <div className="adm-routes-form-section">
+        <div className="adm-routes-form-title">Time Period</div>
+        <div className="adm-routes-form-group">
+          <div className="adm-filter-actions">
+            <button
+              className={`adm-routes-btn ${timePeriod === "24h" ? "adm-routes-btn-primary" : "adm-routes-btn-secondary"}`}
+              onClick={() => handleTimePeriodChange("24h")}
+            >
+              24 Hours
+            </button>
+            <button
+              className={`adm-routes-btn ${timePeriod === "1w" ? "adm-routes-btn-primary" : "adm-routes-btn-secondary"}`}
+              onClick={() => handleTimePeriodChange("1w")}
+            >
+              1 Week
+            </button>
+            <button
+              className={`adm-routes-btn ${timePeriod === "1m" ? "adm-routes-btn-primary" : "adm-routes-btn-secondary"}`}
+              onClick={() => handleTimePeriodChange("1m")}
+            >
+              1 Month
+            </button>
+            <button
+              className={`adm-routes-btn ${timePeriod === "1y" ? "adm-routes-btn-primary" : "adm-routes-btn-secondary"}`}
+              onClick={() => handleTimePeriodChange("1y")}
+            >
+              1 Year
+            </button>
+            <button
+              className={`adm-routes-btn ${timePeriod === "all" ? "adm-routes-btn-primary" : "adm-routes-btn-secondary"}`}
+              onClick={() => handleTimePeriodChange("all")}
+            >
+              All Time
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Summary Section */}
-      <div className="AdministratorShuttlesRoutes-summary">
-        <h3>Summary ({getTimePeriodLabel()})</h3>
-        <div className="AdministratorShuttlesRoutes-summary-grid">
-          <div>
-            <span>{formatNumber(summaryData.passengers)}</span>
-            <p>Passengers</p>
+      {/* Summary Stats */}
+      <div className="adm-routes-stats-section">
+        <div className="adm-status-card">
+          <div className="adm-status-card-value">{formatNumber(summaryData.passengers)}</div>
+          <div className="adm-status-card-label">Passengers</div>
+        </div>
+        <div className="adm-status-card">
+          <div className="adm-status-card-value">{formatNumber(summaryData.trips)}</div>
+          <div className="adm-status-card-label">Trips</div>
+        </div>
+        <div className="adm-status-card">
+          <div className="adm-status-card-value">{summaryData.duration}</div>
+          <div className="adm-status-card-label">Avg. Duration</div>
+        </div>
+        <div className="adm-status-card">
+          <div className="adm-status-card-value">
+            <button
+              className="adm-routes-btn adm-routes-btn-secondary"
+              onClick={fetchData}
+              disabled={loading}
+              style={{ padding: '4px 8px', fontSize: 'var(--adm-font-size-sm)' }}
+            >
+              {loading ? "Loading..." : "Refresh"}
+            </button>
           </div>
-          <div>
-            <span>{formatNumber(summaryData.trips)}</span>
-            <p>Trips</p>
-          </div>
-          <div>
-            <span>{summaryData.duration}</span>
-            <p>Avg. Duration</p>
+          <div className="adm-status-card-label">
+            {logs.length > 0 && logs[0]}
           </div>
         </div>
-        <div className="AdministratorShuttlesRoutes-logs">
-          {logs.map((log, index) => (
-            <p key={index}>{log}</p>
-          ))}
-        </div>
-        <button
-          className="AdministratorShuttlesRoutes-refresh-btn"
-          onClick={fetchData}
-          disabled={loading}
-        >
-          {loading ? "Loading..." : "🔄"}
-        </button>
       </div>
 
       {/* Shuttles Section */}
-      <div className="AdministratorShuttlesRoutes-shuttles">
-        <h3>Shuttles ({getTimePeriodLabel()})</h3>
+      <div className="adm-routes-list-section">
+        <div className="adm-routes-list-header">
+          <h3 className="adm-routes-list-title">Shuttles ({getTimePeriodLabel()})</h3>
+          <button className="adm-routes-btn adm-routes-btn-primary">+ Add Shuttle</button>
+        </div>
+        
         {loading ? (
-          <p className="AdministratorShuttlesRoutes-loading">
-            Loading shuttle data...
-          </p>
+          <div className="adm-routes-empty">
+            <div className="adm-routes-empty-icon">🔄</div>
+            <div className="adm-routes-empty-title">Loading shuttle data...</div>
+          </div>
         ) : (
-          <>
-            <table>
+          <div className="adm-routes-table-container">
+            <table className="adm-routes-table">
               <thead>
                 <tr>
                   <th>Status</th>
@@ -430,9 +442,9 @@ const AdministratorShuttlesRoutesContent = () => {
                   shuttleData.map((shuttle, index) => (
                     <tr key={index}>
                       <td>
-                        <span
-                          className={`AdministratorShuttlesRoutes-status-circle ${shuttle.status}`}
-                        ></span>
+                        <span className={`adm-routes-status ${shuttle.status === 'green' ? 'active' : shuttle.status === 'yellow' ? 'suspended' : 'inactive'}`}>
+                          {shuttle.status === 'green' ? 'Active' : shuttle.status === 'yellow' ? 'Warning' : 'Inactive'}
+                        </span>
                       </td>
                       <td>{shuttle.busName}</td>
                       <td>{shuttle.deploymentTime}</td>
@@ -444,33 +456,32 @@ const AdministratorShuttlesRoutesContent = () => {
                   ))
                 ) : (
                   <tr>
-                    <td
-                      colSpan="7"
-                      className="AdministratorShuttlesRoutes-no-data"
-                    >
+                    <td colSpan="7" style={{ textAlign: 'center', padding: 'var(--adm-spacing-6)' }}>
                       No shuttle data available for this time period
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
-            <button className="AdministratorShuttlesRoutes-add-btn">
-              + Add
-            </button>
-          </>
+          </div>
         )}
       </div>
 
       {/* Routes Section */}
-      <div className="AdministratorShuttlesRoutes-routes">
-        <h3>Routes ({getTimePeriodLabel()})</h3>
+      <div className="adm-routes-list-section">
+        <div className="adm-routes-list-header">
+          <h3 className="adm-routes-list-title">Routes ({getTimePeriodLabel()})</h3>
+          <button className="adm-routes-btn adm-routes-btn-primary">+ Add Route</button>
+        </div>
+        
         {loading ? (
-          <p className="AdministratorShuttlesRoutes-loading">
-            Loading route data...
-          </p>
+          <div className="adm-routes-empty">
+            <div className="adm-routes-empty-icon">🔄</div>
+            <div className="adm-routes-empty-title">Loading route data...</div>
+          </div>
         ) : (
-          <>
-            <table>
+          <div className="adm-routes-table-container">
+            <table className="adm-routes-table">
               <thead>
                 <tr>
                   <th>Status</th>
@@ -486,9 +497,9 @@ const AdministratorShuttlesRoutesContent = () => {
                   routeData.map((route, index) => (
                     <tr key={index}>
                       <td>
-                        <span
-                          className={`AdministratorShuttlesRoutes-status-circle ${route.status}`}
-                        ></span>
+                        <span className={`adm-routes-status ${route.status === 'green' ? 'active' : route.status === 'yellow' ? 'suspended' : 'inactive'}`}>
+                          {route.status === 'green' ? 'Active' : route.status === 'yellow' ? 'Warning' : 'Inactive'}
+                        </span>
                       </td>
                       <td>{route.routeName}</td>
                       <td>{route.shuttles}</td>
@@ -499,20 +510,14 @@ const AdministratorShuttlesRoutesContent = () => {
                   ))
                 ) : (
                   <tr>
-                    <td
-                      colSpan="6"
-                      className="AdministratorShuttlesRoutes-no-data"
-                    >
+                    <td colSpan="6" style={{ textAlign: 'center', padding: 'var(--adm-spacing-6)' }}>
                       No route data available for this time period
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
-            <button className="AdministratorShuttlesRoutes-add-btn">
-              + Add
-            </button>
-          </>
+          </div>
         )}
       </div>
     </div>

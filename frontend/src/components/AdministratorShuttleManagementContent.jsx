@@ -115,63 +115,91 @@ const AdministratorShuttleManagementContent = () => {
   }
 
   return (
-    <div className="shuttle-management-container">
-      <h2>Shuttle Management</h2>
+    <div className="adm-shuttle-management">
+      <div className="adm-shuttle-header">
+        <h2 className="adm-shuttle-title">Shuttle Management</h2>
+        <p className="adm-shuttle-description">Assign drivers to shuttles and manage shuttle status</p>
+      </div>
 
-      <div className="assignment-section">
-        <h3>Driver Assignments</h3>
-        <table className="assignments-table">
-          <thead>
-            <tr>
-              <th>Driver Name</th>
-              <th>Email</th>
-              <th>Current Shuttle</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {drivers.map((driver) => (
-              <tr key={driver.email}>
-                <td>{driver.name}</td>
-                <td>{driver.email}</td>
-                <td>{driver.shuttleId}</td>
-                <td>{driver.assignmentStatus || "N/A"}</td>
-                <td>
-                  <button
-                    className="shuttle-assign-btn"
-                    onClick={() => setSelectedDriver(driver)}
-                  >
-                    Assign Shuttle
-                  </button>
-                </td>
+      <div className="adm-shuttle-list-section">
+        <div className="adm-shuttle-list-header">
+          <h3 className="adm-shuttle-list-title">Driver Assignments</h3>
+          <div className="adm-shuttle-search">
+            <span className="adm-shuttle-search-icon">🔍</span>
+            <input 
+              type="text" 
+              className="adm-shuttle-search-input"
+              placeholder="Search drivers..."
+              onChange={(e) => {/* Add search functionality here */}}
+            />
+          </div>
+        </div>
+        
+        <div className="adm-shuttle-table-container">
+          <table className="adm-shuttle-table">
+            <thead>
+              <tr>
+                <th>Driver Name</th>
+                <th>Email</th>
+                <th>Current Shuttle</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {drivers.map((driver) => (
+                <tr key={driver.email}>
+                  <td>{driver.name}</td>
+                  <td>{driver.email}</td>
+                  <td>{driver.shuttleId || "Not assigned"}</td>
+                  <td>
+                    <span className={`adm-shuttle-status ${driver.assignmentStatus === "Active" ? "active" : 
+                                       driver.assignmentStatus === "Pending" ? "maintenance" : "inactive"}`}>
+                      {driver.assignmentStatus || "Not assigned"}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="adm-shuttle-actions">
+                      <button
+                        className="adm-shuttle-action-btn adm-shuttle-btn-edit"
+                        onClick={() => setSelectedDriver(driver)}
+                      >
+                        Assign Shuttle
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {selectedDriver && (
-        <div className="assignment-form">
-          <h3>Assign Shuttle to {selectedDriver.name}</h3>
-          <div className="form-group">
+        <div className="adm-shuttle-form-section">
+          <h3 className="adm-shuttle-form-title">Assign Shuttle to {selectedDriver.name}</h3>
+          <div className="adm-shuttle-form-group">
+            <label className="adm-shuttle-form-label">Shuttle ID</label>
             <input
               type="text"
+              className="adm-shuttle-form-input"
               value={shuttleId}
               onChange={(e) => setShuttleId(e.target.value)}
               placeholder="Enter Shuttle ID"
             />
+          </div>
+          <div className="adm-shuttle-form-actions">
             <button
-              className="shuttle-assign-btn"
-              onClick={() => handleAssignShuttle(selectedDriver)}
-            >
-              Assign
-            </button>
-            <button
-              className="shuttle-cancel-btn"
+              className="adm-shuttle-btn adm-shuttle-btn-secondary"
               onClick={() => setSelectedDriver(null)}
             >
               Cancel
+            </button>
+            <button
+              className="adm-shuttle-btn adm-shuttle-btn-primary"
+              onClick={() => handleAssignShuttle(selectedDriver)}
+            >
+              Assign Shuttle
             </button>
           </div>
         </div>

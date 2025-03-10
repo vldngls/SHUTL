@@ -182,142 +182,199 @@ const AdministratorTransactionsContent = () => {
   };
 
   return (
-    <div className="AdministratorTransactions-transactions-content">
+    <div className="adm-transactions">
+      <div className="adm-transactions-header">
+        <h2 className="adm-transactions-title">Transactions</h2>
+        <p className="adm-transactions-description">Track fare payments and analyze transaction data</p>
+      </div>
+      
       {/* Date Range Selection */}
-      <div className="AdministratorTransactions-date-range">
-        <h3>Select Date Range</h3>
-        <div className="date-range-buttons">
-          <button
-            className={dateRange === "today" ? "active" : ""}
-            onClick={() => setDateRange("today")}
-          >
-            Today
-          </button>
-          <button
-            className={dateRange === "week" ? "active" : ""}
-            onClick={() => setDateRange("week")}
-          >
-            Last Week
-          </button>
-          <button
-            className={dateRange === "month" ? "active" : ""}
-            onClick={() => setDateRange("month")}
-          >
-            Last Month
-          </button>
-          <button
-            className={dateRange === "year" ? "active" : ""}
-            onClick={() => setDateRange("year")}
-          >
-            Last Year
-          </button>
-          <button
-            className={dateRange === "all" ? "active" : ""}
-            onClick={() => setDateRange("all")}
-          >
-            All Time
-          </button>
-          <button
-            className={dateRange === "custom" ? "active" : ""}
-            onClick={() => setDateRange("custom")}
-          >
-            Custom
-          </button>
-        </div>
-        {dateRange === "custom" && (
-          <div className="custom-date-range">
-            <input
-              type="date"
-              value={customStartDate}
-              onChange={(e) => setCustomStartDate(e.target.value)}
-            />
-            <span>to</span>
-            <input
-              type="date"
-              value={customEndDate}
-              onChange={(e) => setCustomEndDate(e.target.value)}
-            />
+      <div className="adm-transactions-filters">
+        <h3 className="adm-filters-title">Select Date Range</h3>
+        <div className="adm-filters-form">
+          <div className="adm-filter-actions">
+            <button
+              className={`adm-filter-btn ${dateRange === "today" ? "adm-filter-btn-apply" : "adm-filter-btn-reset"}`}
+              onClick={() => setDateRange("today")}
+            >
+              Today
+            </button>
+            <button
+              className={`adm-filter-btn ${dateRange === "week" ? "adm-filter-btn-apply" : "adm-filter-btn-reset"}`}
+              onClick={() => setDateRange("week")}
+            >
+              Last Week
+            </button>
+            <button
+              className={`adm-filter-btn ${dateRange === "month" ? "adm-filter-btn-apply" : "adm-filter-btn-reset"}`}
+              onClick={() => setDateRange("month")}
+            >
+              Last Month
+            </button>
+            <button
+              className={`adm-filter-btn ${dateRange === "year" ? "adm-filter-btn-apply" : "adm-filter-btn-reset"}`}
+              onClick={() => setDateRange("year")}
+            >
+              Last Year
+            </button>
+            <button
+              className={`adm-filter-btn ${dateRange === "all" ? "adm-filter-btn-apply" : "adm-filter-btn-reset"}`}
+              onClick={() => setDateRange("all")}
+            >
+              All Time
+            </button>
+            <button
+              className={`adm-filter-btn ${dateRange === "custom" ? "adm-filter-btn-apply" : "adm-filter-btn-reset"}`}
+              onClick={() => setDateRange("custom")}
+            >
+              Custom
+            </button>
           </div>
-        )}
+          
+          {dateRange === "custom" && (
+            <div className="adm-filters-form" style={{ marginTop: 'var(--adm-spacing-4)' }}>
+              <div className="adm-filter-group">
+                <label className="adm-filter-label">Start Date</label>
+                <input
+                  type="date"
+                  className="adm-filter-input"
+                  value={customStartDate}
+                  onChange={(e) => setCustomStartDate(e.target.value)}
+                />
+              </div>
+              <div className="adm-filter-group">
+                <label className="adm-filter-label">End Date</label>
+                <input
+                  type="date"
+                  className="adm-filter-input"
+                  value={customEndDate}
+                  onChange={(e) => setCustomEndDate(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Statistics Section */}
-      <div className="AdministratorTransactions-statistics">
-        <h3>Transaction Statistics</h3>
-        <div className="statistics-grid">
-          <div className="stat-card total-earnings">
-            <h4>Total Earnings</h4>
-            <p>₱{statistics.totalFare.toFixed(2)}</p>
+      <div className="adm-transactions-stats">
+        <div className="adm-transactions-stat-card">
+          <div className="adm-transactions-stat-icon">
+            <i>₱</i>
           </div>
-          <div className="stat-card total-passengers">
-            <h4>Total Passengers</h4>
-            <p>
+          <div className="adm-transactions-stat-content">
+            <div className="adm-transactions-stat-value">₱{statistics.totalFare.toFixed(2)}</div>
+            <div className="adm-transactions-stat-label">Total Earnings</div>
+          </div>
+        </div>
+        
+        <div className="adm-transactions-stat-card">
+          <div className="adm-transactions-stat-icon">
+            <i>👥</i>
+          </div>
+          <div className="adm-transactions-stat-content">
+            <div className="adm-transactions-stat-value">
               {Object.values(statistics.passengerCounts).reduce(
                 (a, b) => a + b,
                 0
               )}
-            </p>
-          </div>
-          <div className="stat-card total-transactions">
-            <h4>Total Transactions</h4>
-            <p>{transactions.length}</p>
+            </div>
+            <div className="adm-transactions-stat-label">Total Passengers</div>
           </div>
         </div>
+        
+        <div className="adm-transactions-stat-card">
+          <div className="adm-transactions-stat-icon">
+            <i>📊</i>
+          </div>
+          <div className="adm-transactions-stat-content">
+            <div className="adm-transactions-stat-value">{transactions.length}</div>
+            <div className="adm-transactions-stat-label">Total Transactions</div>
+          </div>
+        </div>
+        
+        <div className="adm-transactions-stat-card">
+          <div className="adm-transactions-stat-icon">
+            <i>📈</i>
+          </div>
+          <div className="adm-transactions-stat-content">
+            <div className="adm-transactions-stat-value">
+              <button className="adm-filter-btn adm-filter-btn-apply" style={{ fontSize: '0.8rem', padding: '4px 8px' }}>
+                Export Data
+              </button>
+            </div>
+            <div className="adm-transactions-stat-label">Generate Reports</div>
+          </div>
+        </div>
+      </div>
 
-        {/* Passenger Distribution Chart */}
-        <div className="passenger-distribution">
-          <h4>Passenger Distribution</h4>
-          <div style={{ width: "300px", height: "300px", margin: "auto" }}>
+      {/* Transaction Chart Section */}
+      <div className="adm-transaction-chart-section">
+        <div className="adm-transaction-chart-header">
+          <h3 className="adm-transaction-chart-title">Passenger Distribution</h3>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--adm-spacing-4)' }}>
+          <div style={{ width: "300px", height: "300px" }}>
             <Pie data={pieChartData} options={pieChartOptions} />
           </div>
         </div>
       </div>
 
       {/* Transactions Table */}
-      <div className="AdministratorTransactions-payments-section">
-        <h3>Transactions</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Time</th>
-              <th>Shuttle ID</th>
-              <th>Regular</th>
-              <th>PWD</th>
-              <th>Student</th>
-              <th>Senior</th>
-              <th>Total Fare</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
+      <div className="adm-transactions-list">
+        <div className="adm-transactions-list-header">
+          <h3 className="adm-transactions-list-title">Transaction History</h3>
+          <button className="adm-transactions-export">
+            <i>📥</i> Export CSV
+          </button>
+        </div>
+        
+        <div className="adm-transactions-table-container">
+          <table className="adm-transactions-table">
+            <thead>
               <tr>
-                <td colSpan="8" className="loading-message">
-                  Loading transactions...
-                </td>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Shuttle ID</th>
+                <th>Regular</th>
+                <th>PWD</th>
+                <th>Student</th>
+                <th>Senior</th>
+                <th>Total Fare</th>
               </tr>
-            ) : transactions.length > 0 ? (
-              transactions.map((transaction, index) => (
-                <tr key={index}>
-                  <td>{transaction.date}</td>
-                  <td>{transaction.time}</td>
-                  <td>{transaction.shuttleID}</td>
-                  <td>{transaction.passengerCounts.Regular || 0}</td>
-                  <td>{transaction.passengerCounts.PWD || 0}</td>
-                  <td>{transaction.passengerCounts.STUDENT || 0}</td>
-                  <td>{transaction.passengerCounts.SENIOR || 0}</td>
-                  <td>₱{transaction.totalFare.toFixed(2)}</td>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: 'var(--adm-spacing-6)' }}>
+                    Loading transactions...
+                  </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="8" className="no-data-message">
-                  No transactions found for the selected date range
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              ) : transactions.length > 0 ? (
+                transactions.map((transaction, index) => (
+                  <tr key={index}>
+                    <td>{transaction.date}</td>
+                    <td>{transaction.time}</td>
+                    <td>{transaction.shuttleID}</td>
+                    <td>{transaction.passengerCounts.Regular || 0}</td>
+                    <td>{transaction.passengerCounts.PWD || 0}</td>
+                    <td>{transaction.passengerCounts.STUDENT || 0}</td>
+                    <td>{transaction.passengerCounts.SENIOR || 0}</td>
+                    <td>
+                      <span className="adm-transaction-amount positive">₱{transaction.totalFare.toFixed(2)}</span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: 'var(--adm-spacing-6)' }}>
+                    No transactions found for the selected date range
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

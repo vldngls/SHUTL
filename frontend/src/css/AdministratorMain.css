@@ -1,221 +1,398 @@
+/* Modern Administrator UI - Main CSS
+ * A complete redesign with responsive layouts
+ * Using 'adm-' prefix to avoid conflicts
+ */
+
+:root {
+  /* Color System */
+  --adm-primary: #4361ee;
+  --adm-primary-light: #5e7aff;
+  --adm-primary-dark: #3a56d4;
+  --adm-secondary: #4cc9f0;
+  --adm-accent: #f72585;
+  --adm-success: #06d6a0;
+  --adm-warning: #ffd166;
+  --adm-danger: #ef476f;
+  --adm-light: #f8f9fa;
+  --adm-dark: #212529;
+  --adm-gray-100: #f8f9fa;
+  --adm-gray-200: #e9ecef;
+  --adm-gray-300: #dee2e6;
+  --adm-gray-400: #ced4da;
+  --adm-gray-500: #adb5bd;
+  --adm-gray-600: #6c757d;
+  --adm-gray-700: #495057;
+  --adm-gray-800: #343a40;
+  --adm-gray-900: #212529;
+
+  /* Typography */
+  --adm-font-main: 'Inter', system-ui, -apple-system, sans-serif;
+  --adm-font-size-xs: 0.75rem;
+  --adm-font-size-sm: 0.875rem;
+  --adm-font-size-base: 1rem;
+  --adm-font-size-lg: 1.125rem;
+  --adm-font-size-xl: 1.25rem;
+  --adm-font-size-2xl: 1.5rem;
+  --adm-font-size-3xl: 1.875rem;
+  
+  /* Spacing */
+  --adm-spacing-1: 0.25rem;
+  --adm-spacing-2: 0.5rem;
+  --adm-spacing-3: 0.75rem;
+  --adm-spacing-4: 1rem;
+  --adm-spacing-5: 1.25rem;
+  --adm-spacing-6: 1.5rem;
+  --adm-spacing-8: 2rem;
+  --adm-spacing-10: 2.5rem;
+  --adm-spacing-12: 3rem;
+  
+  /* Shadows */
+  --adm-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --adm-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --adm-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --adm-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  
+  /* Border Radius */
+  --adm-radius-sm: 0.25rem;
+  --adm-radius: 0.375rem;
+  --adm-radius-md: 0.5rem;
+  --adm-radius-lg: 0.75rem;
+  --adm-radius-xl: 1rem;
+  --adm-radius-full: 9999px;
+  
+  /* Transitions */
+  --adm-transition: all 0.15s ease;
+  --adm-transition-slow: all 0.3s ease;
+}
+
 /* Base Layout */
 html,
 body {
   margin: 0;
   padding: 0;
   height: 100%;
-  overflow: hidden;
-  font-family: Inter, sans-serif;
+  font-family: var(--adm-font-main);
+  color: var(--adm-gray-800);
+  background-color: var(--adm-gray-100);
 }
 
-.AdministratorMain-container {
+.adm-container {
   display: flex;
   height: 100vh;
   position: relative;
+  overflow: hidden;
 }
 
-/* Navbar */
-.AdministratorMain-navbar {
+/* Sidebar/Navbar */
+.adm-sidebar {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  width: 200px;
+  width: 280px;
   height: 100vh;
-  background-color: #232323;
+  background-color: var(--adm-dark);
   color: white;
-  border-top-right-radius: 38.5px;
-  border-bottom-right-radius: 38.5px;
-  padding: 16px;
+  padding: var(--adm-spacing-5);
   position: fixed;
   left: 0;
   top: 0;
-  z-index: 3;
+  z-index: 100;
   box-sizing: border-box;
-  justify-content: space-between;
+  box-shadow: var(--adm-shadow-lg);
+  transition: var(--adm-transition-slow);
 }
 
 /* Logo */
-.AdministratorMain-logo {
-  font-size: 1.4em;
-  font-weight: bold;
-  margin-bottom: 20px;
-  margin-top: 8px;
-  text-align: center;
-  width: 100%;
+.adm-logo {
+  font-size: var(--adm-font-size-xl);
+  font-weight: 700;
+  margin-bottom: var(--adm-spacing-6);
+  display: flex;
+  align-items: center;
+  gap: var(--adm-spacing-3);
+  padding: var(--adm-spacing-2) 0;
+}
+
+.adm-logo-icon {
+  width: 32px;
+  height: 32px;
 }
 
 /* Navigation Buttons */
-.AdministratorMain-navbar-buttons {
+.adm-nav {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  align-items: stretch;
+  gap: var(--adm-spacing-2);
   flex-grow: 1;
-  width: 100%;
+  overflow-y: auto;
+  padding-right: var(--adm-spacing-2);
+  margin-right: calc(var(--adm-spacing-2) * -1);
 }
 
-.AdministratorMain-nav-btn {
+.adm-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.adm-nav::-webkit-scrollbar-thumb {
+  background-color: var(--adm-gray-600);
+  border-radius: var(--adm-radius-full);
+}
+
+.adm-nav::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.adm-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--adm-spacing-3);
   background: none;
   border: none;
-  color: white;
-  padding: 12px 16px;
+  color: var(--adm-gray-400);
+  padding: var(--adm-spacing-3) var(--adm-spacing-4);
+  border-radius: var(--adm-radius);
   cursor: pointer;
-  font-size: 0.9em;
+  font-size: var(--adm-font-size-sm);
   text-align: left;
   width: 100%;
-  transition: background-color 0.3s ease;
-  border-radius: 8px;
-  white-space: normal;
-  line-height: 1.2;
+  transition: var(--adm-transition);
 }
 
-.AdministratorMain-nav-btn:hover {
+.adm-nav-btn:hover {
   background-color: rgba(255, 255, 255, 0.1);
+  color: white;
 }
 
-.AdministratorMain-nav-btn.active {
-  background-color: rgba(255, 255, 255, 0.2);
-  font-weight: bold;
+.adm-nav-btn.active {
+  background-color: var(--adm-primary);
+  color: white;
+  font-weight: 600;
+}
+
+.adm-nav-btn i, 
+.adm-nav-btn svg {
+  font-size: var(--adm-font-size-lg);
+  width: 1.25rem;
 }
 
 /* Bottom Buttons */
-.AdministratorMain-bottom-buttons {
+.adm-bottom-nav {
+  margin-top: var(--adm-spacing-6);
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: auto;
+  gap: var(--adm-spacing-3);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: var(--adm-spacing-6);
 }
 
-.AdministratorMain-notif-btn,
-.AdministratorMain-logout-btn {
+.adm-notif-btn,
+.adm-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--adm-spacing-3);
   background: none;
   border: none;
-  padding: 8px;
+  padding: var(--adm-spacing-3) var(--adm-spacing-4);
   cursor: pointer;
-  color: white;
-  font-size: 0.9em;
-  transition: background-color 0.3s ease;
+  color: var(--adm-gray-400);
+  font-size: var(--adm-font-size-sm);
+  border-radius: var(--adm-radius);
+  transition: var(--adm-transition);
 }
 
-.AdministratorMain-notif-btn img {
-  width: 24px;
-  height: 24px;
-}
-
-.AdministratorMain-notif-btn:hover,
-.AdministratorMain-logout-btn:hover {
+.adm-notif-btn:hover,
+.adm-logout-btn:hover {
   background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.adm-notif-btn img {
+  width: 20px;
+  height: 20px;
 }
 
 /* Content Area */
-.AdministratorMain-content {
+.adm-content {
   flex: 1;
-  margin-left: 200px;
-  padding: 20px;
+  margin-left: 280px;
+  padding: var(--adm-spacing-8);
   overflow-y: auto;
-  z-index: 2;
-  background-color: #fff;
+  height: 100vh;
+  box-sizing: border-box;
+  background-color: var(--adm-gray-100);
+  transition: var(--adm-transition-slow);
 }
 
 /* Taskbar */
-.AdministratorMain-taskbar {
+.adm-taskbar {
   position: fixed;
-  height: 32px;
+  height: 40px;
   bottom: 0;
   left: 0;
   width: 100%;
-  background-color: #f5f5f5;
-  color: #333;
+  background-color: var(--adm-light);
+  color: var(--adm-gray-700);
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding: 10px 20px;
-  border-top: 2px solid #e0e0e0;
-  font-size: 0.8em;
-  z-index: 2;
+  padding: 0 var(--adm-spacing-6);
+  border-top: 1px solid var(--adm-gray-200);
+  font-size: var(--adm-font-size-xs);
+  z-index: 50;
   box-sizing: border-box;
-  margin-left: 0;
 }
 
-/* Location Button */
-.AdministratorMain-update-location-btn {
+/* Floating Action Button */
+.adm-fab {
   position: fixed;
-  right: 16px;
+  right: var(--adm-spacing-6);
   bottom: 60px;
-  z-index: 1000;
-  width: 44px;
-  height: 44px;
-  transition: all 0.3s ease;
+  z-index: 90;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--adm-radius-full);
+  background-color: var(--adm-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--adm-shadow-lg);
+  cursor: pointer;
+  border: none;
+  transition: var(--adm-transition);
 }
 
-.AdministratorMain-update-location-btn:hover {
-  transform: scale(1.1);
+.adm-fab:hover {
+  transform: scale(1.05);
+  background-color: var(--adm-primary-dark);
 }
 
-.AdministratorMain-update-location-icon {
-  transition: filter 0.3s ease;
+.adm-fab i,
+.adm-fab svg {
+  font-size: 24px;
 }
 
-/* Shuttle Info */
-.AdministratorMain-shuttle-info {
-  padding: 10px;
-  text-align: center;
+/* Common Card Styles */
+.adm-card {
+  background-color: white;
+  border-radius: var(--adm-radius-lg);
+  box-shadow: var(--adm-shadow);
+  padding: var(--adm-spacing-6);
+  margin-bottom: var(--adm-spacing-6);
+  transition: var(--adm-transition);
 }
 
-.AdministratorMain-shuttle-info h3 {
-  margin: 0 0 5px 0;
-  color: #333;
+.adm-card:hover {
+  box-shadow: var(--adm-shadow-md);
 }
 
-.AdministratorMain-shuttle-info p {
+.adm-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--adm-spacing-5);
+}
+
+.adm-card-title {
+  font-size: var(--adm-font-size-xl);
+  font-weight: 700;
+  color: var(--adm-gray-800);
   margin: 0;
-  font-size: 12px;
-  color: #666;
 }
 
-/* Media Queries */
+/* Responsive Sidebar Toggle */
+.adm-menu-toggle {
+  display: none;
+  position: fixed;
+  top: var(--adm-spacing-4);
+  left: var(--adm-spacing-4);
+  z-index: 110;
+  background-color: var(--adm-primary);
+  color: white;
+  border: none;
+  border-radius: var(--adm-radius);
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--adm-shadow-md);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .adm-sidebar {
+    width: 240px;
+  }
+  
+  .adm-content {
+    margin-left: 240px;
+    padding: var(--adm-spacing-6);
+  }
+}
+
+@media (max-width: 992px) {
+  .adm-menu-toggle {
+    display: flex;
+  }
+  
+  .adm-sidebar {
+    transform: translateX(-100%);
+    width: 280px;
+  }
+  
+  .adm-sidebar.show {
+    transform: translateX(0);
+  }
+  
+  .adm-content {
+    margin-left: 0;
+    padding: var(--adm-spacing-6);
+    padding-top: calc(var(--adm-spacing-12) + var(--adm-spacing-4));
+  }
+  
+  .adm-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+  }
+  
+  .adm-overlay.show {
+    display: block;
+  }
+}
+
 @media (max-width: 768px) {
-  .AdministratorMain-navbar {
-    width: 160px;
-    padding: 12px;
+  .adm-content {
+    padding: var(--adm-spacing-4);
+    padding-top: calc(var(--adm-spacing-12) + var(--adm-spacing-2));
   }
-
-  .AdministratorMain-content {
-    margin-left: 160px;
-  }
-
-  .AdministratorMain-nav-btn {
-    font-size: 0.85em;
-    padding: 10px 12px;
-  }
-
-  .AdministratorMain-update-location-btn {
-    right: 10px;
+  
+  .adm-fab {
+    right: var(--adm-spacing-4);
     bottom: 50px;
   }
+  
+  .adm-taskbar {
+    padding: 0 var(--adm-spacing-4);
+  }
 }
 
-@media (max-width: 480px) {
-  .AdministratorMain-navbar {
-    width: 140px;
-    padding: 8px;
+@media (max-width: 576px) {
+  .adm-content {
+    padding: var(--adm-spacing-3);
+    padding-top: calc(var(--adm-spacing-12));
   }
-
-  .AdministratorMain-content {
-    margin-left: 140px;
+  
+  .adm-logo {
+    font-size: var(--adm-font-size-lg);
   }
-
-  .AdministratorMain-logo {
-    font-size: 1.2em;
-  }
-
-  .AdministratorMain-nav-btn {
-    font-size: 0.8em;
-    padding: 8px 10px;
-  }
-
-  .AdministratorMain-update-location-btn {
-    right: 8px;
-    bottom: 45px;
+  
+  .adm-card {
+    padding: var(--adm-spacing-4);
   }
 }

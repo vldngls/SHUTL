@@ -259,221 +259,309 @@ const AccountManagement = () => {
   };
 
   return (
-    <div className="account-management">
-      <h1>Account Management</h1>
+    <div className="adm-account-management">
+      <div className="adm-account-header">
+        <h1 className="adm-account-title">Account Management</h1>
+        <p className="adm-account-description">Manage user accounts, approve discount requests, and update user information.</p>
+      </div>
 
-      {/* Top Section - Two Columns */}
-      <div className="account-management-top-section">
-        {/* Left Column - Add User Form */}
-        <div className="form-container">
-          <h2>{editingUser ? "Update User" : "Add User"}</h2>
-          {errorMessage && <p className="error-message">{errorMessage}</p>}
+      <div className="adm-search-bar">
+        <input
+          type="text"
+          className="adm-search-input"
+          placeholder="Search users by name, email, username..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <div className="adm-sort-buttons">
+          <button
+            className={`adm-sort-btn ${sortConfig.key === 'name' ? 'active' : ''}`}
+            onClick={() => handleSort('name')}
+          >
+            Sort by Name
+          </button>
+          <button
+            className={`adm-sort-btn ${sortConfig.key === 'userType' ? 'active' : ''}`}
+            onClick={() => handleSort('userType')}
+          >
+            Sort by Type
+          </button>
+        </div>
+      </div>
+
+      <div className="adm-account-layout">
+        {/* User Form */}
+        <div className="adm-user-form-container">
+          <h2 className="adm-form-title">{editingUser ? "Update User" : "Add New User"}</h2>
+          {errorMessage && <p className="adm-form-error">{errorMessage}</p>}
           <form onSubmit={handleSaveUser}>
-            <input
-              type="text"
-              name="name"
-              placeholder="Name"
-              value={formData.name}
-              onChange={handleFormChange}
-              required
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={formData.email}
-              onChange={handleFormChange}
-              required
-            />
-            <input
-              type="text"
-              name="username"
-              placeholder="Username"
-              value={formData.username}
-              onChange={handleFormChange}
-              required
-            />
-            {!editingUser && (
+            <div className="adm-form-group">
+              <label className="adm-form-label">Full Name</label>
               <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={formData.password}
+                type="text"
+                name="name"
+                className="adm-form-input"
+                placeholder="Enter full name"
+                value={formData.name}
                 onChange={handleFormChange}
                 required
               />
+            </div>
+            <div className="adm-form-group">
+              <label className="adm-form-label">Email Address</label>
+              <input
+                type="email"
+                name="email"
+                className="adm-form-input"
+                placeholder="Enter email address"
+                value={formData.email}
+                onChange={handleFormChange}
+                required
+              />
+            </div>
+            <div className="adm-form-group">
+              <label className="adm-form-label">Username</label>
+              <input
+                type="text"
+                name="username"
+                className="adm-form-input"
+                placeholder="Enter username"
+                value={formData.username}
+                onChange={handleFormChange}
+                required
+              />
+            </div>
+            {!editingUser && (
+              <div className="adm-form-group">
+                <label className="adm-form-label">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  className="adm-form-input"
+                  placeholder="Enter password"
+                  value={formData.password}
+                  onChange={handleFormChange}
+                  required
+                />
+              </div>
             )}
-            <select
-              name="userType"
-              value={formData.userType}
-              onChange={handleFormChange}
-              required
-            >
-              <option value="Commuter">Commuter</option>
-              <option value="Admin">Admin</option>
-              <option value="Driver">Driver</option>
-              <option value="Teller">Teller</option>
-            </select>
-            <button type="submit">
-              {editingUser ? "Update User" : "Add User"}
-            </button>
+            <div className="adm-form-group">
+              <label className="adm-form-label">User Type</label>
+              <select
+                name="userType"
+                className="adm-form-select"
+                value={formData.userType}
+                onChange={handleFormChange}
+                required
+              >
+                <option value="Commuter">Commuter</option>
+                <option value="Admin">Admin</option>
+                <option value="Driver">Driver</option>
+                <option value="Teller">Teller</option>
+              </select>
+            </div>
+            <div className="adm-form-actions">
+              {editingUser && (
+                <button type="button" className="adm-btn adm-btn-secondary" onClick={handleCancelEdit}>
+                  Cancel
+                </button>
+              )}
+              <button type="submit" className="adm-btn adm-btn-primary">
+                {editingUser ? "Update User" : "Add User"}
+              </button>
+            </div>
           </form>
         </div>
 
-        {/* Right Column - Pending Discounts */}
-        <div className="pending-discounts-section">
-          <h2>Pending Discount Requests</h2>
-          <div className="pending-discounts-grid">
-            {users
-              .filter(user => user.discountStatus === "PENDING")
-              .map(user => (
-                <div key={user._id} className="pending-discount-card">
-                  <div className="discount-card-header">
-                    <h3>{user.name}</h3>
-                    <span className="discount-type">{user.discountType}</span>
-                  </div>
-                  <div className="discount-card-body">
-                    <p><strong>Email:</strong> {user.email}</p>
-                    <p><strong>Username:</strong> {user.username}</p>
-                    <p><strong>Status:</strong> <span className="status-pending">Pending</span></p>
-                  </div>
-                  <div className="discount-card-actions">
-                    <button onClick={() => handleViewUser(user)} className="view-btn">View Details</button>
-                  </div>
-                </div>
-              ))}
-            {users.filter(user => user.discountStatus === "PENDING").length === 0 && (
-              <div className="no-pending-discounts">
-                <p>No pending discount requests</p>
-              </div>
+        {/* Users Table */}
+        <div className="adm-users-table-container">
+          <h2 className="adm-table-title">User Accounts</h2>
+          <div className="adm-table-container">
+            <table className="adm-table">
+              <thead>
+                <tr>
+                  <th className={sortConfig.key === 'name' ? `sort-${sortConfig.direction}` : ''} onClick={() => handleSort('name')}>Name</th>
+                  <th className={sortConfig.key === 'email' ? `sort-${sortConfig.direction}` : ''} onClick={() => handleSort('email')}>Email</th>
+                  <th className={sortConfig.key === 'username' ? `sort-${sortConfig.direction}` : ''} onClick={() => handleSort('username')}>Username</th>
+                  <th className={sortConfig.key === 'userType' ? `sort-${sortConfig.direction}` : ''} onClick={() => handleSort('userType')}>User Type</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedUsers.map((user) => (
+                  <tr key={user._id}>
+                    <td>{user.name}</td>
+                    <td>{user.email}</td>
+                    <td>{user.username}</td>
+                    <td>{user.userType}</td>
+                    <td>
+                      <div className="adm-table-actions">
+                        <button className="adm-action-btn adm-btn-view" onClick={() => handleViewUser(user)}>View</button>
+                        <button className="adm-action-btn adm-btn-edit" onClick={() => handleEditUser(user)}>Edit</button>
+                        <button className="adm-action-btn adm-btn-delete" onClick={() => handleDelete(user)}>Delete</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <div className="adm-pagination">
+            {totalPages > 1 && (
+              <>
+                <button 
+                  className="adm-pagination-btn" 
+                  onClick={() => handlePageChange(1)}
+                  disabled={currentPage === 1}
+                >
+                  &laquo;
+                </button>
+                <button 
+                  className="adm-pagination-btn" 
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  &lsaquo;
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(page => {
+                    if (totalPages <= 5) return true;
+                    if (page === 1 || page === totalPages) return true;
+                    if (Math.abs(page - currentPage) <= 1) return true;
+                    return false;
+                  })
+                  .map((page, index, array) => {
+                    if (index > 0 && array[index - 1] + 1 !== page) {
+                      return (
+                        <React.Fragment key={`ellipsis-${page}`}>
+                          <span className="adm-pagination-ellipsis">...</span>
+                          <button
+                            className={`adm-pagination-btn ${currentPage === page ? "active" : ""}`}
+                            onClick={() => handlePageChange(page)}
+                          >
+                            {page}
+                          </button>
+                        </React.Fragment>
+                      );
+                    }
+                    return (
+                      <button
+                        key={page}
+                        className={`adm-pagination-btn ${currentPage === page ? "active" : ""}`}
+                        onClick={() => handlePageChange(page)}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+
+                <button 
+                  className="adm-pagination-btn" 
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  &rsaquo;
+                </button>
+                <button 
+                  className="adm-pagination-btn" 
+                  onClick={() => handlePageChange(totalPages)}
+                  disabled={currentPage === totalPages}
+                >
+                  &raquo;
+                </button>
+              </>
             )}
           </div>
         </div>
       </div>
 
-      {/* Bottom Section - Full Width Users Table */}
-      <div className="users-table-section">
-        {/* Search Bar */}
-        <div className="search-bar">
-          <input
-            type="text"
-            placeholder="Search users..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-        <div className="users-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Username</th>
-                <th>User Type</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedUsers.map((user) => (
-                <tr key={user._id}>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>{user.username}</td>
-                  <td>{user.userType}</td>
-                  <td>
-                    <button onClick={() => handleViewUser(user)}>View</button>
-                    <button onClick={() => handleEditUser(user)}>Edit</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="pagination">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              onClick={() => handlePageChange(page)}
-              className={currentPage === page ? "active" : ""}
-            >
-              {page}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Modals */}
+      {/* User Details Modal */}
       {showUserModal && viewingUser && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>User Details</h2>
-            <div className="user-details">
-              <p>
-                <strong>Name:</strong> {viewingUser.name}
-              </p>
-              <p>
-                <strong>Email:</strong> {viewingUser.email}
-              </p>
-              <p>
-                <strong>Username:</strong> {viewingUser.username}
-              </p>
-              <p>
-                <strong>User Type:</strong> {viewingUser.userType}
-              </p>
-              <p>
-                <strong>Discount Type:</strong> {viewingUser.discountType}
-              </p>
-              <p>
-                <strong>Discount Status:</strong> {viewingUser.discountStatus}
-              </p>
-              {viewingUser.discountType !== "REGULAR" &&
-                viewingUser.idPicture && (
-                  <div>
-                    <p>
-                      <strong>ID Picture:</strong>
-                    </p>
-                    <img
-                      src={viewingUser.idPicture}
-                      alt="ID"
-                      style={{ maxWidth: "300px" }}
-                    />
-                  </div>
-                )}
-              {viewingUser.discountType !== "REGULAR" &&
-                viewingUser.discountStatus === "PENDING" && (
-                  <div className="discount-actions">
-                    <button
-                      onClick={() => handleApproveDiscount(viewingUser.email)}
-                    >
-                      Approve Discount
-                    </button>
-                    <button
-                      onClick={() => handleRejectDiscount(viewingUser.email)}
-                    >
-                      Reject Discount
-                    </button>
-                  </div>
-                )}
+        <div className="adm-modal-overlay">
+          <div className="adm-modal">
+            <div className="adm-modal-header">
+              <h2 className="adm-modal-title">User Details</h2>
+              <button className="adm-modal-close" onClick={() => setShowUserModal(false)}>&times;</button>
             </div>
-            <button onClick={() => setShowUserModal(false)}>Close</button>
+            <div className="adm-modal-content">
+              <div className="adm-user-details">
+                <div className="adm-user-detail">
+                  <div className="adm-detail-label">Full Name</div>
+                  <div className="adm-detail-value">{viewingUser.name}</div>
+                </div>
+                <div className="adm-user-detail">
+                  <div className="adm-detail-label">Email Address</div>
+                  <div className="adm-detail-value">{viewingUser.email}</div>
+                </div>
+                <div className="adm-user-detail">
+                  <div className="adm-detail-label">Username</div>
+                  <div className="adm-detail-value">{viewingUser.username}</div>
+                </div>
+                <div className="adm-user-detail">
+                  <div className="adm-detail-label">User Type</div>
+                  <div className="adm-detail-value">{viewingUser.userType}</div>
+                </div>
+                <div className="adm-user-detail">
+                  <div className="adm-detail-label">Discount Type</div>
+                  <div className="adm-detail-value">{viewingUser.discountType || "None"}</div>
+                </div>
+                <div className="adm-user-detail">
+                  <div className="adm-detail-label">Discount Status</div>
+                  <div className="adm-detail-value">{viewingUser.discountStatus || "None"}</div>
+                </div>
+
+                {viewingUser.idImage && (
+                  <div className="adm-user-detail">
+                    <div className="adm-detail-label">ID Image</div>
+                    <img className="adm-user-image" src={viewingUser.idImage} alt="User ID" />
+                  </div>
+                )}
+              </div>
+              
+              {viewingUser.discountStatus === "PENDING" && (
+                <div className="adm-discount-actions">
+                  <button 
+                    className="adm-btn adm-btn-primary"
+                    onClick={() => handleApproveDiscount(viewingUser.email)}
+                  >
+                    Approve Discount
+                  </button>
+                  <button 
+                    className="adm-btn adm-btn-danger"
+                    onClick={() => handleRejectDiscount(viewingUser.email)}
+                  >
+                    Reject Discount
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
 
+      {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Confirm Delete</h2>
-            <p>
-              Are you sure you want to delete{" "}
-              <strong>{userToDelete.name}</strong>?
-            </p>
-            <div className="modal-buttons">
-              <button onClick={confirmDelete}>Yes, Delete</button>
-              <button onClick={cancelDelete}>Cancel</button>
+        <div className="adm-modal-overlay">
+          <div className="adm-modal">
+            <div className="adm-modal-header">
+              <h2 className="adm-modal-title">Confirm Delete</h2>
+              <button className="adm-modal-close" onClick={cancelDelete}>&times;</button>
+            </div>
+            <div className="adm-modal-content">
+              <p>Are you sure you want to delete user <strong>{userToDelete?.name}</strong>?</p>
+              <p>This action cannot be undone.</p>
+              
+              <div className="adm-modal-actions">
+                <button className="adm-btn adm-btn-secondary" onClick={cancelDelete}>
+                  Cancel
+                </button>
+                <button className="adm-btn adm-btn-danger" onClick={confirmDelete}>
+                  Delete User
+                </button>
+              </div>
             </div>
           </div>
         </div>
