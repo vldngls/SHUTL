@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import "../css/shared/AuthForms.css";
-import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
+import GoogleAuthWrapper from './GoogleAuthWrapper';
 import {
   FaRegEye,
   FaRegEyeSlash,
@@ -471,37 +472,30 @@ const RegisterForm = ({ onClose, googleData }) => {
                 </div>
 
                 <div className="auth-input-group">
-                  <GoogleOAuthProvider
-                    clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}
-                  >
-                    <div
-                      className="custom-google-btn"
-                      onClick={() => {
-                        const googleLoginButton =
-                          document.querySelector(".google-login");
-                        if (googleLoginButton) {
-                          googleLoginButton.click();
-                        }
+                  <GoogleAuthWrapper>
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={(error) => {
+                        console.error("Google login error:", error);
+                        console.error("Current origin:", window.location.origin);
+                        setError("Google login failed. Please try again.");
                       }}
-                    >
-                      <FcGoogle size={24} />
-                      <span>Sign up with Google</span>
-                      <div style={{ display: "none" }}>
-                        <GoogleLogin
-                          onSuccess={handleGoogleSuccess}
-                          onError={(error) => {
-                            console.error("Google login error:", error);
-                            setError("Google login failed");
-                          }}
-                          useOneTap
-                          theme="filled_blue"
-                          size="large"
-                          shape="rectangular"
-                          className="google-login"
-                        />
-                      </div>
-                    </div>
-                  </GoogleOAuthProvider>
+                      theme="filled_blue"
+                      size="large"
+                      shape="rectangular"
+                      type="standard"
+                      width="350"
+                      cookiePolicy="single_host_origin"
+                      useOneTap={false}
+                      auto_select={false}
+                      context="signup"
+                      flow="auth-code"
+                      ux_mode="popup"
+                      text="signup_with"
+                      locale="en"
+                      style={{ width: '100%' }}
+                    />
+                  </GoogleAuthWrapper>
                 </div>
               </>
             ) : (

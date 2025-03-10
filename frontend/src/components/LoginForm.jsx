@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/shared/AuthForms.css";
 import RegisterForm from "./RegisterForm";
-import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import {
   FaRegEye,
@@ -14,10 +14,17 @@ import {
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-hot-toast";
 import shuttlIcon from "/shuttl.svg";
+import GoogleAuthWrapper from './GoogleAuthWrapper';
 
 const LoginForm = ({ onClose }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  // Add debug logging
+  console.log('Current origin:', window.location.origin);
+  console.log('Google Client ID:', GOOGLE_CLIENT_ID);
+  console.log('API Base URL:', API_BASE_URL);
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -497,34 +504,30 @@ const LoginForm = ({ onClose }) => {
               </div>
 
               <div className="auth-input-group">
-                <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-                  <div
-                    className="custom-google-btn"
-                    onClick={() => {
-                      const googleLoginButton =
-                        document.querySelector(".google-login");
-                      if (googleLoginButton) {
-                        googleLoginButton.click();
-                      }
+                <GoogleAuthWrapper>
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={(error) => {
+                      console.error("Google Sign In error:", error);
+                      console.error("Current origin:", window.location.origin);
+                      setError("Google Sign In failed. Please try again.");
                     }}
-                  >
-                    <FcGoogle size={24} />
-                    <span>Sign in with Google</span>
-                    <div style={{ display: "none" }}>
-                      <GoogleLogin
-                        onSuccess={handleGoogleSuccess}
-                        onError={() => {
-                          setError("Google Sign In failed");
-                        }}
-                        useOneTap
-                        theme="filled_blue"
-                        size="large"
-                        shape="rectangular"
-                        className="google-login"
-                      />
-                    </div>
-                  </div>
-                </GoogleOAuthProvider>
+                    theme="filled_blue"
+                    size="large"
+                    shape="rectangular"
+                    type="standard"
+                    width="350"
+                    cookiePolicy="single_host_origin"
+                    useOneTap={false}
+                    auto_select={false}
+                    context="signin"
+                    flow="auth-code"
+                    ux_mode="popup"
+                    text="signin_with"
+                    locale="en"
+                    style={{ width: '100%' }}
+                  />
+                </GoogleAuthWrapper>
               </div>
 
               <div className="auth-footer">

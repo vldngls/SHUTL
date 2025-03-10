@@ -30,9 +30,9 @@
   background-color: #f5f5f5;
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  padding: 20px;
+  padding: 16px;
   width: 100%;
-  max-width: 420px;
+  max-width: 400px;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
@@ -58,8 +58,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  margin: 32px 0 40px;
+  gap: 12px;
+  margin: 24px 0 32px;
   width: 100%;
   height: 40px;
 }
@@ -98,13 +98,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .auth-input-group {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   width: 100%;
-  max-width: 360px;
+  max-width: 350px;
   position: relative;
 }
 
@@ -129,7 +129,7 @@
 
 .auth-input {
   width: 100%;
-  padding: 14px 16px 14px 48px;
+  padding: 12px 16px 12px 44px;
   border: 1px solid #e0e0e0;
   border-radius: 12px;
   font-size: 16px;
@@ -163,16 +163,16 @@
 .auth-button-group {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 32px;
-  padding: 0 16px;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 0 12px;
+  width: 100%;
+  max-width: 350px;
 }
 
-.auth-submit-button {
-  background-color: #1a1a1a;
-  color: #ffffff;
-  border: none;
-  padding: 14px 24px;
+.auth-submit-button,
+.auth-cancel-button {
+  padding: 12px 24px;
   border-radius: 12px;
   font-size: 16px;
   font-weight: 600;
@@ -182,14 +182,15 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  max-width: 360px;
-  margin: 8px 0;
+  max-width: 350px;
+  margin: 4px 0;
+  cursor: pointer;
 }
 
-.auth-submit-button:hover {
-  background-color: #000000;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.auth-submit-button {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  border: none;
 }
 
 .auth-cancel-button {
@@ -198,9 +199,18 @@
   border: 1px solid #e0e0e0;
 }
 
+.auth-submit-button:hover,
+.auth-cancel-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.auth-submit-button:hover {
+  background-color: #000000;
+}
+
 .auth-cancel-button:hover {
   background-color: #f5f5f5;
-  transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
@@ -235,11 +245,11 @@
 /* Google Sign In Container */
 .google-login-container {
   width: 100%;
-  max-width: 360px;
+  max-width: 350px;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 16px 0;
+  margin: 12px 0;
   box-sizing: border-box;
   position: relative;
   z-index: 1;
@@ -247,19 +257,19 @@
 
 /* Divider */
 .auth-divider {
+  width: 100%;
+  max-width: 350px;
+  margin: 12px 0;
   display: flex;
   align-items: center;
   text-align: center;
-  margin: 16px 0;
-  width: 100%;
-  max-width: 360px;
 }
 
 .auth-divider::before,
 .auth-divider::after {
   content: "";
   flex: 1;
-  border-bottom: 2px solid #eee;
+  border-bottom: 1px solid #eee;
 }
 
 .auth-divider span {
@@ -267,6 +277,7 @@
   color: #999;
   font-size: 14px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 /* Error Message */
