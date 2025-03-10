@@ -127,18 +127,26 @@
 /* Settings Dropdown */
 .Sidebar-settings-dropdown {
   position: absolute;
-  left: 0;
-  width: 100%;
+  left: calc(100% + 8px);
+  top: 0;
   background-color: #232323;
   border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   z-index: 1001;
+  width: 220px;
+  visibility: visible;
+  opacity: 1;
   overflow: hidden;
-  margin-top: 340px;
-  display: none;
 }
 
 .Sidebar.expanded .Sidebar-settings-dropdown {
-  display: block;
+  position: relative;
+  left: 0;
+  width: 100%;
+  margin: 8px 0;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
 }
 
 .Sidebar-settings-option {
@@ -149,12 +157,16 @@
   cursor: pointer;
   font-size: 14px;
   font-weight: normal;
-  padding: 8px 16px;
+  padding: 12px 16px;
   transition: background-color 0.2s ease;
   width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  height: 44px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
 }
 
 /* Settings toggle switch */
@@ -162,75 +174,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 16px;
-  height: 36px;
-  box-sizing: border-box;
-}
-
-/* Switch container */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 28px;
-  height: 16px;
-  flex-shrink: 0;
-  margin-left: 8px;
-}
-
-/* Hide default checkbox */
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-/* The slider */
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.1);
-  transition: all 0.2s ease;
-  border-radius: 8px;
-}
-
-/* The circle */
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 12px;
-  width: 12px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  transition: all 0.2s ease;
-  border-radius: 50%;
-}
-
-/* Checked state */
-input:checked + .slider {
-  background-color: #00bfa5;
-}
-
-input:checked + .slider:before {
-  transform: translateX(12px);
-}
-
-/* Hover effects */
-.Sidebar-settings-option[data-enabled]:hover .slider {
-  background-color: rgba(255, 255, 255, 0.15);
-}
-
-.Sidebar-settings-option[data-enabled]:hover input:checked + .slider {
-  background-color: #00bfa5;
-  opacity: 0.9;
-}
-
-.Sidebar-settings-option:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  padding: 12px 16px;
+  height: 44px;
 }
 
 .Sidebar-settings-dropdown hr {
@@ -361,6 +306,16 @@ input:checked + .slider:before {
     z-index: 1000;
     padding: 0;
     margin: 0;
+    transition: transform 0.3s ease;
+  }
+
+  .Sidebar.mobile-open {
+    transform: translateX(0);
+    width: 100% !important;
+  }
+
+  .Sidebar.expanded {
+    width: 100% !important;
   }
 
   .Sidebar-content {
@@ -372,22 +327,17 @@ input:checked + .slider:before {
     -webkit-overflow-scrolling: touch;
     display: flex;
     flex-direction: column;
-  }
-
-  .Sidebar.mobile-open {
-    transform: translateX(0);
+    width: 100%;
   }
 
   .Sidebar-buttons {
-    padding: 32px 0;
+    padding: 32px 16px;
     height: auto;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     margin-bottom: auto;
-  }
-
-  .Sidebar-logo {
-    display: none;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .Sidebar-icon-btn {
@@ -396,6 +346,40 @@ input:checked + .slider:before {
     width: 100%;
     border-radius: 8px;
     background-color: rgba(255, 255, 255, 0.03);
+    box-sizing: border-box;
+  }
+
+  .Sidebar-settings-dropdown {
+    position: static;
+    left: 0;
+    width: 100%;
+    margin: 4px 0;
+    border: none;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.03);
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .Sidebar.expanded .Sidebar-settings-dropdown {
+    margin: 4px 0;
+  }
+
+  .Sidebar-settings-option {
+    padding: 16px 24px;
+    font-size: 16px;
+    height: 56px;
+    background-color: transparent;
+  }
+
+  .Sidebar-settings-option[data-enabled] {
+    padding: 16px 24px;
+    height: 56px;
+  }
+
+  .Sidebar-settings-dropdown hr {
+    margin: 0;
+    opacity: 0.1;
   }
 
   .button-label {
@@ -405,63 +389,14 @@ input:checked + .slider:before {
     white-space: nowrap;
   }
 
+  .Sidebar-logo {
+    display: none;
+  }
+
   .Sidebar-icon-image {
     width: 24px;
     height: 24px;
     min-width: 24px;
-  }
-
-  .Sidebar-settings-dropdown {
-    position: absolute;
-    width: 100% !important;
-    margin: 8px 0;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    display: block;
-    border-inline: none;
-    border-block: none;
-  }
-
-  .Sidebar-settings-option {
-    text-align: left;
-    padding: 16px 24px;
-    font-size: 16px;
-    background: none;
-  }
-
-  .Sidebar-settings-option:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-
-  .Sidebar-profile-section {
-    background-color: rgba(255, 255, 255, 0.03);
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: max(16px, env(safe-area-inset-bottom, 0px));
-  }
-
-  .Sidebar-profile-text {
-    display: block !important;
-    color: #fff;
-    font-size: 16px;
-    margin-left: 16px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .Sidebar-icon-container {
-    margin-top: auto;
-    width: 100%;
-    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
-  }
-
-  .Sidebar-settings-option[data-enabled] {
-    padding: 14px 23px;
-  }
-
-  .switch {
-    margin-right: 8px;
   }
 }
 
@@ -492,14 +427,13 @@ input:checked + .slider:before {
 
   .Sidebar-settings-dropdown {
     position: static;
-    margin: 8px 0;
-    width: 100% !important;
+    margin: 0;
+    width: 100%;
   }
 
   .Sidebar-settings-option {
     padding: 16px 24px;
     font-size: 16px;
-    text-align: left;
   }
 
   .Sidebar-profile-text {
@@ -554,4 +488,63 @@ input:checked + .slider:before {
 
 .Sidebar-close-button:hover {
   background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Switch container */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+  border-radius: 10px;
+}
+
+/* The circle */
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: all 0.2s ease;
+  border-radius: 50%;
+}
+
+/* Checked state */
+input:checked + .slider {
+  background-color: #00bfa5;
+}
+
+input:checked + .slider:before {
+  transform: translateX(16px);
+}
+
+/* Hover effects */
+.Sidebar-settings-option[data-enabled]:hover .slider {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.Sidebar-settings-option[data-enabled]:hover input:checked + .slider {
+  background-color: #00bfa5;
+  opacity: 0.9;
+}
+
+.Sidebar-settings-option:hover {
+  background-color: rgba(255, 255, 255, 0.05);
 }

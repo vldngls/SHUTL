@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import "../css/shared/AuthForms.css";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
@@ -145,6 +146,9 @@ const RegisterForm = ({ onClose, googleData }) => {
   };
 
   const validateSection = () => {
+    let isValid = true;
+    let validationError = "";
+
     switch (section) {
       case 1:
         if (!googleData) {
@@ -154,12 +158,17 @@ const RegisterForm = ({ onClose, googleData }) => {
             !formData.password ||
             !formData.confirmPassword
           ) {
-            setError("Please fill in all fields");
-            return false;
-          }
-          if (formData.password !== formData.confirmPassword) {
-            setError("Passwords do not match");
-            return false;
+            validationError = "Please fill in all fields";
+            isValid = false;
+          } else if (!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+            validationError = "Please enter a valid email address";
+            isValid = false;
+          } else if (formData.password.length < 8) {
+            validationError = "Password must be at least 8 characters long";
+            isValid = false;
+          } else if (formData.password !== formData.confirmPassword) {
+            validationError = "Passwords do not match";
+            isValid = false;
           }
         } else {
           if (
@@ -167,58 +176,61 @@ const RegisterForm = ({ onClose, googleData }) => {
             !formData.password ||
             !formData.confirmPassword
           ) {
-            setError("Please fill in all fields");
-            return false;
-          }
-          if (formData.password !== formData.confirmPassword) {
-            setError("Passwords do not match");
-            return false;
+            validationError = "Please fill in all fields";
+            isValid = false;
+          } else if (formData.password.length < 8) {
+            validationError = "Password must be at least 8 characters long";
+            isValid = false;
+          } else if (formData.password !== formData.confirmPassword) {
+            validationError = "Passwords do not match";
+            isValid = false;
           }
         }
         if (!isChecked) {
-          setError("You must agree to the terms and conditions");
-          return false;
+          validationError = "You must agree to the terms and conditions";
+          isValid = false;
         }
-        return true;
+        break;
 
       case 2:
         if (
           !formData.name ||
           !formData.birthday ||
           !formData.address ||
-          !formData.discountType ||
-          !formData.paymentMethod ||
           !formData.contactNumber
         ) {
-          setError("Please fill in all fields");
-          return false;
+          validationError = "Please fill in all fields";
+          isValid = false;
+        } else if (formData.name.trim().split(/\s+/).length < 2) {
+          validationError = "Please enter your full name (first and last name)";
+          isValid = false;
+        } else if (!formData.contactNumber.match(/^[0-9]{11}$/)) {
+          validationError = "Please enter a valid 11-digit contact number";
+          isValid = false;
+        } else if (formData.address.trim().length < 10) {
+          validationError = "Please enter a complete address";
+          isValid = false;
         }
-        if (formData.discountType !== "REGULAR" && !formData.idPicture) {
-          setError("Please upload your ID for discount verification");
-          return false;
-        }
-        return true;
+        break;
 
       case 3:
-        // For Google profile picture, require confirmation
         if (googleData && googleData.profilePicture) {
-          if (!useGooglePicture) {
-            if (!formData.profilePicture) {
-              setError("Please upload a profile picture");
-              return false;
-            }
+          if (!useGooglePicture && !formData.profilePicture) {
+            validationError = "Please upload a profile picture";
+            isValid = false;
           }
-          return true;
+        } else if (!formData.profilePicture) {
+          validationError = "Please upload a profile picture";
+          isValid = false;
         }
-        if (!formData.profilePicture) {
-          setError("Please upload a profile picture");
-          return false;
-        }
-        return true;
+        break;
 
       default:
-        return false;
+        isValid = false;
     }
+
+    setError(validationError);
+    return isValid;
   };
 
   const handleNext = () => {
@@ -621,6 +633,7 @@ const RegisterForm = ({ onClose, googleData }) => {
                   value={formData.birthday}
                   onChange={handleInputChange}
                   required
+                  max={new Date().toISOString().split('T')[0]} // Prevent future dates
                 />
               </div>
             </div>
@@ -648,11 +661,14 @@ const RegisterForm = ({ onClose, googleData }) => {
                   name="contactNumber"
                   className="auth-input with-icon"
                   placeholder="Contact Number"
+                  pattern="[0-9]{11}"
+                  title="Please enter a valid 11-digit phone number"
                   value={formData.contactNumber}
                   onChange={handleInputChange}
                   required
                 />
               </div>
+              <small className="input-hint">Format: 11-digit number (e.g., 09123456789)</small>
             </div>
           </>
         );
@@ -783,6 +799,20 @@ const RegisterForm = ({ onClose, googleData }) => {
       </div>
     </div>
   );
+};
+
+RegisterForm.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  googleData: PropTypes.shape({
+    email: PropTypes.string,
+    name: PropTypes.string,
+    profilePicture: PropTypes.string,
+    googleId: PropTypes.string,
+  }),
+};
+
+RegisterForm.defaultProps = {
+  googleData: null,
 };
 
 export default RegisterForm;

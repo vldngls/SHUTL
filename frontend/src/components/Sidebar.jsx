@@ -1,4 +1,4 @@
-import { forwardRef, useState, useEffect, useCallback, useRef } from "react";
+import { forwardRef, useState, useEffect, useCallback, useRef, useMemo } from "react";
 import PropTypes from "prop-types";
 import "../css/Sidebar.css";
 import { useNavigate } from "react-router-dom";
@@ -27,10 +27,36 @@ const Sidebar = forwardRef(
   ) => {
     const navigate = useNavigate();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    const [settingsButtonRef, setSettingsButtonRef] = useState(null);
+    const settingsButtonRef = useRef(null);
+    const dropdownRef = useRef(null);
     const [username, setUsername] = useState(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const mobileMenuRef = useRef(null);
+    const isMobile = window.innerWidth <= 768;
+
+    // Calculate dropdown position once when opened
+    const dropdownPosition = useMemo(() => {
+      if (!settingsButtonRef.current || !dropdownRef.current || isExpanded || isMobile) {
+        return { top: 0 };
+      }
+
+      const buttonRect = settingsButtonRef.current.getBoundingClientRect();
+      const dropdownRect = dropdownRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+
+      if (buttonRect.top + dropdownRect.height > viewportHeight) {
+        return { top: buttonRect.height - dropdownRect.height };
+      }
+      
+      return { top: -(dropdownRect.height / 2 - buttonRect.height / 2) };
+    }, [isSettingsOpen, isExpanded, isMobile]);
+
+    // Close settings when sidebar is unexpanded
+    useEffect(() => {
+      if (!isExpanded && isSettingsOpen) {
+        setIsSettingsOpen(false);
+      }
+    }, [isExpanded]);
 
     // Get username from token
     useEffect(() => {
@@ -109,7 +135,7 @@ const Sidebar = forwardRef(
     const handleSettingsClick = useCallback(
       (e) => {
         e.stopPropagation();
-        if (onSettingsClick) {
+        if (onSettingsClick && !isSettingsOpen) {
           onSettingsClick();
         }
         setIsSettingsOpen(!isSettingsOpen);
@@ -140,7 +166,7 @@ const Sidebar = forwardRef(
           icon: "/settings.png",
           label: "Settings",
           onClick: handleSettingsClick,
-          ref: setSettingsButtonRef,
+          ref: settingsButtonRef,
         },
       ];
 
@@ -200,7 +226,7 @@ const Sidebar = forwardRef(
           e.stopPropagation();
         }
         setIsMobileMenuOpen((prev) => !prev);
-        // Prevent body scroll when menu is open
+        setIsSettingsOpen(false); // Close settings when toggling mobile menu
         document.body.style.overflow = !isMobileMenuOpen ? "hidden" : "";
       },
       [isMobileMenuOpen]
@@ -293,11 +319,11 @@ const Sidebar = forwardRef(
 
         <nav
           ref={ref}
-          className={`Sidebar ${isExpanded ? "expanded" : ""} ${
+          className={`Sidebar ${isExpanded || isMobile ? "expanded" : ""} ${
             isMobileMenuOpen ? "mobile-open" : ""
           }`}
           onClick={(e) => {
-            if (window.innerWidth > 768) {
+            if (!isMobile) {
               onToggle(e);
             }
           }}
@@ -355,30 +381,32 @@ const Sidebar = forwardRef(
                 onClick={(e) => {
                   e.stopPropagation();
                   button.onClick(e);
-                  if (window.innerWidth <= 768 && button.id !== "settings") {
+                  if (isMobile && button.id !== "settings") {
                     setIsMobileMenuOpen(false);
                   }
                 }}
-                ref={button.ref}
+                ref={button.id === "settings" ? settingsButtonRef : undefined}
               >
                 <img
                   src={button.icon}
                   alt={button.label}
                   className="Sidebar-icon-image"
                 />
-                {(isExpanded || window.innerWidth <= 768) && (
+                {(isExpanded || isMobile) && (
                   <span className="button-label">{button.label}</span>
                 )}
               </button>
             ))}
 
             {/* Settings Dropdown */}
-            {isSettingsOpen && settingsButtonRef && userType !== "guest" && (
+            {isSettingsOpen && userType !== "guest" && (
               <div
+                ref={dropdownRef}
                 className="Sidebar-settings-dropdown"
                 onClick={(e) => e.stopPropagation()}
                 role="menu"
                 aria-label="Settings menu"
+                style={!isExpanded && !isMobile ? { top: `${dropdownPosition.top}px` } : undefined}
               >
                 <button
                   className="Sidebar-settings-option"
@@ -396,9 +424,7 @@ const Sidebar = forwardRef(
                         <input
                           type="checkbox"
                           checked={notificationEnabled}
-                          onChange={(e) =>
-                            onNotificationToggle(e.target.checked)
-                          }
+                          onChange={(e) => onNotificationToggle(e.target.checked)}
                         />
                         <span className="slider"></span>
                       </label>
