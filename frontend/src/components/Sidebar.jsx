@@ -14,7 +14,6 @@ const Sidebar = forwardRef(
       onMessageClick,
       onNotificationClick,
       onSummaryClick,
-      onTripClick,
       onActiveShuttlesClick,
       profileImage,
       onSettingsClick,
@@ -185,12 +184,6 @@ const Sidebar = forwardRef(
               icon: "/summary.png",
               label: "Summary",
               onClick: onSummaryClick,
-            },
-            {
-              id: "trip",
-              icon: "/trip.png",
-              label: "Trip",
-              onClick: onTripClick,
             },
             ...commonButtons,
           ];
@@ -490,7 +483,6 @@ Sidebar.propTypes = {
   onMessageClick: PropTypes.func,
   onNotificationClick: PropTypes.func,
   onSummaryClick: PropTypes.func,
-  onTripClick: PropTypes.func,
   onActiveShuttlesClick: PropTypes.func,
   profileImage: PropTypes.string,
   onSettingsClick: PropTypes.func,

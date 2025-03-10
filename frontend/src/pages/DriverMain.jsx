@@ -1427,7 +1427,6 @@ const DriverMain = () => {
           )
         }
         onSummaryClick={() => toggleModal("isSummaryOpen")}
-        onTripClick={() => toggleModal("isScheduleOpen")}
         profileImage={profileImage}
         onSettingsClick={() => {
           if (!isSidebarExpanded) {
