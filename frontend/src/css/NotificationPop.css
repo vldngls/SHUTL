@@ -5,7 +5,7 @@
 
 .ShutlNotificationPop-popup {
   position: fixed; /* Use fixed positioning to keep it on top */
-  top: 20px; /* Space from the top */
+  top: 140px; /* Match active shuttles container position */
   right: 20px; /* Space from the right */
   background: rgba(50, 50, 50, 0.9); /* Dark, translucent background */
   border-radius: 10px; /* Rounded corners */
@@ -18,8 +18,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 80vh; /* Limit height on larger screens */
-  max-height: calc(var(--vh, 1vh) * 80); /* Dynamic height for mobile */
+  max-height: calc(100vh - 260px); /* Match active shuttles container max-height */
   overflow-y: auto; /* Allow scrolling if many notifications */
 }
 
@@ -70,7 +69,7 @@
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .ShutlNotificationPop-popup {
-    top: 70px; /* Adjust for mobile navbar */
+    top: 140px; /* Keep consistent with desktop */
     right: 10px;
     max-width: 280px;
     padding: 12px 15px;
@@ -79,7 +78,7 @@
 
 @media (max-width: 480px) {
   .ShutlNotificationPop-popup {
-    top: 70px;
+    top: 140px; /* Keep consistent across all screen sizes */
     right: 10px;
     left: 10px;
     max-width: none;

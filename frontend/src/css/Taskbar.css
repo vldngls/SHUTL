@@ -4,9 +4,9 @@
   left: 0;
   right: 0;
   height: 40px;
-  background: linear-gradient(180deg, 
-    rgba(0, 0, 0, 0.65) 0%,
-    rgba(0, 0, 0, 0.85) 100%
+  background: linear-gradient(90deg, 
+    rgba(0, 0, 0, 0.5) 0%,
+    rgba(0, 0, 0, 0.65) 100%
   );
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -73,9 +73,9 @@
 @media (max-width: 768px) {
   .Taskbar {
     height: calc(48px + env(safe-area-inset-bottom, 0px));
-    background: linear-gradient(180deg, 
-      rgba(0, 0, 0, 0.7) 0%,
-      rgba(0, 0, 0, 0.9) 100%
+    background: linear-gradient(90deg, 
+      rgba(0, 0, 0, 0.6) 0%,
+      rgba(0, 0, 0, 0.75) 100%
     );
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
   }
@@ -105,9 +105,9 @@
 @media (max-width: 480px) {
   .Taskbar {
     height: calc(52px + env(safe-area-inset-bottom, 0px));
-    background: linear-gradient(180deg, 
-      rgba(0, 0, 0, 0.75) 0%,
-      rgba(0, 0, 0, 0.95) 100%
+    background: linear-gradient(90deg, 
+      rgba(0, 0, 0, 0.65) 0%,
+      rgba(0, 0, 0, 0.8) 100%
     );
   }
 
@@ -163,9 +163,9 @@
 /* Dark mode support - we can remove this since we're using dark theme by default now */
 @media (prefers-color-scheme: light) {
   .Taskbar {
-    background: linear-gradient(180deg, 
-      rgba(0, 0, 0, 0.65) 0%,
-      rgba(0, 0, 0, 0.85) 100%
+    background: linear-gradient(90deg, 
+      rgba(0, 0, 0, 0.5) 0%,
+      rgba(0, 0, 0, 0.65) 100%
     );
   }
 
@@ -184,9 +184,9 @@
 
   @media (max-width: 480px) {
     .Taskbar {
-      background: linear-gradient(180deg, 
-        rgba(0, 0, 0, 0.75) 0%,
-        rgba(0, 0, 0, 0.95) 100%
+      background: linear-gradient(90deg, 
+        rgba(0, 0, 0, 0.65) 0%,
+        rgba(0, 0, 0, 0.8) 100%
       );
     }
   }
