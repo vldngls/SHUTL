@@ -200,29 +200,6 @@ textarea {
   top: 0;
 }
 
-/* Hamburger Menu Button */
-.TellerMain-hamburger {
-  display: none;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 24px;
-  height: 20px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  z-index: 1002; /* Increased z-index to be above navbar */
-  touch-action: manipulation;
-}
-
-.TellerMain-hamburger span {
-  width: 100%;
-  height: 2px;
-  background-color: white;
-  transition: all 0.3s ease;
-  display: block;
-}
-
 /* Mobile Navigation Menu */
 .TellerMain-mobile-menu {
   display: none;
@@ -444,40 +421,6 @@ textarea {
     margin-bottom: 30px;
   }
 
-  .TellerMain-hamburger {
-    display: flex;
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1002;
-    background-color: #232323;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    align-items: center;
-    justify-content: center;
-    padding: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
-
-  .TellerMain-hamburger span {
-    width: 20px;
-    height: 2px;
-    margin: 2px 0;
-  }
-
-  .TellerMain-hamburger.active span:nth-child(1) {
-    transform: rotate(45deg) translate(5px, 5px);
-  }
-
-  .TellerMain-hamburger.active span:nth-child(2) {
-    opacity: 0;
-  }
-
-  .TellerMain-hamburger.active span:nth-child(3) {
-    transform: rotate(-45deg) translate(5px, -5px);
-  }
-
   .TellerMain-mobile-menu {
     display: none;
     right: -250px;
@@ -525,26 +468,6 @@ textarea {
   .TellerMain-logo {
     font-size: 1.2em;
     margin-bottom: 30px;
-  }
-
-  .TellerMain-hamburger {
-    display: flex;
-    top: 15px;
-    right: 15px;
-    width: 36px;
-    height: 36px;
-  }
-
-  .TellerMain-hamburger span {
-    width: 18px;
-  }
-
-  .TellerMain-hamburger.active span:nth-child(1) {
-    transform: rotate(45deg) translate(4px, 4px);
-  }
-
-  .TellerMain-hamburger.active span:nth-child(3) {
-    transform: rotate(-45deg) translate(4px, -4px);
   }
 
   .TellerMain-mobile-menu {

@@ -846,40 +846,7 @@ const TellerMain = () => {
 
       <Taskbar date={formattedDate} time={formattedTime} />
 
-      {/* Mobile Menu Button */}
-      <button
-        className={`TellerMain-hamburger ${isMobileMenuOpen ? "active" : ""}`}
-        onClick={toggleMobileMenu}
-      >
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-
-      {/* Mobile Menu */}
-      <div
-        ref={mobileMenuRef}
-        className={`TellerMain-mobile-menu ${isMobileMenuOpen ? "active" : ""}`}
-      >
-        <div className="TellerMain-mobile-menu-header">
-          <div className="TellerMain-mobile-menu-logo">SHUTL</div>
-        </div>
-        <div className="TellerMain-mobile-menu-items">
-          <button onClick={() => handleMobileMenuAction("profile")}>
-            Profile
-          </button>
-          <button onClick={() => handleMobileMenuAction("message")}>
-            Message
-          </button>
-          <button onClick={() => handleMobileMenuAction("notification")}>
-            Notification
-          </button>
-          <button onClick={() => handleMobileMenuAction("summary")}>
-            Summary
-          </button>
-          <button onClick={() => handleMobileMenuAction("trip")}>Trip</button>
-        </div>
-      </div>
+      {/* Mobile menu content can remain if needed */}
 
       {/* Notification Popup */}
       {activePopup === "notifications" && (
