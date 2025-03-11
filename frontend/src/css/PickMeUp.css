@@ -1,0 +1,155 @@
+.pickup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.pickup-container {
+  background-color: white;
+  border-radius: 12px;
+  padding: 20px;
+  width: 90%;
+  max-width: 380px;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.pickup-container h2 {
+  color: #2d3748;
+  margin-bottom: 20px;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.pickup-close-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.pickup-close-button:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.pickup-form-group {
+  margin-bottom: 16px;
+}
+
+.pickup-label {
+  display: block;
+  margin-bottom: 6px;
+  color: #333;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.pickup-select,
+.pickup-input,
+.pickup-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #2d3748;
+  background-color: white;
+  transition: all 0.2s ease;
+}
+
+.pickup-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px;
+  padding-right: 32px;
+}
+
+.pickup-select:hover,
+.pickup-input:hover,
+.pickup-textarea:hover {
+  border-color: #4299e1;
+}
+
+.pickup-select:focus,
+.pickup-input:focus,
+.pickup-textarea:focus {
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.15);
+}
+
+.pickup-submit-button {
+  width: 100%;
+  padding: 12px;
+  background-color: #4299e1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+}
+
+.pickup-submit-button:hover {
+  background-color: #3182ce;
+  transform: translateY(-1px);
+}
+
+.pickup-submit-button:active {
+  transform: translateY(0);
+}
+
+.pickup-textarea {
+  min-height: 80px;
+  max-height: 120px;
+  resize: vertical;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  .pickup-container {
+    width: 92%;
+    padding: 16px;
+    margin: 16px;
+  }
+  
+  .pickup-container h2 {
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+  }
+  
+  .pickup-form-group {
+    margin-bottom: 14px;
+  }
+
+  .pickup-select,
+  .pickup-input,
+  .pickup-textarea {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+} 

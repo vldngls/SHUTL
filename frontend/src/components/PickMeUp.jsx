@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import { KNOWN_LOCATIONS } from "../utils/locationUtils";
 import { getCookie } from "../utils/cookieUtils";
 import PropTypes from "prop-types";
+import "../css/PickMeUp.css";
 
 const styles = {
   overlay: {
@@ -20,42 +21,81 @@ const styles = {
   },
   container: {
     backgroundColor: "white",
-    padding: "2rem",
-    borderRadius: "10px",
+    borderRadius: "12px",
+    padding: "24px",
     width: "90%",
-    maxWidth: "500px",
+    maxWidth: "400px",
     position: "relative",
+    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
   },
   closeButton: {
     position: "absolute",
-    right: "1rem",
-    top: "1rem",
-    border: "none",
+    top: "16px",
+    right: "16px",
     background: "none",
-    fontSize: "1.5rem",
+    border: "none",
+    fontSize: "24px",
     cursor: "pointer",
+    color: "#666",
+    width: "32px",
+    height: "32px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: "50%",
+    transition: "all 0.2s ease",
+    ":hover": {
+      backgroundColor: "#f0f0f0",
+      color: "#333",
+    },
   },
   formGroup: {
-    marginBottom: "1rem",
+    marginBottom: "20px",
   },
   label: {
     display: "block",
-    marginBottom: "0.5rem",
+    marginBottom: "8px",
+    color: "#333",
+    fontWeight: "500",
+    fontSize: "0.95rem",
   },
   input: {
     width: "100%",
-    padding: "0.5rem",
-    border: "1px solid #ccc",
-    borderRadius: "4px",
+    padding: "12px",
+    border: "1px solid #e2e8f0",
+    borderRadius: "8px",
+    fontSize: "0.95rem",
+    color: "#2d3748",
+    backgroundColor: "white",
+    transition: "all 0.2s ease",
+    ":hover": {
+      borderColor: "#4299e1",
+    },
+    ":focus": {
+      outline: "none",
+      borderColor: "#4299e1",
+      boxShadow: "0 0 0 3px rgba(66, 153, 225, 0.15)",
+    },
   },
   submitButton: {
     width: "100%",
-    padding: "0.75rem",
-    backgroundColor: "#007bff",
+    padding: "14px",
+    backgroundColor: "#4299e1",
     color: "white",
     border: "none",
-    borderRadius: "4px",
+    borderRadius: "8px",
+    fontSize: "1rem",
+    fontWeight: "600",
     cursor: "pointer",
+    transition: "all 0.2s ease",
+    marginTop: "10px",
+    ":hover": {
+      backgroundColor: "#3182ce",
+      transform: "translateY(-1px)",
+    },
+    ":active": {
+      transform: "translateY(0)",
+    },
   },
   location: {
     padding: "10px",
@@ -66,10 +106,26 @@ const styles = {
   },
   select: {
     width: "100%",
-    padding: "0.5rem",
-    border: "1px solid #ccc",
-    borderRadius: "4px",
-    marginBottom: "0.5rem",
+    padding: "12px",
+    border: "1px solid #e2e8f0",
+    borderRadius: "8px",
+    fontSize: "0.95rem",
+    color: "#2d3748",
+    backgroundColor: "white",
+    transition: "all 0.2s ease",
+    appearance: "none",
+    backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")',
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "right 12px center",
+    backgroundSize: "16px",
+    ":hover": {
+      borderColor: "#4299e1",
+    },
+    ":focus": {
+      outline: "none",
+      borderColor: "#4299e1",
+      boxShadow: "0 0 0 3px rgba(66, 153, 225, 0.15)",
+    },
   },
   customInput: {
     marginTop: "0.5rem",
@@ -175,18 +231,18 @@ const PickMeUp = ({ onClose, onDestinationSelect, shuttleId }) => {
   };
 
   return (
-    <div style={styles.overlay}>
-      <div style={styles.container}>
-        <button style={styles.closeButton} onClick={onClose}>
+    <div className="pickup-overlay">
+      <div className="pickup-container">
+        <button className="pickup-close-button" onClick={onClose}>
           ×
         </button>
         <h2>Request a Pick Up</h2>
 
         <form onSubmit={handleSubmit}>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Select a Pickup Point:</label>
+          <div className="pickup-form-group">
+            <label className="pickup-label">Select a Pickup Point:</label>
             <select
-              style={styles.select}
+              className="pickup-select"
               value={pickupDetails.pickupPoint}
               onChange={handlePickupPointChange}
               required
@@ -200,7 +256,7 @@ const PickMeUp = ({ onClose, onDestinationSelect, shuttleId }) => {
 
             {showCustomInput && (
               <input
-                style={{ ...styles.input, marginTop: "0.5rem" }}
+                className="pickup-input"
                 type="text"
                 value={pickupDetails.customPickupPoint}
                 onChange={(e) =>
@@ -211,14 +267,15 @@ const PickMeUp = ({ onClose, onDestinationSelect, shuttleId }) => {
                 }
                 placeholder="Enter your pickup location"
                 required={showCustomInput}
+                style={{ marginTop: '8px' }}
               />
             )}
           </div>
 
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Number of Passengers:</label>
+          <div className="pickup-form-group">
+            <label className="pickup-label">Number of Passengers:</label>
             <input
-              style={styles.input}
+              className="pickup-input"
               type="number"
               min="1"
               max="4"
@@ -233,10 +290,10 @@ const PickMeUp = ({ onClose, onDestinationSelect, shuttleId }) => {
             />
           </div>
 
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Additional Notes:</label>
+          <div className="pickup-form-group">
+            <label className="pickup-label">Additional Notes:</label>
             <textarea
-              style={styles.input}
+              className="pickup-textarea"
               value={pickupDetails.notes}
               onChange={(e) =>
                 setPickupDetails({
@@ -248,7 +305,7 @@ const PickMeUp = ({ onClose, onDestinationSelect, shuttleId }) => {
             />
           </div>
 
-          <button type="submit" style={styles.submitButton}>
+          <button type="submit" className="pickup-submit-button">
             Request Pickup
           </button>
         </form>
