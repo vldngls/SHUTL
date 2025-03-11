@@ -14,6 +14,7 @@ import fareRoutes from "./routes/fareRoutes.js";
 import userDataRoutes from "./routes/userDataRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import shuttleRoutes from "./routes/shuttleRoutes.js";
+import shuttleDetailsRoutes from "./routes/shuttleDetailsRoutes.js";
 import scheduleRoutes from "./routes/scheduleRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import tellerRoutes from "./routes/tellerRoutes.js";
@@ -96,6 +97,7 @@ app.use((req, res, next) => {
 app.use("/api/users", userRoutes);
 app.use("/api/userdata", userDataRoutes);
 app.use("/api/shuttle", shuttleRoutes);
+app.use("/api/shuttle-details", shuttleDetailsRoutes);
 app.use("/api/fares", fareRoutes);
 app.use("/api/schedule", scheduleRoutes);
 app.use("/api/notifications", notificationRoutes);
