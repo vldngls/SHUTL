@@ -132,7 +132,7 @@ const DISCOUNT_STATUS = {
   REJECTED: { label: "Rejected", color: "#d9534f" },
 };
 
-const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
+const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpdate }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Use API_BASE_URL from environment variables
   const popupRef = useRef(null);
   const [userData, setUserData] = useState(null);
@@ -152,61 +152,6 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
     SENIOR: { label: "Senior Citizen", value: 20 },
   });
 
-  // Get email from JWT token
-  const getEmailFromToken = () => {
-    const token = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("token="))
-      ?.split("=")[1];
-
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        return decoded.email;
-      } catch (error) {
-        console.error("Error decoding token:", error);
-        return null;
-      }
-    }
-    return null;
-  };
-
-  const fetchTransactions = async (email) => {
-    try {
-      if (!email) {
-        console.error("No email available");
-        return;
-      }
-
-      console.log("Fetching transactions for email:", email);
-      const token = getCookie("token");
-      const url = `${API_BASE_URL}/fare-transactions/commuter/${encodeURIComponent(
-        email
-      )}`;
-      console.log("Request URL:", url);
-
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Raw response data:", data);
-        setTransactions(data);
-      } else {
-        const errorText = await response.text();
-        console.error("Failed to fetch transactions:", errorText);
-      }
-    } catch (error) {
-      console.error("Error fetching transactions:", error);
-    }
-  };
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -223,14 +168,39 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
         if (response.ok) {
           const data = await response.json();
           setUserData(data);
-          setProfileImage(
-            data.profilePicture || "/icon.png" // Use local icon instead of placeholder
-          );
+          // Handle both Google profile images and base64 images
+          if (data.profilePicture) {
+            // Check if it's a Google profile image
+            if (data.profilePicture.startsWith('https://lh3.googleusercontent.com/')) {
+              setProfileImage(data.profilePicture);
+            } 
+            // Check if it's a base64 image
+            else if (data.profilePicture.startsWith('data:image/')) {
+              setProfileImage(data.profilePicture);
+            } 
+            // If neither, use default image
+            else {
+              setProfileImage('/icon.png');
+            }
+          } else {
+            setProfileImage('/icon.png');
+          }
 
-          // Get email from token and fetch transactions
-          const email = getEmailFromToken();
-          if (email) {
-            await fetchTransactions(email);
+          // Fetch transactions
+          const transactionsResponse = await fetch(`${API_BASE_URL}/fare-transactions/me`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
+
+          if (transactionsResponse.ok) {
+            const transactionsData = await transactionsResponse.json();
+            setTransactions(transactionsData);
+          } else {
+            console.error("Failed to fetch transactions");
           }
         }
       } catch (error) {
@@ -438,6 +408,12 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
       const updatedData = await response.json();
       setUserData(updatedData);
       setIsEditing(false);
+      
+      // Notify parent component about profile image update
+      if (onProfileImageUpdate && profileImage) {
+        onProfileImageUpdate(profileImage);
+      }
+      
       toast.success("Profile updated successfully", {
         duration: 2000,
       });
@@ -487,9 +463,13 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
         <div className="ShutlProfilePopup-header">
           <div className="ShutlProfilePopup-picture-container">
             <img
-              src={profileImage}
+              src={profileImage || "/images/avatar.png"}
               alt="Profile"
               className="ShutlProfilePopup-picture"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "/images/avatar.png";
+              }}
             />
             {isEditing && (
               <>
@@ -838,10 +818,11 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false }) => {
   );
 };
 
-// Add PropTypes validation
+// Update PropTypes validation
 ShutlProfilePopup.propTypes = {
   onClose: PropTypes.func.isRequired,
   initialEditMode: PropTypes.bool,
+  onProfileImageUpdate: PropTypes.func,
 };
 
 export default ShutlProfilePopup;

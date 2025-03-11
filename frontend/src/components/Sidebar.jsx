@@ -482,11 +482,15 @@ const Sidebar = forwardRef(
             <div className="Sidebar-line"></div>
             <div className="Sidebar-profile-section">
               <img
-                src={profileImage || "/profile.png"}
+                src={profileImage || "/icon.png"}
                 alt="Profile"
                 className="Sidebar-icon-image"
                 onClick={handleProfileClick}
                 style={{ cursor: "pointer" }}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "/icon.png";
+                }}
               />
               <span className="Sidebar-profile-text">
                 {userType === "guest" ? "Login" : username || "Profile"}

@@ -44,6 +44,12 @@ const ResetPassword = lazy(() => import("./components/ResetPassword"));
 const MaintenancePage = lazy(() =>
   import(/* webpackPrefetch: true */ "./pages/MaintenancePage")
 );
+const PrivacyPolicy = lazy(() =>
+  import(/* webpackPrefetch: true */ "./pages/PrivacyPolicy")
+);
+const TermsOfService = lazy(() =>
+  import(/* webpackPrefetch: true */ "./pages/TermsOfService")
+);
 
 // Improved loading component with progress indication
 const LoadingSpinner = () => (
@@ -208,6 +214,8 @@ function App() {
             }
           />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

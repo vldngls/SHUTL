@@ -110,8 +110,11 @@ export const getFareTransactionsByDateRange = async (req, res) => {
 
 export const getFareTransactionsByCommuterEmail = async (req, res) => {
   try {
-    const { email } = req.params;
-    const transactions = await FareTransaction.find({ commuterEmail: email });
+    if (!req.user || !req.user.email) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    const transactions = await FareTransaction.find({ commuterEmail: req.user.email });
     res.json(transactions);
   } catch (error) {
     console.error("Error in getFareTransactionsByCommuterEmail:", error);

@@ -1,85 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-const styles = {
-  container: {
-    position: "absolute",
-    top: "80px",
-    right: "20px",
-    backgroundColor: "white",
-    padding: "15px",
-    borderRadius: "8px",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-    zIndex: 1000,
-    maxWidth: "300px",
-    maxHeight: "calc(100vh - 200px)",
-    overflowY: "auto",
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "10px",
-  },
-  title: {
-    margin: 0,
-    fontSize: "16px",
-    fontWeight: "600",
-  },
-  closeButton: {
-    background: "none",
-    border: "none",
-    fontSize: "18px",
-    cursor: "pointer",
-    padding: "5px",
-  },
-  shuttleList: {
-    listStyle: "none",
-    padding: 0,
-    margin: 0,
-  },
-  shuttleItem: {
-    padding: "10px",
-    borderBottom: "1px solid #eee",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  shuttleInfo: {
-    flex: 1,
-  },
-  shuttleId: {
-    fontWeight: "500",
-    marginBottom: "5px",
-  },
-  status: {
-    fontSize: "14px",
-    color: "#666",
-  },
-  requestButton: {
-    backgroundColor: "#007bff",
-    color: "white",
-    border: "none",
-    borderRadius: "4px",
-    padding: "5px 10px",
-    cursor: "pointer",
-    fontSize: "14px",
-    marginLeft: "10px",
-  },
-  noShuttles: {
-    textAlign: "center",
-    color: "#666",
-    padding: "20px 0",
-  },
-  trafficIndicator: {
-    display: "inline-block",
-    width: "10px",
-    height: "10px",
-    borderRadius: "50%",
-    marginRight: "5px",
-  },
-};
-
 const ActiveShuttles = ({
   shuttleLocations,
   onClose,
@@ -117,15 +38,15 @@ const ActiveShuttles = ({
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <h3 style={styles.title}>Active Shuttles</h3>
-        <button style={styles.closeButton} onClick={onClose}>
+    <div className="active-shuttles-container">
+      <div className="active-shuttles-header">
+        <h2>Active Shuttles</h2>
+        <button className="close-button" onClick={onClose}>
           ×
         </button>
       </div>
       {Object.entries(shuttleLocations).length > 0 ? (
-        <ul style={styles.shuttleList}>
+        <div className="active-shuttles-list">
           {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
             if (!data || !data.coordinates) return null;
 
@@ -144,39 +65,30 @@ const ActiveShuttles = ({
             }
 
             return (
-              <li key={shuttleId} style={styles.shuttleItem}>
-                <div style={styles.shuttleInfo}>
-                  <div style={styles.shuttleId}>Shuttle {shuttleId}</div>
-                  <div style={styles.status}>
-                    <span
-                      style={{
-                        ...styles.trafficIndicator,
-                        backgroundColor: trafficCondition.color,
-                      }}
-                    ></span>
-                    {trafficCondition.status}
-                    {distance !== null && (
-                      <>
-                        <br />
-                        Distance: {distance.toFixed(2)} km
-                        <br />
-                        ETA: {eta} minutes
-                      </>
-                    )}
-                  </div>
+              <div key={shuttleId} className="active-shuttle-item">
+                <h3>Shuttle {shuttleId}</h3>
+                <div className="shuttle-status">
+                  <span
+                    className="traffic-indicator"
+                    style={{ backgroundColor: trafficCondition.color }}
+                  ></span>
+                  {trafficCondition.status}
+                  {distance !== null && (
+                    <div className="shuttle-distance">
+                      <p>Distance: {distance.toFixed(2)} km</p>
+                      <p>ETA: {eta} minutes</p>
+                    </div>
+                  )}
                 </div>
-                <button
-                  style={styles.requestButton}
-                  onClick={() => onRequestPickup(shuttleId)}
-                >
-                  Request
+                <button onClick={() => onRequestPickup(shuttleId)}>
+                  Request Pickup
                 </button>
-              </li>
+              </div>
             );
           })}
-        </ul>
+        </div>
       ) : (
-        <div style={styles.noShuttles}>No active shuttles at the moment</div>
+        <div className="no-shuttles">No active shuttles at the moment</div>
       )}
     </div>
   );

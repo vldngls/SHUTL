@@ -49,6 +49,7 @@
     "has-proto": "^1.0.3",
     "has-symbols": "^1.0.3",
     "hasown": "^2.0.2",
+    "helmet": "^8.0.0",
     "http-errors": "^2.0.0",
     "iconv-lite": "^0.4.24",
     "ignore-by-default": "^1.0.1",

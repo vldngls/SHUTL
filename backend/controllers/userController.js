@@ -459,3 +459,71 @@ export const changePassword = async (req, res) => {
     res.status(500).json({ message: "Error changing password" });
   }
 };
+
+export const googleAuth = async (req, res) => {
+  try {
+    const { email, name, googleId, profilePicture } = req.body;
+
+    // Check if user exists
+    let user = await User.findOne({ email });
+    let userData;
+    let isNewUser = false;
+
+    if (!user) {
+      isNewUser = true;
+      // Don't create user yet, just return isNewUser flag
+      return res.status(200).json({
+        isNewUser,
+        tempData: {
+          email,
+          name,
+          profilePicture,
+          googleId,
+        },
+      });
+    }
+
+    // For existing users, get their userData
+    userData = await UserData.findOne({ email: user.email });
+
+    // Generate JWT token for existing users
+    const token = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+        userType: user.userType,
+        isAdmin: user.userType === "Admin",
+        fullAccess: user.userType === "Admin",
+        username: user.username,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    // Log successful login
+    await MaintenanceLog.create({
+      action: "User Google login",
+      status: "success",
+      details: `User ${user.email} (${user.userType}) logged in via Google`,
+      userId: user._id,
+    });
+
+    res.status(200).json({
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        username: user.username,
+        userType: user.userType,
+        profilePicture: userData?.profilePicture || profilePicture,
+        isAdmin: user.userType === "Admin",
+        fullAccess: user.userType === "Admin",
+      },
+      isNewUser,
+    });
+  } catch (error) {
+    console.error("Google auth error:", error);
+    res.status(500).json({ message: "Authentication failed" });
+  }
+};

@@ -6,6 +6,7 @@ import {
   getFareTransactionsByDateRange,
   getFareTransactionsByCommuterEmail,
 } from "../controllers/fareTransactionController.js";
+import { authMiddleware } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -21,7 +22,7 @@ router.get("/shuttle/:shuttleId", getFareTransactionsByShuttleId);
 // Get fare transactions by date range
 router.get("/date-range", getFareTransactionsByDateRange);
 
-// Get fare transactions by commuter email
-router.get("/commuter/:email", getFareTransactionsByCommuterEmail);
+// Get fare transactions for the authenticated commuter
+router.get("/me", authMiddleware, getFareTransactionsByCommuterEmail);
 
 export default router;

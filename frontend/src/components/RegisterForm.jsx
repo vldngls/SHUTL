@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import "../css/shared/AuthForms.css";
-import { GoogleLogin } from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode";
-import GoogleAuthWrapper from './GoogleAuthWrapper';
 import {
   FaRegEye,
   FaRegEyeSlash,
@@ -19,9 +16,16 @@ import {
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { setToken } from '../utils/tokenUtils';
 
 const RegisterForm = ({ onClose, googleData }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+  // Add debug logging
+  console.log('Current origin:', window.location.origin);
+  console.log('API Base URL:', API_BASE_URL);
+
   const [section, setSection] = useState(1);
   const [formData, setFormData] = useState({
     email: googleData?.email || "",
@@ -307,20 +311,29 @@ const RegisterForm = ({ onClose, googleData }) => {
         throw new Error(data.message || "Registration failed");
       }
 
-      // Registration successful - set token and user data
-      document.cookie = `token=${data.token}; path=/; SameSite=Lax`;
-      localStorage.setItem("user", JSON.stringify(data.user));
+      // Set token using the utility function
+      setToken(data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      // Show success message
+      toast.success("Successfully registered!");
 
-      // Clear any Google registration data
-      localStorage.removeItem("googleRegistrationData");
-
-      toast.success("Registration successful! Welcome to Shutl!");
-
-      // Small delay to ensure cookie is set
-      setTimeout(() => {
-        navigate("/ShutlLoggedIn");
-        onClose();
-      }, 100);
+      // Navigate based on user type
+      switch (data.user.userType) {
+        case "Commuter":
+          navigate("/ShutlLoggedIn");
+          break;
+        case "Admin":
+          navigate("/AdministratorMain");
+          break;
+        case "Teller":
+          navigate("/TellerMain");
+          break;
+        case "Driver":
+          navigate("/DriverMain");
+          break;
+      }
+      onClose();
     } catch (error) {
       console.error("Registration error:", error);
       const errorMessage = error.message || "Registration failed";
@@ -328,24 +341,6 @@ const RegisterForm = ({ onClose, googleData }) => {
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleGoogleSuccess = async (credentialResponse) => {
-    try {
-      const decoded = jwtDecode(credentialResponse.credential);
-      console.log("Google decoded data:", decoded); // Add logging
-      setFormData((prev) => ({
-        ...prev,
-        email: decoded.email,
-        name: decoded.name,
-        profilePicture: decoded.picture, // Store the Google profile picture URL
-        googleId: decoded.sub, // Store the Google ID
-      }));
-      setSection(2);
-    } catch (error) {
-      console.error("Error during Google authentication:", error);
-      setError("Google authentication failed");
     }
   };
 
@@ -372,9 +367,6 @@ const RegisterForm = ({ onClose, googleData }) => {
     setSection(1);
     setIsLoading(false);
     setUseGooglePicture(true);
-
-    // Clear Google registration data from localStorage
-    localStorage.removeItem("googleRegistrationData");
 
     // Close the registration form
     onClose();
@@ -465,37 +457,6 @@ const RegisterForm = ({ onClose, googleData }) => {
                       </button>
                     </div>
                   </div>
-                </div>
-
-                <div className="auth-divider">
-                  <span>or continue with</span>
-                </div>
-
-                <div className="auth-input-group">
-                  <GoogleAuthWrapper>
-                    <GoogleLogin
-                      onSuccess={handleGoogleSuccess}
-                      onError={(error) => {
-                        console.error("Google login error:", error);
-                        console.error("Current origin:", window.location.origin);
-                        setError("Google login failed. Please try again.");
-                      }}
-                      theme="filled_blue"
-                      size="large"
-                      shape="rectangular"
-                      type="standard"
-                      width="350"
-                      cookiePolicy="single_host_origin"
-                      useOneTap={false}
-                      auto_select={false}
-                      context="signup"
-                      flow="auth-code"
-                      ux_mode="popup"
-                      text="signup_with"
-                      locale="en"
-                      style={{ width: '100%' }}
-                    />
-                  </GoogleAuthWrapper>
                 </div>
               </>
             ) : (
@@ -593,7 +554,7 @@ const RegisterForm = ({ onClose, googleData }) => {
                 onChange={(e) => setIsChecked(e.target.checked)}
               />
               <label htmlFor="terms">
-                I agree to the Terms of Service and Privacy Policy
+                I agree to the <Link to="/terms-of-service" target="_blank" className="text-blue-600 hover:text-blue-800">Terms of Service</Link> and <Link to="/privacy-policy" target="_blank" className="text-blue-600 hover:text-blue-800">Privacy Policy</Link>
               </label>
             </div>
           </>

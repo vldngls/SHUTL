@@ -213,24 +213,26 @@ body {
 /* Update Location Button */
 .ShutlLoggedIn-update-location-btn {
   position: fixed;
-  right: 16px;
-  bottom: 180px;
-  padding: 12px;
+  right: 20px;
+  bottom: 56px;
+  padding: 8px;
   border: none;
   border-radius: 50%;
-  background: transparent;
+  background: white;
   cursor: pointer;
   z-index: 1000;
-  transition: transform 0.2s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .ShutlLoggedIn-update-location-btn:hover {
   transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .ShutlLoggedIn-update-location-icon {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   display: block;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
 }
@@ -327,17 +329,29 @@ hr {
 }
 
 /* Suggestion Form */
-.suggestion-form-container {
+.suggestion-form-overlay {
   position: fixed;
-  top: 30px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 80px;
+}
+
+.suggestion-form-container {
+  position: relative;
   width: 320px;
   background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  padding: 20px;
-  position: relative;
-  left: 50%;
-  transform: translateX(-50%);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  padding: 24px;
+  margin-top: 20px;
+  z-index: 1000;
 }
 
 .suggestion-form-container form {
@@ -385,20 +399,26 @@ hr {
 /* Suggestion Button */
 .ShutlLoggedIn-suggestion-btn {
   position: fixed;
-  right: 16px;
-  bottom: 120px;
-  padding: 12px;
+  right: 20px;
+  top: 20px;
+  padding: 8px;
   border: none;
   border-radius: 50%;
-  background: transparent;
+  background: white;
   cursor: pointer;
   z-index: 1000;
-  transition: transform 0.2s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.ShutlLoggedIn-suggestion-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .ShutlLoggedIn-suggestion-icon {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   display: block;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
 }
@@ -458,4 +478,297 @@ hr {
 
 .Toastify__toast-container {
   z-index: var(--toastify-z-index);
+}
+
+.shuttle-popup-content {
+  padding: 10px;
+  min-width: 200px;
+}
+
+.shuttle-popup-content h3 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 1.2em;
+}
+
+.shuttle-status-info {
+  margin-bottom: 15px;
+}
+
+.shuttle-status-info p {
+  margin: 5px 0;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.shuttle-status-info strong {
+  color: #333;
+  font-weight: 600;
+}
+
+.pick-me-up-btn {
+  width: 100%;
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.pick-me-up-btn:hover {
+  background-color: #0056b3;
+}
+
+.pick-me-up-btn:active {
+  background-color: #004085;
+}
+
+/* Active Shuttles Container */
+.active-shuttles-container {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  background-color: #f5f5f5;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  width: 320px;
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.active-shuttles-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.active-shuttles-container::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.active-shuttles-container::-webkit-scrollbar-thumb {
+  background: #232323;
+  border-radius: 8px;
+}
+
+.active-shuttles-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid rgba(35, 35, 35, 0.1);
+}
+
+.active-shuttles-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #232323;
+  font-weight: 600;
+}
+
+.active-shuttles-header .close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #232323;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  line-height: 1;
+}
+
+.active-shuttles-header .close-button:hover {
+  background-color: rgba(35, 35, 35, 0.1);
+}
+
+.active-shuttles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.active-shuttle-item {
+  background-color: white;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid rgba(35, 35, 35, 0.1);
+}
+
+.active-shuttle-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.active-shuttle-item h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #232323;
+  font-weight: 600;
+}
+
+.shuttle-status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #232323;
+  font-size: 14px;
+}
+
+.traffic-indicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.shuttle-distance {
+  width: 100%;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 4px;
+}
+
+.shuttle-distance p {
+  margin: 4px 0;
+  color: #232323;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.active-shuttle-item button {
+  background-color: #232323;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.active-shuttle-item button:hover {
+  background-color: #000000;
+  transform: translateY(-1px);
+}
+
+.active-shuttle-item button:active {
+  transform: translateY(0);
+}
+
+.no-shuttles {
+  text-align: center;
+  color: #232323;
+  padding: 32px 0;
+  font-size: 15px;
+  background-color: white;
+  border-radius: 12px;
+  border: 1px solid rgba(35, 35, 35, 0.1);
+}
+
+.payment-qr-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+/* Ensure popups are above the map but below modals */
+.popup-content {
+  z-index: 1000;
+}
+
+/* Add overlay for payment popup */
+.payment-qr-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* TellerSummary Container */
+.teller-summary-container {
+  position: fixed;
+  top: 0;
+  left: 70px;  /* Accounts for the sidebar width */
+  width: 320px;
+  height: 100vh;
+  background-color: white;
+  z-index: 2;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  border-right: 2px solid #f0f0f0;
+}
+
+/* When sidebar is expanded */
+.Sidebar.expanded ~ .teller-summary-container {
+  left: 200px;  /* Adjusted for expanded sidebar width */
+}
+
+.teller-summary-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.teller-summary-container::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.teller-summary-container::-webkit-scrollbar-thumb {
+  background: #232323;
+  border-radius: 8px;
+}
+
+.teller-summary-header {
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid rgba(35, 35, 35, 0.1);
+}
+
+.teller-summary-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #232323;
+  font-weight: 600;
+}
+
+.teller-summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }

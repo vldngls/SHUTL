@@ -65,16 +65,33 @@ app.use(
         allowedOrigin,
         "http://192.168.254.106:5173",
         "http://localhost:5173",
+        "https://accounts.google.com"
       ];
 
       const allowed = !origin || allowedOrigins.includes(normalizedOrigin);
       callback(null, allowed ? normalizedOrigin : allowedOrigins[0]);
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type", 
+      "Authorization", 
+      "X-Requested-With",
+      "Accept",
+      "Origin",
+      "Access-Control-Request-Method",
+      "Access-Control-Request-Headers"
+    ],
+    exposedHeaders: ["Set-Cookie"],
   })
 );
+
+// Add Cross-Origin-Opener-Policy header
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+});
 
 app.use("/api/users", userRoutes);
 app.use("/api/userdata", userDataRoutes);

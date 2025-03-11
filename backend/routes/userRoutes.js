@@ -10,6 +10,7 @@ import {
   forgotPassword,
   resetPassword,
   changePassword,
+  googleAuth,
 } from "../controllers/userController.js";
 import { authenticateToken } from "../middleware/authenticateToken.js";
 import User from "../models/user.model.js";
@@ -29,13 +30,18 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({
-  storage: multer.memoryStorage(),
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+// Configure multer for file upload
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/");
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + "-" + file.originalname);
   },
 });
+
+const upload = multer({ storage: storage, fileFilter: fileFilter });
 
 // Helper function to convert buffer to base64
 const bufferToBase64 = (buffer, mimetype) => {
@@ -44,8 +50,8 @@ const bufferToBase64 = (buffer, mimetype) => {
 
 // User Authentication
 router.post("/register", upload.single("profilePicture"), registerUser);
-
 router.post("/login", loginUser); // Login a user
+router.post("/google-auth", googleAuth);
 
 // Admin-Specific Routes
 router.get("/admin/user-count", getUserCount); // Get count of admin users

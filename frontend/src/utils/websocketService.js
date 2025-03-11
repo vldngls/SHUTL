@@ -54,157 +54,59 @@ export const addToLocationQueue = (locationData) => {
 };
 
 export const connectSocket = () => {
-  if (socket && socket.connected) {
-    // Reduce logging
-    return Promise.resolve(socket);
-  }
-
-  if (isConnecting) {
-    // Reduce logging
-    return new Promise((resolve, reject) => {
-      let attempts = 0;
-      const maxAttempts = 30; // 3 seconds total (100ms * 30)
-      let checkInterval = null;
-
-      const checkConnection = () => {
-        attempts++;
-        if (socket && socket.connected) {
-          clearInterval(checkInterval);
-          // Reduce logging
-          resolve(socket);
-          return true;
-        } else if (attempts >= maxAttempts) {
-          clearInterval(checkInterval);
-          console.error("Connection timeout while waiting for socket");
-          reject(new Error("Connection timeout while waiting for socket"));
-          return true;
-        }
-        return false;
-      };
-
-      // Check immediately first
-      if (!checkConnection()) {
-        // If not resolved immediately, set up interval
-        checkInterval = setInterval(checkConnection, 100);
-      }
-    });
-  }
-
-  // Reduce logging
-  isConnecting = true;
-  const token = getCookie("token");
-
   return new Promise((resolve, reject) => {
     try {
-      if (!socket) {
-        // Reduce logging
-
-        // Create socket with optimized options
-        socket = io(SOCKET_URL, {
-          transports: ["websocket", "polling"],
-          reconnection: true,
-          reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
-          reconnectionDelay: RECONNECT_DELAY,
-          withCredentials: true,
-          timeout: CONNECTION_TIMEOUT,
-          auth: { token },
-          extraHeaders: {
-            Cookie: `token=${token}`,
-          },
-          // Add performance optimizations
-          forceNew: false,
-          multiplex: true,
-          autoConnect: true,
-          reconnectionDelayMax: 5000,
-          randomizationFactor: 0.5,
-        });
-
-        // Ensure consistent method availability
-        if (!socket.off) {
-          socket.off = function (event, listener) {
-            if (listener) {
-              this.removeListener(event, listener);
-            } else {
-              this.removeAllListeners(event);
-            }
-            return this;
-          };
-        }
-
-        // Set a connection timeout
-        const connectionTimeout = setTimeout(() => {
-          if (!socket.connected) {
-            console.error("Socket connection timed out");
-            isConnecting = false;
-            reject(new Error("Socket connection timed out"));
-
-            // Clean up the socket instance
-            if (socket) {
-              socket.disconnect();
-              socket = null;
-            }
-          }
-        }, CONNECTION_TIMEOUT);
-
-        socket.on("connect", () => {
-          // Reduce logging - only log socket ID in development
-          if (import.meta.env.DEV) {
-            console.log("Socket connected with ID:", socket.id);
-          }
-          isConnecting = false;
-          reconnectAttempts = 0;
-          clearTimeout(connectionTimeout);
-
-          // Process any queued messages
-          processQueuedMessages();
-
-          // Notify all event listeners
-          for (const [event, callbacks] of eventListeners.entries()) {
-            callbacks.forEach((callback) => {
-              socket.on(event, callback);
-            });
-          }
-
-          resolve(socket);
-        });
-
-        // Set up error handling
-        setupSocketErrorHandling(socket, connectionTimeout, resolve, reject);
-      } else {
-        if (socket.connected) {
-          // Reduce logging
-          resolve(socket);
-        } else {
-          // Reduce logging
-          socket.connect();
-
-          // Set a connection timeout
-          const connectionTimeout = setTimeout(() => {
-            if (!socket.connected) {
-              console.error("Socket reconnection timed out");
-              isConnecting = false;
-              reject(new Error("Socket reconnection timed out"));
-            }
-          }, CONNECTION_TIMEOUT);
-
-          socket.once("connect", () => {
-            clearTimeout(connectionTimeout);
-            isConnecting = false;
-            // Reduce logging
-            resolve(socket);
-          });
-
-          socket.once("connect_error", (error) => {
-            clearTimeout(connectionTimeout);
-            isConnecting = false;
-            console.error("Socket reconnection error:", error);
-            reject(error);
-          });
-        }
+      const token = getCookie('token');
+      if (!token) {
+        reject(new Error('No authentication token found'));
+        return;
       }
+
+      if (socket?.connected) {
+        resolve(socket);
+        return;
+      }
+
+      socket = io(SOCKET_URL, {
+        transports: ["websocket", "polling"],
+        reconnection: true,
+        reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
+        reconnectionDelay: RECONNECT_DELAY,
+        timeout: CONNECTION_TIMEOUT,
+        auth: {
+          token: token
+        },
+        withCredentials: true,
+      });
+
+      socket.on("connect", () => {
+        console.log("Socket connected successfully");
+        isConnecting = false;
+        reconnectAttempts = 0;
+        resolve(socket);
+      });
+
+      socket.on("connect_error", (error) => {
+        console.error("Socket connection error:", error);
+        isConnecting = false;
+        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+          reconnectAttempts++;
+          setTimeout(() => {
+            socket.connect();
+          }, RECONNECT_DELAY);
+        } else {
+          reject(error);
+        }
+      });
+
+      socket.on("disconnect", (reason) => {
+        console.log("Socket disconnected:", reason);
+        if (reason === "io server disconnect") {
+          socket.connect();
+        }
+      });
     } catch (error) {
-      console.error("Error creating socket:", error);
-      isConnecting = false;
+      console.error("Error in socket connection:", error);
       reject(error);
     }
   });

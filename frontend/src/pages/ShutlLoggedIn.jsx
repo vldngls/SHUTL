@@ -10,6 +10,7 @@ import ActiveShuttles from "../components/ActiveShuttles";
 import L from "leaflet";
 import { calculateDistance, reverseGeocode } from "../utils/locationUtils";
 import { getCookie } from "../utils/cookieUtils";
+import { getTokenFromCookies, decodeToken } from "../utils/tokenUtils";
 import PaymentQR from "../components/PaymentQR";
 import {
   connectSocket,
@@ -82,6 +83,26 @@ const getTrafficCondition = (speed) => {
   if (speed < 10) return { status: "Heavy Traffic", color: "red" };
   if (speed < 20) return { status: "Moderate Traffic", color: "orange" };
   return { status: "Light Traffic", color: "green" };
+};
+
+// Add helper function to format time difference
+const formatTimeDifference = (lastUpdate) => {
+  if (!lastUpdate) return "Never";
+  
+  const now = new Date();
+  const diff = now - new Date(lastUpdate);
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  
+  if (seconds < 30) return "Just now";
+  if (minutes < 1) return `${seconds} seconds ago`;
+  if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+  
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+  
+  const days = Math.floor(hours / 24);
+  return `${days} day${days !== 1 ? 's' : ''} ago`;
 };
 
 const ShutlLoggedIn = () => {
@@ -201,27 +222,53 @@ const ShutlLoggedIn = () => {
   useEffect(() => {
     const fetchUserPreferences = async () => {
       try {
-        const email = getCookie("email");
-        const response = await fetch(`${API_BASE_URL}/userdata/${email}`, {
+        const token = getTokenFromCookies();
+        
+        // If no token, redirect to ShutlLoggedOut
+        if (!token) {
+          console.warn("No token found - redirecting to ShutlLoggedOut");
+          navigate("/ShutlLoggedOut");
+          return;
+        }
+
+        // Decode token to get email
+        const decoded = decodeToken(token);
+        if (!decoded || !decoded.email) {
+          console.warn("Invalid token - redirecting to ShutlLoggedOut");
+          navigate("/ShutlLoggedOut");
+          return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/userdata`, {
+          method: 'GET',
           headers: {
-            Authorization: `Bearer ${getCookie("token")}`,
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           },
+          credentials: 'include'
         });
 
-        if (response.ok) {
-          const userData = await response.json();
-          setNotificationEnabled(userData.preferences?.notifications ?? true);
-          setLocationEnabled(userData.preferences?.location ?? true);
-        } else {
-          console.error("Failed to fetch user preferences");
+        if (!response.ok) {
+          if (response.status === 401) {
+            console.warn("Invalid or expired token - redirecting to ShutlLoggedOut");
+            navigate("/ShutlLoggedOut");
+            return;
+          }
+          throw new Error(`Failed to fetch user preferences: ${response.status}`);
         }
+
+        const userData = await response.json();
+        setNotificationEnabled(userData.preferences?.notifications ?? true);
+        setLocationEnabled(userData.preferences?.location ?? true);
       } catch (error) {
         console.error("Error fetching user preferences:", error);
+        toast.error("Failed to load user preferences");
+        navigate("/ShutlLoggedOut");
       }
     };
 
     fetchUserPreferences();
-  }, []);
+  }, [navigate]);
 
   // Improved socket initialization
   useEffect(() => {
@@ -284,7 +331,6 @@ const ShutlLoggedIn = () => {
               if (!isMounted || !locationEnabled) return;
 
               console.log("Received shuttle location update:", data);
-              console.log("Current location enabled state:", locationEnabled);
 
               setShuttleLocations((prev) => {
                 // Skip update if data is identical to prevent unnecessary re-renders
@@ -300,18 +346,22 @@ const ShutlLoggedIn = () => {
                   return prev;
                 }
 
+                // Extract speed from the data
+                const speed = data.speed || data.metadata?.speed || 0;
+                const heading = data.heading || data.metadata?.heading || 0;
+
                 return {
                   ...prev,
                   [data.shuttleId]: {
                     coordinates: data.coordinates || null,
                     lastUpdate: new Date(data.timestamp || Date.now()),
-                    speed: data.metadata?.speed ?? 0,
-                    heading: data.metadata?.heading ?? 0,
+                    speed: speed,
+                    heading: heading,
                     accuracy: data.metadata?.accuracy ?? 0,
                     isPredicted: false,
                     lastKnownCoordinates: data.coordinates || null,
-                    lastKnownSpeed: data.metadata?.speed ?? 0,
-                    lastKnownHeading: data.metadata?.heading ?? 0,
+                    lastKnownSpeed: speed,
+                    lastKnownHeading: heading,
                   },
                 };
               });
@@ -471,31 +521,55 @@ const ShutlLoggedIn = () => {
 
     const fetchUserProfile = async () => {
       try {
-        const token = getCookie("token");
+        const token = getTokenFromCookies();
+        if (!token) {
+          console.warn("No token found - redirecting to ShutlLoggedOut");
+          navigate("/ShutlLoggedOut");
+          return;
+        }
+
         const response = await fetch(`${API_BASE_URL}/userdata/me`, {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           },
-          credentials: "include",
+          credentials: 'include'
         });
 
         if (!response.ok) {
+          if (response.status === 401) {
+            console.warn("Invalid or expired token - redirecting to ShutlLoggedOut");
+            navigate("/ShutlLoggedOut");
+            return;
+          }
           throw new Error(`Failed to fetch user profile: ${response.status}`);
         }
 
         if (isMounted) {
           const data = await response.json();
+          // Handle both Google profile images and base64 images
           if (data.profilePicture) {
-            setProfilePicture(data.profilePicture);
+            // Check if it's a Google profile image
+            if (data.profilePicture.startsWith('https://lh3.googleusercontent.com/')) {
+              setProfilePicture(data.profilePicture);
+            } 
+            // Check if it's a base64 image
+            else if (data.profilePicture.startsWith('data:image/')) {
+              setProfilePicture(data.profilePicture);
+            } 
+            // If neither, use default image
+            else {
+              setProfilePicture('/icon.png');
+            }
+          } else {
+            setProfilePicture('/icon.png');
           }
         }
       } catch (error) {
         console.error("Error fetching user profile data:", error);
-        toast.error(
-          "Failed to load profile data. Please try refreshing the page."
-        );
+        toast.error("Failed to load profile data. Please try refreshing the page.");
+        navigate("/ShutlLoggedOut");
       }
     };
 
@@ -504,7 +578,7 @@ const ShutlLoggedIn = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [navigate]);
 
   // Update user location function
   const updateUserLocation = () => {
@@ -601,57 +675,54 @@ const ShutlLoggedIn = () => {
 
   // Modified click handlers to handle optional event parameter
   const handleProfileClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setActivePopup(activePopup === "profile" ? null : "profile");
   };
 
   const handleNotificationClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setActivePopup(activePopup === "notifications" ? null : "notifications");
   };
 
   const handleSuggestionClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setActivePopup(activePopup === "suggestions" ? null : "suggestions");
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setShowSuggestionForm(true);
   };
 
   const handlePaymentClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setActivePopup(activePopup === "payment" ? null : "payment");
   };
 
   const handleActiveShuttlesClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setActivePopup(activePopup === "activeShuttles" ? null : "activeShuttles");
-  };
-
-  // Close all popups function
-  const closeAllPopups = () => {
-    setActivePopup(null);
-    setShowSuggestionForm(false);
-    setShowPaymentQR(false);
-    setShowPickMeUp(false);
-    setIsProfileEditMode(false);
   };
 
   // Handle clicks outside of popups
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (popupRef.current && !popupRef.current.contains(event.target)) {
-        // Only close if clicking outside of any popup or component
-        const isClickingInsidePopup = event.target.closest('.popup-content') || 
-                                    event.target.closest('.suggestion-form-overlay') ||
-                                    event.target.closest('.payment-qr-overlay') ||
-                                    event.target.closest('.pick-me-up-overlay') ||
-                                    event.target.closest('.active-shuttles-overlay');
+      // Only close payment popup when clicking outside
+      if (activePopup === "payment") {
+        const isClickingInsidePayment = event.target.closest('.payment-qr-container');
         
-        if (!isClickingInsidePopup) {
-          closeAllPopups();
+        if (!isClickingInsidePayment) {
+          setActivePopup(null);
         }
       }
     };
@@ -660,7 +731,18 @@ const ShutlLoggedIn = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [activePopup]);
+
+  // Close all popups function - modified to only close certain popups
+  const closeAllPopups = () => {
+    // Only close payment and suggestion form
+    if (activePopup === "payment") {
+      setActivePopup(null);
+    }
+    setShowSuggestionForm(false);
+    setShowPickMeUp(false);
+    setIsProfileEditMode(false);
+  };
 
   // Fetch notifications
   useEffect(() => {
@@ -840,17 +922,98 @@ const ShutlLoggedIn = () => {
                   icon={carIcon}
                   speed={speed}
                   isOffline={!data.coordinates}
+                  eventHandlers={{
+                    click: async () => {
+                      if (!userLocation) {
+                        toast.error("Please enable location sharing first");
+                        return;
+                      }
+
+                      try {
+                        const streetName = await reverseGeocode(userLocation[0], userLocation[1]);
+                        const userEmail = getCookie("email");
+                        const request = {
+                          shuttleId,
+                          userEmail,
+                          location: {
+                            coordinates: userLocation,
+                            streetName,
+                          },
+                          destination: "Nearest Stop", // Default destination
+                          passengers: 1, // Default passenger count
+                          notes: "", // Default empty notes
+                          timestamp: new Date().toISOString(),
+                        };
+
+                        const socketInstance = await connectSocket();
+                        if (!socketInstance) {
+                          toast.error("Unable to establish connection. Please try again.");
+                          return;
+                        }
+
+                        socketInstance.emit("pickup_request", request);
+                        toast.success("Pickup request sent successfully!");
+                      } catch (error) {
+                        console.error("Error sending pickup request:", error);
+                        toast.error("Error sending pickup request. Please try again.");
+                      }
+                    }
+                  }}
                 >
                   <Popup>
-                    <div>
+                    <div className="shuttle-popup-content">
                       <h3>Shuttle {shuttleId}</h3>
-                      <p>Status: {trafficCondition.status}</p>
-                      {distance !== null && (
-                        <>
-                          <p>Distance: {distance.toFixed(2)} km</p>
-                          <p>ETA: {eta} minutes</p>
-                        </>
-                      )}
+                      <div className="shuttle-status-info">
+                        <p><strong>Status:</strong> {trafficCondition.status}</p>
+                        <p><strong>Speed:</strong> {speed.toFixed(1)} km/h</p>
+                        {distance !== null && (
+                          <>
+                            <p><strong>Distance:</strong> {distance.toFixed(2)} km</p>
+                            <p><strong>ETA:</strong> {eta} minutes</p>
+                          </>
+                        )}
+                        <p><strong>Last Update:</strong> {formatTimeDifference(data.lastUpdate)}</p>
+                      </div>
+                      <button 
+                        className="pick-me-up-btn"
+                        onClick={async () => {
+                          if (!userLocation) {
+                            toast.error("Please enable location sharing first");
+                            return;
+                          }
+
+                          try {
+                            const streetName = await reverseGeocode(userLocation[0], userLocation[1]);
+                            const userEmail = getCookie("email");
+                            const request = {
+                              shuttleId,
+                              userEmail,
+                              location: {
+                                coordinates: userLocation,
+                                streetName,
+                              },
+                              destination: "Nearest Stop", // Default destination
+                              passengers: 1, // Default passenger count
+                              notes: "", // Default empty notes
+                              timestamp: new Date().toISOString(),
+                            };
+
+                            const socketInstance = await connectSocket();
+                            if (!socketInstance) {
+                              toast.error("Unable to establish connection. Please try again.");
+                              return;
+                            }
+
+                            socketInstance.emit("pickup_request", request);
+                            toast.success("Pickup request sent successfully!");
+                          } catch (error) {
+                            console.error("Error sending pickup request:", error);
+                            toast.error("Error sending pickup request. Please try again.");
+                          }
+                        }}
+                      >
+                        Pick Me Up
+                      </button>
                     </div>
                   </Popup>
                   <Tooltip direction="right" offset={[10, 0]} permanent>
@@ -892,6 +1055,10 @@ const ShutlLoggedIn = () => {
             src={profilePicture}
             alt="Profile"
             className="ShutlLoggedIn-nav-icon"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "/icon.png";
+            }}
           />
         </button>
 
@@ -910,7 +1077,7 @@ const ShutlLoggedIn = () => {
           className="ShutlLoggedIn-active-shuttles-btn"
           onClick={handleActiveShuttlesClick}
           style={{
-            backgroundColor: showActiveShuttles ? "#007bff" : "white",
+            backgroundColor: activePopup === "activeShuttles" ? "#007bff" : "white",
             boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
             border: "none",
             borderRadius: "50%",
@@ -927,7 +1094,7 @@ const ShutlLoggedIn = () => {
             style={{
               width: "24px",
               height: "24px",
-              filter: showActiveShuttles ? "brightness(0) invert(1)" : "none",
+              filter: activePopup === "activeShuttles" ? "brightness(0) invert(1)" : "none",
             }}
           />
         </button>
@@ -959,20 +1126,25 @@ const ShutlLoggedIn = () => {
 
       <Taskbar date={formattedDate} time={formattedTime} />
 
-      {showActiveShuttles && (
-        <ActiveShuttles
-          shuttleLocations={optimizedLocations}
-          onClose={() => setShowActiveShuttles(false)}
-          onRequestPickup={(shuttleId) => {
-            setSelectedShuttleId(shuttleId);
-            setShowPickMeUp(true);
-            setShowActiveShuttles(false);
-          }}
-          userLocation={userLocation}
-        />
+      {/* Active Shuttles Popup */}
+      {activePopup === "activeShuttles" && (
+        <div className="active-shuttles-container">
+          <ActiveShuttles
+            shuttleLocations={optimizedLocations}
+            onClose={() => setActivePopup(null)}
+            onRequestPickup={(shuttleId) => {
+              setSelectedShuttleId(shuttleId);
+              setShowPickMeUp(true);
+              setActivePopup(null);
+            }}
+            userLocation={userLocation}
+          />
+        </div>
       )}
 
+      {/* Other Popups Container */}
       <div ref={popupRef}>
+        {/* Profile Popup */}
         {activePopup === "profile" && (
           <ProfilePopup
             onClose={() => {
@@ -980,9 +1152,13 @@ const ShutlLoggedIn = () => {
               setIsProfileEditMode(false);
             }}
             initialEditMode={isProfileEditMode}
+            onProfileImageUpdate={(newImage) => {
+              setProfilePicture(newImage);
+            }}
           />
         )}
 
+        {/* Notifications Popup */}
         {activePopup === "notifications" && (
           <NotificationPop
             notifications={notifications}
@@ -990,14 +1166,25 @@ const ShutlLoggedIn = () => {
             show={true}
           />
         )}
+
+        {/* Payment QR Popup */}
+        {activePopup === "payment" && (
+          <div className="payment-qr-overlay" onClick={() => setActivePopup(null)}>
+            <div className="payment-qr-container" onClick={(e) => e.stopPropagation()}>
+              <PaymentQR onClose={() => setActivePopup(null)} />
+            </div>
+          </div>
+        )}
       </div>
 
+      {/* Suggestion Form */}
       {showSuggestionForm && (
         <div className="suggestion-form-overlay">
           <SuggestionForm onClose={() => setShowSuggestionForm(false)} />
         </div>
       )}
 
+      {/* Pick Me Up Form */}
       {showPickMeUp && (
         <PickMeUp
           onClose={() => {
@@ -1009,8 +1196,6 @@ const ShutlLoggedIn = () => {
           shuttleId={selectedShuttleId}
         />
       )}
-
-      {showPaymentQR && <PaymentQR onClose={() => setShowPaymentQR(false)} />}
     </div>
   );
 };

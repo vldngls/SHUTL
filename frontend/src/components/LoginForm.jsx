@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/shared/AuthForms.css";
 import RegisterForm from "./RegisterForm";
-import { GoogleLogin } from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode";
 import {
   FaRegEye,
   FaRegEyeSlash,
@@ -14,15 +12,20 @@ import {
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-hot-toast";
 import shuttlIcon from "/shuttl.svg";
-import GoogleAuthWrapper from './GoogleAuthWrapper';
+import { GoogleLogin } from '@react-oauth/google';
+import { jwtDecode } from 'jwt-decode';
+import PropTypes from 'prop-types';
+import { setToken } from '../utils/tokenUtils';
 
 const LoginForm = ({ onClose }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
+  // Add console log to show current origin
+  console.log("Current application origin:", window.location.origin);
+
   // Add debug logging
   console.log('Current origin:', window.location.origin);
-  console.log('Google Client ID:', GOOGLE_CLIENT_ID);
   console.log('API Base URL:', API_BASE_URL);
 
   const [username, setUsername] = useState("");
@@ -70,7 +73,12 @@ const LoginForm = ({ onClose }) => {
 
       if (response.ok) {
         const data = await response.json();
-        document.cookie = `token=${data.token}; path=/; SameSite=None; Secure`;
+        // Set the token using the utility function
+        setToken(data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        // Show success message
+        toast.success("Successfully logged in!");
 
         switch (data.user.userType) {
           case "Commuter":
@@ -89,71 +97,12 @@ const LoginForm = ({ onClose }) => {
         onClose();
       } else {
         setError("Invalid username or password");
+        toast.error("Invalid username or password");
       }
-    } catch (error) {
+    } catch (err) {
       setError("An error occurred during login");
-    }
-  };
-
-  const handleGoogleSuccess = async (credentialResponse) => {
-    try {
-      const decoded = jwtDecode(credentialResponse.credential);
-
-      const response = await fetch(`${API_BASE_URL}/users/google-auth`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          email: decoded.email,
-          name: decoded.name,
-          googleId: decoded.sub,
-          picture: decoded.picture,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-
-        if (data.isNewUser) {
-          setIsRegistering(true);
-          // Store Google data in localStorage to persist through component remount
-          localStorage.setItem(
-            "googleRegistrationData",
-            JSON.stringify({
-              email: data.tempData.email,
-              name: data.tempData.name,
-              profilePicture: data.tempData.picture,
-              googleId: data.tempData.googleId,
-            })
-          );
-          return;
-        }
-
-        // For existing users, set the token and redirect
-        document.cookie = `token=${data.token}; path=/; SameSite=None; Secure`;
-        switch (data.user.userType) {
-          case "Commuter":
-            navigate("/ShutlLoggedIn");
-            break;
-          case "Admin":
-            navigate("/AdministratorMain");
-            break;
-          case "Teller":
-            navigate("/TellerMain");
-            break;
-          case "Driver":
-            navigate("/DriverMain");
-            break;
-        }
-        onClose();
-      } else {
-        setError("Google authentication failed");
-      }
-    } catch (error) {
-      console.error("Error during Google authentication:", error);
-      setError("Google authentication failed");
+      console.error("Login error:", err);
+      toast.error("An error occurred during login");
     }
   };
 
@@ -288,6 +237,83 @@ const LoginForm = ({ onClose }) => {
       setError("An error occurred while resetting your password");
       setResetMessage("");
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const decoded = jwtDecode(credentialResponse.credential);
+      console.log("Google user data:", decoded);
+
+      // Check if user exists in your backend
+      const response = await fetch(`${API_BASE_URL}/users/google-auth`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          googleId: decoded.sub,
+          email: decoded.email,
+          name: decoded.name,
+          profilePicture: decoded.picture,
+        }),
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (data.isNewUser) {
+          // Store Google data for registration form
+          localStorage.setItem(
+            "googleRegistrationData",
+            JSON.stringify({
+              email: decoded.email,
+              name: decoded.name,
+              profilePicture: decoded.picture,
+              googleId: decoded.sub,
+            })
+          );
+          setIsRegistering(true);
+        } else {
+          // Set the token using the utility function
+          setToken(data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          
+          // Show success message
+          toast.success("Successfully logged in!");
+
+          // Navigate based on user type
+          switch (data.user.userType) {
+            case "Commuter":
+              navigate("/ShutlLoggedIn");
+              break;
+            case "Admin":
+              navigate("/AdministratorMain");
+              break;
+            case "Teller":
+              navigate("/TellerMain");
+              break;
+            case "Driver":
+              navigate("/DriverMain");
+              break;
+          }
+          onClose();
+        }
+      } else {
+        setError(data.message || "Error during Google authentication");
+        toast.error(data.message || "Error during Google authentication");
+      }
+    } catch (err) {
+      console.error("Google auth error:", err);
+      setError("An error occurred during Google authentication");
+      toast.error("An error occurred during Google authentication");
+    }
+  };
+
+  const handleGoogleError = () => {
+    console.error("Google Sign In was unsuccessful");
+    setError("Google Sign In failed. Please try again.");
+    toast.error("Google Sign In failed. Please try again.");
   };
 
   if (isRegistering) {
@@ -503,31 +529,16 @@ const LoginForm = ({ onClose }) => {
                 <span>or continue with</span>
               </div>
 
-              <div className="auth-input-group">
-                <GoogleAuthWrapper>
-                  <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={(error) => {
-                      console.error("Google Sign In error:", error);
-                      console.error("Current origin:", window.location.origin);
-                      setError("Google Sign In failed. Please try again.");
-                    }}
-                    theme="filled_blue"
-                    size="large"
-                    shape="rectangular"
-                    type="standard"
-                    width="350"
-                    cookiePolicy="single_host_origin"
-                    useOneTap={false}
-                    auto_select={false}
-                    context="signin"
-                    flow="auth-code"
-                    ux_mode="popup"
-                    text="signin_with"
-                    locale="en"
-                    style={{ width: '100%' }}
-                  />
-                </GoogleAuthWrapper>
+              <div className="google-login-container">
+                <GoogleLogin
+                  clientId={GOOGLE_CLIENT_ID}
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  useOneTap={false}
+                  cookiePolicy={'single_host_origin'}
+                  prompt="select_account"
+                  popupType="popup"
+                />
               </div>
 
               <div className="auth-footer">
@@ -543,7 +554,7 @@ const LoginForm = ({ onClose }) => {
                   className="auth-link-button"
                   onClick={() => setIsRegistering(true)}
                 >
-                  Don't have an account? Sign up
+                  Don&apos;t have an account? Sign up
                 </button>
               </div>
             </form>
@@ -688,7 +699,10 @@ const LoginForm = ({ onClose }) => {
 
       {isRegistering && (
         <RegisterForm
-          onClose={() => setIsRegistering(false)}
+          onClose={() => {
+            setIsRegistering(false);
+            localStorage.removeItem("googleRegistrationData");
+          }}
           googleData={JSON.parse(
             localStorage.getItem("googleRegistrationData")
           )}
@@ -696,6 +710,10 @@ const LoginForm = ({ onClose }) => {
       )}
     </div>
   );
+};
+
+LoginForm.propTypes = {
+  onClose: PropTypes.func.isRequired,
 };
 
 export default LoginForm;
