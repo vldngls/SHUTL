@@ -108,7 +108,7 @@ const formatTimeDifference = (lastUpdate) => {
 const ShutlLoggedIn = () => {
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
-  const [activePopup, setActivePopup] = useState(null);
+  const [activePopup, setActivePopup] = useState("activeShuttles");
   const [mapInstance, setMapInstance] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [profilePicture, setProfilePicture] = useState("/icon.png");
@@ -673,13 +673,13 @@ const ShutlLoggedIn = () => {
     });
   }, [dateTime]);
 
-  // Modified click handlers to handle optional event parameter
+  // Modified click handlers to close active shuttles
   const handleProfileClick = (e) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
-    setActivePopup(activePopup === "profile" ? null : "profile");
+    setActivePopup(activePopup === "profile" ? "activeShuttles" : "profile");
   };
 
   const handleNotificationClick = (e) => {
@@ -687,7 +687,7 @@ const ShutlLoggedIn = () => {
       e.preventDefault();
       e.stopPropagation();
     }
-    setActivePopup(activePopup === "notifications" ? null : "notifications");
+    setActivePopup(activePopup === "notifications" ? "activeShuttles" : "notifications");
   };
 
   const handleSuggestionClick = (e) => {
@@ -695,7 +695,12 @@ const ShutlLoggedIn = () => {
       e.preventDefault();
       e.stopPropagation();
     }
-    setShowSuggestionForm(true);
+    setShowSuggestionForm(!showSuggestionForm);
+    if (!showSuggestionForm) {
+      setActivePopup(null);
+    } else {
+      setActivePopup("activeShuttles");
+    }
   };
 
   const handlePaymentClick = (e) => {
@@ -703,7 +708,7 @@ const ShutlLoggedIn = () => {
       e.preventDefault();
       e.stopPropagation();
     }
-    setActivePopup(activePopup === "payment" ? null : "payment");
+    setActivePopup(activePopup === "payment" ? "activeShuttles" : "payment");
   };
 
   const handleActiveShuttlesClick = (e) => {
@@ -714,15 +719,35 @@ const ShutlLoggedIn = () => {
     setActivePopup(activePopup === "activeShuttles" ? null : "activeShuttles");
   };
 
-  // Handle clicks outside of popups
+  // Close all popups function - modified to show active shuttles when closing other popups
+  const closeAllPopups = () => {
+    setActivePopup("activeShuttles");
+    setShowSuggestionForm(false);
+    setShowPickMeUp(false);
+    setIsProfileEditMode(false);
+  };
+
+  // Toggle sidebar function
+  const toggleSidebar = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setIsSidebarExpanded(!isSidebarExpanded);
+    if (isSidebarExpanded) {
+      setActivePopup("activeShuttles");
+    } else {
+      setActivePopup(null);
+    }
+  };
+
+  // Handle clicks outside of popups - modified to show active shuttles when closing payment
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Only close payment popup when clicking outside
       if (activePopup === "payment") {
         const isClickingInsidePayment = event.target.closest('.payment-qr-container');
-        
         if (!isClickingInsidePayment) {
-          setActivePopup(null);
+          setActivePopup("activeShuttles");
         }
       }
     };
@@ -732,17 +757,6 @@ const ShutlLoggedIn = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [activePopup]);
-
-  // Close all popups function - modified to only close certain popups
-  const closeAllPopups = () => {
-    // Only close payment and suggestion form
-    if (activePopup === "payment") {
-      setActivePopup(null);
-    }
-    setShowSuggestionForm(false);
-    setShowPickMeUp(false);
-    setIsProfileEditMode(false);
-  };
 
   // Fetch notifications
   useEffect(() => {
@@ -831,14 +845,6 @@ const ShutlLoggedIn = () => {
       clearInterval(timer);
     };
   }, []);
-
-  // Toggle sidebar function
-  const toggleSidebar = () => {
-    if (window.innerWidth <= 480) {
-      return; // Prevent expansion on mobile
-    }
-    setIsSidebarExpanded(!isSidebarExpanded);
-  };
 
   // Final cleanup on component unmount
   useEffect(() => {

@@ -411,6 +411,14 @@ hr {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
+/* Mobile view adjustments */
+@media (max-width: 768px) {
+  .ShutlLoggedIn-suggestion-btn {
+    top: 80px; /* Move below the topbar */
+    right: 20px;
+  }
+}
+
 .ShutlLoggedIn-suggestion-btn:hover {
   transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -530,16 +538,16 @@ hr {
 /* Active Shuttles Container */
 .active-shuttles-container {
   position: fixed;
-  top: 80px;
+  top: 140px;
   right: 20px;
-  background-color: #f5f5f5;
+  background-color: rgba(245, 245, 245, 0.85);
   border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  width: 320px;
-  max-height: calc(100vh - 160px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  width: 280px;
+  max-height: calc(100vh - 260px);
   overflow-y: auto;
   z-index: 1000;
-  padding: 20px;
+  padding: 15px;
 }
 
 .active-shuttles-container::-webkit-scrollbar {

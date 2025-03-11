@@ -242,9 +242,8 @@ const Sidebar = forwardRef(
         }
         setIsMobileMenuOpen((prev) => !prev);
         setIsSettingsOpen(false); // Close settings when toggling mobile menu
-        // Close Active Shuttles popup when opening mobile menu
         if (onActiveShuttlesClick) {
-          onActiveShuttlesClick();
+          onActiveShuttlesClick(); // Close active shuttles when mobile menu is opened
         }
         document.body.style.overflow = !isMobileMenuOpen ? "hidden" : "";
       },
