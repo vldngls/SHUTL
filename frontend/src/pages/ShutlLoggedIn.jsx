@@ -887,8 +887,7 @@ const ShutlLoggedIn = () => {
               icon={userIcon}
               eventHandlers={{
                 click: () => {
-                  setShowPickMeUp(true);
-                  setSelectedShuttleId(null);
+                  setActivePopup("activeShuttles");
                 },
               }}
             >
