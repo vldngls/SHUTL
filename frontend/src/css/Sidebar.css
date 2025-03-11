@@ -96,6 +96,9 @@
   color: #fff;
   font-size: 16px;
   font-weight: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .Sidebar.expanded .button-label {
@@ -237,14 +240,17 @@
     rgba(0, 0, 0, 0.5) 0%,
     rgba(0, 0, 0, 0.65) 100%
   );
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   z-index: 1000;
   padding: env(safe-area-inset-top, 0px) 16px 0;
   align-items: flex-end;
   justify-content: space-between;
   flex-direction: row-reverse;
   padding-bottom: 12px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .mobile-logo {
@@ -320,12 +326,15 @@
       rgba(0, 0, 0, 0.6) 0%,
       rgba(0, 0, 0, 0.75) 100%
     );
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     z-index: 1000;
     padding: env(safe-area-inset-top, 0px) 8px env(safe-area-inset-bottom, 0px);
     margin: 0;
     transition: transform 0.3s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   .Sidebar.mobile-open {
