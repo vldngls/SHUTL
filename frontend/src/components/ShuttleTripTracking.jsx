@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+// import React from 'react';
 import PropTypes from "prop-types";
 import toast from "react-hot-toast";
 import "../css/ShuttleTripTracking.css"; // Import the CSS file
+import { useState, useEffect } from "react";
+import { getCookie } from "../utils/cookieUtils"; // Add this import at the top with other imports
 
-const ShuttleTripTracking = ({ onClose, socket, shuttleId }) => {
+const ShuttleTripTracking = ({ onClose, socket }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const getCurrentTime = () => {
     return new Date().toLocaleTimeString("en-GB", {
@@ -33,6 +35,9 @@ const ShuttleTripTracking = ({ onClose, socket, shuttleId }) => {
   const [operationalHours, setOperationalHours] = useState(null);
   const [isWithinHours, setIsWithinHours] = useState(true);
 
+  // Add state for shuttle assignments
+  const [shuttleAssignments, setShuttleAssignments] = useState([]);
+
   const showToast = (message, type = "info") => {
     switch (type) {
       case "success":
@@ -54,9 +59,27 @@ const ShuttleTripTracking = ({ onClose, socket, shuttleId }) => {
       return;
     }
 
-    socket.on("trip_created", (data) => {
-      showToast("New trip created successfully", "success");
-      setPendingOutTrips((prev) => [...prev, data]);
+    // Listen for trip updates and notifications
+    socket.on("trip_created", (response) => {
+      if (response.success) {
+        showToast("New trip created successfully", "success");
+        setPendingOutTrips((prev) => [...prev, response.trip]);
+        // Reset form
+        setTripData({
+          date: new Date().toLocaleDateString("en-CA"),
+          time: getCurrentTime(),
+          shuttleNumber: "",
+          driver: "",
+          status: "Out",
+          passengerCount: 0,
+          roundTripId: "",
+        });
+        // Refresh lists
+        fetchPendingOutTrips();
+        fetchRecentTrips();
+      } else {
+        showToast(response.error || "Failed to create trip", "error");
+      }
     });
 
     socket.on("trip_updated", (data) => {
@@ -70,10 +93,19 @@ const ShuttleTripTracking = ({ onClose, socket, shuttleId }) => {
       showToast(error.message || "An error occurred with the trip", "error");
     });
 
+    // Also listen for general trip updates
+    socket.on("trip_update", (data) => {
+      if (data.type === "created") {
+        fetchPendingOutTrips();
+        fetchRecentTrips();
+      }
+    });
+
     return () => {
       socket.off("trip_created");
       socket.off("trip_updated");
       socket.off("trip_error");
+      socket.off("trip_update");
     };
   }, [socket]);
 
@@ -143,6 +175,58 @@ const ShuttleTripTracking = ({ onClose, socket, shuttleId }) => {
     }
   };
 
+  // Fetch shuttle assignments
+  useEffect(() => {
+    const fetchShuttleAssignments = async () => {
+      try {
+        const token = getCookie('token');
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
+        });
+
+        if (response.status === 403) {
+          throw new Error('Access forbidden. Please check your permissions.');
+        }
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setShuttleAssignments(data);
+      } catch (error) {
+        console.error('Error fetching shuttle assignments:', error);
+        showToast(error.message || 'Failed to load shuttle assignments', 'error');
+        setShuttleAssignments([]); // Set empty array on error
+      }
+    };
+
+    fetchShuttleAssignments();
+  }, [API_BASE_URL]);
+
+  // Handle shuttle selection
+  const handleShuttleChange = (event) => {
+    const selectedShuttle = shuttleAssignments.find(
+      assignment => assignment.shuttleNumber === event.target.value
+    );
+    if (selectedShuttle) {
+      setTripData((prev) => ({
+        ...prev,
+        shuttleNumber: selectedShuttle.shuttleNumber,
+        driver: selectedShuttle.driver
+      }));
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -179,15 +263,9 @@ const ShuttleTripTracking = ({ onClose, socket, shuttleId }) => {
     }
 
     try {
-      if (tripData.status === "In") {
-        const matchingOutTrip = pendingOutTrips.find(
-          (trip) => trip.shuttleNumber === tripData.shuttleNumber
-        );
-        if (matchingOutTrip) {
-          tripData.roundTripId = matchingOutTrip._id;
-        }
-      } else {
-        tripData.roundTripId = `RT-${Date.now()}`;
+      if (tripData.status === "In" && !tripData.roundTripId) {
+        showToast("Please select a matching out trip", "error");
+        return;
       }
 
       // Create a date object in local timezone
@@ -211,42 +289,26 @@ const ShuttleTripTracking = ({ onClose, socket, shuttleId }) => {
       const tripDataToSend = {
         ...tripData,
         date: utcDate.toISOString(),
-        // Store the local time string separately
         localTime: tripData.time,
       };
 
-      socket.emit("create_trip", tripDataToSend);
       showToast("Creating new trip...", "info");
+      socket.emit("create_trip", tripDataToSend);
 
-      // Reset form but keep current time
-      setTripData({
-        date: new Date().toLocaleDateString("en-CA"),
-        time: getCurrentTime(),
-        shuttleNumber: "",
-        driver: "",
-        status: "Out",
-        passengerCount: 0,
-        roundTripId: "",
-      });
-      fetchPendingOutTrips();
-      fetchRecentTrips();
     } catch (error) {
+      console.error("Trip creation error:", error);
       showToast(error.message || "Failed to create trip", "error");
     }
   };
 
-  const handleStatusChange = async (tripId, newStatus) => {
-    if (!socket) {
-      showToast("Socket connection not available", "error");
-      return;
-    }
-
-    try {
-      socket.emit("update_trip", { tripId, status: newStatus });
-      showToast(`Updating trip ${tripId} status...`, "info");
-    } catch (error) {
-      showToast(error.message || "Failed to update trip status", "error");
-    }
+  const handleStatusChange = (tripId, newStatus) => {
+    // Update the form's status field without emitting socket event
+    setTripData(prev => ({
+      ...prev,
+      status: newStatus,
+      // Clear roundTripId when switching to Out status
+      roundTripId: newStatus === "Out" ? "" : prev.roundTripId
+    }));
   };
 
   // Calculate pagination
@@ -387,25 +449,29 @@ const ShuttleTripTracking = ({ onClose, socket, shuttleId }) => {
               />
             </div>
             <div className="form-group">
-              <label>Shuttle Number:</label>
-              <input
-                type="text"
-                name="shuttleNumber"
+              <label htmlFor="shuttleNumber">Shuttle Number:</label>
+              <select
+                id="shuttleNumber"
                 value={tripData.shuttleNumber}
-                onChange={handleChange}
-                readOnly={tripData.status === "In"}
-                required
-              />
+                onChange={handleShuttleChange}
+                className="form-control"
+              >
+                <option value="">Select a shuttle</option>
+                {shuttleAssignments.map(assignment => (
+                  <option key={assignment.shuttleNumber} value={assignment.shuttleNumber}>
+                    {assignment.shuttleNumber}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="form-group">
-              <label>Driver:</label>
+              <label htmlFor="driver">Driver:</label>
               <input
                 type="text"
-                name="driver"
+                id="driver"
                 value={tripData.driver}
-                onChange={handleChange}
-                readOnly={tripData.status === "In"}
-                required
+                readOnly
+                className="form-control"
               />
             </div>
             <div className="form-group">
@@ -477,7 +543,6 @@ const ShuttleTripTracking = ({ onClose, socket, shuttleId }) => {
 ShuttleTripTracking.propTypes = {
   onClose: PropTypes.func.isRequired,
   socket: PropTypes.object,
-  shuttleId: PropTypes.string,
 };
 
 export default ShuttleTripTracking;

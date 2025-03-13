@@ -25,8 +25,8 @@ import MovingMarker from "../components/MovingMarker";
 import { toast } from "react-hot-toast";
 import Sidebar from "../components/Sidebar";
 import Taskbar from "../components/Taskbar";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { getCookie } from "../utils/cookieUtils";
+import { API_BASE_URL } from "../config/config";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -74,7 +74,6 @@ const TellerMain = () => {
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [currentRoom, setCurrentRoom] = useState(null);
   const [notificationEnabled, setNotificationEnabled] = useState(true);
@@ -88,20 +87,12 @@ const TellerMain = () => {
   const [isTripFormOpen, setIsTripFormOpen] = useState(false);
 
   // Refs
-  const settingsRef = useRef();
   const mapRef = useRef();
   const chatRef = useRef();
   const mobileMenuRef = useRef();
   const sidebarRef = useRef(null);
 
   // Extract email from token
-  const getCookie = (name) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(";").shift();
-    return null;
-  };
-
   const token = getCookie("token");
 
   let email = "";
@@ -159,17 +150,19 @@ const TellerMain = () => {
     let messageCleanup;
     let notificationCleanup;
     let locationCleanup;
+    let isComponentMounted = true;
 
     const initializeChat = async () => {
       try {
         // Initialize socket connection
         const socketInstance = await connectSocket();
-        if (!socketInstance) {
-          console.error("Failed to connect socket");
+        if (!socketInstance || !isComponentMounted) {
+          console.error("Failed to connect socket or component unmounted");
           return;
         }
         socket.current = socketInstance;
         setIsConnected(true);
+        console.log("Socket initialized successfully:", socketInstance.id);
 
         // Set initial preferences
         socketInstance.emit("notification_preference", {
@@ -179,15 +172,46 @@ const TellerMain = () => {
           enabled: locationEnabled,
         });
 
+        // Add connection status logging
+        socketInstance.on("connect", () => {
+          console.log("Socket connected with ID:", socketInstance.id);
+          setIsConnected(true);
+        });
+
+        socketInstance.on("disconnect", () => {
+          console.log("Socket disconnected");
+          setIsConnected(false);
+          toast("Lost connection to server. Attempting to reconnect...", {
+            icon: "⚠️",
+            style: {
+              background: "#fff3cd",
+              color: "#856404",
+            },
+          });
+        });
+
+        socketInstance.on("connect_error", (error) => {
+          console.error("Socket connection error:", error);
+          toast.error("Connection error. Please check your network.");
+        });
+
+        socketInstance.on("error", (error) => {
+          console.error("Socket error:", error);
+          toast.error("Socket error occurred");
+        });
+
         // Subscribe to messages with error handling
         messageCleanup = await subscribeToMessages((message) => {
-          setMessages((prev) => [...prev, message]);
+          if (isComponentMounted) {
+            setMessages((prev) => [...prev, message]);
+          }
         });
 
         // Subscribe to real-time notifications
         notificationCleanup = await subscribeToEvent(
           "new_notification",
           (notification) => {
+            if (!isComponentMounted) return;
             // Check if this notification is for this user type (Teller)
             if (notification.recipientType !== "Teller") return;
 
@@ -209,9 +233,11 @@ const TellerMain = () => {
 
               // Auto-hide after 5 seconds
               setTimeout(() => {
-                setActivePopup((current) =>
-                  current === "notifications" ? null : current
-                );
+                if (isComponentMounted) {
+                  setActivePopup((current) =>
+                    current === "notifications" ? null : current
+                  );
+                }
               }, 5000);
             }
           }
@@ -221,6 +247,7 @@ const TellerMain = () => {
         if (locationEnabled) {
           // Subscribe to location updates with enhanced logging and validation
           locationCleanup = await subscribeToLocationUpdates((data) => {
+            if (!isComponentMounted) return;
             console.log("TellerMain received location update:", data);
 
             // Validate incoming data
@@ -243,75 +270,66 @@ const TellerMain = () => {
               return;
             }
 
-            // Extract speed and heading from the data
-            let speed = 0;
-            let heading = 0;
-            let accuracy = undefined;
-
-            if (typeof data.speed === "number") speed = data.speed;
-            if (typeof data.heading === "number") heading = data.heading;
-            if (typeof data.accuracy === "number") accuracy = data.accuracy;
-
-            if (data.metadata) {
-              if (typeof data.metadata.speed === "number")
-                speed = data.metadata.speed;
-              if (typeof data.metadata.heading === "number")
-                heading = data.metadata.heading;
-              if (typeof data.metadata.accuracy === "number")
-                accuracy = data.metadata.accuracy;
-            }
-
-            setShuttleLocations((prev) => {
-              const now = new Date();
-              const newLocations = { ...prev };
-              const shuttleId = data.shuttleId;
-
-              newLocations[shuttleId] = {
+            // Update shuttle locations
+            setShuttleLocations((prev) => ({
+              ...prev,
+              [data.shuttleId]: {
                 coordinates: data.coordinates,
-                lastUpdate: now,
-                speed,
-                heading,
-                accuracy,
-                status: "online",
-              };
+                timestamp: data.timestamp,
+                metadata: data.metadata || {},
+                speed: data.speed || data.metadata?.speed || 0,
+                heading: data.heading || data.metadata?.heading || 0,
+              },
+            }));
 
-              return newLocations;
-            });
+            // Update shuttle speeds if speed data is available
+            if (data.speed !== undefined || data.metadata?.speed !== undefined) {
+              const speed = data.speed || data.metadata?.speed || 0;
+              setShuttleSpeeds((prev) => ({
+                ...prev,
+                [data.shuttleId]: speed,
+              }));
+            }
           });
         }
 
-        // Fetch active shuttle assignments and join their tracking rooms
+        // Join tracking for all active shuttles
         const fetchAndTrackShuttles = async () => {
           try {
-            const response = await fetch(
-              `${API_BASE_URL}/shuttle-assignments`,
-              {
-                headers: {
-                  Authorization: `Bearer ${getCookie("token")}`,
-                },
-              }
-            );
+            const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
+              headers: {
+                Authorization: `Bearer ${getCookie("token")}`,
+              },
+            });
+            
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const assignments = await response.json();
+            console.log("Fetched shuttle assignments:", assignments);
 
             // Join tracking for each active shuttle
             for (const assignment of assignments) {
-              await joinShuttleTracking(assignment.shuttleId);
+              if (assignment.status === 'active' && assignment.shuttleId) {
+                await joinShuttleTracking(assignment.shuttleId);
+                console.log(`Joined tracking for shuttle ${assignment.shuttleId}`);
+              }
             }
-
-            console.log(`Joined tracking for ${assignments.length} shuttles`);
           } catch (error) {
             console.error("Error fetching shuttle assignments:", error);
-            toast.error("Failed to fetch shuttle assignments");
           }
         };
 
-        await fetchAndTrackShuttles();
+        // Initial fetch and track
+        fetchAndTrackShuttles();
 
         // Import the interval constant from websocketService
         const LOCATION_UPDATE_INTERVAL = getLocationUpdateInterval();
 
         // Clean up stale locations every 3 seconds (same as update interval)
         const cleanupInterval = setInterval(() => {
+          if (!isComponentMounted) return;
           setShuttleLocations((prev) => {
             const now = new Date();
             const newLocations = { ...prev };
@@ -357,19 +375,26 @@ const TellerMain = () => {
 
         // Set up socket event listeners
         socketInstance.on("connect", () => {
+          if (!isComponentMounted) return;
           console.log("Socket connected");
           setIsConnected(true);
         });
 
         socketInstance.on("disconnect", () => {
+          if (!isComponentMounted) return;
           console.log("Socket disconnected");
           setIsConnected(false);
-          toast.warning(
-            "Lost connection to server. Attempting to reconnect..."
-          );
+          toast("Lost connection to server. Attempting to reconnect...", {
+            icon: "⚠️",
+            style: {
+              background: "#fff3cd",
+              color: "#856404",
+            },
+          });
         });
 
         socketInstance.on("reconnect", () => {
+          if (!isComponentMounted) return;
           console.log("Socket reconnected");
           setIsConnected(true);
           toast.success("Reconnected to server!");
@@ -413,6 +438,7 @@ const TellerMain = () => {
 
     // Cleanup function
     return () => {
+      isComponentMounted = false;
       if (messageCleanup) messageCleanup();
       if (locationCleanup) locationCleanup();
       if (notificationCleanup) notificationCleanup();
@@ -466,7 +492,7 @@ const TellerMain = () => {
 
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/teller/${email}`,
+          `${API_BASE_URL}/teller/${email}`,
           {
             method: "GET",
             credentials: "include",
@@ -497,7 +523,7 @@ const TellerMain = () => {
   useEffect(() => {
     const fetchUserPreferences = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/userdata/${email}`, {
+        const response = await fetch(`${API_BASE_URL}/userdata/find?email=${email}`, {
           headers: {
             Authorization: `Bearer ${getCookie("token")}`,
           },
@@ -553,7 +579,7 @@ const TellerMain = () => {
 
       // If we're collapsing the sidebar, also close settings
       if (prevState && !newState) {
-        setIsSettingsOpen(false);
+        setIsSidebarExpanded(false);
       }
 
       return newState;
@@ -565,8 +591,6 @@ const TellerMain = () => {
     const handleClickOutside = (event) => {
       if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
         setIsSidebarExpanded(false);
-        // Also close settings dropdown when sidebar is closed by clicking outside
-        setIsSettingsOpen(false);
       }
     };
 
@@ -575,11 +599,6 @@ const TellerMain = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  // Add a useEffect to log sidebar state changes
-  useEffect(() => {
-    console.log("Sidebar expanded state changed:", isSidebarExpanded);
-  }, [isSidebarExpanded]);
 
   const handleSendMessage = (newMessage) => {
     const tellerMessage = { sender: "Teller", text: newMessage };
@@ -862,6 +881,7 @@ const TellerMain = () => {
           onClose={toggleProfile}
           profileImage={profileImage}
           setProfileImage={setProfileImage}
+          onImageChange={(newImage) => setProfileImage(newImage)}
         />
       )}
 

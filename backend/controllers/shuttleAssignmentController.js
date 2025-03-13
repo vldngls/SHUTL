@@ -24,8 +24,13 @@ export const assignShuttle = async (req, res) => {
 // Get all shuttle assignments
 export const getAllAssignments = async (req, res) => {
   try {
-    const assignments = await ShuttleAssignment.find();
-    res.status(200).json(assignments);
+    const assignments = await ShuttleAssignment.find({ status: "active" });
+    // Transform the data to match frontend expectations
+    const transformedAssignments = assignments.map(assignment => ({
+      shuttleNumber: assignment.shuttleId,
+      driver: assignment.driverEmail
+    }));
+    res.status(200).json(transformedAssignments);
   } catch (error) {
     console.error("Error in getAllAssignments:", error);
     res.status(500).json({ error: error.message });

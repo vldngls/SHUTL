@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken"; // Import jwt to decode the token
 import User from "./models/user.model.js"; // Import User model
+import ShuttleTrip from "./models/shuttleTrip.model.js"; // Import ShuttleTrip model
 
 const setupSocket = (io, db) => {
   const shuttleLocations = new Map();
@@ -226,6 +227,28 @@ const setupSocket = (io, db) => {
     socket.on("join_room", (roomId) => {
       socket.join(roomId);
       console.log(`✅ Socket ${socket.id} joined room ${roomId}`);
+    });
+
+    // Handle trip creation
+    socket.on("create_trip", async (tripData) => {
+      console.log("🚌 Creating new trip:", tripData);
+      try {
+        // Create a new trip in the database
+        const newTrip = await ShuttleTrip.create(tripData);
+        console.log("✅ Trip created successfully:", newTrip);
+        
+        // Emit success event back to the client
+        socket.emit("trip_created", { success: true, trip: newTrip });
+        
+        // Broadcast to all clients that a new trip was created
+        io.emit("trip_update", { type: "created", trip: newTrip });
+      } catch (error) {
+        console.error("❌ Error creating trip:", error);
+        socket.emit("trip_created", { 
+          success: false, 
+          error: error.message || "Failed to create trip" 
+        });
+      }
     });
 
     socket.on("leave_room", (roomId) => {

@@ -104,7 +104,6 @@ app.use("/api/shuttle-assignments", shuttleAssignmentRoutes);
 app.use("/api/fare-transactions", fareTransactionRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/userdatas", userDataRoutes);
-app.use("/api/shuttleassignments", shuttleAssignmentRoutes);
 app.use("/api/onfieldshuttles", onfieldShuttleRoutes);
 app.use("/api/driver-profiles", driverProfileRoutes);
 app.use("/api/suggestions", suggestionRoutes);

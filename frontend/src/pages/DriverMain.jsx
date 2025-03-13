@@ -683,13 +683,6 @@ const DriverMain = () => {
         const currentTime = Date.now();
         const userCoords = [latitude, longitude];
 
-        console.log("Location update:", {
-          currentCoords: userCoords,
-          lastCoords: lastLocationRef.current,
-          currentTime,
-          lastUpdateTime: lastUpdateTimeRef.current,
-        });
-
         // Calculate speed and heading
         let speed = 0;
         let heading = 0;
@@ -703,15 +696,6 @@ const DriverMain = () => {
             timeElapsedSeconds
           );
           heading = calculateHeading(lastLocationRef.current, userCoords);
-          console.log("Calculated values:", {
-            speed,
-            heading,
-            timeElapsedSeconds,
-          });
-        } else {
-          console.log(
-            "No previous location data available for speed calculation"
-          );
         }
 
         // Update local state
@@ -738,7 +722,6 @@ const DriverMain = () => {
             timestamp: new Date().toISOString(),
           };
 
-          console.log("Sending location update:", locationData);
           await sendLocation(locationData);
         }
 
@@ -761,10 +744,10 @@ const DriverMain = () => {
 
     // Set up interval for updates
     const LOCATION_UPDATE_INTERVAL = getLocationUpdateInterval();
-    locationUpdateInterval.current = setInterval(
-      updateLocation,
-      LOCATION_UPDATE_INTERVAL
-    );
+    if (locationUpdateInterval.current) {
+      clearInterval(locationUpdateInterval.current);
+    }
+    locationUpdateInterval.current = setInterval(updateLocation, LOCATION_UPDATE_INTERVAL);
 
     setIsLocationSharing(true);
     localStorage.setItem("isLocationSharing", "true");
@@ -1133,7 +1116,12 @@ const DriverMain = () => {
     const fetchUserPreferences = async () => {
       try {
         const email = getCookie("email");
-        const response = await fetch(`${API_BASE_URL}/userdata/${email}`, {
+        if (!email) {
+          console.warn("No email found in cookies");
+          return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/userdata/find?email=${encodeURIComponent(email)}`, {
           headers: {
             Authorization: `Bearer ${getCookie("token")}`,
           },
@@ -1144,10 +1132,16 @@ const DriverMain = () => {
           setNotificationEnabled(userData.preferences?.notifications ?? true);
           setLocationEnabled(userData.preferences?.location ?? true);
         } else {
-          console.error("Failed to fetch user preferences");
+          console.error("Failed to fetch user preferences:", response.status);
+          // Keep default values if fetch fails
+          setNotificationEnabled(true);
+          setLocationEnabled(true);
         }
       } catch (error) {
         console.error("Error fetching user preferences:", error);
+        // Keep default values if fetch fails
+        setNotificationEnabled(true);
+        setLocationEnabled(true);
       }
     };
 

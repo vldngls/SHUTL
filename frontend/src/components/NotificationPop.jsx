@@ -1,6 +1,7 @@
 // frontend/src/components/NotificationPop.jsx
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import "../css/NotificationPop.css";
+import PropTypes from 'prop-types';
 
 const ShutlNotificationPop = ({
   notifications = [],
@@ -51,11 +52,14 @@ const ShutlNotificationPop = ({
       </button>
       <ul className="ShutlNotificationPop-list">
         {notifications.length > 0 ? (
-          notifications.map((notif, index) => (
-            <li key={index} className="ShutlNotificationPop-item">
-              {notif.message}
+          notifications.map((notification, index) => (
+            <li
+              key={`${notification.timestamp}-${index}`}
+              className="ShutlNotificationPop-item"
+            >
+              {notification.message}
               <span className="ShutlNotificationPop-time">
-                {new Date(notif.createdAt).toLocaleTimeString()}
+                {new Date(notification.createdAt).toLocaleTimeString()}
               </span>
             </li>
           ))
@@ -65,6 +69,15 @@ const ShutlNotificationPop = ({
       </ul>
     </div>
   );
+};
+
+ShutlNotificationPop.propTypes = {
+  notifications: PropTypes.arrayOf(PropTypes.shape({
+    message: PropTypes.string.isRequired,
+    timestamp: PropTypes.number.isRequired,
+    createdAt: PropTypes.string.isRequired
+  })).isRequired,
+  onClose: PropTypes.func.isRequired
 };
 
 export default ShutlNotificationPop;

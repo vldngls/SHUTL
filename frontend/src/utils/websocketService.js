@@ -83,6 +83,19 @@ export const connectSocket = () => {
         console.log("Socket connected successfully");
         isConnecting = false;
         reconnectAttempts = 0;
+        
+        // Process any queued messages
+        while (messageQueue.length > 0) {
+          const { event, data } = messageQueue.shift();
+          socket.emit(event, data);
+        }
+
+        // Process any queued location updates
+        while (locationQueue.length > 0) {
+          const locationData = locationQueue.shift();
+          socket.emit("shuttle_location", locationData);
+        }
+        
         resolve(socket);
       });
 
@@ -387,21 +400,45 @@ export const sendLocation = async (locationData) => {
   }
 };
 
-// Use the generic subscribeToEvent function
-export const subscribeToLocationUpdates = (callback) => {
-  if (!socket) return;
+// Location-specific socket events
+export const subscribeToLocationUpdates = async (callback) => {
+  try {
+    const socketInstance = await connectSocket();
 
-  socket.on("location_update", (data) => {
-    if (data && data.coordinates) {
-      callback(data);
-    }
-  });
+    // Listen for both types of location updates
+    socketInstance.on("shuttle_location", (data) => {
+      console.log("Received shuttle_location:", data);
+      if (data && data.coordinates) {
+        callback(data);
+      }
+    });
 
-  socket.on("speed_update", (data) => {
-    if (data && data.speed !== undefined) {
-      callback({ ...data, type: "speed" });
-    }
-  });
+    socketInstance.on("shuttle_location_update", (data) => {
+      console.log("Received shuttle_location_update:", data);
+      if (data && data.coordinates) {
+        callback(data);
+      }
+    });
+
+    // Also listen for speed updates
+    socketInstance.on("speed_update", (data) => {
+      if (data && data.speed !== undefined) {
+        callback({ ...data, type: "speed" });
+      }
+    });
+
+    // Return cleanup function
+    return () => {
+      if (socketInstance) {
+        socketInstance.off("shuttle_location");
+        socketInstance.off("shuttle_location_update");
+        socketInstance.off("speed_update");
+      }
+    };
+  } catch (error) {
+    console.error("Failed to subscribe to location updates:", error);
+    return () => {}; // Return empty cleanup function
+  }
 };
 
 export const joinShuttleTracking = async (shuttleId) => {
@@ -418,7 +455,7 @@ export const joinShuttleTracking = async (shuttleId) => {
 
 // Export the location update interval for consistency
 export const getLocationUpdateInterval = () => {
-  return 5000; // 5 seconds
+  return LOCATION_UPDATE_INTERVAL || 5000; // Default to 5 seconds if not defined
 };
 
 // Add a cleanup function for application shutdown

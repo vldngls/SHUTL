@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import PropTypes from "prop-types";
+import { useState, useEffect, useRef } from "react";
 import "../css/ShuttleDetails.css";
 import CollectFare from "./CollectFare";
 
@@ -188,7 +189,9 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
   // Calculate pagination values
   const indexOfLastTransaction = currentPage * transactionsPerPage;
   const indexOfFirstTransaction = indexOfLastTransaction - transactionsPerPage;
-  const currentTransactions = transactions.slice(
+  // Reverse the transactions array to show newest first
+  const sortedTransactions = [...transactions].reverse();
+  const currentTransactions = sortedTransactions.slice(
     indexOfFirstTransaction,
     indexOfLastTransaction
   );
@@ -264,7 +267,7 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
               <>
                 <ul>
                   {currentTransactions.map((transaction, index) => (
-                    <li key={index}>
+                    <li key={transaction._id || index}>
                       <div className="transaction-details">
                         <div className="transaction-counts">
                           <span className="transaction-type">
@@ -344,6 +347,13 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
       )}
     </div>
   );
+};
+
+ShuttleDetails.propTypes = {
+  shuttle: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+  }).isRequired,
+  onClose: PropTypes.func.isRequired,
 };
 
 export default ShuttleDetails;
