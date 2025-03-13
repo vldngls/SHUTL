@@ -414,7 +414,7 @@ const AdministratorShuttlesRoutesContent = () => {
       {/* Shuttles Section */}
       <div className="adm-routes-list-section">
         <div className="adm-routes-list-header">
-          <h3 className="adm-routes-list-title">Shuttles ({getTimePeriodLabel()})</h3>
+          <h3 className="adm-routes-list-title">Shuttles</h3>
           <button className="adm-routes-btn adm-routes-btn-primary">+ Add Shuttle</button>
         </div>
         
