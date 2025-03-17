@@ -23,6 +23,46 @@
   max-width: 800px;
 }
 
+/* Pending Discounts Section */
+.adm-pending-discounts {
+  background-color: white;
+  border-radius: var(--adm-radius-lg);
+  box-shadow: var(--adm-shadow);
+  padding: var(--adm-spacing-6);
+  margin-bottom: var(--adm-spacing-6);
+}
+
+.adm-section-title {
+  font-size: var(--adm-font-size-xl);
+  font-weight: 600;
+  color: var(--adm-gray-800);
+  margin: 0 0 var(--adm-spacing-5) 0;
+  padding-bottom: var(--adm-spacing-3);
+  border-bottom: 1px solid var(--adm-gray-200);
+}
+
+/* Status Badge */
+.adm-status-badge {
+  display: inline-block;
+  padding: var(--adm-spacing-1) var(--adm-spacing-3);
+  border-radius: var(--adm-radius);
+  font-size: var(--adm-font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.adm-status-badge.pending {
+  background-color: rgba(255, 170, 0, 0.1);
+  color: #ffaa00;
+}
+
+.adm-no-data {
+  text-align: center;
+  color: var(--adm-gray-600);
+  padding: var(--adm-spacing-6);
+  font-size: var(--adm-font-size-base);
+}
+
 /* Search and Filters */
 .adm-search-bar {
   display: flex;

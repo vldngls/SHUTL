@@ -332,14 +332,17 @@ const AdministratorMain = () => {
 
   return (
     <div className="adm-container">
-      <div className="adm-sidebar">
+      <div className={`adm-sidebar ${showMobileMenu ? 'show' : ''}`}>
         <div className="adm-logo">SHUTL.</div>
         <div className="adm-nav">
           <button
             className={`adm-nav-btn ${
               activeTab === "Dashboard" ? "active" : ""
             }`}
-            onClick={() => setActiveTab("Dashboard")}
+            onClick={() => {
+              setActiveTab("Dashboard");
+              setShowMobileMenu(false);
+            }}
           >
             Dashboard
           </button>
@@ -347,7 +350,10 @@ const AdministratorMain = () => {
             className={`adm-nav-btn ${
               activeTab === "Maintenance" ? "active" : ""
             }`}
-            onClick={() => setActiveTab("Maintenance")}
+            onClick={() => {
+              setActiveTab("Maintenance");
+              setShowMobileMenu(false);
+            }}
           >
             Maintenance
           </button>
@@ -355,7 +361,10 @@ const AdministratorMain = () => {
             className={`adm-nav-btn ${
               activeTab === "Fare" ? "active" : ""
             }`}
-            onClick={() => setActiveTab("Fare")}
+            onClick={() => {
+              setActiveTab("Fare");
+              setShowMobileMenu(false);
+            }}
           >
             Fare
           </button>
@@ -363,7 +372,10 @@ const AdministratorMain = () => {
             className={`adm-nav-btn ${
               activeTab === "ShuttlesRoutes" ? "active" : ""
             }`}
-            onClick={() => setActiveTab("ShuttlesRoutes")}
+            onClick={() => {
+              setActiveTab("ShuttlesRoutes");
+              setShowMobileMenu(false);
+            }}
           >
             Shuttles & Routes
           </button>
@@ -371,7 +383,10 @@ const AdministratorMain = () => {
             className={`adm-nav-btn ${
               activeTab === "ShuttleManagement" ? "active" : ""
             }`}
-            onClick={() => setActiveTab("ShuttleManagement")}
+            onClick={() => {
+              setActiveTab("ShuttleManagement");
+              setShowMobileMenu(false);
+            }}
           >
             Shuttle Management
           </button>
@@ -379,7 +394,10 @@ const AdministratorMain = () => {
             className={`adm-nav-btn ${
               activeTab === "Transactions" ? "active" : ""
             }`}
-            onClick={() => setActiveTab("Transactions")}
+            onClick={() => {
+              setActiveTab("Transactions");
+              setShowMobileMenu(false);
+            }}
           >
             Transactions
           </button>
@@ -387,7 +405,10 @@ const AdministratorMain = () => {
             className={`adm-nav-btn ${
               activeTab === "AccountManagement" ? "active" : ""
             }`}
-            onClick={() => setActiveTab("AccountManagement")}
+            onClick={() => {
+              setActiveTab("AccountManagement");
+              setShowMobileMenu(false);
+            }}
           >
             Account Management
           </button>
@@ -464,7 +485,10 @@ const AdministratorMain = () => {
       </button>
 
       {/* Mobile overlay */}
-      <div className={`adm-overlay ${showMobileMenu ? 'show' : ''}`}></div>
+      <div 
+        className={`adm-overlay ${showMobileMenu ? 'show' : ''}`} 
+        onClick={() => setShowMobileMenu(false)}
+      ></div>
 
       {showPopup && (
         <NotificationPop

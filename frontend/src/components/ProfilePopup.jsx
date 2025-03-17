@@ -214,8 +214,8 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Don't close the popup if the crop modal is open
-      if (showCropModal) return;
+      // Don't close the popup if the crop modal or transaction history is open
+      if (showCropModal || showTransactions) return;
 
       if (popupRef.current && !popupRef.current.contains(event.target)) {
         onClose();
@@ -226,7 +226,7 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [onClose, showCropModal]);
+  }, [onClose, showCropModal, showTransactions]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -457,15 +457,15 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
   const totalPages = Math.ceil(transactions.length / transactionsPerPage);
 
   return (
-    <div className="ShutlProfilePopup">
-      <div ref={popupRef} className="ShutlProfilePopup-content">
+    <div className="shutl-profile-popup">
+      <div ref={popupRef} className="shutl-profile-popup-content">
         {/* Profile Header Section */}
-        <div className="ShutlProfilePopup-header">
-          <div className="ShutlProfilePopup-picture-container">
+        <div className="shutl-profile-popup-header">
+          <div className="shutl-profile-popup-picture-container">
             <img
               src={profileImage || "/images/avatar.png"}
               alt="Profile"
-              className="ShutlProfilePopup-picture"
+              className="shutl-profile-popup-picture"
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = "/images/avatar.png";
@@ -477,19 +477,19 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
                   type="file"
                   accept="image/*"
                   onChange={handleImageChange}
-                  className="ShutlProfilePopup-upload"
+                  className="shutl-profile-popup-upload"
                 />
-                <div className="ShutlProfilePopup-picture-overlay">
+                <div className="shutl-profile-popup-picture-overlay">
                   Change Photo
                 </div>
               </>
             )}
           </div>
-          <div className="ShutlProfilePopup-info">
+          <div className="shutl-profile-popup-info">
             <h2>{userData?.name || "User Name"}</h2>
             {userData?.discountType !== "REGULAR" && (
               <div
-                className="ShutlProfilePopup-discount-status"
+                className="shutl-profile-popup-discount-status"
                 style={{
                   color:
                     DISCOUNT_STATUS[userData?.discountStatus || "PENDING"]
@@ -503,16 +503,16 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
             )}
           </div>
           {!isEditing ? (
-            <div className="profile-buttons">
+            <div className="shutl-profile-buttons">
               <button
-                className="ShutlProfilePopup-edit-btn"
+                className="shutl-profile-popup-edit-btn"
                 onClick={() => setIsEditing(true)}
                 aria-label="Edit Profile"
               >
                 <FaEdit />
               </button>
               <button
-                className="transaction-history-btn"
+                className="shutl-transaction-history-btn"
                 onClick={() => setShowTransactions(true)}
               >
                 <FaHistory /> History
@@ -523,9 +523,9 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
 
         {/* User Details Section */}
         {isEditing ? (
-          <div className="ShutlProfilePopup-edit-details">
-            <div className="ShutlProfilePopup-form-group">
-              <label className="ShutlProfilePopup-edit-label">Full Name</label>
+          <div className="shutl-profile-popup-edit-details">
+            <div className="shutl-profile-popup-form-group">
+              <label className="shutl-profile-popup-edit-label">Full Name</label>
               <input
                 name="name"
                 type="text"
@@ -535,8 +535,8 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
               />
             </div>
 
-            <div className="ShutlProfilePopup-form-group">
-              <label className="ShutlProfilePopup-edit-label">Birthday</label>
+            <div className="shutl-profile-popup-form-group">
+              <label className="shutl-profile-popup-edit-label">Birthday</label>
               <input
                 name="birthday"
                 type="date"
@@ -553,8 +553,8 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
               />
             </div>
 
-            <div className="ShutlProfilePopup-form-group">
-              <label className="ShutlProfilePopup-edit-label">Address</label>
+            <div className="shutl-profile-popup-form-group">
+              <label className="shutl-profile-popup-edit-label">Address</label>
               <input
                 name="address"
                 type="text"
@@ -564,8 +564,8 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
               />
             </div>
 
-            <div className="ShutlProfilePopup-form-group">
-              <label className="ShutlProfilePopup-edit-label">
+            <div className="shutl-profile-popup-form-group">
+              <label className="shutl-profile-popup-edit-label">
                 Discount Type
               </label>
               <select
@@ -592,25 +592,25 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
 
             {(editedData.discountType || userData?.discountType) !==
               "REGULAR" && (
-              <div className="ShutlProfilePopup-form-group">
-                <label className="ShutlProfilePopup-edit-label">
+              <div className="shutl-profile-popup-form-group">
+                <label className="shutl-profile-popup-edit-label">
                   ID for Verification
                 </label>
                 <input
                   type="file"
                   name="idPicture"
-                  className="ProfilePopup-auth-input"
+                  className="shutl-profile-popup-auth-input"
                   accept="image/*"
                   onChange={(e) => handleFileChange(e, "idPicture")}
                 />
-                <small className="ShutlProfilePopup-form-hint">
+                <small className="shutl-profile-popup-form-hint">
                   Please upload a valid ID for discount verification
                 </small>
               </div>
             )}
 
-            <div className="ShutlProfilePopup-form-group">
-              <label className="ShutlProfilePopup-edit-label">
+            <div className="shutl-profile-popup-form-group">
+              <label className="shutl-profile-popup-edit-label">
                 Payment Method
               </label>
               <input
@@ -624,8 +624,8 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
               />
             </div>
 
-            <div className="ShutlProfilePopup-form-group">
-              <label className="ShutlProfilePopup-edit-label">
+            <div className="shutl-profile-popup-form-group">
+              <label className="shutl-profile-popup-edit-label">
                 Contact Number
               </label>
               <input
@@ -639,15 +639,15 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
               />
             </div>
 
-            <div className="ShutlProfilePopup-edit-actions">
+            <div className="shutl-profile-popup-edit-actions">
               <button
-                className="ShutlProfilePopup-cancel-btn"
+                className="shutl-profile-popup-cancel-btn"
                 onClick={() => setIsEditing(false)}
               >
                 Cancel
               </button>
               <button
-                className="ShutlProfilePopup-save-btn"
+                className="shutl-profile-popup-save-btn"
                 onClick={handleSave}
               >
                 Save Changes
@@ -655,8 +655,8 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
             </div>
           </div>
         ) : (
-          <div className="ShutlProfilePopup-details">
-            <div className="details-category">
+          <div className="shutl-profile-popup-details">
+            <div className="shutl-details-category">
               <h4>Personal Information</h4>
               <p>
                 <strong>Email</strong> {userData?.email || "N/A"}
@@ -675,7 +675,7 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
               </p>
             </div>
 
-            <div className="details-category">
+            <div className="shutl-details-category">
               <h4>Discount Information</h4>
               <p>
                 <strong>Type</strong>
@@ -703,7 +703,7 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
               )}
             </div>
 
-            <div className="details-category">
+            <div className="shutl-details-category">
               <h4>Payment Information</h4>
               <p>
                 <strong>Payment Method</strong>
@@ -716,14 +716,14 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
 
       {/* Transaction History Popout */}
       <div
-        className={`transaction-history-popout ${
+        className={`shutl-transaction-history-popout ${
           showTransactions ? "active" : ""
         }`}
       >
         <h3>
           Transaction History
           <button
-            className="close-history-btn"
+            className="shutl-close-history-btn"
             onClick={() => setShowTransactions(false)}
           >
             ×
@@ -731,9 +731,9 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
         </h3>
         {transactions && transactions.length > 0 ? (
           <>
-            <div className="transaction-list">
+            <div className="shutl-transaction-list">
               {currentTransactions.map((transaction, index) => (
-                <div key={transaction._id} className="transaction-item">
+                <div key={transaction._id} className="shutl-transaction-item">
                   <h4>Transaction {indexOfFirstTransaction + index + 1}</h4>
                   <p>
                     Date: {new Date(transaction.createdAt).toLocaleDateString()}
@@ -747,9 +747,9 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
               ))}
             </div>
             {totalPages > 1 && (
-              <div className="pagination">
+              <div className="shutl-pagination">
                 <button
-                  className="pagination-btn"
+                  className="shutl-pagination-btn"
                   onClick={() =>
                     setCurrentPage((prev) => Math.max(1, prev - 1))
                   }
@@ -757,11 +757,11 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
                 >
                   Previous
                 </button>
-                <span className="page-info">
+                <span className="shutl-page-info">
                   Page {currentPage} of {totalPages}
                 </span>
                 <button
-                  className="pagination-btn"
+                  className="shutl-pagination-btn"
                   onClick={() =>
                     setCurrentPage((prev) => Math.min(totalPages, prev + 1))
                   }

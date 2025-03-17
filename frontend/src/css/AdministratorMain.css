@@ -338,6 +338,12 @@ body {
   .adm-sidebar {
     transform: translateX(-100%);
     width: 280px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 1000;
+    transition: transform 0.3s ease-in-out;
   }
   
   .adm-sidebar.show {
@@ -358,7 +364,7 @@ body {
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
-    z-index: 99;
+    z-index: 999;
   }
   
   .adm-overlay.show {

@@ -32,6 +32,10 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const tripsPerPage = 5;
 
+  // Add pagination state for pending trips
+  const [pendingCurrentPage, setPendingCurrentPage] = useState(1);
+  const pendingTripsPerPage = 3;
+
   const [operationalHours, setOperationalHours] = useState(null);
   const [isWithinHours, setIsWithinHours] = useState(true);
 
@@ -322,6 +326,17 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
     setCurrentPage(pageNumber);
   };
 
+  // Calculate pagination for pending trips
+  const indexOfLastPendingTrip = pendingCurrentPage * pendingTripsPerPage;
+  const indexOfFirstPendingTrip = indexOfLastPendingTrip - pendingTripsPerPage;
+  const currentPendingTrips = pendingOutTrips.slice(indexOfFirstPendingTrip, indexOfLastPendingTrip);
+  const totalPendingPages = Math.ceil(pendingOutTrips.length / pendingTripsPerPage);
+
+  // Pagination controls for pending trips
+  const handlePendingPageChange = (pageNumber) => {
+    setPendingCurrentPage(pageNumber);
+  };
+
   // Add click handler for background
   const handleBackgroundClick = (e) => {
     // Check if the click is on the background (popup container) and not its children
@@ -339,28 +354,46 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
         <div className="tables-section">
           <div className="pending-trips-table">
             <h3>Pending Out Trips</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Time</th>
-                  <th>Shuttle Number</th>
-                  <th>Driver</th>
-                  <th>Passengers</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pendingOutTrips.map((trip) => (
-                  <tr key={trip._id}>
-                    <td>{trip.time}</td>
-                    <td>{trip.shuttleNumber}</td>
-                    <td>{trip.driver}</td>
-                    <td>{trip.passengerCount}</td>
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Shuttle Number</th>
+                    <th>Driver</th>
+                    <th>Passengers</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            {pendingOutTrips.length === 0 && (
+                </thead>
+                <tbody>
+                  {currentPendingTrips.map((trip) => (
+                    <tr key={trip._id}>
+                      <td>{trip.time}</td>
+                      <td>{trip.shuttleNumber}</td>
+                      <td>{trip.driver}</td>
+                      <td>{trip.passengerCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {pendingOutTrips.length === 0 ? (
               <p className="no-pending">No pending out trips</p>
+            ) : (
+              <div className="pagination">
+                {Array.from({ length: totalPendingPages }, (_, i) => i + 1).map(
+                  (pageNumber) => (
+                    <button
+                      key={pageNumber}
+                      onClick={() => handlePendingPageChange(pageNumber)}
+                      className={`pagination-button ${
+                        pageNumber === pendingCurrentPage ? "active" : ""
+                      }`}
+                    >
+                      {pageNumber}
+                    </button>
+                  )
+                )}
+              </div>
             )}
           </div>
           <div className="recent-trips-table">

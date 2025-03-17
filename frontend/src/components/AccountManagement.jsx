@@ -28,6 +28,7 @@ const AccountManagement = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
+  const [pendingDiscountUsers, setPendingDiscountUsers] = useState([]);
 
   useEffect(() => {
     fetchUsers();
@@ -45,12 +46,38 @@ const AccountManagement = () => {
 
   const fetchUsers = async () => {
     try {
+      // Fetch basic user info
       const response = await fetch(`${API_BASE_URL}/users/all`);
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data);
-        setFilteredUsers(data);
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
       }
+      const userData = await response.json();
+
+      // Fetch additional user data for each user
+      const usersWithData = await Promise.all(
+        userData.map(async (user) => {
+          try {
+            const dataResponse = await fetch(
+              `${API_BASE_URL}/userData/find?email=${user.email}`
+            );
+            if (dataResponse.ok) {
+              const additionalData = await dataResponse.json();
+              return { ...user, ...additionalData };
+            }
+            return user;
+          } catch (error) {
+            console.error(`Error fetching data for user ${user.email}:`, error);
+            return user;
+          }
+        })
+      );
+
+      setUsers(usersWithData);
+      setFilteredUsers(usersWithData);
+      
+      // Update pending discount users
+      const pendingUsers = usersWithData.filter(user => user.discountStatus === "PENDING");
+      setPendingDiscountUsers(pendingUsers);
     } catch (error) {
       console.error("Error fetching users:", error);
       setErrorMessage("Failed to fetch users");
@@ -114,11 +141,46 @@ const AccountManagement = () => {
       );
       if (response.ok) {
         const userData = await response.json();
+        // No need to construct full URL since it's a base64 string
         setViewingUser({ ...user, ...userData });
         setShowUserModal(true);
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
+    }
+  };
+
+  // Add logging function
+  const createLog = async (action, details) => {
+    try {
+      const token = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("token="))
+        ?.split("=")[1];
+
+      if (!token) {
+        console.error("No authentication token found");
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/logs/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action,
+          details,
+          timestamp: new Date(),
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to create log:", await response.text());
+      }
+    } catch (error) {
+      console.error("Error creating log:", error);
     }
   };
 
@@ -148,7 +210,41 @@ const AccountManagement = () => {
       });
 
       if (response.ok) {
-        fetchUsers();
+        // Create log entry for discount approval
+        const user = users.find(u => u.email === email);
+        await createLog(
+          "DISCOUNT_APPROVED",
+          `Approved discount request for user: ${user.name} (${email})`
+        );
+
+        // Update local state immediately
+        const updatedUsers = users.map(user => {
+          if (user.email === email) {
+            return {
+              ...user,
+              discountStatus: "APPROVED"
+            };
+          }
+          return user;
+        });
+        setUsers(updatedUsers);
+        
+        // Update filtered users
+        const updatedFilteredUsers = filteredUsers.map(user => {
+          if (user.email === email) {
+            return {
+              ...user,
+              discountStatus: "APPROVED"
+            };
+          }
+          return user;
+        });
+        setFilteredUsers(updatedFilteredUsers);
+        
+        // Update pending users
+        const updatedPendingUsers = pendingDiscountUsers.filter(user => user.email !== email);
+        setPendingDiscountUsers(updatedPendingUsers);
+        
         setShowUserModal(false);
       } else {
         console.error("Failed to approve discount:", await response.text());
@@ -186,7 +282,45 @@ const AccountManagement = () => {
       });
 
       if (response.ok) {
-        fetchUsers();
+        // Create log entry for discount rejection
+        const user = users.find(u => u.email === email);
+        await createLog(
+          "DISCOUNT_REJECTED",
+          `Rejected discount request for user: ${user.name} (${email})`
+        );
+
+        // Update local state immediately
+        const updatedUsers = users.map(user => {
+          if (user.email === email) {
+            return {
+              ...user,
+              discountStatus: "REJECTED",
+              discountType: "REGULAR",
+              discount: 0
+            };
+          }
+          return user;
+        });
+        setUsers(updatedUsers);
+        
+        // Update filtered users
+        const updatedFilteredUsers = filteredUsers.map(user => {
+          if (user.email === email) {
+            return {
+              ...user,
+              discountStatus: "REJECTED",
+              discountType: "REGULAR",
+              discount: 0
+            };
+          }
+          return user;
+        });
+        setFilteredUsers(updatedFilteredUsers);
+        
+        // Update pending users
+        const updatedPendingUsers = pendingDiscountUsers.filter(user => user.email !== email);
+        setPendingDiscountUsers(updatedPendingUsers);
+        
         setShowUserModal(false);
       } else {
         console.error("Failed to reject discount:", await response.text());
@@ -204,6 +338,13 @@ const AccountManagement = () => {
   const confirmDelete = async () => {
     try {
       await deleteUser(userToDelete._id);
+      
+      // Create log entry for user deletion
+      await createLog(
+        "USER_DELETED",
+        `Deleted user account: ${userToDelete.name} (${userToDelete.email})`
+      );
+
       const updatedUsers = users.filter(
         (user) => user._id !== userToDelete._id
       );
@@ -258,11 +399,80 @@ const AccountManagement = () => {
     setCurrentPage(page);
   };
 
+  const handleCancelEdit = () => {
+    setEditingUser(null);
+    setFormData({
+      name: "",
+      email: "",
+      username: "",
+      password: "",
+      userType: "Commuter",
+    });
+  };
+
   return (
     <div className="adm-account-management">
       <div className="adm-account-header">
         <h1 className="adm-account-title">Account Management</h1>
         <p className="adm-account-description">Manage user accounts, approve discount requests, and update user information.</p>
+      </div>
+
+      {/* Pending Discount Requests Section */}
+      <div className="adm-pending-discounts">
+        <h2 className="adm-section-title">Pending Discount Requests</h2>
+        {pendingDiscountUsers.length > 0 ? (
+          <div className="adm-table-container">
+            <table className="adm-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Discount Type</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingDiscountUsers.map((user) => (
+                  <tr key={user._id}>
+                    <td>{user.name}</td>
+                    <td>{user.email}</td>
+                    <td>{user.discountType || "N/A"}</td>
+                    <td>
+                      <span className="adm-status-badge pending">
+                        {user.discountStatus}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="adm-table-actions">
+                        <button 
+                          className="adm-action-btn adm-btn-view" 
+                          onClick={() => handleViewUser(user)}
+                        >
+                          View Details
+                        </button>
+                        <button 
+                          className="adm-btn adm-btn-primary"
+                          onClick={() => handleApproveDiscount(user.email)}
+                        >
+                          Approve
+                        </button>
+                        <button 
+                          className="adm-btn adm-btn-danger"
+                          onClick={() => handleRejectDiscount(user.email)}
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="adm-no-data">No pending discount requests</p>
+        )}
       </div>
 
       <div className="adm-search-bar">
@@ -515,10 +725,10 @@ const AccountManagement = () => {
                   </div>
                 </div>
 
-                {viewingUser.idImage && (
+                {viewingUser.idPicture && (
                   <div className="adm-user-detail">
-                    <div className="adm-detail-label">ID Image</div>
-                    <img className="adm-user-image" src={viewingUser.idImage} alt="User ID" />
+                    <div className="adm-detail-label">ID Picture</div>
+                    <img className="adm-user-image" src={viewingUser.idPicture} alt="User ID" />
                   </div>
                 )}
               </div>
