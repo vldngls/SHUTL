@@ -58,7 +58,7 @@ const AccountManagement = () => {
         userData.map(async (user) => {
           try {
             const dataResponse = await fetch(
-              `${API_BASE_URL}/userData/find?email=${user.email}`
+              `${API_BASE_URL}/api/userData/find?email=${user.email}`
             );
             if (dataResponse.ok) {
               const additionalData = await dataResponse.json();
@@ -337,7 +337,7 @@ const AccountManagement = () => {
 
   const confirmDelete = async () => {
     try {
-      await deleteUser(userToDelete._id);
+      await deleteUser(userToDelete.email);
       
       // Create log entry for user deletion
       await createLog(
@@ -346,7 +346,7 @@ const AccountManagement = () => {
       );
 
       const updatedUsers = users.filter(
-        (user) => user._id !== userToDelete._id
+        (user) => user.email !== userToDelete.email
       );
       setUsers(updatedUsers);
       setShowDeleteModal(false);

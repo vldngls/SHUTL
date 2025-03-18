@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/users"; // Adjust based on your backend API
+const API_URL = `${import.meta.env.VITE_API_BASE_URL}/users`;
 
 // Add a new user
 export const addUser = async (userData) => {
@@ -36,9 +36,9 @@ export const fetchUsers = async () => {
 };
 
 // Delete a user
-export const deleteUser = async (userId) => {
+export const deleteUser = async (email) => {
   try {
-    const response = await axios.delete(`${API_URL}/delete/${userId}`);
+    const response = await axios.delete(`${API_URL}/delete?email=${email}`);
     return response.data;
   } catch (error) {
     console.error("Error deleting user:", error);

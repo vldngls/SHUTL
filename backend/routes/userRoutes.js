@@ -18,6 +18,7 @@ import jwt from "jsonwebtoken";
 import UserData from "../models/userData.model.js";
 import bcrypt from "bcryptjs";
 import multer from "multer";
+import FareTransaction from "../models/fareTransaction.model.js";
 
 const router = express.Router();
 
@@ -144,17 +145,26 @@ router.put("/update/:id", async (req, res) => {
 });
 
 // Delete a user
-router.delete("/delete/:id", async (req, res) => {
-  const { id } = req.params;
+router.delete("/delete", async (req, res) => {
+  const { email } = req.query;
 
   try {
-    const deletedUser = await User.findByIdAndDelete(id);
-
-    if (!deletedUser) {
+    // First find the user to get their email
+    const user = await User.findOne({ email });
+    if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({ message: "User deleted successfully" });
+    // Delete from users collection
+    await User.findOneAndDelete({ email });
+
+    // Delete from userdatas collection using email
+    await UserData.findOneAndDelete({ email });
+
+    // Delete all fare transactions associated with the user's email
+    await FareTransaction.deleteMany({ commuterEmail: email });
+
+    res.status(200).json({ message: "User and associated data deleted successfully" });
   } catch (error) {
     console.error("Error deleting user:", error);
     res.status(500).json({ message: "Server error" });
