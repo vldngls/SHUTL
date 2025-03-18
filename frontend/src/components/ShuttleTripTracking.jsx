@@ -1,6 +1,7 @@
 // import React from 'react';
 import PropTypes from "prop-types";
 import toast from "react-hot-toast";
+import axios from "axios";
 import "../css/ShuttleTripTracking.css"; // Import the CSS file
 import { useState, useEffect } from "react";
 import { getCookie } from "../utils/cookieUtils"; // Add this import at the top with other imports
@@ -114,69 +115,44 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
   }, [socket]);
 
   useEffect(() => {
-    fetchPendingOutTrips();
-    fetchRecentTrips();
-    const fetchOperationalHours = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/operational-hours`);
-        const data = await response.json();
-        setOperationalHours(data);
-      } catch (error) {
-        console.error("Error fetching operational hours:", error);
-      }
-    };
-
-    fetchOperationalHours();
+    fetchData();
   }, []);
 
-  useEffect(() => {
-    if (operationalHours && tripData.time) {
-      const [hour, minute] = tripData.time.split(":").map(Number);
-      const [startHour, startMinute] = operationalHours.startTime
-        .split(":")
-        .map(Number);
-      const [endHour, endMinute] = operationalHours.endTime
-        .split(":")
-        .map(Number);
-
-      const currentTime = hour * 60 + minute;
-      const startTime = startHour * 60 + startMinute;
-      const endTime = endHour * 60 + endMinute;
-
-      setIsWithinHours(currentTime >= startTime && currentTime <= endTime);
-    }
-  }, [tripData.time, operationalHours]);
-
-  // Add time update effect
-  useEffect(() => {
-    const timeInterval = setInterval(() => {
-      setTripData((prev) => ({
-        ...prev,
-        time: getCurrentTime(),
-      }));
-    }, 1000); // Update every second
-
-    return () => clearInterval(timeInterval);
-  }, []);
-
-  const fetchPendingOutTrips = async () => {
+  const fetchData = async () => {
+    setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/shuttle/pending-trips`);
-      const data = await response.json();
-      setPendingOutTrips(data);
+      const [pendingTripsRes, recentTripsRes, operationalHoursRes, shuttleDetailsRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/shuttle/pending-trips`).catch((error) => {
+          console.error("Error fetching pending trips:", error);
+          return { data: [] };
+        }),
+        axios.get(`${API_BASE_URL}/shuttle/recent-trips`).catch((error) => {
+          console.error("Error fetching recent trips:", error);
+          return { data: [] };
+        }),
+        axios.get(`${API_BASE_URL}/operational-hours`).catch((error) => {
+          console.error("Error fetching operational hours:", error);
+          return { data: null };
+        }),
+        axios.get(`${API_BASE_URL}/shuttle-details/shuttles`).catch((error) => {
+          console.error("Error fetching shuttle details:", error);
+          return { data: [] };
+        }),
+      ]);
+
+      setPendingOutTrips(pendingTripsRes.data);
+      setRecentTrips(recentTripsRes.data);
+      setOperationalHours(operationalHoursRes.data);
+      setShuttleDetails(shuttleDetailsRes.data.shuttles || []);
     } catch (error) {
-      console.error("Error fetching pending trips:", error);
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchRecentTrips = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/shuttle/recent-trips`);
-      const data = await response.json();
-      setRecentTrips(data);
-    } catch (error) {
-      console.error("Error fetching recent trips:", error);
-    }
+  const getShuttleDetails = (shuttleNumber) => {
+    return shuttleDetails.find((shuttle) => shuttle.shuttleId === shuttleNumber) || {};
   };
 
   // Fetch shuttle assignments
@@ -346,10 +322,7 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
   };
 
   return (
-    <div
-      className="TellerMain-TripTracking-popup"
-      onClick={handleBackgroundClick}
-    >
+    <div className="TellerMain-TripTracking-popup" onClick={(e) => e.target.className === "TellerMain-TripTracking-popup" && onClose()}>
       <div className="shuttle-tracking-container">
         <div className="tables-section">
           <div className="pending-trips-table">
@@ -396,55 +369,44 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
               </div>
             )}
           </div>
+
           <div className="recent-trips-table">
-            <h3>Recent Trips</h3>
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Time</th>
-                    <th>Shuttle Number</th>
-                    <th>Driver</th>
-                    <th>Status</th>
-                    <th>Passengers</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentTrips.map((trip) => (
-                    <tr key={trip._id} className={trip.status.toLowerCase()}>
+            <h3>Recent Trips with Shuttle Details</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Shuttle Number</th>
+                  <th>License Plate</th>
+                  <th>Year Model</th>
+                  <th>Current Location</th>
+                  <th>Status</th>
+                  <th>Driver</th>
+                  <th>Passengers</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentTrips.map((trip) => {
+                  const shuttleInfo = getShuttleDetails(trip.shuttleNumber);
+                  return (
+                    <tr key={trip._id}>
                       <td>{trip.time}</td>
                       <td>{trip.shuttleNumber}</td>
-                      <td>{trip.driver}</td>
+                      <td>{shuttleInfo.licensePlate || "N/A"}</td>
+                      <td>{shuttleInfo.yearModel || "N/A"}</td>
+                      <td>{shuttleInfo.currentLocation || "N/A"}</td>
                       <td>
-                        <span
-                          className={`status-badge ${trip.status.toLowerCase()}`}
-                        >
-                          {trip.status}
+                        <span className={`status-badge ${shuttleInfo.status ? shuttleInfo.status.toLowerCase() : "unknown"}`}>
+                          {shuttleInfo.status || "Unknown"}
                         </span>
                       </td>
+                      <td>{trip.driver}</td>
                       <td>{trip.passengerCount}</td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination Controls */}
-            <div className="pagination">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (pageNumber) => (
-                  <button
-                    key={pageNumber}
-                    onClick={() => handlePageChange(pageNumber)}
-                    className={`pagination-button ${
-                      pageNumber === currentPage ? "active" : ""
-                    }`}
-                  >
-                    {pageNumber}
-                  </button>
-                )
-              )}
-            </div>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
         <div className="form-section">
@@ -563,7 +525,7 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
             <button className="submit-button" type="submit">
               Add Shuttle Trip
             </button>
-          </form>
+          ))}
         </div>
       </div>
       <button onClick={onClose} className="TellerMain-close-popup-btn">

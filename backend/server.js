@@ -14,6 +14,7 @@ import fareRoutes from "./routes/fareRoutes.js";
 import userDataRoutes from "./routes/userDataRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import shuttleRoutes from "./routes/shuttleRoutes.js";
+import shuttleDetailsRoutes from "./routes/shuttleDetailsRoutes.js";
 import scheduleRoutes from "./routes/scheduleRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import tellerRoutes from "./routes/tellerRoutes.js";
@@ -26,6 +27,7 @@ import driverProfileRoutes from "./routes/driverProfileRoutes.js";
 import suggestionRoutes from "./routes/suggestionRoutes.js";
 import operationalHoursRoutes from "./routes/operationalHoursRoutes.js";
 import maintenanceRoutes from "./routes/maintenanceRoutes.js";
+import routeRoutes from "./routes/routesRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -96,6 +98,7 @@ app.use((req, res, next) => {
 app.use("/api/users", userRoutes);
 app.use("/api/userdata", userDataRoutes);
 app.use("/api/shuttle", shuttleRoutes);
+app.use("/api/shuttle-details", shuttleDetailsRoutes);
 app.use("/api/fares", fareRoutes);
 app.use("/api/schedule", scheduleRoutes);
 app.use("/api/notifications", notificationRoutes);
@@ -109,6 +112,7 @@ app.use("/api/driver-profiles", driverProfileRoutes);
 app.use("/api/suggestions", suggestionRoutes);
 app.use("/api/operational-hours", operationalHoursRoutes);
 app.use("/api/maintenance", maintenanceRoutes);
+app.use("/api/routes", routeRoutes);
 app.get("/api", (req, res) => {
   res.json({ message: "API is working!" });
 });
