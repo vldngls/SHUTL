@@ -771,7 +771,7 @@ hr {
 }
 
 /* Active Shuttles Container */
-.active-shuttles-container {
+.as-container {
   position: fixed;
   top: 80px;
   right: 20px;
@@ -785,21 +785,21 @@ hr {
   width: 300px;
 }
 
-.active-shuttles-container::-webkit-scrollbar {
+.as-container::-webkit-scrollbar {
   width: 8px;
 }
 
-.active-shuttles-container::-webkit-scrollbar-track {
+.as-container::-webkit-scrollbar-track {
   background: #f5f5f5;
   border-radius: 8px;
 }
 
-.active-shuttles-container::-webkit-scrollbar-thumb {
+.as-container::-webkit-scrollbar-thumb {
   background: #232323;
   border-radius: 8px;
 }
 
-.active-shuttles-header {
+.as-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -808,14 +808,14 @@ hr {
   border-bottom: 2px solid rgba(35, 35, 35, 0.1);
 }
 
-.active-shuttles-header h2 {
+.as-header h2 {
   margin: 0;
   font-size: 20px;
   color: #232323;
   font-weight: 600;
 }
 
-.active-shuttles-header .close-button {
+.as-close-button {
   background: none;
   border: none;
   font-size: 24px;
@@ -832,17 +832,17 @@ hr {
   line-height: 1;
 }
 
-.active-shuttles-header .close-button:hover {
+.as-close-button:hover {
   background-color: rgba(35, 35, 35, 0.1);
 }
 
-.active-shuttles-list {
+.as-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.active-shuttle-item {
+.as-item {
   background-color: white;
   border-radius: 12px;
   padding: 16px;
@@ -853,19 +853,19 @@ hr {
   border: 1px solid rgba(35, 35, 35, 0.1);
 }
 
-.active-shuttle-item:hover {
+.as-item:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.active-shuttle-item h3 {
+.as-item h3 {
   margin: 0;
   font-size: 18px;
   color: #232323;
   font-weight: 600;
 }
 
-.shuttle-status {
+.as-status {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -874,7 +874,7 @@ hr {
   font-size: 14px;
 }
 
-.traffic-indicator {
+.as-traffic-indicator {
   display: inline-block;
   width: 10px;
   height: 10px;
@@ -883,7 +883,7 @@ hr {
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
 }
 
-.shuttle-distance {
+.as-distance {
   width: 100%;
   background-color: #f5f5f5;
   border-radius: 8px;
@@ -891,45 +891,36 @@ hr {
   margin-top: 4px;
 }
 
-.shuttle-distance p {
+.as-distance p {
   margin: 4px 0;
-  color: #232323;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  font-size: 14px;
+  color: #666;
 }
 
-.active-shuttle-item button {
-  background-color: #232323;
+.as-pickup-button {
+  width: 100%;
+  padding: 8px 16px;
+  background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 12px;
+  border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  transition: all 0.2s ease;
-  width: 100%;
+  transition: background-color 0.2s ease;
 }
 
-.active-shuttle-item button:hover {
-  background-color: #000000;
-  transform: translateY(-1px);
+.as-pickup-button:hover {
+  background-color: #0056b3;
 }
 
-.active-shuttle-item button:active {
-  transform: translateY(0);
-}
-
-.no-shuttles {
+.as-no-shuttles {
   text-align: center;
-  color: #232323;
-  padding: 32px 0;
-  font-size: 15px;
-  background-color: white;
-  border-radius: 12px;
-  border: 1px solid rgba(35, 35, 35, 0.1);
+  padding: 20px;
+  color: #666;
+  font-size: 16px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
 }
 
 .payment-qr-container {
