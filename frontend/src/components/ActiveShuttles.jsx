@@ -65,21 +65,27 @@ const ActiveShuttles = ({
             }
 
             return (
-              <div key={shuttleId} className="as-item">
+              <div key={shuttleId} className={`as-item ${data.status || 'active'}`}>
                 <h3>Shuttle {shuttleId}</h3>
-                <div className="as-status">
+                <div className="as-item-status">
                   <span
                     className="as-traffic-indicator"
                     style={{ backgroundColor: trafficCondition.color }}
                   ></span>
                   {trafficCondition.status}
-                  {distance !== null && (
-                    <div className="as-distance">
-                      <p>Distance: {distance.toFixed(2)} km</p>
-                      <p>ETA: {eta} minutes</p>
-                    </div>
-                  )}
                 </div>
+                {distance !== null && (
+                  <div className="as-item-details">
+                    <div className="as-item-detail">
+                      <strong>Distance:</strong>
+                      <span>{distance.toFixed(2)} km</span>
+                    </div>
+                    <div className="as-item-detail">
+                      <strong>ETA:</strong>
+                      <span>{eta} minutes</span>
+                    </div>
+                  </div>
+                )}
                 <button className="as-pickup-button" onClick={() => onRequestPickup(shuttleId)}>
                   Request Pickup
                 </button>
