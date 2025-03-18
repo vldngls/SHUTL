@@ -8,6 +8,7 @@ import {
 } from "../controllers/shuttleAssignmentController.js";
 import { authenticateToken } from "../middleware/authenticateToken.js";
 import { checkRole } from "../middleware/checkRole.js";
+import { checkRole } from "../middleware/checkRole.js";
 
 const router = express.Router();
 

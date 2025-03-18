@@ -1,4 +1,5 @@
 /* Popup container */
+/* Popup container */
 .TellerMain-TripTracking-popup {
   position: fixed;
   top: 0;
@@ -14,6 +15,7 @@
   box-sizing: border-box;
 }
 
+/* Main container */
 /* Main container */
 .shuttle-tracking-container {
   display: grid;
@@ -89,6 +91,7 @@
 }
 
 /* Table styles */
+/* Table styles */
 table {
   width: 100%;
   min-width: auto;
@@ -137,14 +140,21 @@ tr:hover {
   padding: 0.25rem 0.75rem;
   border-radius: 16px;
   font-size: 0.875rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 16px;
+  font-size: 0.875rem;
   font-weight: 500;
 }
 
 .status-badge.out {
   background-color: #4a90e2;
   color: white;
+  background-color: #4a90e2;
+  color: white;
 }
 
+.status-badge.in {
+  background-color: #2ecc71;
 .status-badge.in {
   background-color: #2ecc71;
   color: white;
@@ -152,6 +162,7 @@ tr:hover {
 
 /* Form section */
 .form-section {
+  grid-row: span 2;
   grid-row: span 2;
   background-color: white;
   border-radius: 8px;
@@ -162,6 +173,7 @@ tr:hover {
 }
 
 /* Form groups */
+/* Form groups */
 .form-group {
   margin-bottom: 0.75rem;
 }
@@ -171,6 +183,9 @@ tr:hover {
 }
 
 .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
   display: block;
   margin-bottom: 0.5rem;
   color: #2c3e50;
@@ -185,12 +200,16 @@ tr:hover {
   border-radius: 6px;
   font-size: 1rem;
   transition: border-color 0.2s;
+  font-size: 1rem;
+  transition: border-color 0.2s;
   box-sizing: border-box;
 }
 
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
   border-color: #4a90e2;
   box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
 }
@@ -214,8 +233,17 @@ tr:hover {
 .status-button:first-child {
   background-color: #4a90e2;
   color: white;
+  transition: all 0.2s;
 }
 
+.status-button:first-child {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.status-button:last-child {
+  background-color: #2ecc71;
+  color: white;
 .status-button:last-child {
   background-color: #2ecc71;
   color: white;
@@ -252,10 +280,17 @@ tr:hover {
   top: 1rem;
   right: 1rem;
   background: none;
+  top: 1rem;
+  right: 1rem;
+  background: none;
   border: none;
   font-size: 1.5rem;
   color: #2c3e50;
+  font-size: 1.5rem;
+  color: #2c3e50;
   cursor: pointer;
+  padding: 0.5rem;
+  transition: color 0.2s;
   padding: 0.5rem;
   transition: color 0.2s;
 }
