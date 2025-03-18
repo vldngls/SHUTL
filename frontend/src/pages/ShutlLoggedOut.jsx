@@ -90,9 +90,9 @@ const ShutlLoggedOut = () => {
         });
 
         if (!response.ok) {
-          if (response.status === 401) {
+          if (response.status === 401 || response.status === 403) {
             console.log(
-              "User not authenticated, this is expected for logged out view"
+              "User not authenticated or no permission, this is expected for logged out view"
             );
             return;
           }

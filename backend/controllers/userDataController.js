@@ -96,11 +96,17 @@ export const updateUserDataByEmail = async (req, res) => {
 
     // Check if discount type or ID picture is being updated
     if (updates.discountType || updates.idPicture) {
-      // If updating discount type, require ID picture
-      if (updates.discountType && updates.discountType !== "REGULAR" && !updates.idPicture) {
+      // If updating to REGULAR discount type, auto-approve and clear ID picture
+      if (updates.discountType === "REGULAR") {
+        updates.discountStatus = "APPROVED";
+        updates.idPicture = null;
+        updates.discount = 0; // Set discount to 0 for REGULAR type
+      } else if (updates.discountType && !updates.idPicture) {
+        // For other discount types, require ID picture
         return res.status(400).json({ message: "ID picture is required for discount type updates" });
+      } else {
+        updates.discountStatus = "PENDING";
       }
-      updates.discountStatus = "PENDING";
     }
 
     // Update only the fields that are provided

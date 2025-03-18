@@ -21,7 +21,7 @@ router.use(authenticateToken);
 
 // Routes with role-based access
 router.get("/", 
-  checkRole('Admin', 'Teller', 'Supervisor', 'Driver'), // Added Driver
+  checkRole('Admin', 'Teller', 'Supervisor', 'Driver', 'Commuter'), // Added Commuter
   asyncHandler(getAllAssignments)
 );
 

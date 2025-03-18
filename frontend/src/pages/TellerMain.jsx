@@ -296,12 +296,25 @@ const TellerMain = () => {
         // Join tracking for all active shuttles
         const fetchAndTrackShuttles = async () => {
           try {
+            const token = getCookie("token");
+            if (!token) {
+              throw new Error("No authentication token found");
+            }
+
             const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
               headers: {
-                Authorization: `Bearer ${getCookie("token")}`,
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
               },
+              credentials: "include",
             });
             
+            if (response.status === 403) {
+              console.error("Access forbidden. Teller role required.");
+              toast.error("You do not have permission to view shuttle assignments");
+              return;
+            }
+
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -318,6 +331,9 @@ const TellerMain = () => {
             }
           } catch (error) {
             console.error("Error fetching shuttle assignments:", error);
+            if (error.message !== "No authentication token found") {
+              toast.error("Failed to fetch shuttle assignments");
+            }
           }
         };
 

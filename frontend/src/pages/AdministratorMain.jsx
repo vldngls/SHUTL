@@ -117,42 +117,52 @@ const AdministratorMain = () => {
           notificationCleanup();
         };
 
-        // Fetch active shuttle assignments and join their tracking rooms
+        // Fetch and track shuttles function
         const fetchAndTrackShuttles = async () => {
           try {
             const token = getCookie("token");
             if (!token) {
-              console.error("No token found");
-              return;
+              throw new Error("No authentication token found");
             }
 
-            const response = await fetch(
-              `${API_BASE_URL}/shuttle-assignments`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            );
+            const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+            });
+
+            if (response.status === 403) {
+              console.error("Access forbidden. Admin role required.");
+              toast.error("You do not have permission to view shuttle assignments");
+              navigate("/ShutlLoggedOut");
+              return;
+            }
 
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const assignments = await response.json();
+            console.log("Fetched shuttle assignments:", assignments);
 
             // Join tracking for each active shuttle
             assignments.forEach((assignment) => {
-              socket.current.emit(
-                "join_shuttle_tracking",
-                assignment.shuttleId
-              );
+              if (assignment && assignment.shuttleId) {
+                socket.current.emit(
+                  "join_shuttle_tracking",
+                  assignment.shuttleId
+                );
+              }
             });
           } catch (error) {
             console.error("Error fetching shuttle assignments:", error);
             if (error.message.includes("401")) {
               // Handle unauthorized access
               navigate("/ShutlLoggedOut");
+            } else if (error.message !== "No authentication token found") {
+              toast.error("Failed to fetch shuttle assignments");
             }
           }
         };

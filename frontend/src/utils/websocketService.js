@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 import { getCookie } from "./cookieUtils";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 const SOCKET_URL = API_BASE_URL.replace("/api", "");
 
 // Use a single socket instance for the entire application

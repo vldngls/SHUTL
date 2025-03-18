@@ -464,6 +464,10 @@ const ShutlLoggedIn = () => {
     const fetchAndTrackShuttles = async () => {
       try {
         const token = getCookie("token");
+        if (!token) {
+          throw new Error("No authentication token found");
+        }
+
         const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
           method: "GET",
           headers: {
@@ -472,6 +476,11 @@ const ShutlLoggedIn = () => {
           },
           credentials: "include",
         });
+
+        if (response.status === 403) {
+          console.log("User does not have permission to view shuttle assignments");
+          return; // Silently fail for commuters who don't need this data
+        }
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -488,7 +497,7 @@ const ShutlLoggedIn = () => {
         }
       } catch (error) {
         console.error("Error fetching shuttle assignments:", error);
-        if (isMounted) {
+        if (isMounted && error.message !== "No authentication token found") {
           toast.error("Failed to fetch shuttle assignments");
         }
       }

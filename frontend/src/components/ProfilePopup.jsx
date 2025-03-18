@@ -384,6 +384,11 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
         profileImage: profileImage || userData.profileImage,
       };
 
+      // If discount type is REGULAR, remove idPicture from the update data
+      if (dataToUpdate.discountType === "REGULAR") {
+        delete dataToUpdate.idPicture;
+      }
+
       // Remove any undefined or null values
       Object.keys(dataToUpdate).forEach(
         (key) =>
@@ -579,6 +584,8 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
                     ...editedData,
                     discountType: selectedType,
                     discount: discountTypes[selectedType]?.value || 0,
+                    // Clear ID picture when switching to REGULAR
+                    ...(selectedType === "REGULAR" && { idPicture: null }),
                   });
                 }}
               >
