@@ -214,7 +214,7 @@ body {
 .ShutlLoggedIn-update-location-btn {
   position: fixed;
   right: 20px;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 70px);
+  bottom: 48px;
   padding: 12px;
   border: none;
   border-radius: 50%;
@@ -226,6 +226,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 56px;
+  height: 56px;
 }
 
 .ShutlLoggedIn-update-location-btn:hover {
@@ -402,19 +404,21 @@ hr {
 /* Suggestion Button */
 .ShutlLoggedIn-suggestion-btn {
   position: fixed;
-  left: calc(70px + 20px); /* 70px for sidebar width + 20px padding */
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 70px);
+  left: calc(70px + 20px);
+  bottom: 48px;
   padding: 12px;
   border: none;
   border-radius: 50%;
   background: white;
   cursor: pointer;
-  z-index: 997; /* Below sidebar (1001) but above map (1) */
+  z-index: 997;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 56px;
+  height: 56px;
 }
 
 /* Adjust suggestion button position when sidebar is expanded */
@@ -537,15 +541,18 @@ hr {
     background: transparent;
   }
 
-  .ShutlLoggedIn-suggestion-btn {
-    left: 20px; /* Reset to original position on mobile */
-  }
-
+  .ShutlLoggedIn-suggestion-btn,
   .ShutlLoggedIn-update-location-btn {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
+    bottom: 60px;
     padding: 10px;
+    width: 48px;
+    height: 48px;
   }
 
+  .ShutlLoggedIn-suggestion-btn {
+    left: 20px;
+  }
+  
   .ShutlLoggedIn-suggestion-icon,
   .ShutlLoggedIn-update-location-icon {
     width: 28px;
