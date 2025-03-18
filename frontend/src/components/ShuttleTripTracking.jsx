@@ -28,6 +28,8 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
 
   const [pendingOutTrips, setPendingOutTrips] = useState([]);
   const [recentTrips, setRecentTrips] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [shuttleDetails, setShuttleDetails] = useState([]);
 
   // Add pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -281,36 +283,39 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
     }
   };
 
-  const handleStatusChange = (tripId, newStatus) => {
-    // Update the form's status field without emitting socket event
-    setTripData(prev => ({
-      ...prev,
-      status: newStatus,
-      // Clear roundTripId when switching to Out status
-      roundTripId: newStatus === "Out" ? "" : prev.roundTripId
-    }));
-  };
-
-  // Calculate pagination
+  // Calculate current trips for pagination
   const indexOfLastTrip = currentPage * tripsPerPage;
   const indexOfFirstTrip = indexOfLastTrip - tripsPerPage;
   const currentTrips = recentTrips.slice(indexOfFirstTrip, indexOfLastTrip);
-  const totalPages = Math.ceil(recentTrips.length / tripsPerPage);
 
-  // Pagination controls
+  // Calculate current pending trips for pagination
+  const indexOfLastPendingTrip = pendingCurrentPage * pendingTripsPerPage;
+  const indexOfFirstPendingTrip = indexOfLastPendingTrip - pendingTripsPerPage;
+  const currentPendingTrips = pendingOutTrips.slice(
+    indexOfFirstPendingTrip,
+    indexOfLastPendingTrip
+  );
+
+  // Calculate total pages for pending trips
+  const totalPendingPages = Math.ceil(pendingOutTrips.length / pendingTripsPerPage);
+
+  // Handle pagination for pending trips
+  const handlePendingPageChange = (pageNumber) => {
+    setPendingCurrentPage(pageNumber);
+  };
+
+  // Handle pagination for recent trips
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
 
-  // Calculate pagination for pending trips
-  const indexOfLastPendingTrip = pendingCurrentPage * pendingTripsPerPage;
-  const indexOfFirstPendingTrip = indexOfLastPendingTrip - pendingTripsPerPage;
-  const currentPendingTrips = pendingOutTrips.slice(indexOfFirstPendingTrip, indexOfLastPendingTrip);
-  const totalPendingPages = Math.ceil(pendingOutTrips.length / pendingTripsPerPage);
-
-  // Pagination controls for pending trips
-  const handlePendingPageChange = (pageNumber) => {
-    setPendingCurrentPage(pageNumber);
+  // Handle status change
+  const handleStatusChange = (roundTripId, status) => {
+    setTripData((prev) => ({
+      ...prev,
+      status,
+      roundTripId: status === "Out" ? "" : roundTripId,
+    }));
   };
 
   // Add click handler for background
@@ -409,6 +414,7 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
             </table>
           </div>
         </div>
+        
         <div className="form-section">
           <h2 className="form-title">Add New Trip</h2>
           {operationalHours && (
@@ -447,9 +453,11 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
               <label htmlFor="shuttleNumber">Shuttle Number:</label>
               <select
                 id="shuttleNumber"
+                name="shuttleNumber"
                 value={tripData.shuttleNumber}
                 onChange={handleShuttleChange}
                 className="form-control"
+                required
               >
                 <option value="">Select a shuttle</option>
                 {shuttleAssignments.map(assignment => (
@@ -525,7 +533,7 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
             <button className="submit-button" type="submit">
               Add Shuttle Trip
             </button>
-          ))}
+          </form>
         </div>
       </div>
       <button onClick={onClose} className="TellerMain-close-popup-btn">
