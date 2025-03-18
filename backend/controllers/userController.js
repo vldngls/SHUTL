@@ -334,6 +334,10 @@ export const forgotPassword = async (req, res) => {
     // Save OTP to user
     user.resetOTP = otp;
     user.resetOTPExpires = otpExpiry;
+    // Ensure status remains one of the valid values: active, inactive, or suspended
+    if (!["active", "inactive", "suspended"].includes(user.status)) {
+      user.status = "active";
+    }
     await user.save();
 
     // Create email transporter

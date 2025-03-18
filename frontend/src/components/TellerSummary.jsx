@@ -56,6 +56,15 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
   const geocodeTimeoutRef = useRef(null);
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
 
+  // Add animation state
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Add useEffect for animation
+  useEffect(() => {
+    setIsVisible(true);
+    return () => setIsVisible(false);
+  }, []);
+
   // Add viewport height fix for mobile browsers
   useEffect(() => {
     const setVH = () => {
@@ -227,7 +236,8 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
 
   const handleOverlayClick = (e) => {
     if (e.target.className === "TellerSummary-modal") {
-      onClose();
+      setIsVisible(false);
+      setTimeout(onClose, 300); // Wait for animation to complete
     }
   };
 
@@ -276,6 +286,9 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
         ticks: {
           stepSize: 5,
         },
+        grid: {
+          drawBorder: false,
+        },
       },
       x: {
         grid: {
@@ -287,15 +300,17 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
           font: {
             size: 10,
           },
+          autoSkip: true,
+          maxTicksLimit: 12,
         },
       },
     },
     layout: {
       padding: {
-        right: 30,
+        right: 10,
         left: 10,
         top: 10,
-        bottom: 10,
+        bottom: 20,
       },
     },
   };
@@ -390,10 +405,14 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
 
   return (
     <div className="TellerSummary-modal" onClick={handleOverlayClick}>
-      <div className="TellerSummary-container">
-        <button className="TellerSummary-close-btn" onClick={onClose}>
+      <div className={`TellerSummary-container ${isVisible ? 'visible' : ''}`}>
+        <button className="TellerSummary-close-btn" onClick={() => {
+          setIsVisible(false);
+          setTimeout(onClose, 300);
+        }}>
           ✕
         </button>
+        
         <div className="TellerSummary-header">
           <h1>Summary</h1>
           <p>
@@ -403,40 +422,45 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
 
         {/* Main Content Sections */}
         <div className="TellerSummary-section">
-          <h3>Total Stats (Within Operational Hours)</h3>
+          <h3>
+            <span className="icon">📊</span>
+            Total Stats (Within Operational Hours)
+          </h3>
           <div className="TellerSummary-stats">
             <div>
               <strong>{roundTrips}</strong>
-              <br />
-              Round Trips
+              <span>Round Trips</span>
             </div>
             <div>
               <strong>{totalPassengers}</strong>
-              <br />
-              Passengers
+              <span>Passengers</span>
             </div>
             <div>
               <strong>{activeShuttles}</strong>
-              <br />
-              Shuttles
+              <span>Shuttles</span>
             </div>
           </div>
         </div>
 
         {/* Total Passenger Section */}
         <div className="TellerSummary-section">
-          <h3>Total Passenger (Within Operational Hours)</h3>
+          <h3>
+            <span className="icon">👥</span>
+            Total Passenger (Within Operational Hours)
+          </h3>
           <div className="TellerSummary-chart">
             <Line data={chartData} options={chartOptions} />
           </div>
         </div>
 
-        {/* Route Statistics Section (formerly Route Time) */}
+        {/* Route Statistics Section */}
         <div className="TellerSummary-section">
-          <h3>Route Statistics (Within Operational Hours)</h3>
+          <h3>
+            <span className="icon">🛣️</span>
+            Route Statistics (Within Operational Hours)
+          </h3>
           <div className="TellerSummary-route">
             {Object.entries(routeMetrics).map(([shuttleId, metrics]) => {
-              // Get shuttle stats for this shuttle ID
               const shuttleStat = shuttleStats[shuttleId] || {};
               const avgPassengers = shuttleStat.averagePassengers || 0;
 
@@ -444,11 +468,9 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
                 <div key={shuttleId}>
                   <strong>SHUTL {shuttleId}</strong>
                   <p>
-                    <span>{metrics.averageRouteMinutes} min</span> average route
-                    time
+                    <span>{metrics.averageRouteMinutes} min</span> average route time
                     <br />
-                    <span>{metrics.averageDepartureMinutes} min</span> average
-                    departure time
+                    <span>{metrics.averageDepartureMinutes} min</span> average departure time
                     <br />
                     <span>{avgPassengers} passengers</span> average per trip
                   </p>
@@ -460,7 +482,10 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
 
         {/* Current Status Section */}
         <div className="TellerSummary-section">
-          <h3>Current Status</h3>
+          <h3>
+            <span className="icon">🚐</span>
+            Current Status
+          </h3>
           <div className="TellerSummary-status">
             {Object.entries(allShuttles).map(([shuttleId, data]) => {
               const stats = shuttleStats[shuttleId] || {
@@ -478,9 +503,7 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
 
               return (
                 <div
-                  className={`status-item ${
-                    isOffline ? "offline-shuttle" : ""
-                  }`}
+                  className={`status-item ${isOffline ? "offline-shuttle" : ""}`}
                   key={shuttleId}
                   style={{ opacity: isOffline ? 0.7 : 1 }}
                 >
@@ -488,11 +511,10 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
                   <p>Currently at {locationText}</p>
                   <p>{lastUpdateText}</p>
                   <p>
-                    {stats.totalPassengers} Passengers | {stats.roundTrips}{" "}
-                    Trips
+                    {stats.totalPassengers} Passengers | {stats.roundTrips} Trips
                   </p>
                   <button onClick={() => handleOpenShuttle({ id: shuttleId })}>
-                    Open
+                    Open Details
                   </button>
                 </div>
               );
@@ -502,26 +524,29 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
 
         {/* Fare Breakdown Section */}
         <div className="TellerSummary-section">
-          <h3>Fare Breakdown</h3>
+          <h3>
+            <span className="icon">💰</span>
+            Fare Breakdown
+          </h3>
           <p className="operational-hours-note">
-            (Data for operational hours:{" "}
-            {earningsData.operationalHours?.startTime} -{" "}
-            {earningsData.operationalHours?.endTime})
+            (Data for operational hours: {earningsData.operationalHours?.startTime} - {earningsData.operationalHours?.endTime})
           </p>
-          <div style={{ width: "300px", height: "300px", margin: "auto" }}>
+          <div className="TellerSummary-chart">
             <Pie data={pieChartData} options={pieChartOptions} />
           </div>
           <div className="TellerSummary-fare">
-            <p>
-              <strong>Total Earnings: ₱{earningsData.totalFare || 0}</strong>
-            </p>
-            <p>
-              Regular Passengers: <strong>{earningsData.regular || 0}</strong>
-            </p>
-            <p>
-              Discounted Passengers:{" "}
+            <div>
+              <strong>₱{earningsData.totalFare || 0}</strong>
+              <span>Total Earnings</span>
+            </div>
+            <div>
+              <strong>{earningsData.regular || 0}</strong>
+              <span>Regular Passengers</span>
+            </div>
+            <div>
               <strong>{earningsData.discounted || 0}</strong>
-            </p>
+              <span>Discounted Passengers</span>
+            </div>
           </div>
         </div>
       </div>

@@ -147,18 +147,6 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
     }
   }, [tripData.time, operationalHours]);
 
-  // Add time update effect
-  useEffect(() => {
-    const timeInterval = setInterval(() => {
-      setTripData((prev) => ({
-        ...prev,
-        time: getCurrentTime(),
-      }));
-    }, 1000); // Update every second
-
-    return () => clearInterval(timeInterval);
-  }, []);
-
   const fetchPendingOutTrips = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/shuttle/pending-trips`);

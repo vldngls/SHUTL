@@ -1,101 +1,100 @@
 /* TellerProfile.css */
 
-:root {
-  --shutl-primary: #4caf50;
-  --shutl-primary-hover: #45a049;
-  --shutl-primary-light: rgba(76, 175, 80, 0.2);
-  --shutl-bg: #fff;
-  --shutl-bg-secondary: #f9f9f9;
-  --shutl-border: #e0e0e0;
-  --shutl-text: #333;
-  --shutl-text-secondary: #555;
-  --shutl-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  --shutl-radius-sm: 8px;
-  --shutl-radius-lg: 16px;
-  --shutl-radius-full: 50%;
-  --shutl-spacing-xs: 4px;
-  --shutl-spacing-sm: 8px;
-  --shutl-spacing-md: 12px;
-  --shutl-spacing-lg: 16px;
-  --shutl-spacing-xl: 20px;
-  --shutl-transition: 0.3s ease;
-  --vh: 1vh;
-}
-
-/* Popup overlay */
-.TellerProfile-modal {
+.tp-modal {
   position: fixed;
   inset: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  background-color: transparent;
   z-index: 1000;
-  height: 100vh; /* Fallback */
-  height: calc(var(--vh, 1vh) * 100);
+  height: 100vh;
+  height: calc(1vh * 100);
+  padding: 20px;
+  box-sizing: border-box;
 }
 
-/* Popup content */
-.TellerProfile-container {
-  background-color: var(--shutl-bg);
-  padding: var(--shutl-spacing-xl);
-  border-radius: var(--shutl-radius-lg);
-  box-shadow: var(--shutl-shadow);
+.tp-container {
+  background-color: #f5f5f5;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   width: 500px;
   max-width: 90%;
-  max-height: 80vh;
-  max-height: calc(var(--vh, 1vh) * 80);
+  max-height: calc(100vh - 100px);
+  max-height: calc(1vh * 100 - 100px);
   display: flex;
   flex-direction: column;
-  gap: var(--shutl-spacing-md);
+  gap: 24px;
   position: relative;
-  animation: slideIn var(--shutl-transition);
+  animation: tpSlideIn 0.2s ease;
   overflow: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-/* Profile header */
-.TellerProfile-header {
+.tp-container::-webkit-scrollbar {
+  display: none;
+}
+
+.tp-header {
   display: flex;
   align-items: center;
-  gap: var(--shutl-spacing-md);
-  padding-bottom: var(--shutl-spacing-md);
+  gap: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-/* Profile picture styling */
-.TellerProfile-icon {
+.tp-header h2 {
+  margin: 0;
+  color: #232323;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.tp-icon {
   position: relative;
   display: inline-block;
   cursor: pointer;
 }
 
-.TellerProfile-icon-image {
-  width: 80px;
-  height: 80px;
-  border-radius: var(--shutl-radius-full);
+.tp-icon-image {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
   object-fit: cover;
-  border: 2px solid var(--shutl-border);
-  transition: border-color var(--shutl-transition);
+  border: 2px solid #e0e0e0;
+  transition: border-color 0.2s ease;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
-/* Close button */
-.TellerProfile-close-btn {
+.tp-close-btn {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: 20px;
+  right: 20px;
   background: none;
   border: none;
-  font-size: 16px;
+  font-size: 32px;
   cursor: pointer;
-  color: var(--shutl-text-secondary);
-  transition: color var(--shutl-transition);
+  color: #666666;
+  transition: all 0.2s ease;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  line-height: 1;
+  padding: 0;
 }
 
-.TellerProfile-close-btn:hover {
-  color: var(--shutl-text);
+.tp-close-btn:hover {
+  color: #232323;
+  background-color: rgba(0, 0, 0, 0.05);
+  transform: rotate(90deg);
 }
 
-/* Upload input */
-.TellerProfile-upload {
+.tp-upload {
   position: absolute;
   inset: 0;
   opacity: 0;
@@ -103,203 +102,192 @@
   z-index: 2;
 }
 
-.TellerProfile-picture-overlay {
+.tp-picture-overlay {
   position: absolute;
   inset: auto 0 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   color: white;
   font-size: 12px;
-  padding: var(--shutl-spacing-xs);
+  padding: 8px;
   text-align: center;
-  border-bottom-left-radius: var(--shutl-radius-full);
-  border-bottom-right-radius: var(--shutl-radius-full);
+  border-bottom-left-radius: 50%;
+  border-bottom-right-radius: 50%;
   pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
-/* User details section */
-.TellerProfile-details {
-  background-color: var(--shutl-bg-secondary);
-  padding: var(--shutl-spacing-lg);
-  border-radius: var(--shutl-radius-sm);
+.tp-icon:hover .tp-picture-overlay {
+  opacity: 1;
+}
+
+.tp-details {
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 16px;
   display: grid;
-  gap: var(--shutl-spacing-sm);
+  gap: 16px;
+  border: 1px solid #e0e0e0;
 }
 
-.TellerProfile-details label {
+.tp-details p {
+  margin: 0;
+  padding: 12px 0;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tp-details p:last-child {
+  border-bottom: none;
+}
+
+.tp-details strong {
+  color: #232323;
+  font-weight: 600;
+}
+
+.tp-details label {
   display: flex;
   flex-direction: column;
+  gap: 8px;
   font-size: 14px;
-  color: var(--shutl-text-secondary);
-  margin-bottom: var(--shutl-spacing-sm);
+  color: #232323;
+  font-weight: 500;
 }
 
-.TellerProfile-details input {
-  padding: var(--shutl-spacing-md);
-  border: 1px solid var(--shutl-border);
-  border-radius: var(--shutl-radius-sm);
+.tp-details input {
+  padding: 12px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
   font-size: 14px;
   width: 100%;
   box-sizing: border-box;
-  background-color: var(--shutl-bg);
-  transition: border-color var(--shutl-transition),
-    box-shadow var(--shutl-transition);
+  background-color: #ffffff;
+  transition: all 0.2s ease;
 }
 
-.TellerProfile-details input:focus {
+.tp-details input:focus {
   outline: none;
-  border-color: var(--shutl-primary);
-  box-shadow: 0 0 0 2px var(--shutl-primary-light);
+  border-color: #232323;
+  box-shadow: 0 0 0 2px rgba(35, 35, 35, 0.1);
 }
 
-.TellerProfile-details input:hover {
-  border-color: var(--shutl-primary);
+.tp-details input:hover {
+  border-color: #232323;
 }
 
-.TellerProfile-error {
+.tp-error {
   color: #dc3545;
   font-size: 12px;
   margin-top: 2px;
 }
 
-/* Action buttons container */
-.TellerProfile-actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: var(--shutl-spacing-md);
-  gap: var(--shutl-spacing-md);
-}
-
-/* Buttons */
-.TellerProfile-edit-btn,
-.TellerProfile-save-btn,
-.TellerProfile-cancel-btn {
-  padding: var(--shutl-spacing-md);
-  border: none;
-  border-radius: var(--shutl-radius-sm);
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color var(--shutl-transition);
-}
-
-/* Edit button */
-.TellerProfile-edit-btn {
-  padding: var(--shutl-spacing-xs) var(--shutl-spacing-md) !important;
-  background-color: #ccc !important;
-  font-size: 12px !important;
-}
-
-.TellerProfile-edit-btn:hover {
-  background-color: #bbb !important;
-}
-
-/* Save button */
-.TellerProfile-save-btn {
-  background-color: var(--shutl-primary);
+.tp-edit-btn {
+  background-color: #232323;
   color: white;
-  flex: 1;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-left: auto;
 }
 
-.TellerProfile-save-btn:hover {
-  background-color: var(--shutl-primary-hover);
+.tp-edit-btn:hover {
+  background-color: #333333;
 }
 
-/* Cancel button */
-.TellerProfile-cancel-btn {
+.tp-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.tp-save-btn,
+.tp-cancel-btn {
+  padding: 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tp-save-btn {
+  background-color: #232323;
+  color: white;
+}
+
+.tp-save-btn:hover {
+  background-color: #333333;
+  transform: translateY(-1px);
+}
+
+.tp-cancel-btn {
   background-color: #dc3545;
   color: white;
-  flex: 1;
 }
 
-.TellerProfile-cancel-btn:hover {
+.tp-cancel-btn:hover {
   background-color: #c82333;
+  transform: translateY(-1px);
 }
 
-/* Mobile-friendly adjustments */
 @media (max-width: 768px) {
-  .TellerProfile-container {
-    width: 90%;
-    padding: var(--shutl-spacing-md);
-    gap: var(--shutl-spacing-sm);
-    max-height: 85vh;
-    max-height: calc(var(--vh, 1vh) * 85);
+  .tp-container {
+    padding: 16px;
+    gap: 16px;
+    max-height: calc(100vh - 40px);
+    max-height: calc(1vh * 100 - 40px);
   }
 
-  .TellerProfile-header {
+  .tp-header {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding-bottom: var(--shutl-spacing-sm);
+    gap: 16px;
   }
 
-  .TellerProfile-icon-image {
-    width: 70px;
-    height: 70px;
+  .tp-icon-image {
+    width: 80px;
+    height: 80px;
   }
 
-  .TellerProfile-details {
-    padding: var(--shutl-spacing-md);
-  }
-
-  .TellerProfile-details label {
-    font-size: 13px;
-  }
-
-  .TellerProfile-details input {
-    padding: var(--shutl-spacing-sm);
-    font-size: 13px;
-  }
-
-  .TellerProfile-edit-btn {
-    font-size: 12px;
-    padding: 6px 12px;
-  }
-
-  .TellerProfile-close-btn {
-    top: 10px;
-    right: 10px;
-    font-size: 14px;
+  .tp-edit-btn {
+    margin: 0;
   }
 }
 
 @media (max-width: 480px) {
-  .TellerProfile-container {
-    width: 95%;
-    padding: var(--shutl-spacing-sm);
-    max-height: 90vh;
-    max-height: calc(var(--vh, 1vh) * 90);
+  .tp-container {
+    padding: 12px;
+    gap: 12px;
   }
 
-  .TellerProfile-header {
-    gap: var(--shutl-spacing-xs);
+  .tp-header h2 {
+    font-size: 20px;
   }
 
-  .TellerProfile-icon-image {
-    width: 60px;
-    height: 60px;
+  .tp-icon-image {
+    width: 70px;
+    height: 70px;
   }
 
-  .TellerProfile-details {
-    padding: var(--shutl-spacing-sm);
+  .tp-details {
+    padding: 16px;
   }
 
-  .TellerProfile-actions {
-    flex-direction: column;
-    gap: var(--shutl-spacing-sm);
-  }
-
-  .TellerProfile-save-btn,
-  .TellerProfile-cancel-btn {
-    padding: var(--shutl-spacing-sm);
-    font-size: 13px;
-  }
-
-  .TellerProfile-edit-btn {
-    font-size: 11px;
-    padding: 4px 10px;
+  .tp-actions {
+    grid-template-columns: 1fr;
   }
 }
 
-@keyframes slideIn {
+@keyframes tpSlideIn {
   from {
     opacity: 0;
     transform: translateY(-20px);

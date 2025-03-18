@@ -30,9 +30,9 @@
   background-color: #f5f5f5;
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  padding: 16px;
+  padding: 12px;
   width: 100%;
-  max-width: 400px;
+  max-width: 320px;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
@@ -58,15 +58,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  margin: 24px 0 32px;
+  gap: 8px;
+  margin: 16px 0 24px;
   width: 100%;
-  height: 40px;
+  height: 36px;
 }
 
 .auth-logo {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
   border-radius: 50%;
   display: block;
@@ -74,20 +74,20 @@
 
 /* Typography */
 .auth-form-title {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
   padding: 0;
-  height: 40px;
-  line-height: 40px;
+  height: 36px;
+  line-height: 36px;
   display: block;
 }
 
 .auth-form-subtitle {
-  font-size: 18px;
+  font-size: 16px;
   color: #666;
-  margin: 8px 0 32px;
+  margin: 4px 0 24px;
   text-align: center;
   font-weight: 400;
 }
@@ -98,13 +98,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .auth-input-group {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   width: 100%;
-  max-width: 350px;
+  max-width: 280px;
   position: relative;
 }
 
@@ -117,11 +117,11 @@
 
 .input-icon {
   position: absolute;
-  left: 16px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
   color: #666;
-  font-size: 18px;
+  font-size: 16px;
   pointer-events: none;
   transition: all 0.2s ease;
   z-index: 1;
@@ -129,10 +129,10 @@
 
 .auth-input {
   width: 100%;
-  padding: 12px 16px 12px 44px;
+  padding: 10px 14px 10px 40px;
   border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  font-size: 16px;
+  border-radius: 10px;
+  font-size: 15px;
   color: #1a1a1a;
   background-color: #ffffff;
   transition: all 0.2s ease;
@@ -245,11 +245,11 @@
 /* Google Sign In Container */
 .google-login-container {
   width: 100%;
-  max-width: 350px;
+  max-width: 280px;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 12px 0;
+  margin: 8px 0;
   box-sizing: border-box;
   position: relative;
   z-index: 1;
@@ -258,8 +258,8 @@
 /* Divider */
 .auth-divider {
   width: 100%;
-  max-width: 350px;
-  margin: 12px 0;
+  max-width: 280px;
+  margin: 8px 0;
   display: flex;
   align-items: center;
   text-align: center;
@@ -273,9 +273,9 @@
 }
 
 .auth-divider span {
-  padding: 0 16px;
+  padding: 0 12px;
   color: #999;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -360,12 +360,16 @@
   background: none;
   border: none;
   color: #666;
-  font-weight: 500;
+  font-weight: 400;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 0 2px;
   font: inherit;
   transition: all 0.2s ease;
-  font-size: 14px;
+  font-size: 12px !important;
+}
+
+.auth-form .auth-link-button {
+  font-size: 12px !important;
 }
 
 .auth-link-button:hover {
@@ -375,15 +379,25 @@
 
 /* Footer */
 .auth-footer {
-  margin-top: 16px;
-  font-size: 14px;
+  margin-top: 12px;
+  font-size: 13px;
   color: #666;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .auth-footer .auth-link-button {
-  color: #1a1a1a;
-  font-weight: 600;
+  color: #666;
+  font-weight: 400;
+  font-size: 12px !important;
+}
+
+.auth-footer .auth-link-button.signup {
+  color: #666;
+  font-weight: 400;
+  font-size: 12px !important;
 }
 
 /* OTP Input Styles */
@@ -404,16 +418,17 @@
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   background-color: white;
-  color: #f2f2f2;
+  color: #1a1a1a;
+  font-weight: 600;
   transition: all 0.2s ease;
   box-sizing: border-box;
 }
 
 .otp-input:focus {
-  border-color: #f2f2f2;
+  border-color: #1a1a1a;
   background-color: white;
   outline: none;
-  box-shadow: 0 0 0 4px rgba(242, 242, 242, 0.1);
+  box-shadow: 0 0 0 4px rgba(26, 26, 26, 0.1);
 }
 
 /* Profile Preview */
@@ -499,7 +514,8 @@ small {
   }
 
   .auth-input {
-    font-size: 16px; /* Prevent zoom on iOS */
+    font-size: 15px;
+    padding: 10px 14px 10px 40px;
   }
 
   .auth-form-container.registration-form {
@@ -565,19 +581,19 @@ small {
 
   /* Adjust title spacing */
   .auth-title-container {
-    margin: 64px 0 48px;
+    margin: 48px 0 32px;
   }
 
   .auth-form-title {
     margin-top: 0;
     margin-bottom: 8px;
-    font-size: 32px;
+    font-size: 28px;
   }
 
   .auth-form-subtitle {
     margin-top: 0;
-    margin-bottom: 24px;
-    font-size: 18px;
+    margin-bottom: 20px;
+    font-size: 16px;
   }
 
   /* Registration form specific title spacing */
@@ -660,9 +676,9 @@ small {
     position: relative;
     z-index: 10000;
     height: 56px;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
-    border-radius: 12px;
+    border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     flex: 1;
     max-width: calc(50% - 6px);
@@ -701,17 +717,17 @@ small {
 
   .auth-submit-button {
     width: 100%;
-    height: 52px;
-    font-size: 16px;
+    height: 44px;
+    font-size: 15px;
     font-weight: 600;
-    margin: 8px 0 16px;
-    border-radius: 12px;
+    margin: 4px 0 12px;
+    border-radius: 10px;
     background-color: #232323;
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 24px;
+    padding: 0 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     max-width: none;
   }
@@ -1005,16 +1021,26 @@ input[type="date"].auth-input:focus::-webkit-calendar-picker-indicator {
 /* Desktop specific styles */
 @media (min-width: 769px) {
   .auth-form-container {
-    padding: 32px;
-    max-width: 400px;
+    padding: 24px;
+    max-width: 320px;
   }
 
   .auth-submit-button {
-    max-width: 360px; /* Match input width */
-    width: 100%;
+    max-width: 280px;
   }
 
-  /* Center the button */
+  .auth-divider {
+    max-width: 280px;
+  }
+
+  .google-login-container {
+    max-width: 280px;
+  }
+
+  .auth-footer {
+    max-width: 280px;
+  }
+
   .auth-button-group {
     display: flex;
     justify-content: center;
@@ -1039,17 +1065,6 @@ input[type="date"].auth-input:focus::-webkit-calendar-picker-indicator {
   /* Center divider */
   .auth-divider {
     margin: 16px auto;
-    width: 100%;
-    max-width: 360px;
-  }
-
-  /* Center footer links */
-  .auth-footer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    margin-top: 16px;
     width: 100%;
     max-width: 360px;
   }

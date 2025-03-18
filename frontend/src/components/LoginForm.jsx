@@ -130,11 +130,21 @@ const LoginForm = ({ onClose }) => {
     }
   };
 
-  const handleOTPChange = (index, value) => {
-    if (value.length > 1) {
-      value = value[0];
-    }
+  const handleOTPPaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text');
+    const digits = pastedData.replace(/\D/g, '').slice(0, 6);
+    const newOTPValues = Array(6).fill('');
+    digits.split('').forEach((digit, i) => {
+      if (i < 6) {
+        newOTPValues[i] = digit;
+      }
+    });
+    setOtpValues(newOTPValues);
+  };
 
+  const handleOTPChange = (index, value) => {
+    // Handle single digit input
     if (!/^\d*$/.test(value)) {
       return;
     }
@@ -377,7 +387,7 @@ const LoginForm = ({ onClose }) => {
                     value={value}
                     onChange={(e) => handleOTPChange(index, e.target.value)}
                     onKeyDown={(e) => handleOTPKeyDown(index, e)}
-                    maxLength={1}
+                    onPaste={handleOTPPaste}
                     required
                   />
                 ))}
@@ -521,6 +531,14 @@ const LoginForm = ({ onClose }) => {
                 </div>
               </div>
 
+              <button
+                type="button"
+                className="auth-link-button"
+                onClick={() => setShowForgotPassword(true)}
+              >
+                Forgot Password?
+              </button>
+
               <button type="submit" className="auth-submit-button">
                 Sign In
               </button>
@@ -544,14 +562,7 @@ const LoginForm = ({ onClose }) => {
               <div className="auth-footer">
                 <button
                   type="button"
-                  className="auth-link-button"
-                  onClick={() => setShowForgotPassword(true)}
-                >
-                  Forgot Password?
-                </button>
-                <button
-                  type="button"
-                  className="auth-link-button"
+                  className="auth-link-button signup"
                   onClick={() => setIsRegistering(true)}
                 >
                   Don&apos;t have an account? Sign up
@@ -605,7 +616,7 @@ const LoginForm = ({ onClose }) => {
                       value={value}
                       onChange={(e) => handleOTPChange(index, e.target.value)}
                       onKeyDown={(e) => handleOTPKeyDown(index, e)}
-                      maxLength={1}
+                      onPaste={handleOTPPaste}
                       required
                     />
                   ))}

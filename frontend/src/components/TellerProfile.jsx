@@ -171,29 +171,29 @@ const TellerProfile = ({ onClose, onImageChange }) => {
   };
 
   return (
-    <div className="TellerProfile-modal">
-      <div ref={popupRef} className="TellerProfile-container">
-        <button onClick={onClose} className="TellerProfile-close-btn">
-          Close
+    <div className="tp-modal">
+      <div ref={popupRef} className="tp-container">
+        <button onClick={onClose} className="tp-close-btn">
+          ×
         </button>
 
         {/* Profile Header Section */}
-        <div className="TellerProfile-header">
-          <div className="TellerProfile-icon">
+        <div className="tp-header">
+          <div className="tp-icon">
             <img
               src={profileData.profileImage}
               alt="Profile"
-              className="TellerProfile-icon-image"
+              className="tp-icon-image"
             />
             {isEditMode && (
               <>
                 <input
                   type="file"
                   onChange={handleImageChange}
-                  className="TellerProfile-upload"
+                  className="tp-upload"
                   accept="image/*"
                 />
-                <div className="TellerProfile-picture-overlay">
+                <div className="tp-picture-overlay">
                   Change Photo
                 </div>
               </>
@@ -202,7 +202,7 @@ const TellerProfile = ({ onClose, onImageChange }) => {
           <h2>{profileData.name || "Teller Name"}</h2>
           {!isEditMode && (
             <button
-              className="TellerProfile-edit-btn"
+              className="tp-edit-btn"
               onClick={() => setIsEditMode(true)}
             >
               Edit Profile
@@ -211,7 +211,7 @@ const TellerProfile = ({ onClose, onImageChange }) => {
         </div>
 
         {/* Profile Details Section */}
-        <div className="TellerProfile-details">
+        <div className="tp-details">
           {isEditMode ? (
             <>
               <label>
@@ -223,7 +223,7 @@ const TellerProfile = ({ onClose, onImageChange }) => {
                   onChange={handleInputChange}
                 />
                 {errors.name && (
-                  <span className="TellerProfile-error">{errors.name}</span>
+                  <span className="tp-error">{errors.name}</span>
                 )}
               </label>
               <label>
@@ -235,7 +235,7 @@ const TellerProfile = ({ onClose, onImageChange }) => {
                   onChange={handleInputChange}
                 />
                 {errors.age && (
-                  <span className="TellerProfile-error">{errors.age}</span>
+                  <span className="tp-error">{errors.age}</span>
                 )}
               </label>
               <label>
@@ -247,7 +247,7 @@ const TellerProfile = ({ onClose, onImageChange }) => {
                   onChange={handleInputChange}
                 />
                 {errors.address && (
-                  <span className="TellerProfile-error">{errors.address}</span>
+                  <span className="tp-error">{errors.address}</span>
                 )}
               </label>
               <label>
@@ -268,7 +268,7 @@ const TellerProfile = ({ onClose, onImageChange }) => {
                   onChange={handleInputChange}
                 />
                 {errors.birthday && (
-                  <span className="TellerProfile-error">{errors.birthday}</span>
+                  <span className="tp-error">{errors.birthday}</span>
                 )}
               </label>
               <label>
@@ -280,17 +280,17 @@ const TellerProfile = ({ onClose, onImageChange }) => {
                   onChange={handleInputChange}
                 />
                 {errors.position && (
-                  <span className="TellerProfile-error">{errors.position}</span>
+                  <span className="tp-error">{errors.position}</span>
                 )}
               </label>
 
-              <div className="TellerProfile-actions">
-                <button onClick={handleSave} className="TellerProfile-save-btn">
+              <div className="tp-actions">
+                <button onClick={handleSave} className="tp-save-btn">
                   Save
                 </button>
                 <button
                   onClick={handleCancel}
-                  className="TellerProfile-cancel-btn"
+                  className="tp-cancel-btn"
                 >
                   Cancel
                 </button>
