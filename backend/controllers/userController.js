@@ -355,11 +355,105 @@ export const forgotPassword = async (req, res) => {
       to: user.email,
       subject: "Password Reset OTP",
       html: `
-        <h1>Password Reset OTP</h1>
-        <p>You requested a password reset. Here is your One-Time Password (OTP):</p>
-        <h2 style="font-size: 24px; padding: 10px; background-color: #f5f5f5; border-radius: 5px; letter-spacing: 5px;">${otp}</h2>
-        <p>This OTP will expire in 10 minutes.</p>
-        <p>If you didn't request this, please ignore this email.</p>
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Password Reset OTP</title>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333333;
+                margin: 0;
+                padding: 0;
+                background-color: #f4f4f4;
+              }
+              .container {
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #ffffff;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+              }
+              .header {
+                text-align: center;
+                padding: 20px 0;
+                background-color: #f8f9fa;
+                border-radius: 8px 8px 0 0;
+              }
+              .logo {
+                font-size: 24px;
+                font-weight: bold;
+                color: #2c3e50;
+                margin-bottom: 10px;
+              }
+              .content {
+                padding: 30px 20px;
+                text-align: center;
+              }
+              .otp-box {
+                background-color: #f8f9fa;
+                border: 2px dashed #dee2e6;
+                border-radius: 8px;
+                padding: 20px;
+                margin: 20px 0;
+                display: inline-block;
+              }
+              .otp-code {
+                font-size: 32px;
+                font-weight: bold;
+                color: #2c3e50;
+                letter-spacing: 5px;
+                font-family: monospace;
+              }
+              .expiry {
+                color: #dc3545;
+                font-size: 14px;
+                margin-top: 10px;
+              }
+              .footer {
+                text-align: center;
+                padding: 20px;
+                background-color: #f8f9fa;
+                border-radius: 0 0 8px 8px;
+                font-size: 14px;
+                color: #6c757d;
+              }
+              .warning {
+                color: #dc3545;
+                font-size: 14px;
+                margin-top: 20px;
+                padding: 10px;
+                background-color: #fff3f3;
+                border-radius: 4px;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <div class="logo">SHUTL</div>
+                <h1 style="margin: 0; color: #2c3e50;">Password Reset</h1>
+              </div>
+              <div class="content">
+                <p>You requested a password reset. Here is your One-Time Password (OTP):</p>
+                <div class="otp-box">
+                  <div class="otp-code">${otp}</div>
+                  <div class="expiry">Expires in 10 minutes</div>
+                </div>
+                <div class="warning">
+                  If you didn't request this password reset, please ignore this email or contact support if you have concerns.
+                </div>
+              </div>
+              <div class="footer">
+                <p>This is an automated message, please do not reply to this email.</p>
+              </div>
+            </div>
+          </body>
+        </html>
       `,
     };
 

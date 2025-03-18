@@ -8,6 +8,7 @@ import {
   FaUser,
   FaLock,
   FaTimes,
+  FaEnvelope,
 } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-hot-toast";
@@ -367,14 +368,17 @@ const LoginForm = ({ onClose }) => {
           >
             {!showOTPInput ? (
               <div className="auth-input-group">
-                <input
-                  type="email"
-                  className="auth-input"
-                  placeholder="Email"
-                  value={resetEmail}
-                  onChange={(e) => setResetEmail(e.target.value)}
-                  required
-                />
+                <div className="input-with-icon">
+                  <FaEnvelope className="input-icon" />
+                  <input
+                    type="email"
+                    className="auth-input with-icon"
+                    placeholder="Email"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    required
+                  />
+                </div>
               </div>
             ) : !isOTPVerified ? (
               <div className="otp-input-container">
@@ -596,14 +600,17 @@ const LoginForm = ({ onClose }) => {
             >
               {!showOTPInput ? (
                 <div className="auth-input-group">
-                  <input
-                    type="email"
-                    className="auth-input"
-                    placeholder="Email"
-                    value={resetEmail}
-                    onChange={(e) => setResetEmail(e.target.value)}
-                    required
-                  />
+                  <div className="input-with-icon">
+                    <FaEnvelope className="input-icon" />
+                    <input
+                      type="email"
+                      className="auth-input with-icon"
+                      placeholder="Email"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
               ) : !isOTPVerified ? (
                 <div className="otp-input-container">
