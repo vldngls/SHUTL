@@ -328,22 +328,22 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
   // Add click handler for background
   const handleBackgroundClick = (e) => {
     // Check if the click is on the background (popup container) and not its children
-    if (e.target.className === "TellerMain-TripTracking-popup") {
+    if (e.target.className === "stt-popup") {
       onClose();
     }
   };
 
   return (
     <div
-      className="TellerMain-TripTracking-popup"
+      className="stt-popup"
       onClick={handleBackgroundClick}
     >
-      <div className="shuttle-tracking-container">
-        <div className="tables-section">
-          <div className="pending-trips-table">
+      <div className="stt-container">
+        <div className="stt-tables-section">
+          <div className="stt-pending-trips-table">
             <h3>Pending Out Trips</h3>
-            <div className="table-container">
-              <table>
+            <div className="stt-table-container">
+              <table className="stt-table">
                 <thead>
                   <tr>
                     <th>Time</th>
@@ -365,15 +365,15 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
               </table>
             </div>
             {pendingOutTrips.length === 0 ? (
-              <p className="no-pending">No pending out trips</p>
+              <p className="stt-no-pending">No pending out trips</p>
             ) : (
-              <div className="pagination">
+              <div className="stt-pagination">
                 {Array.from({ length: totalPendingPages }, (_, i) => i + 1).map(
                   (pageNumber) => (
                     <button
                       key={pageNumber}
                       onClick={() => handlePendingPageChange(pageNumber)}
-                      className={`pagination-button ${
+                      className={`stt-pagination-button ${
                         pageNumber === pendingCurrentPage ? "active" : ""
                       }`}
                     >
@@ -384,10 +384,10 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
               </div>
             )}
           </div>
-          <div className="recent-trips-table">
+          <div className="stt-recent-trips-table">
             <h3>Recent Trips</h3>
-            <div className="table-container">
-              <table>
+            <div className="stt-table-container">
+              <table className="stt-table">
                 <thead>
                   <tr>
                     <th>Time</th>
@@ -405,7 +405,7 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
                       <td>{trip.driver}</td>
                       <td>
                         <span
-                          className={`status-badge ${trip.status.toLowerCase()}`}
+                          className={`stt-status-badge ${trip.status.toLowerCase()}`}
                         >
                           {trip.status}
                         </span>
@@ -418,13 +418,13 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
             </div>
 
             {/* Pagination Controls */}
-            <div className="pagination">
+            <div className="stt-pagination">
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(
                 (pageNumber) => (
                   <button
                     key={pageNumber}
                     onClick={() => handlePageChange(pageNumber)}
-                    className={`pagination-button ${
+                    className={`stt-pagination-button ${
                       pageNumber === currentPage ? "active" : ""
                     }`}
                   >
@@ -435,21 +435,21 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
             </div>
           </div>
         </div>
-        <div className="form-section">
-          <h2 className="form-title">Add New Trip</h2>
+        <div className="stt-form-section">
+          <h2 className="stt-form-title">Add New Trip</h2>
           {operationalHours && (
-            <p className="operational-hours-notice">
+            <p className="stt-operational-hours-notice">
               Operational Hours: {operationalHours.startTime} -{" "}
               {operationalHours.endTime}
             </p>
           )}
           {!isWithinHours && (
-            <p className="error-message">
+            <p className="stt-error-message">
               Selected time is outside operational hours
             </p>
           )}
           <form onSubmit={handleSubmit}>
-            <div className="form-group">
+            <div className="stt-form-group">
               <label>Date:</label>
               <input
                 type="date"
@@ -459,7 +459,7 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
                 required
               />
             </div>
-            <div className="form-group">
+            <div className="stt-form-group">
               <label>Time:</label>
               <input
                 type="time"
@@ -469,13 +469,13 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
                 required
               />
             </div>
-            <div className="form-group">
+            <div className="stt-form-group">
               <label htmlFor="shuttleNumber">Shuttle Number:</label>
               <select
                 id="shuttleNumber"
                 value={tripData.shuttleNumber}
                 onChange={handleShuttleChange}
-                className="form-control"
+                className="stt-form-control"
               >
                 <option value="">Select a shuttle</option>
                 {shuttleAssignments.map(assignment => (
@@ -485,17 +485,17 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
                 ))}
               </select>
             </div>
-            <div className="form-group">
+            <div className="stt-form-group">
               <label htmlFor="driver">Driver:</label>
               <input
                 type="text"
                 id="driver"
                 value={tripData.driver}
                 readOnly
-                className="form-control"
+                className="stt-form-control"
               />
             </div>
-            <div className="form-group">
+            <div className="stt-form-group">
               <label>Passenger Count:</label>
               <input
                 type="number"
@@ -506,12 +506,12 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
                 min="0"
               />
             </div>
-            <div className="form-group">
+            <div className="stt-form-group">
               <label>Status:</label>
-              <div className="status-buttons">
+              <div className="stt-status-buttons">
                 <button
                   type="button"
-                  className={`status-button ${
+                  className={`stt-status-button ${
                     tripData.status === "Out" ? "active" : ""
                   }`}
                   onClick={() =>
@@ -522,7 +522,7 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
                 </button>
                 <button
                   type="button"
-                  className={`status-button ${
+                  className={`stt-status-button ${
                     tripData.status === "In" ? "active" : ""
                   }`}
                   onClick={() => handleStatusChange(tripData.roundTripId, "In")}
@@ -531,7 +531,7 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
                 </button>
               </div>
               {tripData.status === "In" && (
-                <div className="pending-trips">
+                <div className="stt-pending-trips">
                   <label>Select Matching Out Trip:</label>
                   <select
                     name="roundTripId"
@@ -548,13 +548,13 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
                 </div>
               )}
             </div>
-            <button className="submit-button" type="submit">
+            <button className="stt-submit-button" type="submit">
               Add Shuttle Trip
             </button>
           </form>
         </div>
       </div>
-      <button onClick={onClose} className="TellerMain-close-popup-btn">
+      <button onClick={onClose} className="stt-close-button">
         Close
       </button>
     </div>
