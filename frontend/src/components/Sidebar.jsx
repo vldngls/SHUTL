@@ -254,21 +254,21 @@ const Sidebar = forwardRef(
     useEffect(() => {
       const handleClickOutside = (e) => {
         if (
-          mobileMenuRef.current &&
-          !mobileMenuRef.current.contains(e.target) &&
-          !e.target.closest(".hamburger-menu")
+          isMobileMenuOpen &&
+          ref.current &&
+          !ref.current.contains(e.target) &&
+          !e.target.closest(".hamburger-menu") &&
+          !e.target.closest(".Mobile-top-bar")
         ) {
           setIsMobileMenuOpen(false);
           document.body.style.overflow = "";
         }
       };
 
-      if (isMobileMenuOpen) {
-        document.addEventListener("mousedown", handleClickOutside);
-        document.addEventListener("touchstart", handleClickOutside, {
-          passive: true,
-        });
-      }
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside, {
+        passive: true,
+      });
 
       return () => {
         document.removeEventListener("mousedown", handleClickOutside);

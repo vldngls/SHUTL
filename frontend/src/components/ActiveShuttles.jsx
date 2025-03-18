@@ -38,15 +38,15 @@ const ActiveShuttles = ({
   };
 
   return (
-    <div className="active-shuttles-container">
-      <div className="active-shuttles-header">
+    <div className="as-container">
+      <div className="as-header">
         <h2>Active Shuttles</h2>
-        <button className="close-button" onClick={onClose}>
+        <button className="as-close-button" onClick={onClose}>
           ×
         </button>
       </div>
       {Object.entries(shuttleLocations).length > 0 ? (
-        <div className="active-shuttles-list">
+        <div className="as-list">
           {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
             if (!data || !data.coordinates) return null;
 
@@ -65,22 +65,22 @@ const ActiveShuttles = ({
             }
 
             return (
-              <div key={shuttleId} className="active-shuttle-item">
+              <div key={shuttleId} className="as-item">
                 <h3>Shuttle {shuttleId}</h3>
-                <div className="shuttle-status">
+                <div className="as-status">
                   <span
-                    className="traffic-indicator"
+                    className="as-traffic-indicator"
                     style={{ backgroundColor: trafficCondition.color }}
                   ></span>
                   {trafficCondition.status}
                   {distance !== null && (
-                    <div className="shuttle-distance">
+                    <div className="as-distance">
                       <p>Distance: {distance.toFixed(2)} km</p>
                       <p>ETA: {eta} minutes</p>
                     </div>
                   )}
                 </div>
-                <button onClick={() => onRequestPickup(shuttleId)}>
+                <button className="as-pickup-button" onClick={() => onRequestPickup(shuttleId)}>
                   Request Pickup
                 </button>
               </div>
@@ -88,7 +88,7 @@ const ActiveShuttles = ({
           })}
         </div>
       ) : (
-        <div className="no-shuttles">No active shuttles at the moment</div>
+        <div className="as-no-shuttles">No active shuttles at the moment</div>
       )}
     </div>
   );

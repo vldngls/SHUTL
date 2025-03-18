@@ -350,18 +350,22 @@ const ShutlLoggedIn = () => {
                 const speed = data.speed || data.metadata?.speed || 0;
                 const heading = data.heading || data.metadata?.heading || 0;
 
+                // Maintain existing status or set to 'active' for new entries
+                const status = existingData?.status || 'active';
+
                 return {
                   ...prev,
                   [data.shuttleId]: {
-                    coordinates: data.coordinates || null,
+                    coordinates: data.coordinates || existingData?.coordinates || null,
                     lastUpdate: new Date(data.timestamp || Date.now()),
                     speed: speed,
                     heading: heading,
                     accuracy: data.metadata?.accuracy ?? 0,
                     isPredicted: false,
-                    lastKnownCoordinates: data.coordinates || null,
+                    lastKnownCoordinates: data.coordinates || existingData?.lastKnownCoordinates || null,
                     lastKnownSpeed: speed,
                     lastKnownHeading: heading,
+                    status: status // Maintain the status
                   },
                 };
               });
@@ -426,8 +430,8 @@ const ShutlLoggedIn = () => {
         // Fetch and track active shuttles
         await fetchAndTrackShuttles();
 
-        // Clean up stale locations every 30 seconds
-        const cleanupInterval = setInterval(() => {
+        // Update shuttle locations with status instead of removing them
+        const statusUpdateInterval = setInterval(() => {
           if (!isMounted) return;
 
           setShuttleLocations((prev) => {
@@ -437,21 +441,29 @@ const ShutlLoggedIn = () => {
 
             Object.entries(prev).forEach(([shuttleId, data]) => {
               const timeSinceUpdate = now - new Date(data.lastUpdate);
-              if (timeSinceUpdate < 60000) {
-                updatedLocations[shuttleId] = data;
-              } else {
+              // Update status based on time since last update
+              let status = 'active';
+              if (timeSinceUpdate > 300000) { // 5 minutes
+                status = 'idle';
+              }
+              
+              // Only update if status changed
+              if (data.status !== status) {
                 hasChanges = true;
-                console.log(
-                  `Removing stale location for ${shuttleId} after 1 minute`
-                );
+                updatedLocations[shuttleId] = {
+                  ...data,
+                  status
+                };
+              } else {
+                updatedLocations[shuttleId] = data;
               }
             });
 
             return hasChanges ? updatedLocations : prev;
           });
-        }, 30000);
+        }, 60000); // Check every minute
 
-        intervalsRef.current.push(cleanupInterval);
+        intervalsRef.current.push(statusUpdateInterval);
       } catch (error) {
         console.error("Socket connection error:", error);
         if (isMounted) {
@@ -682,13 +694,39 @@ const ShutlLoggedIn = () => {
     });
   }, [dateTime]);
 
-  // Modified click handlers to close active shuttles
+  // Toggle sidebar function
+  const toggleSidebar = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setIsSidebarExpanded(!isSidebarExpanded);
+  };
+
+  // Handle clicks outside of popups - modified to handle only payment popup
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (activePopup === "payment") {
+        const isClickingInsidePayment = event.target.closest('.payment-qr-container');
+        if (!isClickingInsidePayment) {
+          setActivePopup(null);
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [activePopup]);
+
+  // Modified click handlers to handle popups independently
   const handleProfileClick = (e) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
-    setActivePopup(activePopup === "profile" ? "activeShuttles" : "profile");
+    setActivePopup(activePopup === "profile" ? null : "profile");
   };
 
   const handleNotificationClick = (e) => {
@@ -696,7 +734,7 @@ const ShutlLoggedIn = () => {
       e.preventDefault();
       e.stopPropagation();
     }
-    setActivePopup(activePopup === "notifications" ? "activeShuttles" : "notifications");
+    setActivePopup(activePopup === "notifications" ? null : "notifications");
   };
 
   const handleSuggestionClick = (e) => {
@@ -705,11 +743,6 @@ const ShutlLoggedIn = () => {
       e.stopPropagation();
     }
     setShowSuggestionForm(!showSuggestionForm);
-    if (!showSuggestionForm) {
-      setActivePopup(null);
-    } else {
-      setActivePopup("activeShuttles");
-    }
   };
 
   const handlePaymentClick = (e) => {
@@ -717,7 +750,7 @@ const ShutlLoggedIn = () => {
       e.preventDefault();
       e.stopPropagation();
     }
-    setActivePopup(activePopup === "payment" ? "activeShuttles" : "payment");
+    setActivePopup(activePopup === "payment" ? null : "payment");
   };
 
   const handleActiveShuttlesClick = (e) => {
@@ -728,44 +761,13 @@ const ShutlLoggedIn = () => {
     setActivePopup(activePopup === "activeShuttles" ? null : "activeShuttles");
   };
 
-  // Close all popups function - modified to show active shuttles when closing other popups
+  // Close all popups function - modified to close all popups without showing active shuttles
   const closeAllPopups = () => {
-    setActivePopup("activeShuttles");
+    setActivePopup(null);
     setShowSuggestionForm(false);
     setShowPickMeUp(false);
     setIsProfileEditMode(false);
   };
-
-  // Toggle sidebar function
-  const toggleSidebar = (e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    setIsSidebarExpanded(!isSidebarExpanded);
-    if (isSidebarExpanded) {
-      setActivePopup("activeShuttles");
-    } else {
-      setActivePopup(null);
-    }
-  };
-
-  // Handle clicks outside of popups - modified to show active shuttles when closing payment
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (activePopup === "payment") {
-        const isClickingInsidePayment = event.target.closest('.payment-qr-container');
-        if (!isClickingInsidePayment) {
-          setActivePopup("activeShuttles");
-        }
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [activePopup]);
 
   // Fetch notifications
   useEffect(() => {
@@ -1142,18 +1144,16 @@ const ShutlLoggedIn = () => {
 
       {/* Active Shuttles Popup */}
       {activePopup === "activeShuttles" && (
-        <div className="active-shuttles-container">
-          <ActiveShuttles
-            shuttleLocations={optimizedLocations}
-            onClose={() => setActivePopup(null)}
-            onRequestPickup={(shuttleId) => {
-              setSelectedShuttleId(shuttleId);
-              setShowPickMeUp(true);
-              setActivePopup(null);
-            }}
-            userLocation={userLocation}
-          />
-        </div>
+        <ActiveShuttles
+          shuttleLocations={optimizedLocations}
+          onClose={() => setActivePopup(null)}
+          onRequestPickup={(shuttleId) => {
+            setSelectedShuttleId(shuttleId);
+            setShowPickMeUp(true);
+            setActivePopup(null);
+          }}
+          userLocation={userLocation}
+        />
       )}
 
       {/* Other Popups Container */}
