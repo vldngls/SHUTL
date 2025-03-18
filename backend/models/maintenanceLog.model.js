@@ -24,6 +24,7 @@ const maintenanceLogSchema = new mongoose.Schema(
   }
 );
 
-const MaintenanceLog = mongoose.model("MaintenanceLog", maintenanceLogSchema);
+// Check if the model exists before creating it
+const MaintenanceLog = mongoose.models.MaintenanceLog || mongoose.model("MaintenanceLog", maintenanceLogSchema);
 
 export default MaintenanceLog;
