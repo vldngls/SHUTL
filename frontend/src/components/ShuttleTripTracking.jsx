@@ -1,7 +1,6 @@
 // import React from 'react';
 import PropTypes from "prop-types";
 import toast from "react-hot-toast";
-import axios from "axios";
 import "../css/ShuttleTripTracking.css"; // Import the CSS file
 import { useState, useEffect } from "react";
 import { getCookie } from "../utils/cookieUtils"; // Add this import at the top with other imports
@@ -28,8 +27,6 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
 
   const [pendingOutTrips, setPendingOutTrips] = useState([]);
   const [recentTrips, setRecentTrips] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [shuttleDetails, setShuttleDetails] = useState([]);
 
   // Add pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -117,44 +114,69 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
   }, [socket]);
 
   useEffect(() => {
-    fetchData();
+    fetchPendingOutTrips();
+    fetchRecentTrips();
+    const fetchOperationalHours = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/operational-hours`);
+        const data = await response.json();
+        setOperationalHours(data);
+      } catch (error) {
+        console.error("Error fetching operational hours:", error);
+      }
+    };
+
+    fetchOperationalHours();
   }, []);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [pendingTripsRes, recentTripsRes, operationalHoursRes, shuttleDetailsRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/shuttle/pending-trips`).catch((error) => {
-          console.error("Error fetching pending trips:", error);
-          return { data: [] };
-        }),
-        axios.get(`${API_BASE_URL}/shuttle/recent-trips`).catch((error) => {
-          console.error("Error fetching recent trips:", error);
-          return { data: [] };
-        }),
-        axios.get(`${API_BASE_URL}/operational-hours`).catch((error) => {
-          console.error("Error fetching operational hours:", error);
-          return { data: null };
-        }),
-        axios.get(`${API_BASE_URL}/shuttle-details/shuttles`).catch((error) => {
-          console.error("Error fetching shuttle details:", error);
-          return { data: [] };
-        }),
-      ]);
+  useEffect(() => {
+    if (operationalHours && tripData.time) {
+      const [hour, minute] = tripData.time.split(":").map(Number);
+      const [startHour, startMinute] = operationalHours.startTime
+        .split(":")
+        .map(Number);
+      const [endHour, endMinute] = operationalHours.endTime
+        .split(":")
+        .map(Number);
 
-      setPendingOutTrips(pendingTripsRes.data);
-      setRecentTrips(recentTripsRes.data);
-      setOperationalHours(operationalHoursRes.data);
-      setShuttleDetails(shuttleDetailsRes.data.shuttles || []);
+      const currentTime = hour * 60 + minute;
+      const startTime = startHour * 60 + startMinute;
+      const endTime = endHour * 60 + endMinute;
+
+      setIsWithinHours(currentTime >= startTime && currentTime <= endTime);
+    }
+  }, [tripData.time, operationalHours]);
+
+  // Add time update effect
+  useEffect(() => {
+    const timeInterval = setInterval(() => {
+      setTripData((prev) => ({
+        ...prev,
+        time: getCurrentTime(),
+      }));
+    }, 1000); // Update every second
+
+    return () => clearInterval(timeInterval);
+  }, []);
+
+  const fetchPendingOutTrips = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/shuttle/pending-trips`);
+      const data = await response.json();
+      setPendingOutTrips(data);
     } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching pending trips:", error);
     }
   };
 
-  const getShuttleDetails = (shuttleNumber) => {
-    return shuttleDetails.find((shuttle) => shuttle.shuttleId === shuttleNumber) || {};
+  const fetchRecentTrips = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/shuttle/recent-trips`);
+      const data = await response.json();
+      setRecentTrips(data);
+    } catch (error) {
+      console.error("Error fetching recent trips:", error);
+    }
   };
 
   // Fetch shuttle assignments
@@ -283,39 +305,36 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
     }
   };
 
-  // Calculate current trips for pagination
+  const handleStatusChange = (tripId, newStatus) => {
+    // Update the form's status field without emitting socket event
+    setTripData(prev => ({
+      ...prev,
+      status: newStatus,
+      // Clear roundTripId when switching to Out status
+      roundTripId: newStatus === "Out" ? "" : prev.roundTripId
+    }));
+  };
+
+  // Calculate pagination
   const indexOfLastTrip = currentPage * tripsPerPage;
   const indexOfFirstTrip = indexOfLastTrip - tripsPerPage;
   const currentTrips = recentTrips.slice(indexOfFirstTrip, indexOfLastTrip);
+  const totalPages = Math.ceil(recentTrips.length / tripsPerPage);
 
-  // Calculate current pending trips for pagination
-  const indexOfLastPendingTrip = pendingCurrentPage * pendingTripsPerPage;
-  const indexOfFirstPendingTrip = indexOfLastPendingTrip - pendingTripsPerPage;
-  const currentPendingTrips = pendingOutTrips.slice(
-    indexOfFirstPendingTrip,
-    indexOfLastPendingTrip
-  );
-
-  // Calculate total pages for pending trips
-  const totalPendingPages = Math.ceil(pendingOutTrips.length / pendingTripsPerPage);
-
-  // Handle pagination for pending trips
-  const handlePendingPageChange = (pageNumber) => {
-    setPendingCurrentPage(pageNumber);
-  };
-
-  // Handle pagination for recent trips
+  // Pagination controls
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
 
-  // Handle status change
-  const handleStatusChange = (roundTripId, status) => {
-    setTripData((prev) => ({
-      ...prev,
-      status,
-      roundTripId: status === "Out" ? "" : roundTripId,
-    }));
+  // Calculate pagination for pending trips
+  const indexOfLastPendingTrip = pendingCurrentPage * pendingTripsPerPage;
+  const indexOfFirstPendingTrip = indexOfLastPendingTrip - pendingTripsPerPage;
+  const currentPendingTrips = pendingOutTrips.slice(indexOfFirstPendingTrip, indexOfLastPendingTrip);
+  const totalPendingPages = Math.ceil(pendingOutTrips.length / pendingTripsPerPage);
+
+  // Pagination controls for pending trips
+  const handlePendingPageChange = (pageNumber) => {
+    setPendingCurrentPage(pageNumber);
   };
 
   // Add click handler for background
@@ -327,7 +346,10 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
   };
 
   return (
-    <div className="TellerMain-TripTracking-popup" onClick={(e) => e.target.className === "TellerMain-TripTracking-popup" && onClose()}>
+    <div
+      className="TellerMain-TripTracking-popup"
+      onClick={handleBackgroundClick}
+    >
       <div className="shuttle-tracking-container">
         <div className="tables-section">
           <div className="pending-trips-table">
@@ -374,47 +396,57 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
               </div>
             )}
           </div>
-
           <div className="recent-trips-table">
-            <h3>Recent Trips with Shuttle Details</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Time</th>
-                  <th>Shuttle Number</th>
-                  <th>License Plate</th>
-                  <th>Year Model</th>
-                  <th>Current Location</th>
-                  <th>Status</th>
-                  <th>Driver</th>
-                  <th>Passengers</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentTrips.map((trip) => {
-                  const shuttleInfo = getShuttleDetails(trip.shuttleNumber);
-                  return (
-                    <tr key={trip._id}>
+            <h3>Recent Trips</h3>
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Shuttle Number</th>
+                    <th>Driver</th>
+                    <th>Status</th>
+                    <th>Passengers</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentTrips.map((trip) => (
+                    <tr key={trip._id} className={trip.status.toLowerCase()}>
                       <td>{trip.time}</td>
                       <td>{trip.shuttleNumber}</td>
-                      <td>{shuttleInfo.licensePlate || "N/A"}</td>
-                      <td>{shuttleInfo.yearModel || "N/A"}</td>
-                      <td>{shuttleInfo.currentLocation || "N/A"}</td>
+                      <td>{trip.driver}</td>
                       <td>
-                        <span className={`status-badge ${shuttleInfo.status ? shuttleInfo.status.toLowerCase() : "unknown"}`}>
-                          {shuttleInfo.status || "Unknown"}
+                        <span
+                          className={`status-badge ${trip.status.toLowerCase()}`}
+                        >
+                          {trip.status}
                         </span>
                       </td>
-                      <td>{trip.driver}</td>
                       <td>{trip.passengerCount}</td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="pagination">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (pageNumber) => (
+                  <button
+                    key={pageNumber}
+                    onClick={() => handlePageChange(pageNumber)}
+                    className={`pagination-button ${
+                      pageNumber === currentPage ? "active" : ""
+                    }`}
+                  >
+                    {pageNumber}
+                  </button>
+                )
+              )}
+            </div>
           </div>
         </div>
-        
         <div className="form-section">
           <h2 className="form-title">Add New Trip</h2>
           {operationalHours && (
@@ -453,11 +485,9 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
               <label htmlFor="shuttleNumber">Shuttle Number:</label>
               <select
                 id="shuttleNumber"
-                name="shuttleNumber"
                 value={tripData.shuttleNumber}
                 onChange={handleShuttleChange}
                 className="form-control"
-                required
               >
                 <option value="">Select a shuttle</option>
                 {shuttleAssignments.map(assignment => (
