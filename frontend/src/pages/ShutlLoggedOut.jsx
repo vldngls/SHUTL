@@ -26,7 +26,7 @@ L.Icon.Default.mergeOptions({
 
 // Create a custom icon for the driver marker
 const driverIcon = new L.Icon({
-  iconUrl: "/driver.png",
+  iconUrl: "/car.png",
   iconSize: [32, 32],
   iconAnchor: [16, 32],
   popupAnchor: [0, -32],

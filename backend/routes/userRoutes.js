@@ -19,6 +19,7 @@ import UserData from "../models/userData.model.js";
 import bcrypt from "bcryptjs";
 import multer from "multer";
 import FareTransaction from "../models/fareTransaction.model.js";
+import MaintenanceLog from "../models/maintenanceLog.model.js";
 
 const router = express.Router();
 
@@ -164,9 +165,26 @@ router.delete("/delete", async (req, res) => {
     // Delete all fare transactions associated with the user's email
     await FareTransaction.deleteMany({ commuterEmail: email });
 
+    // Create maintenance log for user deletion
+    await MaintenanceLog.create({
+      action: "USER_DELETED",
+      status: "success",
+      details: `Deleted user account: ${user.name} (${email})`,
+      userId: req.user?._id // The admin who performed the deletion
+    });
+
     res.status(200).json({ message: "User and associated data deleted successfully" });
   } catch (error) {
     console.error("Error deleting user:", error);
+    
+    // Log the error in maintenance logs
+    await MaintenanceLog.create({
+      action: "USER_DELETED",
+      status: "error",
+      details: `Failed to delete user: ${error.message}`,
+      userId: req.user?._id
+    });
+    
     res.status(500).json({ message: "Server error" });
   }
 });

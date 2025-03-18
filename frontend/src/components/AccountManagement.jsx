@@ -5,6 +5,7 @@ import {
   updateUser,
   deleteUser,
 } from "../utils/userService";
+import { toast } from "react-hot-toast";
 import "../css/AccountManagement.css";
 
 const AccountManagement = () => {
@@ -351,8 +352,26 @@ const AccountManagement = () => {
       setUsers(updatedUsers);
       setShowDeleteModal(false);
       setUserToDelete(null);
+      
+      // Show success toast
+      toast.success(`User ${userToDelete.name} deleted successfully`, {
+        duration: 3000,
+        position: 'bottom-center',
+        style: {
+          background: '#4CAF50',
+          color: '#fff',
+        },
+      });
     } catch (error) {
       console.error("Error deleting user:", error);
+      toast.error("Failed to delete user", {
+        duration: 3000,
+        position: 'bottom-center',
+        style: {
+          background: '#f44336',
+          color: '#fff',
+        },
+      });
     }
   };
 
