@@ -269,23 +269,24 @@ tr:hover {
   display: flex;
   justify-content: center;
   gap: 0.5rem;
-  margin-top: 0.1rem;
-  max-height: 0rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
 }
 
 .pagination-button {
-  min-width: 28px; /* Fixed width for consistent button size */
-  height: 28px; /* Fixed height to match width */
-  padding: 0;
+  min-width: 32px;
+  height: 32px;
+  padding: 0.25rem;
   border: 1px solid #dcdde1;
   background-color: white;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #2c3e50;
 }
 
 .pagination-button:hover {
