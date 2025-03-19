@@ -969,7 +969,7 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved, onCustomModeChang
             </div>
           )}
         </div>
-      )}
+      
     </div>
   );
 };
