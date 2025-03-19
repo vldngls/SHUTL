@@ -6,12 +6,30 @@ import "../css/CollectFarePopup.css";
 const CollectFarePopup = ({ onClose, shuttleLocations }) => {
   const [selectedShuttle, setSelectedShuttle] = useState(null);
   const [isCustomMode, setIsCustomMode] = useState(false);
+  const [shuttles, setShuttles] = useState([]);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   
-  // Get active shuttles from the locations data
-  const shuttles = Object.keys(shuttleLocations || {}).map(id => ({
-    id,
-    status: shuttleLocations[id]?.status || "unknown"
-  }));
+  // Fetch all shuttle assignments
+  useEffect(() => {
+    const fetchShuttleAssignments = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/shuttle-assignments`, {
+          headers: {
+            Authorization: `Bearer ${document.cookie.split('token=')[1].split(';')[0]}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch shuttle assignments');
+        }
+        const data = await response.json();
+        setShuttles(data);
+      } catch (error) {
+        console.error('Error fetching shuttle assignments:', error);
+      }
+    };
+
+    fetchShuttleAssignments();
+  }, [API_BASE_URL]);
 
   const handleShuttleSelect = (shuttleId) => {
     setSelectedShuttle(shuttleId);
@@ -19,6 +37,7 @@ const CollectFarePopup = ({ onClose, shuttleLocations }) => {
 
   const handleClose = () => {
     setSelectedShuttle(null);
+    setIsCustomMode(false);
     onClose();
   };
 
@@ -41,6 +60,15 @@ const CollectFarePopup = ({ onClose, shuttleLocations }) => {
     };
   }, []);
 
+  // Add cleanup effect
+  useEffect(() => {
+    return () => {
+      // Cleanup when component unmounts
+      setSelectedShuttle(null);
+      setIsCustomMode(false);
+    };
+  }, []);
+
   return (
     <div className="cf-collect-fare-popup-overlay" onClick={handleClose}>
       <div 
@@ -56,13 +84,12 @@ const CollectFarePopup = ({ onClose, shuttleLocations }) => {
               {shuttles.length > 0 ? (
                 shuttles.map((shuttle) => (
                   <button
-                    key={shuttle.id}
-                    className={`cf-shuttle-select-btn ${shuttle.status === "offline" ? "offline" : ""}`}
-                    onClick={() => handleShuttleSelect(shuttle.id)}
-                    disabled={shuttle.status === "offline"}
+                    key={shuttle.shuttleNumber}
+                    className={`cf-shuttle-select-btn ${shuttle.status !== "active" ? "offline" : ""}`}
+                    onClick={() => handleShuttleSelect(shuttle.shuttleNumber)}
                   >
-                    Shuttle {shuttle.id}
-                    {shuttle.status === "offline" && " (Offline)"}
+                    Shuttle {shuttle.shuttleNumber}
+                    {shuttle.status !== "active" && ` (${shuttle.status.charAt(0).toUpperCase() + shuttle.status.slice(1)})`}
                   </button>
                 ))
               ) : (

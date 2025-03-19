@@ -32,17 +32,17 @@ export const createFareTransaction = async (req, res) => {
     }
 
     // Validate payment method
-    if (!['CASH', 'GCASH'].includes(paymentMethod)) {
+    if (!['CASH', 'DIGITAL'].includes(paymentMethod)) {
       return res
         .status(400)
-        .json({ message: "Invalid payment method. Must be either CASH or GCASH" });
+        .json({ message: "Invalid payment method. Must be either CASH or DIGITAL" });
     }
 
-    // Validate GCash receipt requirement
-    if (paymentMethod === 'GCASH' && !receiptImage) {
+    // Validate Digital payment receipt requirement
+    if (paymentMethod === 'DIGITAL' && !receiptImage) {
       return res
         .status(400)
-        .json({ message: "Receipt image is required for GCash payments" });
+        .json({ message: "Receipt image is required for Digital payments" });
     }
 
     // Validate passenger counts
