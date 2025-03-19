@@ -23,6 +23,11 @@
   justify-content: space-between;
 }
 
+/* Add TellerMain-navbar class - this will ensure compatibility with TellerMain.css */
+.Sidebar.TellerMain-navbar {
+  width: 64px;
+}
+
 .Sidebar-logo {
   padding-top: 24px;
   font-size: 18px;

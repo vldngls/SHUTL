@@ -30,13 +30,18 @@ textarea {
 .TellerMain-map-container {
   position: fixed;
   top: 0;
-  left: 64px;
-  width: calc(100% - 64px);
+  left: 0;
+  width: 100%;
   height: 100vh;
   height: calc(var(--vh, 1vh) * 100);
   z-index: 1;
   touch-action: pan-x pan-y;
   transition: left 0.3s ease, width 0.3s ease;
+}
+
+.TellerMain-navbar ~ .TellerMain-map-container {
+  left: 64px;
+  width: calc(100% - 64px);
 }
 
 .TellerMain-navbar.expanded ~ .TellerMain-map-container {
@@ -432,8 +437,8 @@ textarea {
   }
 
   .TellerMain-map-container {
-    left: 64px;
-    width: calc(100% - 64px);
+    left: 0 !important;
+    width: 100% !important;
   }
 
   .TellerMain-taskbar {
@@ -478,6 +483,7 @@ textarea {
   .TellerMain-map-container {
     left: 0 !important;
     width: 100% !important;
+    height: calc(var(--vh, 1vh) * 100);
   }
 
   .TellerMain-TripTracking-popup,

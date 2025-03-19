@@ -4,14 +4,10 @@ import { Html5QrcodeScanner } from "html5-qrcode";
 import { toast } from "react-hot-toast";
 import "../css/CollectFare.css";
 import { maintenanceService } from "../services/api/maintenance";
+import PropTypes from "prop-types";
 
 const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
-  const [fareCounts, setFareCounts] = useState({
-    Regular: 0,
-    PWD: 0,
-    STUDENT: 0,
-    SENIOR: 0,
-  });
+  const [fareCounts, setFareCounts] = useState({});
   const [tender, setTender] = useState("");
   const [change, setChange] = useState(0);
   const [commuterEmail, setCommuterEmail] = useState("");
@@ -20,28 +16,38 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
   const [qrResult, setQrResult] = useState("");
   const [qrError, setQrError] = useState("");
   const [scanner, setScanner] = useState(null);
-  const [fares, setFares] = useState({
-    Regular: 30,
-    PWD: 24,
-    STUDENT: 24,
-    SENIOR: 24,
-  });
+  const [fares, setFares] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const presetAmounts = [20, 50, 100, 200, 500, 1000];
 
   useEffect(() => {
     const fetchFares = async () => {
+      setIsLoading(true);
       try {
         const response = await fetch(`${API_BASE_URL}/fares`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch fares");
+        }
+        
         const data = await response.json();
         const fareMap = {};
+        const fareCountsMap = {};
+        
         data.forEach((fare) => {
-          fareMap[fare.fare] = parseFloat(fare.price);
+          const fareType = fare.fare.toUpperCase();
+          fareMap[fareType] = parseFloat(fare.price);
+          fareCountsMap[fareType] = 0;
         });
+        
         setFares(fareMap);
+        setFareCounts(fareCountsMap);
       } catch (error) {
         console.error("Error fetching fares:", error);
+        toast.error("Failed to load fare data. Please try again.");
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -116,7 +122,8 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
 
   const calculateTotal = () => {
     return Object.entries(fareCounts).reduce((total, [fareType, count]) => {
-      return total + count * fares[fareType];
+      const farePrice = fares[fareType] || 0;
+      return total + (count || 0) * farePrice;
     }, 0);
   };
 
@@ -228,12 +235,13 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
   };
 
   const resetCounts = () => {
-    setFareCounts({
-      Regular: 0,
-      PWD: 0,
-      STUDENT: 0,
-      SENIOR: 0,
+    // Reset counts based on current fare types
+    const resetFareCounts = {};
+    Object.keys(fares).forEach(fareType => {
+      resetFareCounts[fareType] = 0;
     });
+    
+    setFareCounts(resetFareCounts);
     setTender("");
     setChange(0);
     setCommuterEmail("");
@@ -270,129 +278,141 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
     <div className="CollectFare-modal">
       <div className="CollectFare-container">
         <h2>Collect Fare</h2>
-        <div className="fare-calculator-grid">
-          {/* Left Column */}
-          <div className="fare-calculator-left">
-            <div className="fare-calculator">
-              <div className="fare-row header">
-                <span>Customer Type</span>
-                <span>Add/Minus</span>
-                <span>Count</span>
-                <span>Price</span>
-              </div>
-              {Object.entries(fares).map(([fareType, price]) => (
-                <div key={fareType} className="fare-row">
-                  <span>
-                    {fareType} (₱{price})
-                  </span>
-                  <div className="button-group">
-                    <button
-                      onClick={() => handleCountChange(fareType, 1)}
-                      className="control-button"
-                    >
-                      +
-                    </button>
-                    <button
-                      onClick={() => handleCountChange(fareType, -1)}
-                      className="control-button"
-                      disabled={fareCounts[fareType] === 0}
-                    >
-                      -
-                    </button>
-                  </div>
-                  <span className="passenger-count">
-                    {fareCounts[fareType]}
-                  </span>
-                  <span className="fare-amount">
-                    ₱{(fareCounts[fareType] * price).toFixed(2)}
-                  </span>
+        {isLoading ? (
+          <div className="loading-container">
+            <p>Loading fare data...</p>
+          </div>
+        ) : (
+          <div className="fare-calculator-grid">
+            {/* Left Column */}
+            <div className="fare-calculator-left">
+              <div className="fare-calculator">
+                <div className="fare-row header">
+                  <span>Customer Type</span>
+                  <span>Add/Minus</span>
+                  <span>Count</span>
+                  <span>Price</span>
                 </div>
-              ))}
-              <div className="fare-total">
-                <span>Total Amount:</span>
-                <strong>₱{calculateTotal().toFixed(2)}</strong>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column */}
-          <div className="fare-calculator-right">
-            <div className="fare-tender">
-              <label htmlFor="tender">Tender Amount:</label>
-              <div className="tender-input-container">
-                <span className="peso-sign">₱</span>
-                <input
-                  id="tender"
-                  type="text"
-                  inputMode="decimal"
-                  value={tender}
-                  onChange={handleTenderChange}
-                  placeholder="0.00"
-                  className="tender-input"
-                />
-              </div>
-              <div className="preset-amounts">
-                {presetAmounts.map((amount) => (
-                  <button
-                    key={amount}
-                    className="preset-amount-btn"
-                    onClick={() => handlePresetAmount(amount)}
-                  >
-                    ₱{amount}
-                  </button>
+                {Object.entries(fares).map(([fareType, price]) => (
+                  <div key={fareType} className="fare-row">
+                    <span>
+                      {fareType} (₱{price})
+                    </span>
+                    <div className="button-group">
+                      <button
+                        onClick={() => handleCountChange(fareType, 1)}
+                        className="control-button"
+                      >
+                        +
+                      </button>
+                      <button
+                        onClick={() => handleCountChange(fareType, -1)}
+                        className="control-button"
+                        disabled={fareCounts[fareType] === 0}
+                      >
+                        -
+                      </button>
+                    </div>
+                    <span className="passenger-count">
+                      {fareCounts[fareType] || 0}
+                    </span>
+                    <span className="fare-amount">
+                      ₱{((fareCounts[fareType] || 0) * (price || 0)).toFixed(2)}
+                    </span>
+                  </div>
                 ))}
+                <div className="fare-total">
+                  <span>Total Amount:</span>
+                  <strong>₱{calculateTotal().toFixed(2)}</strong>
+                </div>
               </div>
             </div>
 
-            <div className="fare-change">
-              <span>Change:</span>
-              <strong>₱{change >= 0 ? change.toFixed(2) : "0.00"}</strong>
-            </div>
-
-            <div className="fare-commuter">
-              <label htmlFor="commuterEmail">Commuter Email:</label>
-              <Select
-                options={commuterEmails}
-                onChange={(selectedOption) =>
-                  setCommuterEmail(selectedOption?.value || "")
-                }
-                isClearable
-                placeholder="Select or type an email"
-                value={commuterEmails.find(
-                  (option) => option.value === commuterEmail
-                )}
-              />
-              <button onClick={handleQrScannerToggle} className="qr-button">
-                {showQrScanner ? "Close QR Scanner" : "Scan QR Code"}
-              </button>
-            </div>
-
-            {showQrScanner && (
-              <div className="qr-scanner">
-                <div id="reader"></div>
-                <p>Scanning for QR code...</p>
+            {/* Right Column */}
+            <div className="fare-calculator-right">
+              <div className="fare-tender">
+                <label htmlFor="tender">Tender Amount:</label>
+                <div className="tender-input-container">
+                  <span className="peso-sign">₱</span>
+                  <input
+                    id="tender"
+                    type="text"
+                    inputMode="decimal"
+                    value={tender}
+                    onChange={handleTenderChange}
+                    placeholder="0.00"
+                    className="tender-input"
+                  />
+                </div>
+                <div className="preset-amounts">
+                  {presetAmounts.map((amount) => (
+                    <button
+                      key={amount}
+                      className="preset-amount-btn"
+                      onClick={() => handlePresetAmount(amount)}
+                    >
+                      ₱{amount}
+                    </button>
+                  ))}
+                </div>
               </div>
-            )}
-            {qrResult && (
-              <div className="qr-confirmation">
-                <p>Detected QR Code: {qrResult}</p>
+
+              <div className="fare-change">
+                <span>Change:</span>
+                <strong>₱{change >= 0 ? change.toFixed(2) : "0.00"}</strong>
               </div>
-            )}
-            {qrError && <p className="error-message">{qrError}</p>}
+
+              <div className="fare-commuter">
+                <label htmlFor="commuterEmail">Commuter Email:</label>
+                <Select
+                  options={commuterEmails}
+                  onChange={(selectedOption) =>
+                    setCommuterEmail(selectedOption?.value || "")
+                  }
+                  isClearable
+                  placeholder="Select or type an email"
+                  value={commuterEmails.find(
+                    (option) => option.value === commuterEmail
+                  )}
+                />
+                <button onClick={handleQrScannerToggle} className="qr-button">
+                  {showQrScanner ? "Close QR Scanner" : "Scan QR Code"}
+                </button>
+              </div>
+
+              {showQrScanner && (
+                <div className="qr-scanner">
+                  <div id="reader"></div>
+                  <p>Scanning for QR code...</p>
+                </div>
+              )}
+              {qrResult && (
+                <div className="qr-confirmation">
+                  <p>Detected QR Code: {qrResult}</p>
+                </div>
+              )}
+              {qrError && <p className="error-message">{qrError}</p>}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="fare-actions">
           <button onClick={handleCancel} className="secondary">
             Cancel
           </button>
-          <button onClick={handleSubmit} className="primary">
+          <button onClick={handleSubmit} className="primary" disabled={isLoading}>
             Save
           </button>
         </div>
       </div>
     </div>
   );
+};
+
+CollectFare.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  shuttleID: PropTypes.string.isRequired,
+  onTransactionSaved: PropTypes.func
 };
 
 export default CollectFare;

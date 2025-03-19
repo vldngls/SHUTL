@@ -8,6 +8,7 @@ import ShuttleTripTracking from "../components/ShuttleTripTracking";
 import TellerProfile from "../components/TellerProfile";
 import TellerSummary from "../components/TellerSummary";
 import DriverMessage from "../components/DriverMessage";
+import CollectFarePopup from "../components/CollectFarePopup";
 import {
   connectSocket,
   sendMessage,
@@ -90,6 +91,7 @@ const TellerMain = () => {
   const [isMessageBoxOpen, setIsMessageBoxOpen] = useState(false);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [isTripFormOpen, setIsTripFormOpen] = useState(false);
+  const [isCollectFareOpen, setIsCollectFareOpen] = useState(false);
 
   // Refs
   const mapRef = useRef();
@@ -575,6 +577,7 @@ const TellerMain = () => {
   };
   const toggleSummary = () => setIsSummaryOpen(!isSummaryOpen);
   const toggleTripForm = () => setIsTripFormOpen(!isTripFormOpen);
+  const toggleCollectFare = () => setIsCollectFareOpen(!isCollectFareOpen);
   const toggleSidebar = (e, forceExpand = false) => {
     if (e) {
       e.stopPropagation();
@@ -668,6 +671,9 @@ const TellerMain = () => {
         break;
       case "trip":
         toggleTripForm();
+        break;
+      case "collectFare":
+        toggleCollectFare();
         break;
       default:
         break;
@@ -841,6 +847,7 @@ const TellerMain = () => {
         onNotificationClick={() => console.log("Notification clicked")}
         onSummaryClick={toggleSummary}
         onTripClick={toggleTripForm}
+        onCollectFareClick={toggleCollectFare}
         profileImage={profileImage}
         onSettingsClick={handleSettingsClick}
         notificationEnabled={notificationEnabled}
@@ -876,12 +883,20 @@ const TellerMain = () => {
         />
       )}
 
-      {isSummaryOpen && <TellerSummary onClose={toggleSummary} />}
+      {isSummaryOpen && <TellerSummary onClose={toggleSummary} shuttleLocations={optimizedLocations} />}
 
       {isTripFormOpen && (
         <ShuttleTripTracking
           onClose={toggleTripForm}
           shuttleLocations={shuttleLocations}
+          socket={socket.current}
+        />
+      )}
+
+      {isCollectFareOpen && (
+        <CollectFarePopup
+          onClose={toggleCollectFare}
+          shuttleLocations={optimizedLocations}
         />
       )}
 

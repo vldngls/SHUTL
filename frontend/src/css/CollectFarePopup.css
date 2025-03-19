@@ -1,0 +1,180 @@
+.collect-fare-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.collect-fare-popup-container {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 30px;
+  width: 450px;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s ease;
+  transform-origin: center bottom;
+}
+
+@keyframes slideUp {
+  from { 
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to { 
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.collect-fare-close-btn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #555;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.collect-fare-close-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: #000;
+  transform: rotate(90deg);
+}
+
+.shuttle-selection {
+  text-align: center;
+  padding: 10px 0;
+}
+
+.shuttle-selection h2 {
+  margin-top: 0;
+  margin-bottom: 30px;
+  color: #333;
+  font-size: 24px;
+  font-weight: 600;
+  position: relative;
+  display: inline-block;
+}
+
+.shuttle-selection h2:after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -10px;
+  width: 60px;
+  height: 3px;
+  background-color: #4CAF50;
+  transform: translateX(-50%);
+  border-radius: 3px;
+}
+
+.shuttle-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.shuttle-select-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 18px 20px;
+  border-radius: 12px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.25);
+  letter-spacing: 0.5px;
+}
+
+.shuttle-select-btn:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.shuttle-select-btn:hover {
+  background-color: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(76, 175, 80, 0.35);
+}
+
+.shuttle-select-btn:hover:before {
+  transform: translateX(100%);
+}
+
+.shuttle-select-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+}
+
+.shuttle-select-btn.offline {
+  background-color: #e0e0e0;
+  color: #999;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.shuttle-select-btn.offline:hover {
+  background-color: #e0e0e0;
+  transform: none;
+  box-shadow: none;
+}
+
+.shuttle-select-btn.offline:before {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .collect-fare-popup-container {
+    width: 95%;
+    padding: 25px 20px;
+  }
+  
+  .shuttle-selection h2 {
+    font-size: 22px;
+  }
+  
+  .shuttle-select-btn {
+    padding: 16px;
+    font-size: 16px;
+  }
+} 

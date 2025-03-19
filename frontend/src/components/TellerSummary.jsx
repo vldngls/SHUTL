@@ -234,6 +234,29 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
     fetchEarningsData();
   }, [API_BASE_URL]);
 
+  // Fetch route statistics specifically
+  useEffect(() => {
+    const fetchRouteStatistics = async () => {
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/shuttle/routes`,
+          getAuthConfig()
+        );
+        
+        if (response.data && Object.keys(response.data).length > 0) {
+          setRouteMetrics(response.data);
+          console.log("Route statistics:", response.data);
+        } else {
+          console.log("No route statistics available");
+        }
+      } catch (error) {
+        console.error("Error fetching route statistics:", error);
+      }
+    };
+
+    fetchRouteStatistics();
+  }, [API_BASE_URL]);
+
   const handleOverlayClick = (e) => {
     if (e.target.className === "TellerSummary-modal") {
       setIsVisible(false);
@@ -460,23 +483,29 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
             Route Statistics (Within Operational Hours)
           </h3>
           <div className="TellerSummary-route">
-            {Object.entries(routeMetrics).map(([shuttleId, metrics]) => {
-              const shuttleStat = shuttleStats[shuttleId] || {};
-              const avgPassengers = shuttleStat.averagePassengers || 0;
+            {Object.keys(routeMetrics).length > 0 ? (
+              Object.entries(routeMetrics).map(([shuttleId, metrics]) => {
+                const shuttleStat = shuttleStats[shuttleId] || {};
+                const avgPassengers = shuttleStat.averagePassengers || 0;
 
-              return (
-                <div key={shuttleId}>
-                  <strong>SHUTL {shuttleId}</strong>
-                  <p>
-                    <span>{metrics.averageRouteMinutes} min</span> average route time
-                    <br />
-                    <span>{metrics.averageDepartureMinutes} min</span> average departure time
-                    <br />
-                    <span>{avgPassengers} passengers</span> average per trip
-                  </p>
-                </div>
-              );
-            })}
+                return (
+                  <div key={shuttleId} className="route-stat-item">
+                    <strong>SHUTL {shuttleId}</strong>
+                    <p>
+                      <span>{metrics.averageRouteMinutes || 0} min</span> average route time
+                      <br />
+                      <span>{metrics.averageDepartureMinutes || 0} min</span> average departure time
+                      <br />
+                      <span>{avgPassengers} passengers</span> average per trip
+                    </p>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="no-data-message">
+                <p>No route statistics available for today</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -487,38 +516,51 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
             Current Status
           </h3>
           <div className="TellerSummary-status">
-            {Object.entries(allShuttles).map(([shuttleId, data]) => {
-              const stats = shuttleStats[shuttleId] || {
-                totalPassengers: 0,
-                roundTrips: 0,
-              };
+            {Object.entries(allShuttles).length > 0 ? (
+              Object.entries(allShuttles).map(([shuttleId, data]) => {
+                const stats = shuttleStats[shuttleId] || {
+                  totalPassengers: 0,
+                  roundTrips: 0,
+                };
 
-              const isOffline = data.status === "offline";
-              const locationText = isOffline
-                ? "Not broadcasting location"
-                : data.streetName || "Fetching location...";
-              const lastUpdateText = isOffline
-                ? "No recent updates"
-                : `Last Updated: ${data.lastUpdate.toLocaleTimeString()}`;
+                const isOffline = data.status === "offline";
+                const locationText = isOffline
+                  ? "Not broadcasting location"
+                  : data.streetName || streetNames[shuttleId] || "Fetching location...";
+                
+                // Format last update time if it exists
+                const lastUpdate = data.lastUpdate instanceof Date 
+                  ? data.lastUpdate 
+                  : new Date(data.lastUpdate || Date.now());
+                
+                const lastUpdateText = isOffline
+                  ? "No recent updates"
+                  : `Last Updated: ${lastUpdate.toLocaleTimeString()}`;
 
-              return (
-                <div
-                  className={`status-item ${isOffline ? "offline-shuttle" : ""}`}
-                  key={shuttleId}
-                  style={{ opacity: isOffline ? 0.7 : 1 }}
-                >
-                  <strong>SHUTL {shuttleId}</strong>
-                  <p>Currently at {locationText}</p>
-                  <p>{lastUpdateText}</p>
-                  <p>
-                    {stats.totalPassengers} Passengers | {stats.roundTrips} Trips
-                  </p>
-                  <button onClick={() => handleOpenShuttle({ id: shuttleId })}>
-                    Open Details
-                  </button>
-                </div>
-              );
-            })}
+                return (
+                  <div
+                    className={`status-item ${isOffline ? "offline-shuttle" : ""}`}
+                    key={shuttleId}
+                    style={{ opacity: isOffline ? 0.7 : 1 }}
+                  >
+                    <strong>SHUTL {shuttleId}</strong>
+                    <p>Status: <span className={`status-${data.status || 'unknown'}`}>{data.status || 'Unknown'}</span></p>
+                    <p>Currently at {locationText}</p>
+                    <p>{lastUpdateText}</p>
+                    <p>
+                      {stats.totalPassengers} Passengers | {stats.roundTrips} Trips
+                    </p>
+                    <button onClick={() => handleOpenShuttle({ id: shuttleId })}>
+                      Open Details
+                    </button>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="no-data-message">
+                <p>No active shuttles available</p>
+              </div>
+            )}
           </div>
         </div>
 

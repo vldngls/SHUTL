@@ -23,6 +23,7 @@ const Sidebar = forwardRef(
       locationEnabled,
       onLocationToggle,
       onTripClick,
+      onCollectFareClick,
     },
     ref
   ) => {
@@ -182,6 +183,12 @@ const Sidebar = forwardRef(
               label: "Shuttle Trip",
               onClick: onTripClick,
             },
+            {
+              id: "collectFare",
+              icon: "/money.png",
+              label: "Collect Fare",
+              onClick: onCollectFareClick,
+            },
             ...commonButtons,
           ];
         case "driver":
@@ -327,7 +334,7 @@ const Sidebar = forwardRef(
           ref={ref}
           className={`Sidebar ${isExpanded || isMobile ? "expanded" : ""} ${
             isMobileMenuOpen ? "mobile-open" : ""
-          }`}
+          } ${userType === "teller" ? "TellerMain-navbar" : ""}`}
           onClick={(e) => {
             if (!isMobile) {
               onToggle(e);
@@ -508,6 +515,7 @@ Sidebar.propTypes = {
   locationEnabled: PropTypes.bool,
   onLocationToggle: PropTypes.func,
   onTripClick: PropTypes.func,
+  onCollectFareClick: PropTypes.func,
 };
 
 export default Sidebar;
