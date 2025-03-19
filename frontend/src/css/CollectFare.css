@@ -22,6 +22,17 @@
   --CollectFare-radius-sm: 0.375rem;
   --CollectFare-radius-md: 0.5rem;
   --CollectFare-radius-lg: 0.75rem;
+  --CollectFare-transition: all 0.2s ease-in-out;
+  --CollectFare-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --CollectFare-font-size-xs: 0.75rem;
+  --CollectFare-font-size-sm: 0.875rem;
+  --CollectFare-font-size-base: 1rem;
+  --CollectFare-font-size-lg: 1.125rem;
+  --CollectFare-font-size-xl: 1.25rem;
+  --CollectFare-font-size-2xl: 1.5rem;
+  --CollectFare-line-height-tight: 1.25;
+  --CollectFare-line-height-normal: 1.5;
+  --CollectFare-line-height-relaxed: 1.75;
 }
 
 /* Modal Overlay */
@@ -41,18 +52,21 @@
 /* Base Container */
 .CollectFare-container {
   background: white;
-  border-radius: 8px;
-  padding: 20px;
-  width: 90%;
+  border-radius: var(--CollectFare-radius-lg);
+  padding: 1.5rem;
   max-width: 1200px;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
+  box-shadow: var(--CollectFare-shadow-lg);
+  font-family: var(--CollectFare-font-family);
+  line-height: var(--CollectFare-line-height-normal);
+  color: var(--CollectFare-neutral-800);
 }
 
 /* Header */
 .CollectFare-header {
-  padding: 0.75rem 1rem;
+  padding: 1rem;
   border-bottom: 1px solid var(--CollectFare-neutral-200);
   display: flex;
   justify-content: space-between;
@@ -61,13 +75,15 @@
   position: sticky;
   top: 0;
   z-index: 2;
+  height: 56px;
 }
 
 .CollectFare-header h2 {
-  font-size: 1.125rem;
+  font-size: var(--CollectFare-font-size-xl);
   font-weight: 600;
   color: var(--CollectFare-neutral-800);
   margin: 0;
+  letter-spacing: -0.025em;
 }
 
 .CollectFare-close-button {
@@ -76,37 +92,44 @@
   color: var(--CollectFare-neutral-500);
   font-size: 1.5rem;
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--CollectFare-radius-sm);
-  transition: all 0.2s;
+  transition: var(--CollectFare-transition);
+  width: 40px;
+  height: 40px;
 }
 
 .CollectFare-close-button:hover {
   background-color: var(--CollectFare-neutral-100);
   color: var(--CollectFare-neutral-700);
+  transform: scale(1.1);
 }
 
 /* QR Scanner Container */
 .CollectFare-qr-scanner-container {
+  background: white;
+  border-radius: var(--CollectFare-radius-lg);
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1rem;
   gap: 1rem;
-  max-width: 480px;
+  width: 400px;
   margin: 0 auto;
+  box-shadow: var(--CollectFare-shadow-md);
 }
 
 .CollectFare-qr-scanner-component {
-  width: 100%;
-  aspect-ratio: 1;
+  width: 400px;
+  height: 300px;
   background: var(--CollectFare-neutral-900);
-  border-radius: var(--CollectFare-radius-md);
+  border-radius: var(--CollectFare-radius-lg);
   overflow: hidden;
   position: relative;
+  box-shadow: var(--CollectFare-shadow-lg);
 }
 
 .CollectFare-qr-scanner-frame {
@@ -114,10 +137,11 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 65%;
-  height: 65%;
-  border: 2px solid var(--CollectFare-primary-color);
-  border-radius: 8px;
+  width: 250px;
+  height: 250px;
+  border: 3px solid var(--CollectFare-primary-color);
+  border-radius: var(--CollectFare-radius-lg);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
 }
 
 .CollectFare-qr-scanner-overlay {
@@ -195,299 +219,104 @@
 .CollectFare-calculator-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  padding: 20px;
+  gap: 2rem;
+  padding: 1.5rem;
 }
 
 /* Form Sections */
 .CollectFare-section {
   background: white;
   border: 1px solid var(--CollectFare-neutral-200);
-  border-radius: var(--CollectFare-radius-md);
-  padding: 1rem;
-  margin-bottom: 1rem;
+  border-radius: var(--CollectFare-radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--CollectFare-shadow-sm);
 }
 
 .CollectFare-section-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--CollectFare-neutral-700);
-  margin: 0 0 0.75rem 0;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .CollectFare-container {
-    width: 95vw;
-    max-height: 90vh;
-  }
-
-  .CollectFare-calculator-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .CollectFare-qr-scanner-container {
-    padding: 0.75rem;
-  }
-
-  .CollectFare-qr-scanner-component {
-    aspect-ratio: 4/3;
-  }
-
-  .CollectFare-qr-scanner-frame {
-    width: 75%;
-    height: 60%;
-  }
-}
-
-/* Custom Mode Adjustments */
-.CollectFare-container.custom-mode {
-  max-width: 1000px;
-}
-
-/* Confirmation Modal */
-.CollectFare-confirmation-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1100;
-}
-
-.CollectFare-confirmation-modal {
-  background: white;
-  border-radius: var(--CollectFare-radius-lg);
-  padding: 1.5rem;
-  width: 90%;
-  max-width: 400px;
-  position: relative;
-}
-
-/* Camera Modal */
-.CollectFare-camera-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1100;
-}
-
-.CollectFare-camera-modal {
-  background: white;
-  border-radius: var(--CollectFare-radius-lg);
-  padding: 1rem;
-  width: 90%;
-  max-width: 600px;
-  position: relative;
-}
-
-/* Main Content Area */
-.CollectFare-content {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-/* Grid Layout */
-.CollectFare-calculator-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  padding: 20px;
-}
-
-.CollectFare-calculator-left,
-.CollectFare-calculator-right {
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 20px;
-}
-
-/* Fare Calculator */
-.CollectFare-calculator {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: white;
-  border-radius: var(--CollectFare-radius-lg);
-}
-
-.CollectFare-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr 0.8fr 1fr;
-  align-items: center;
-  padding: 0.875rem 1.25rem;
-  gap: 1rem;
-}
-
-.CollectFare-row.header {
-  background: var(--CollectFare-neutral-50);
-  font-weight: 600;
-  color: var(--CollectFare-neutral-700);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.CollectFare-row:not(.header) {
-  border-bottom: 1px solid var(--CollectFare-neutral-100);
-}
-
-.CollectFare-row:last-child {
-  border-bottom: none;
-}
-
-/* Counter Controls */
-.CollectFare-button-group {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.CollectFare-control-button {
-  width: 2rem;
-  height: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: white;
-  border: 1px solid var(--CollectFare-neutral-200);
-  color: var(--CollectFare-neutral-700);
-  border-radius: var(--CollectFare-radius-sm);
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.CollectFare-control-button:hover:not(:disabled) {
-  background: var(--CollectFare-neutral-50);
-  border-color: var(--CollectFare-neutral-300);
-}
-
-.CollectFare-control-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.CollectFare-passenger-count {
+  font-size: var(--CollectFare-font-size-lg);
   font-weight: 600;
   color: var(--CollectFare-neutral-800);
-  text-align: center;
+  margin: 0 0 1rem 0;
+  letter-spacing: -0.025em;
 }
 
-.CollectFare-amount {
-  font-weight: 500;
-  color: var(--CollectFare-neutral-700);
-  text-align: right;
-}
-
-/* Total Section */
-.CollectFare-total {
-  margin-top: auto;
-  padding: 1rem 1.25rem;
-  background: var(--CollectFare-neutral-50);
-  border-top: 1px solid var(--CollectFare-neutral-200);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.CollectFare-total strong {
-  font-size: 1.25rem;
-  color: var(--CollectFare-neutral-800);
-}
-
-/* Right Side Panel */
-.CollectFare-tender {
-  padding: 1.25rem;
-  border-bottom: 1px solid var(--CollectFare-neutral-100);
-}
-
-.CollectFare-tender-input-container {
-  position: relative;
-  margin: 0.5rem 0 1rem;
-}
-
-.CollectFare-peso-sign {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--CollectFare-neutral-600);
-  font-weight: 500;
-}
-
-.CollectFare-tender-input {
-  width: 100%;
-  height: 2.75rem;
-  padding: 0.5rem 1rem 0.5rem 2rem;
-  border: 1px solid var(--CollectFare-neutral-200);
+/* Buttons */
+.CollectFare-button {
+  padding: 0.75rem 1.5rem;
   border-radius: var(--CollectFare-radius-md);
-  font-size: 1rem;
-  transition: all 0.2s;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--CollectFare-transition);
+  min-width: 120px;
+  font-size: var(--CollectFare-font-size-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  border: none;
 }
 
-.CollectFare-tender-input:focus {
+.CollectFare-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--CollectFare-shadow-md);
+}
+
+.CollectFare-button.primary {
+  background: var(--CollectFare-primary-color);
+  color: white;
+}
+
+.CollectFare-button.primary:hover {
+  background: var(--CollectFare-primary-hover);
+}
+
+.CollectFare-button.secondary {
+  background: var(--CollectFare-neutral-100);
+  color: var(--CollectFare-neutral-700);
+}
+
+.CollectFare-button.secondary:hover {
+  background: var(--CollectFare-neutral-200);
+}
+
+.CollectFare-button.danger {
+  background: var(--CollectFare-danger-color);
+  color: white;
+}
+
+.CollectFare-button.danger:hover {
+  background: var(--CollectFare-danger-hover);
+}
+
+/* Input Fields */
+.CollectFare-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--CollectFare-neutral-300);
+  border-radius: var(--CollectFare-radius-md);
+  font-size: var(--CollectFare-font-size-base);
+  transition: var(--CollectFare-transition);
+  background: white;
+  line-height: var(--CollectFare-line-height-normal);
+}
+
+.CollectFare-input:focus {
   outline: none;
   border-color: var(--CollectFare-primary-color);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* Preset Amount Buttons */
-.CollectFare-preset-amounts {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-}
-
-.CollectFare-preset-amount-btn {
-  padding: 0.5rem;
-  background: white;
-  border: 1px solid var(--CollectFare-neutral-200);
-  border-radius: var(--CollectFare-radius-md);
-  color: var(--CollectFare-neutral-700);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.CollectFare-preset-amount-btn:hover {
-  background: var(--CollectFare-neutral-50);
-  border-color: var(--CollectFare-neutral-300);
-}
-
-/* Change Display */
-.CollectFare-change {
-  padding: 1.25rem;
-  background: var(--CollectFare-neutral-50);
-  border-bottom: 1px solid var(--CollectFare-neutral-100);
-}
-
-.CollectFare-change strong {
-  font-size: 1.25rem;
-  color: var(--CollectFare-success-color);
-}
-
-/* Commuter Email Section */
-.CollectFare-commuter {
-  padding: 1.25rem;
+.CollectFare-input::placeholder {
+  color: var(--CollectFare-neutral-400);
+  font-size: var(--CollectFare-font-size-sm);
 }
 
 /* QR Scanner Button */
 .CollectFare-qr-button {
   width: 100%;
-  padding: 0.75rem;
-  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  margin-top: 0.5rem;
   background: var(--CollectFare-primary-color);
   color: white;
   border: none;
@@ -495,6 +324,8 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  font-size: var(--CollectFare-font-size-sm);
+  height: 36px;
 }
 
 .CollectFare-qr-button:hover {
@@ -503,20 +334,27 @@
 
 /* Action Buttons */
 .CollectFare-actions {
-  padding: 1.25rem;
+  padding: 0.75rem 1rem;
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
   margin-top: auto;
   background: white;
   border-top: 1px solid var(--CollectFare-neutral-200);
+  justify-content: flex-end;
 }
 
 .CollectFare-actions button {
-  padding: 0.75rem 1.5rem;
+  padding: 0.5rem 1rem;
   border-radius: var(--CollectFare-radius-md);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  min-width: 100px;
+  font-size: var(--CollectFare-font-size-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
 }
 
 .CollectFare-actions .secondary {
@@ -533,7 +371,6 @@
   background: var(--CollectFare-success-color);
   color: white;
   border: none;
-  flex: 1;
 }
 
 .CollectFare-actions .primary:hover {
@@ -545,25 +382,26 @@
   background: white;
   border: 1px solid var(--CollectFare-neutral-200);
   border-radius: var(--CollectFare-radius-lg);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
 }
 
 .CollectFare-payment-method h3 {
-  color: var(--CollectFare-neutral-700);
-  font-size: 1.125rem;
+  font-size: var(--CollectFare-font-size-base);
   font-weight: 600;
-  margin-bottom: 1rem;
+  color: var(--CollectFare-neutral-700);
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.025em;
 }
 
 .CollectFare-payment-buttons {
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .CollectFare-payment-btn {
   flex: 1;
-  padding: 1rem 1.5rem;
+  padding: 0.5rem 1rem;
   background: white;
   border: 1px solid var(--CollectFare-neutral-200);
   border-radius: var(--CollectFare-radius-md);
@@ -572,6 +410,7 @@
   cursor: pointer;
   transition: all 0.2s;
   text-align: center;
+  height: 36px;
 }
 
 .CollectFare-payment-btn:hover {
@@ -591,25 +430,33 @@
   border: 1px solid var(--CollectFare-neutral-200);
   border-radius: var(--CollectFare-radius-lg);
   padding: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.CollectFare-digital-receipt h3 {
-  color: var(--CollectFare-neutral-700);
-  font-size: 1.125rem;
-  font-weight: 600;
   margin-bottom: 1rem;
 }
 
+.CollectFare-digital-receipt h3 {
+  font-size: var(--CollectFare-font-size-base);
+  font-weight: 600;
+  color: var(--CollectFare-neutral-700);
+  margin-bottom: 1rem;
+  letter-spacing: -0.025em;
+}
+
 .CollectFare-upload-options {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  display: flex;
+  flex-direction: row;
+  gap: 0.75rem;
+  width: 100%;
+  margin: 0;
+  align-items: center;
 }
 
 .CollectFare-take-photo-btn,
-.CollectFare-upload-btn {
-  padding: 1rem 1.5rem;
+.CollectFare-upload-btn,
+label.CollectFare-upload-btn {
+  width: 213.77px !important;
+  max-width: 213.77px !important;
+  min-width: 213.77px !important;
+  padding: 0.5rem 1rem !important;
   background: var(--CollectFare-primary-color);
   color: white;
   border: none;
@@ -617,116 +464,45 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  width: 100%;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
+  font-size: var(--CollectFare-font-size-sm);
+  white-space: nowrap;
+  flex: none !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
 }
 
 .CollectFare-take-photo-btn:hover,
-.CollectFare-upload-btn:hover {
+.CollectFare-upload-btn:hover,
+label.CollectFare-upload-btn:hover {
   background: var(--CollectFare-primary-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--CollectFare-shadow-md);
 }
 
-/* Image Preview */
-.CollectFare-image-preview {
-  margin: 1rem 0;
-  position: relative;
-  width: 100%;
-  max-width: 300px;
-  border-radius: var(--CollectFare-radius-md);
-  overflow: hidden;
-  box-shadow: var(--CollectFare-shadow-md);
-}
-
-.CollectFare-image-preview img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* Camera Controls */
-.CollectFare-camera-controls {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-  justify-content: center;
-}
-
-.CollectFare-retake-btn,
-.CollectFare-remove-receipt-btn {
-  padding: 0.75rem 1.25rem;
-  background: var(--CollectFare-danger-color);
-  color: white;
-  border: none;
-  border-radius: var(--CollectFare-radius-md);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.CollectFare-retake-btn:hover,
-.CollectFare-remove-receipt-btn:hover {
-  background: var(--CollectFare-danger-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--CollectFare-shadow-md);
-}
-
-.CollectFare-file-upload-container {
-  position: relative;
-  width: 100%;
-}
-
-.CollectFare-file-upload-container input[type="file"] {
+/* Hide the actual file input */
+input[type="file"]#receipt-upload-custom {
   display: none;
 }
 
-/* QR Scanner Section */
-.CollectFare-qr-scanner-container {
-  background: white;
-  border-radius: var(--CollectFare-radius-lg);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-  max-width: 800px;
-  margin: 0 auto;
-}
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .CollectFare-upload-options {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
 
-.CollectFare-qr-scanner-container h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--CollectFare-neutral-800);
-  margin: 0;
-  text-align: center;
-}
-
-.CollectFare-qr-scanner-component {
-  width: 100%;
-  max-width: 500px;
-  aspect-ratio: 4/3;
-  background: var(--CollectFare-neutral-900);
-  border-radius: var(--CollectFare-radius-lg);
-  overflow: hidden;
-  position: relative;
-}
-
-.CollectFare-qr-scanner-component video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.CollectFare-qr-scanner-frame {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 200px;
-  height: 200px;
-  border: 2px solid var(--CollectFare-primary-color);
-  border-radius: 12px;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+  .CollectFare-take-photo-btn,
+  .CollectFare-upload-btn,
+  label.CollectFare-upload-btn {
+    width: 100% !important;
+    max-width: 213.77px !important;
+  }
 }
 
 /* Camera Selection */
@@ -798,141 +574,777 @@
 
 /* QR Error Message */
 .CollectFare-qr-error {
+  font-size: var(--CollectFare-font-size-sm);
+  font-weight: 500;
   color: var(--CollectFare-danger-color);
-  font-size: 0.875rem;
   text-align: center;
-  padding: 0.5rem;
-  background: var(--CollectFare-danger-color-light);
+  padding: 0.75rem;
+  background: rgba(239, 68, 68, 0.1);
   border-radius: var(--CollectFare-radius-md);
   max-width: 400px;
   margin: 0 auto;
+  line-height: var(--CollectFare-line-height-relaxed);
+}
+
+/* Amount Text */
+.CollectFare-amount {
+  font-size: var(--CollectFare-font-size-lg);
+  font-weight: 600;
+  color: var(--CollectFare-neutral-800);
+  letter-spacing: -0.025em;
+}
+
+/* Change Display */
+.CollectFare-change {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  font-size: var(--CollectFare-font-size-sm);
+  font-weight: 500;
+  color: var(--CollectFare-neutral-700);
+}
+
+.CollectFare-change strong {
+  color: var(--CollectFare-success-color);
+  font-size: var(--CollectFare-font-size-base);
+}
+
+/* Email Section */
+.CollectFare-email-section {
+  margin: 1.5rem 0;
+}
+
+.CollectFare-email-label {
+  display: block;
+  font-size: var(--CollectFare-font-size-sm);
+  font-weight: 500;
+  color: var(--CollectFare-neutral-700);
+  margin-bottom: 0.5rem;
+}
+
+select.CollectFare-email-input {
+  width: 100%;
+  max-width: 300px;
+  padding: 0.5rem;
+  border: 1px solid var(--CollectFare-neutral-200);
+  border-radius: var(--CollectFare-radius-sm);
+  font-size: var(--CollectFare-font-size-sm);
+  color: var(--CollectFare-neutral-800);
+  background: white;
+  margin-bottom: 1rem;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 1em;
+  padding-right: 2.5rem;
+}
+
+select.CollectFare-email-input:focus {
+  outline: none;
+  border-color: var(--CollectFare-primary-color);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+/* QR Button */
+button.CollectFare-qr-button {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  padding: 0.5rem;
+  background: var(--CollectFare-primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--CollectFare-radius-sm);
+  font-weight: 500;
+  font-size: var(--CollectFare-font-size-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  height: 36px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+button.CollectFare-qr-button:hover {
+  background: var(--CollectFare-primary-hover);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .CollectFare-change {
+    margin: 0.75rem 0;
+    font-size: var(--CollectFare-font-size-xs);
+  }
+
+  select.CollectFare-email-input {
+    max-width: 100%;
+    padding: 0.375rem 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  button.CollectFare-qr-button {
+    max-width: 100%;
+    height: 32px;
+    margin-bottom: 1rem;
+  }
+
+  .CollectFare-upload-options {
+    flex-direction: column;
+    max-width: 250px;
+    gap: 0.75rem;
+  }
+
+  .CollectFare-take-photo-btn,
+  .CollectFare-upload-btn,
+  label.CollectFare-upload-btn {
+    width: 100%;
+  }
+}
+
+/* Status Text */
+.CollectFare-status {
+  font-size: var(--CollectFare-font-size-sm);
+  font-weight: 500;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--CollectFare-radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.CollectFare-status.success {
+  color: var(--CollectFare-success-color);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.CollectFare-status.error {
+  color: var(--CollectFare-danger-color);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.CollectFare-status.warning {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
 }
 
 /* Responsive Design */
 @media (max-width: 1024px) {
   .CollectFare-calculator-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 1.5rem;
   }
   
   .CollectFare-container {
-    height: calc(100vh - 2rem);
+    width: 100%;
+    height: 100vh;
     max-height: none;
+    border-radius: 0;
   }
 }
 
 @media (max-width: 768px) {
+  .CollectFare-container {
+    padding: 1rem;
+  }
+  
   .CollectFare-header {
+    padding: 0.75rem;
+  }
+  
+  .CollectFare-section {
     padding: 1rem;
   }
   
-  .CollectFare-content {
-    padding: 1rem;
+  .CollectFare-button {
+    height: 40px;
+    min-width: 100px;
+    font-size: var(--CollectFare-font-size-xs);
   }
   
-  .CollectFare-row {
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
+  .CollectFare-input {
+    padding: 0.625rem 0.875rem;
+    font-size: var(--CollectFare-font-size-xs);
   }
   
+  .CollectFare-qr-scanner-frame {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .CollectFare-header h2 {
+    font-size: var(--CollectFare-font-size-lg);
+  }
+  
+  .CollectFare-section-title {
+    font-size: var(--CollectFare-font-size-base);
+  }
+  
+  .CollectFare-amount {
+    font-size: var(--CollectFare-font-size-base);
+  }
+  
+  .CollectFare-change strong {
+    font-size: var(--CollectFare-font-size-lg);
+  }
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Focus Styles */
+:focus-visible {
+  outline: 2px solid var(--CollectFare-primary-color);
+  outline-offset: 2px;
+}
+
+/* High Contrast Mode */
+@media (forced-colors: active) {
+  .CollectFare-button {
+    border: 2px solid currentColor;
+  }
+  
+  .CollectFare-input {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .CollectFare-container {
+    box-shadow: none;
+    border: 1px solid var(--CollectFare-neutral-300);
+  }
+  
+  .CollectFare-button {
+    border: 1px solid var(--CollectFare-neutral-300);
+  }
+  
+  .CollectFare-container {
+    font-size: var(--CollectFare-font-size-sm);
+  }
+  
+  .CollectFare-header h2 {
+    font-size: var(--CollectFare-font-size-lg);
+  }
+  
+  .CollectFare-section-title {
+    font-size: var(--CollectFare-font-size-base);
+  }
+  
+  .CollectFare-amount,
+  .CollectFare-change strong {
+    font-size: var(--CollectFare-font-size-lg);
+  }
+}
+
+/* Preset Amount Buttons */
+.CollectFare-preset-amounts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  padding: 0.25rem;
+  background: var(--CollectFare-neutral-50);
+  border-radius: var(--CollectFare-radius-md);
+}
+
+.CollectFare-preset-amount-btn {
+  padding: 0.5rem;
+  background: white;
+  border: 1px solid var(--CollectFare-neutral-200);
+  border-radius: var(--CollectFare-radius-sm);
+  color: var(--CollectFare-neutral-700);
+  font-weight: 600;
+  font-size: var(--CollectFare-font-size-sm);
+  cursor: pointer;
+  transition: var(--CollectFare-transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  position: relative;
+  overflow: hidden;
+}
+
+.CollectFare-preset-amount-btn::before {
+  content: '₱';
+  position: absolute;
+  left: 0.25rem;
+  font-size: var(--CollectFare-font-size-xs);
+  color: var(--CollectFare-neutral-500);
+}
+
+.CollectFare-preset-amount-btn:hover {
+  background: var(--CollectFare-primary-color);
+  color: white;
+  border-color: var(--CollectFare-primary-color);
+  transform: translateY(-1px);
+  box-shadow: var(--CollectFare-shadow-md);
+}
+
+.CollectFare-preset-amount-btn:hover::before {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.CollectFare-preset-amount-btn.active {
+  background: var(--CollectFare-primary-color);
+  color: white;
+  border-color: var(--CollectFare-primary-color);
+  box-shadow: var(--CollectFare-shadow-sm);
+}
+
+.CollectFare-preset-amount-btn.active::before {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Responsive adjustments for preset amount buttons */
+@media (max-width: 768px) {
   .CollectFare-preset-amounts {
     grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .CollectFare-actions {
-    flex-direction: column;
-  }
-  
-  .CollectFare-actions button {
-    width: 100%;
+    gap: 0.25rem;
+    padding: 0.25rem;
   }
 
-  .CollectFare-container {
-    width: 100vw;
-    max-width: none;
-    height: 100vh;
-    border-radius: 0;
+  .CollectFare-preset-amount-btn {
+    padding: 0.375rem;
+    font-size: var(--CollectFare-font-size-xs);
+    min-height: 32px;
   }
 
-  .CollectFare-payment-buttons {
-    flex-direction: column;
-  }
-
-  .CollectFare-upload-options {
-    grid-template-columns: 1fr;
-  }
-
-  .CollectFare-image-preview {
-    max-width: 100%;
-  }
-
-  .CollectFare-qr-scanner-container {
-    padding: 1rem;
-  }
-
-  .CollectFare-qr-scanner-component {
-    max-width: 100%;
-  }
-
-  .CollectFare-qr-scanner-frame {
-    width: 160px;
-    height: 160px;
-  }
-
-  .CollectFare-custom-transaction-btn {
-    max-width: 100%;
+  .CollectFare-preset-amount-btn::before {
+    left: 0.25rem;
+    font-size: var(--CollectFare-font-size-xs);
   }
 }
 
-/* Custom Mode Styles */
-.CollectFare-container.custom-mode {
-  width: 95vw;
-  max-width: 1200px;
+/* Custom amount input container */
+.CollectFare-custom-amount-container {
+  position: relative;
+  margin-top: 1rem;
 }
 
-.CollectFare-container.custom-mode .CollectFare-content {
+.CollectFare-custom-amount-container::before {
+  content: '₱';
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--CollectFare-neutral-500);
+  font-size: var(--CollectFare-font-size-base);
+  font-weight: 500;
+  pointer-events: none;
+}
+
+.CollectFare-custom-amount-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: 1px solid var(--CollectFare-neutral-200);
+  border-radius: var(--CollectFare-radius-md);
+  font-size: var(--CollectFare-font-size-base);
+  font-weight: 500;
+  color: var(--CollectFare-neutral-800);
+  transition: var(--CollectFare-transition);
   background: white;
-  padding: 2rem;
 }
 
-.CollectFare-container.custom-mode .CollectFare-calculator-grid {
-  height: auto;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 2rem;
+.CollectFare-custom-amount-input:focus {
+  outline: none;
+  border-color: var(--CollectFare-primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-.CollectFare-camera-container {
+.CollectFare-custom-amount-input::placeholder {
+  color: var(--CollectFare-neutral-400);
+  font-weight: normal;
+}
+
+@media (max-width: 768px) {
+  .CollectFare-custom-amount-container::before {
+    left: 0.75rem;
+    font-size: var(--CollectFare-font-size-sm);
+  }
+
+  .CollectFare-custom-amount-input {
+    padding: 0.5rem 0.75rem 0.5rem 2rem;
+    font-size: var(--CollectFare-font-size-sm);
+  }
+}
+
+/* Fare Calculator */
+.CollectFare-calculator {
+  background: white;
+  border-radius: var(--CollectFare-radius-md);
+  box-shadow: var(--CollectFare-shadow-sm);
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+
+.CollectFare-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  align-items: center;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--CollectFare-neutral-200);
+  gap: 0.5rem;
+}
+
+.CollectFare-row.header {
+  background: var(--CollectFare-neutral-50);
+  font-weight: 600;
+  color: var(--CollectFare-neutral-700);
+  text-transform: uppercase;
+  font-size: var(--CollectFare-font-size-xs);
+  letter-spacing: 0.05em;
+  padding: 0.375rem 0.5rem;
+}
+
+.CollectFare-row span {
+  font-size: var(--CollectFare-font-size-sm);
+}
+
+.CollectFare-button-group {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.CollectFare-control-button {
+  width: 24px;
+  height: 24px;
+  font-size: var(--CollectFare-font-size-base);
+}
+
+.CollectFare-passenger-count {
+  font-size: var(--CollectFare-font-size-sm);
+  min-width: 1.5rem;
+  height: 24px;
+}
+
+.CollectFare-amount {
+  font-size: var(--CollectFare-font-size-sm);
+}
+
+.CollectFare-total {
+  padding: 0.5rem;
+  font-size: var(--CollectFare-font-size-base);
+}
+
+/* Tender Input Container */
+.CollectFare-tender-input-container {
   position: relative;
   width: 100%;
+  max-width: 300px;
+  margin: 0.5rem 0;
+}
+
+.CollectFare-peso-sign {
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--CollectFare-neutral-500);
+  font-size: var(--CollectFare-font-size-base);
+  font-weight: 500;
+  pointer-events: none;
+}
+
+.CollectFare-tender-input {
+  width: 100%;
+  padding: 0.5rem 1rem 0.5rem 2rem;
+  border: 1px solid var(--CollectFare-neutral-300);
+  border-radius: var(--CollectFare-radius-md);
+  font-size: var(--CollectFare-font-size-base);
+  font-weight: 500;
+  color: var(--CollectFare-neutral-800);
+  transition: var(--CollectFare-transition);
+  background: white;
+  text-align: right;
+  height: 36px;
+}
+
+.CollectFare-tender-input:focus {
+  outline: none;
+  border-color: var(--CollectFare-primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Payment Method Section */
+.CollectFare-payment-method {
+  margin: 1rem 0;
+}
+
+.CollectFare-payment-method h3 {
+  margin-bottom: 0.75rem;
+}
+
+.CollectFare-payment-buttons {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 300px;
+  margin: 0.5rem 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .CollectFare-email-input {
+    margin: 0.375rem 0 1.5rem 0;
+  }
+
+  .CollectFare-qr-button {
+    margin: 0 0 1.5rem 0;
+  }
+
+  .CollectFare-payment-method {
+    margin: 0.75rem 0;
+  }
+}
+
+/* Print styles */
+@media print {
+  .CollectFare-calculator {
+    border: 1px solid var(--CollectFare-neutral-300);
+  }
+
+  .CollectFare-row.header {
+    background: var(--CollectFare-neutral-100);
+  }
+
+  .CollectFare-total {
+    background: white;
+    border: 1px solid var(--CollectFare-neutral-300);
+  }
+}
+
+.sc-fqkvVR.txYHk {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
   aspect-ratio: 4/3;
-  margin-bottom: 1rem;
+  object-fit: cover;
+  border-radius: var(--CollectFare-radius-md);
+  margin: 2rem auto 1rem;
+  display: block;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sc-fqkvVR.txYHk {
+    max-width: 250px;
+    margin: 1.5rem auto 1rem;
+  }
+
+  .CollectFare-tender-input-container,
+  .CollectFare-payment-buttons,
+  .CollectFare-qr-button {
+    max-width: 250px;
+  }
+
+  .CollectFare-payment-btn {
+    height: 32px;
+    font-size: var(--CollectFare-font-size-sm);
+  }
+}
+
+/* Camera Container and Controls */
+.CollectFare-camera-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  position: relative;
+  background: var(--CollectFare-neutral-900);
+  border-radius: var(--CollectFare-radius-lg);
+  overflow: hidden;
 }
 
 .CollectFare-camera-buttons {
   display: flex;
-  justify-content: center;
   gap: 1rem;
+  justify-content: center;
+  padding: 1rem;
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.CollectFare-cancel-camera-btn,
+.CollectFare-capture-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--CollectFare-radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  height: 40px;
+  font-size: var(--CollectFare-font-size-base);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  color: white;
+}
+
+.CollectFare-cancel-camera-btn {
+  background: var(--CollectFare-danger-color);
+}
+
+.CollectFare-cancel-camera-btn:hover {
+  background: var(--CollectFare-danger-hover);
+  transform: translateY(-1px);
+}
+
+.CollectFare-capture-btn {
+  background: var(--CollectFare-success-color);
+}
+
+.CollectFare-capture-btn:hover {
+  background: var(--CollectFare-success-hover);
+  transform: translateY(-1px);
+}
+
+/* Camera Modal */
+.CollectFare-camera-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.CollectFare-camera-modal {
+  width: 100%;
+  max-width: 600px;
+  background: var(--CollectFare-neutral-900);
+  border-radius: var(--CollectFare-radius-lg);
+  overflow: hidden;
+  position: relative;
+  padding: 1.5rem;
+}
+
+.CollectFare-camera-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  position: relative;
+  background: var(--CollectFare-neutral-900);
+  border-radius: var(--CollectFare-radius-lg);
+  overflow: hidden;
+}
+
+/* Style the video element */
+.CollectFare-camera-container .sc-gEvEer {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4/3;
+  background: var(--CollectFare-neutral-900);
+  border-radius: var(--CollectFare-radius-md);
+  overflow: hidden;
+}
+
+.CollectFare-camera-container .sc-aXZVg {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.CollectFare-camera-container .sc-fqkvVR {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.CollectFare-camera-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  padding: 1rem;
+  margin-top: 1rem;
+  width: 100%;
 }
 
 .CollectFare-camera-buttons button {
   padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  font-weight: 600;
+  border-radius: var(--CollectFare-radius-md);
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
+  height: 40px;
+  font-size: var(--CollectFare-font-size-base);
   border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
 }
 
 .CollectFare-camera-buttons button:first-child {
-  background-color: #f1f1f1;
-  color: #333;
-}
-
-.CollectFare-camera-buttons button:last-child {
-  background-color: #4caf50;
+  background: var(--CollectFare-danger-color);
   color: white;
 }
 
-.CollectFare-camera-buttons button:hover {
-  opacity: 0.9;
+.CollectFare-camera-buttons button:first-child:hover {
+  background: var(--CollectFare-danger-hover);
+  transform: translateY(-1px);
+}
+
+.CollectFare-camera-buttons button:last-child {
+  background: var(--CollectFare-success-color);
+  color: white;
+}
+
+.CollectFare-camera-buttons button:last-child:hover {
+  background: var(--CollectFare-success-hover);
+  transform: translateY(-1px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .CollectFare-camera-modal {
+    margin: 1rem;
+    padding: 1rem;
+  }
+
+  .CollectFare-camera-container {
+    max-width: 100%;
+  }
+
+  .CollectFare-camera-buttons {
+    padding: 0.75rem;
+  }
+
+  .CollectFare-camera-buttons button {
+    padding: 0.5rem 1rem;
+    height: 36px;
+    min-width: 100px;
+    font-size: var(--CollectFare-font-size-sm);
+  }
+}
+
+@media (max-width: 768px) {
+  .CollectFare-qr-scanner-container {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .CollectFare-qr-scanner-component {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4/3;
+  }
 }

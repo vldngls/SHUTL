@@ -769,8 +769,20 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved, onCustomModeChang
                 <Camera ref={camera} />
               </div>
               <div className="CollectFare-camera-buttons">
-                <button onClick={() => setShowCamera(false)}>Cancel</button>
-                <button onClick={takePicture}>Take Photo</button>
+                <button 
+                  className="CollectFare-cancel-camera-btn"
+                  onClick={() => setShowCamera(false)}
+                  aria-label="Cancel photo capture"
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="CollectFare-capture-btn"
+                  onClick={takePicture}
+                  aria-label="Take photo"
+                >
+                  Take Photo
+                </button>
               </div>
             </div>
           </div>
