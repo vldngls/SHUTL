@@ -294,6 +294,9 @@ const DriverMain = () => {
   const sidebarRef = useRef(null);
   const lastGeofenceStatus = useRef(false);
   const lastSpeedRef = useRef(0);
+  const [isEmergencyActive, setIsEmergencyActive] = useState(false);
+  const [driverInfo, setDriverInfo] = useState(null);
+  const [showEmergencyConfirm, setShowEmergencyConfirm] = useState(false);
 
   // Add formatted date and time
   const formattedDate = useMemo(() => {
@@ -1271,6 +1274,107 @@ const DriverMain = () => {
     fetchUserPreferences();
   }, []);
 
+  // Add this useEffect to fetch driver info
+  useEffect(() => {
+    const fetchDriverInfo = async () => {
+      try {
+        const token = getTokenFromCookies();
+        const response = await fetch(`${API_BASE_URL}/driver-profiles/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Fetched driver info:", data); // Add logging
+          setDriverInfo(data);
+        } else {
+          console.error("Failed to fetch driver info:", response.status);
+        }
+      } catch (error) {
+        console.error("Error fetching driver info:", error);
+      }
+    };
+
+    fetchDriverInfo();
+  }, []);
+
+  // Modify emergency button handler
+  const handleEmergencyButton = async () => {
+    setShowEmergencyConfirm(true);
+  };
+
+  // Add confirmation handler
+  const handleEmergencyConfirm = async () => {
+    if (!socket.current) return;
+
+    // Get driver info from state or fetch it if not available
+    let driverName = "Unknown Driver";
+    let shuttleId = "Unknown Shuttle";
+
+    if (driverInfo) {
+      driverName = driverInfo.name || driverInfo.email || "Unknown Driver";
+    }
+
+    if (shuttleIdRef.current) {
+      shuttleId = shuttleIdRef.current;
+    }
+
+    const message = `🚨 EMERGENCY ALERT: Driver ${driverName} (Shuttle ${shuttleId}) has activated emergency button`;
+    console.log("Sending emergency alert:", message);
+    
+    // Send to both Teller and Admin
+    socket.current.emit("send_notification", {
+      message,
+      recipientType: "Teller"
+    });
+
+    socket.current.emit("send_notification", {
+      message,
+      recipientType: "Administrator"
+    });
+
+    // Add to driver's own notifications
+    const notification = {
+      message: "Emergency alert sent to tellers and administrators",
+      createdAt: new Date().toISOString(),
+      timestamp: Date.now()
+    };
+
+    setNotifications(prev => {
+      const updatedNotifications = [notification, ...prev];
+      return updatedNotifications.slice(0, 5);
+    });
+
+    // Show notification popup
+    setActivePopup("notifications");
+
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+      setActivePopup(current => current === "notifications" ? null : current);
+    }, 5000);
+
+    // Show toast notification
+    toast.error("Emergency alert sent!", {
+      position: "top-center",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
+
+    // Close confirmation dialog
+    setShowEmergencyConfirm(false);
+  };
+
+  // Add cancel handler
+  const handleEmergencyCancel = () => {
+    setShowEmergencyConfirm(false);
+  };
+
   return (
     <div className="DriverMain-container">
       <div className="DriverMain-map-container">
@@ -1548,6 +1652,39 @@ const DriverMain = () => {
           }}
         />
       </button>
+
+      {/* Emergency Button */}
+      <button 
+        className="emergency-button"
+        onClick={handleEmergencyButton}
+      >
+        🚨 EMERGENCY
+      </button>
+
+      {/* Emergency Confirmation Dialog */}
+      {showEmergencyConfirm && (
+        <>
+          <div className="emergency-overlay" onClick={handleEmergencyCancel} />
+          <div className="emergency-confirmation">
+            <h3>🚨 Emergency Alert</h3>
+            <p>Are you sure you want to send an emergency alert? This will notify all tellers and administrators.</p>
+            <div className="emergency-confirmation-buttons">
+              <button 
+                className="emergency-confirm-btn"
+                onClick={handleEmergencyConfirm}
+              >
+                Yes, Send Alert
+              </button>
+              <button 
+                className="emergency-cancel-btn"
+                onClick={handleEmergencyCancel}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {activeModal === "isMessageOpen" && (
         <div ref={messageBoxRef}>

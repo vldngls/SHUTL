@@ -390,3 +390,164 @@
     transform: rotate(360deg);
   }
 }
+
+/* Emergency Button Styles */
+.emergency-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  width: 120px;
+  height: 50px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  text-align: center;
+  padding: 10px;
+}
+
+.emergency-button:hover {
+  transform: scale(1.05);
+  background-color: #ff0000;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.emergency-button:active {
+  transform: scale(0.98);
+}
+
+/* Emergency Confirmation Dialog */
+.emergency-confirmation {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.emergency-confirmation h3 {
+  color: #ff4444;
+  margin-bottom: 15px;
+  font-size: 20px;
+}
+
+.emergency-confirmation p {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.emergency-confirmation-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.emergency-confirm-btn {
+  background-color: #ff4444;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.emergency-confirm-btn:hover {
+  background-color: #ff0000;
+  transform: scale(1.05);
+}
+
+.emergency-cancel-btn {
+  background-color: #f0f0f0;
+  color: #333;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.emergency-cancel-btn:hover {
+  background-color: #e0e0e0;
+  transform: scale(1.05);
+}
+
+.emergency-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+/* Mobile responsiveness for emergency button and confirmation */
+@media (max-width: 768px) {
+  .emergency-button {
+    top: 80px; /* Move button below the navbar */
+    right: 15px;
+    width: 140px; /* Increased from 110px */
+    height: 55px; /* Increased from 45px */
+    font-size: 16px; /* Increased from 14px */
+    padding: 10px; /* Increased from 8px */
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Enhanced shadow */
+  }
+
+  .emergency-confirmation {
+    width: 90%;
+    padding: 15px;
+    margin: 0 15px;
+  }
+
+  .emergency-confirmation h3 {
+    font-size: 18px;
+  }
+
+  .emergency-confirmation p {
+    font-size: 14px;
+  }
+
+  .emergency-confirmation-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .emergency-confirm-btn,
+  .emergency-cancel-btn {
+    width: 100%;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .emergency-button {
+    top: 70px;
+    right: 10px;
+    width: 130px; /* Increased from 100px */
+    height: 50px; /* Increased from 40px */
+    font-size: 15px; /* Increased from 13px */
+    padding: 8px; /* Increased from 6px */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Enhanced shadow */
+  }
+}
