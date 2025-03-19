@@ -137,7 +137,6 @@
   left: -9999px;
   right: -9999px;
   bottom: -9999px;
-  background: rgba(0, 0, 0, 0.5);
   z-index: -1;
 }
 
@@ -686,7 +685,6 @@
 .CollectFare-qr-scanner-container {
   background: white;
   border-radius: var(--CollectFare-radius-lg);
-  padding: 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
