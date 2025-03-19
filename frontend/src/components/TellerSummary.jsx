@@ -396,31 +396,40 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
   const getAllShuttles = () => {
     const allShuttles = {};
 
+    console.log("Shuttle Assignments:", shuttleAssignments);
+    console.log("Optimized Locations:", optimizedLocations);
+
     // First add all shuttles from assignments
-    shuttleAssignments.forEach((assignment) => {
-      if (assignment.status === "active") {
-        allShuttles[assignment.shuttleId] = {
-          id: assignment.shuttleId,
-          status: "offline",
-          lastUpdate: new Date(0), // Default to epoch time
-          streetName: "Not broadcasting location",
-        };
-      }
-    });
+    if (Array.isArray(shuttleAssignments)) {
+      shuttleAssignments.forEach((assignment) => {
+        if (assignment && assignment.status === "active" && assignment.shuttleId) {
+          allShuttles[assignment.shuttleId] = {
+            id: assignment.shuttleId,
+            status: "offline",
+            lastUpdate: new Date(0),
+            streetName: "Not broadcasting location",
+          };
+        }
+      });
+    }
 
     // Then override with location data for shuttles that are broadcasting
-    Object.entries(optimizedLocations).forEach(([shuttleId, data]) => {
-      allShuttles[shuttleId] = {
-        ...allShuttles[shuttleId],
-        ...data,
-        id: shuttleId,
-        streetName:
-          data.streetName || streetNames[shuttleId] || "Location unavailable",
-        lastUpdate: data.lastUpdate || new Date(),
-        status: data.status || "online",
-      };
-    });
+    if (optimizedLocations && typeof optimizedLocations === 'object') {
+      Object.entries(optimizedLocations).forEach(([shuttleId, data]) => {
+        if (data && shuttleId) {
+          allShuttles[shuttleId] = {
+            ...allShuttles[shuttleId],
+            ...data,
+            id: shuttleId,
+            streetName: data.streetName || streetNames[shuttleId] || "Location unavailable",
+            lastUpdate: data.lastUpdate || new Date(),
+            status: data.status || "online",
+          };
+        }
+      });
+    }
 
+    console.log("Final All Shuttles:", allShuttles);
     return allShuttles;
   };
 
