@@ -483,24 +483,25 @@ small {
 /* Mobile Styles */
 @media (max-width: 480px) {
   .auth-form-overlay {
-    align-items: flex-start;
-    padding: 0;
+    align-items: center;
+    padding: 20px;
     background-color: rgba(0, 0, 0, 0.7);
   }
 
   .auth-form-container {
-    height: 100dvh;
-    max-height: none;
-    padding: calc(env(safe-area-inset-top, 0px) + 72px) 24px 0;
-    border-radius: 0;
-    animation: slideInRight 0.3s ease-out;
-    overflow: hidden;
+    height: auto;
+    max-height: 90vh;
+    padding: 24px;
+    border-radius: 20px;
+    animation: slideIn 0.3s ease-out;
+    overflow-y: auto;
     margin: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     max-width: 100%;
     width: 100%;
+    background-color: #f5f5f5;
   }
 
   .auth-input-group,
@@ -518,70 +519,9 @@ small {
     padding: 10px 14px 10px 40px;
   }
 
-  .auth-form-container.registration-form {
-    display: flex;
-    flex-direction: column;
-    height: 100dvh;
-    overflow: hidden;
-    align-items: center;
-  }
-
-  .auth-form-container.registration-form form {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 0 24px;
-    margin: 0 -24px;
-    width: 100%;
-    align-items: center;
-  }
-
-  .auth-form-container.registration-form .auth-button-group {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: #ffffff;
-    padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
-    margin-top: 0;
-    z-index: 9999;
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    gap: 12px;
-    max-width: 100%;
-    border-top: 1px solid #eee;
-    box-sizing: border-box;
-  }
-
-  /* Adjust spacing for terms checkbox */
-  .auth-terms {
-    margin-bottom: 100px; /* Space for fixed buttons */
-    padding: 0 4px;
-    width: 100%;
-    max-width: 100%;
-    display: flex;
-    align-items: flex-start;
-  }
-
-  /* Google button and divider */
-  .google-login-container,
-  .auth-divider {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .custom-google-btn {
-    max-width: 100%;
-    width: 100%;
-  }
-
   /* Adjust title spacing */
   .auth-title-container {
-    margin: 48px 0 32px;
+    margin: 0 0 24px;
   }
 
   .auth-form-title {
@@ -596,123 +536,9 @@ small {
     font-size: 16px;
   }
 
-  /* Registration form specific title spacing */
-  .auth-form-container.registration-form .auth-title-container {
-    margin: 32px 0 40px;
-  }
-
-  /* Show auth-nav-bar on mobile */
+  /* Hide auth-nav-bar on mobile */
   .auth-form-overlay .auth-nav-bar {
-    display: flex;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: calc(env(safe-area-inset-top, 0px) + 60px);
-    background-color: #232323;
-    z-index: 1101;
-    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 16px) 0
-      env(safe-area-inset-left, 16px);
-    align-items: flex-end;
-    justify-content: space-between;
-    padding-bottom: 12px;
-  }
-
-  .auth-form-overlay .auth-nav-bar .close-button {
-    background: none;
-    border: none;
-    color: #ffffff;
-    font-size: 24px;
-    padding: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    -webkit-tap-highlight-color: transparent;
-    width: 40px;
-    height: 40px;
-  }
-
-  .auth-form-overlay .auth-nav-bar .logo {
-    color: #ffffff;
-    font-size: 18px;
-    font-weight: bold;
-    letter-spacing: 1px;
-  }
-
-  .auth-form-container.registration-form {
-    display: flex;
-    flex-direction: column;
-    margin-top: 24px;
-  }
-
-  .auth-form-container.registration-form form {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .auth-form-container.registration-form .auth-button-group {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: #ffffff;
-    padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
-    margin-top: 0;
-    z-index: 9999;
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    gap: 12px;
-    max-width: 100%;
-    border-top: 1px solid #eee;
-    box-sizing: border-box;
-  }
-
-  .auth-form-container.registration-form .auth-submit-button,
-  .auth-form-container.registration-form .auth-cancel-button {
-    position: relative;
-    z-index: 10000;
-    height: 56px;
-    font-size: 15px;
-    font-weight: 600;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    flex: 1;
-    max-width: calc(50% - 6px);
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 16px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .auth-form-container.registration-form .auth-submit-button {
-    background-color: #232323;
-    color: white;
-  }
-
-  .auth-form-container.registration-form .auth-cancel-button {
-    background-color: #ffffff;
-    color: #232323;
-    border: 1px solid #ddd;
-  }
-
-  /* Add padding to the bottom of the form to account for fixed buttons */
-  .auth-form-container.registration-form form {
-    padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
-  }
-
-  .auth-submit-button,
-  .auth-back-button,
-  .auth-cancel-button {
-    position: relative;
-    z-index: 11;
+    display: none;
   }
 
   .auth-submit-button {
