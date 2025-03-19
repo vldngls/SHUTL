@@ -1,8 +1,23 @@
 import { io } from "socket.io-client";
-import { getCookie } from "./cookieUtils";
+import { getTokenFromCookies, getUserTypeFromToken, getEmailFromToken } from "./tokenUtils";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 const SOCKET_URL = API_BASE_URL.replace("/api", "");
+
+// Helper function to decode JWT token
+const decodeToken = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => 
+      '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+    ).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error("Error decoding token:", error);
+    return null;
+  }
+};
 
 // Use a single socket instance for the entire application
 let socket = null;
@@ -10,27 +25,26 @@ let isConnecting = false;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY = 1000;
-const CONNECTION_TIMEOUT = 15000; // Increased from 10000 to 15000
-const LOCATION_UPDATE_INTERVAL = 3000; // 3 seconds
+const CONNECTION_TIMEOUT = 15000;
+const LOCATION_UPDATE_INTERVAL = 3000; // 3 seconds for standard updates
+const STATIONARY_UPDATE_INTERVAL = 30000; // 30 seconds for stationary shuttles
 
 // Use WeakMap to allow garbage collection of callbacks when components unmount
 const eventListeners = new Map();
 
 // More memory-efficient message queue with automatic cleanup
 let messageQueue = [];
-const MAX_QUEUE_SIZE = 50; // Reduced from 100
-const QUEUE_CLEANUP_INTERVAL = 300000; // 5 minutes
+const MAX_QUEUE_SIZE = 50;
+const QUEUE_CLEANUP_INTERVAL = 300000;
 
 // More memory-efficient location queue
 let locationQueue = [];
-const MAX_LOCATION_QUEUE_SIZE = 10; // Reduced from 20
+const MAX_LOCATION_QUEUE_SIZE = 10;
 
 // Cleanup queues periodically
 const cleanupQueues = () => {
   const now = Date.now();
-  // Remove messages older than 5 minutes
   messageQueue = messageQueue.filter((msg) => now - msg.timestamp < 300000);
-  // Remove locations older than 1 minute
   locationQueue = locationQueue.filter((loc) => now - loc.timestamp < 60000);
 };
 
@@ -53,76 +67,102 @@ export const addToLocationQueue = (locationData) => {
   locationQueue.push({ ...locationData, timestamp: Date.now() });
 };
 
-export const connectSocket = () => {
-  return new Promise((resolve, reject) => {
-    try {
-      const token = getCookie('token');
-      if (!token) {
-        reject(new Error('No authentication token found'));
-        return;
-      }
+export const connectSocket = async () => {
+  try {
+    // If already connecting, wait for the connection
+    if (isConnecting) {
+      console.log("Socket connection already in progress, waiting...");
+      return socket;
+    }
 
-      if (socket?.connected) {
-        resolve(socket);
-        return;
-      }
+    // If socket exists and is connected, return it
+    if (socket && socket.connected) {
+      console.log("Using existing socket connection");
+      return socket;
+    }
 
-      socket = io(SOCKET_URL, {
-        transports: ["websocket", "polling"],
-        reconnection: true,
-        reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
-        reconnectionDelay: RECONNECT_DELAY,
-        timeout: CONNECTION_TIMEOUT,
-        auth: {
-          token: token
-        },
-        withCredentials: true,
-      });
+    // Get user data from token
+    const token = getTokenFromCookies();
+    if (!token) {
+      console.error("No token found");
+      return null;
+    }
 
-      socket.on("connect", () => {
-        console.log("Socket connected successfully");
+    const decoded = decodeToken(token);
+    if (!decoded || !decoded.email) {
+      console.error("Invalid token");
+      return null;
+    }
+
+    // Get user data from localStorage as fallback
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    const userType = decoded.userType || userData.userType;
+    const userId = userData._id;
+
+    if (!userType) {
+      console.error("Missing user type for socket connection");
+      return null;
+    }
+
+    isConnecting = true;
+    reconnectAttempts = 0;
+
+    // Connect to socket with auth data
+    const socketInstance = io(SOCKET_URL, {
+      path: '/socket.io/',
+      auth: {
+        userType,
+        email: decoded.email,
+        userId
+      },
+      transports: ["websocket"],
+      reconnection: true,
+      reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
+      reconnectionDelay: RECONNECT_DELAY,
+      reconnectionDelayMax: 5000,
+      timeout: 20000
+    });
+
+    // Only log successful connection
+    socketInstance.on("connect", () => {
+      console.log("Socket connected successfully");
+      isConnecting = false;
+      reconnectAttempts = 0;
+      // Process any queued messages after successful connection
+      processQueuedMessages();
+    });
+
+    // Handle connection errors
+    socketInstance.on("connect_error", (error) => {
+      console.error("Socket connection error:", error.message);
+      isConnecting = false;
+
+      if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+        reconnectAttempts++;
+        setTimeout(() => {
+          if (reconnectAttempts === 1 || reconnectAttempts === MAX_RECONNECT_ATTEMPTS) {
+            console.log(`Attempting to reconnect (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
+          }
+          socketInstance.connect();
+        }, RECONNECT_DELAY * reconnectAttempts);
+      } else {
+        console.error("Max reconnection attempts reached");
+        socket = null;
         isConnecting = false;
         reconnectAttempts = 0;
-        
-        // Process any queued messages
-        while (messageQueue.length > 0) {
-          const { event, data } = messageQueue.shift();
-          socket.emit(event, data);
-        }
+      }
+    });
 
-        // Process any queued location updates
-        while (locationQueue.length > 0) {
-          const locationData = locationQueue.shift();
-          socket.emit("shuttle_location", locationData);
-        }
-        
-        resolve(socket);
-      });
+    // Set up error handling
+    setupSocketErrorHandling(socketInstance);
 
-      socket.on("connect_error", (error) => {
-        console.error("Socket connection error:", error);
-        isConnecting = false;
-        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-          reconnectAttempts++;
-          setTimeout(() => {
-            socket.connect();
-          }, RECONNECT_DELAY);
-        } else {
-          reject(error);
-        }
-      });
-
-      socket.on("disconnect", (reason) => {
-        console.log("Socket disconnected:", reason);
-        if (reason === "io server disconnect") {
-          socket.connect();
-        }
-      });
-    } catch (error) {
-      console.error("Error in socket connection:", error);
-      reject(error);
-    }
-  });
+    socket = socketInstance;
+    return socketInstance;
+  } catch (error) {
+    console.error("Error connecting to socket:", error.message);
+    isConnecting = false;
+    return null;
+  }
 };
 
 // Helper function to process queued messages
@@ -252,36 +292,19 @@ export const disconnectSocket = () => {
 };
 
 // Improved event subscription with proper cleanup
-export const subscribeToEvent = async (event, callback) => {
+export const subscribeToEvent = async (eventName, callback) => {
   try {
-    const socketInstance = await connectSocket();
+    const socket = await connectSocket();
+    if (!socket) return null;
 
-    // Store callback in our map for reconnection handling
-    if (!eventListeners.has(event)) {
-      eventListeners.set(event, new Set());
-    }
-    eventListeners.get(event).add(callback);
+    socket.on(eventName, callback);
 
-    // Add the actual listener
-    socketInstance.on(event, callback);
-
-    // Return cleanup function
     return () => {
-      if (socketInstance) {
-        socketInstance.off(event, callback);
-      }
-
-      // Remove from our tracking map
-      if (eventListeners.has(event)) {
-        eventListeners.get(event).delete(callback);
-        if (eventListeners.get(event).size === 0) {
-          eventListeners.delete(event);
-        }
-      }
+      socket.off(eventName, callback);
     };
   } catch (error) {
-    console.error(`Failed to subscribe to ${event}:`, error);
-    return () => {};
+    console.error(`Error subscribing to ${eventName}:`, error.message);
+    return null;
   }
 };
 
@@ -373,17 +396,20 @@ export const sendLocation = async (locationData) => {
   try {
     const socketInstance = await connectSocket();
 
-    // Ensure timestamp is included
+    // Ensure timestamp is included and speed is at root level
     const sendData = {
       ...locationData,
       timestamp: locationData.timestamp || new Date().toISOString(),
+      speed: locationData.speed || locationData.metadata?.speed || 0,
+      heading: locationData.heading || locationData.metadata?.heading || 0,
+      accuracy: locationData.accuracy || locationData.metadata?.accuracy || 0
     };
 
     console.log("Websocket sending location data:", {
       shuttleId: sendData.shuttleId,
       coordinates: sendData.coordinates,
-      speed: sendData.metadata?.speed,
-      heading: sendData.metadata?.heading,
+      speed: sendData.speed,
+      heading: sendData.heading,
       timestamp: sendData.timestamp,
     });
 
@@ -409,14 +435,30 @@ export const subscribeToLocationUpdates = async (callback) => {
     socketInstance.on("shuttle_location", (data) => {
       console.log("Received shuttle_location:", data);
       if (data && data.coordinates) {
-        callback(data);
+        // Ensure speed and heading are at the root level
+        const processedData = {
+          ...data,
+          speed: data.speed || data.metadata?.speed || 0,
+          heading: data.heading || data.metadata?.heading || 0,
+          accuracy: data.accuracy || data.metadata?.accuracy || 0
+        };
+        console.log("Processed location data:", processedData);
+        callback(processedData);
       }
     });
 
     socketInstance.on("shuttle_location_update", (data) => {
       console.log("Received shuttle_location_update:", data);
       if (data && data.coordinates) {
-        callback(data);
+        // Ensure speed and heading are at the root level
+        const processedData = {
+          ...data,
+          speed: data.speed || data.metadata?.speed || 0,
+          heading: data.heading || data.metadata?.heading || 0,
+          accuracy: data.accuracy || data.metadata?.accuracy || 0
+        };
+        console.log("Processed location data:", processedData);
+        callback(processedData);
       }
     });
 
@@ -448,15 +490,14 @@ export const joinShuttleTracking = async (shuttleId) => {
     // Reduce logging
     return true;
   } catch (error) {
-    console.error(`Failed to join tracking for shuttle ${shuttleId}:`, error);
+    console.error("Error joining shuttle tracking:", error.message);
     return false;
   }
 };
 
-// Export the location update interval for consistency
-export const getLocationUpdateInterval = () => {
-  return LOCATION_UPDATE_INTERVAL || 5000; // Default to 5 seconds if not defined
-};
+// Export the intervals for use in other components
+export const getLocationUpdateInterval = () => LOCATION_UPDATE_INTERVAL;
+export const getStationaryUpdateInterval = () => STATIONARY_UPDATE_INTERVAL;
 
 // Add a cleanup function for application shutdown
 export const cleanupSocketService = () => {

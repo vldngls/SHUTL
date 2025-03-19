@@ -1,14 +1,14 @@
 import jwt from "jsonwebtoken"; // Import jwt to decode the token
 import User from "./models/user.model.js"; // Import User model
 import ShuttleTrip from "./models/shuttleTrip.model.js"; // Import ShuttleTrip model
+import Notification from "./models/notification.model.js"; // Import Notification model
 
 const setupSocket = (io, db) => {
   const shuttleLocations = new Map();
   const activePickupRequests = new Map(); // Store active pickup requests
 
   io.on("connection", (socket) => {
-    // SHUTL-Leb: User connection and status update
-    console.log("✅ User connected:", socket.id);
+    console.log("User connected:", socket.id);
 
     // Handle user authentication and status updates
     const handleUserAuth = async () => {
@@ -18,40 +18,37 @@ const setupSocket = (io, db) => {
         ?.split("=")[1];
 
       if (!token) {
-        console.error("❌ No token provided in WebSocket connection.");
+        console.error("No token provided in WebSocket connection");
         return;
       }
 
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("🔍 Retrieved email from token:", decoded.email);
-
         const user = await User.findOne({ email: decoded.email });
+        
         if (user) {
           socket.userId = user._id.toString();
           socket.userEmail = decoded.email;
-          console.log(
-            `✅ Authenticated user: ${decoded.email} (${socket.userId})`
-          );
-
+          socket.userType = socket.handshake.auth.userType || user.userType;
+          
           await User.findByIdAndUpdate(socket.userId, {
             status: "active",
             last_active: new Date(),
           });
           io.emit("status_update", { userId: socket.userId, status: "active" });
         } else {
-          console.error("❌ No user found with the provided email.");
+          console.error("No user found with the provided email");
           return;
         }
       } catch (err) {
-        console.error("❌ Error decoding token or finding user:", err);
+        console.error("Error in user authentication:", err.message);
         return;
       }
     };
 
     // Initialize user authentication
     handleUserAuth().catch((err) => {
-      console.error("Error in user authentication:", err);
+      console.error("Error in user authentication:", err.message);
     });
 
     // HEAD: Shuttle tracking - join room for shuttle tracking
@@ -82,7 +79,6 @@ const setupSocket = (io, db) => {
         accuracy,
         streetName,
       } = data;
-      console.log("📍 Received shuttle location:", data);
 
       // Create metadata object with all additional properties
       const metadata = {
@@ -118,8 +114,6 @@ const setupSocket = (io, db) => {
         shuttleId,
         coordinates,
         timestamp,
-        metadata,
-        // Include speed and heading directly in the top level for easier access
         speed: speed || 0,
         heading: heading || 0,
         accuracy: accuracy,
@@ -130,8 +124,6 @@ const setupSocket = (io, db) => {
         shuttleId,
         coordinates,
         timestamp,
-        metadata,
-        // Include speed and heading directly in the top level for easier access
         speed: speed || 0,
         heading: heading || 0,
         accuracy: accuracy,
@@ -248,6 +240,47 @@ const setupSocket = (io, db) => {
           success: false, 
           error: error.message || "Failed to create trip" 
         });
+      }
+    });
+
+    // Handle notifications from drivers
+    socket.on("send_notification", async (data) => {
+      try {
+        // Save the notification to the database without a sender
+        const notification = new Notification({
+          message: data.message,
+          recipientType: data.recipientType
+        });
+        await notification.save();
+
+        // Get all connected sockets
+        const connectedSockets = await io.fetchSockets();
+        
+        // Create notification data with required fields
+        const notificationData = {
+          message: data.message,
+          recipientType: data.recipientType,
+          createdAt: notification.createdAt.toISOString(),
+          timestamp: Date.now()
+        };
+        
+        // Broadcast to matching recipients
+        let recipientCount = 0;
+        connectedSockets.forEach((connectedSocket) => {
+          const socketUserType = connectedSocket.userType || connectedSocket.handshake?.auth?.userType;
+          if (socketUserType === data.recipientType) {
+            recipientCount++;
+            connectedSocket.emit("new_notification", notificationData);
+          }
+        });
+
+        // Also emit back to sender
+        socket.emit("new_notification", notificationData);
+
+        // Log notification delivery for debugging
+        console.log(`Notification sent to ${recipientCount} recipients of type ${data.recipientType}`);
+      } catch (error) {
+        console.error("Error handling notification:", error.message);
       }
     });
 

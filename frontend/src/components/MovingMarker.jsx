@@ -1,112 +1,139 @@
-import { useRef, useEffect } from "react";
-import { Marker } from "react-leaflet";
-import { getLocationUpdateInterval } from "../utils/websocketService";
+import { useRef, useEffect } from 'react';
+import { Marker } from 'react-leaflet';
+import L from 'leaflet';
+import PropTypes from 'prop-types';
 
-const MovingMarker = ({ position, icon, children }) => {
+const MovingMarker = ({ position, icon, eventHandlers, children, speed = 0, isOffline = false, isStationary = false, status = '' }) => {
   const markerRef = useRef(null);
-  const animationRef = useRef(null);
-  const lastPosition = useRef(position);
-  const isAnimatingRef = useRef(false);
+  const lastPositionRef = useRef(position);
+  const lastUpdateTimeRef = useRef(Date.now());
+  const smoothAnimationRef = useRef(null);
 
   useEffect(() => {
     const marker = markerRef.current;
-    if (marker && position) {
-      const currentPos = marker.getLatLng();
+    if (!marker) return;
 
-      // Only animate if we have a previous position and it's different
-      if (
-        currentPos &&
-        (currentPos.lat !== position[0] || currentPos.lng !== position[1])
-      ) {
-        // Calculate distance to determine if we should animate
-        const distance = Math.sqrt(
-          Math.pow(currentPos.lat - position[0], 2) +
-            Math.pow(currentPos.lng - position[1], 2)
-        );
+    // Clear any existing animation
+    if (smoothAnimationRef.current) {
+      cancelAnimationFrame(smoothAnimationRef.current);
+      smoothAnimationRef.current = null;
+    }
 
-        // Don't animate if the distance is too large (likely a reconnection or first update)
-        // or if the marker has the grayscale class (offline)
-        const isOffline =
-          icon &&
-          icon.options &&
-          icon.options.className &&
-          icon.options.className.includes("grayscale");
-        const isTooFar = distance > 0.01; // About 1km in coordinates
+    const leafletElement = marker.leafletElement || marker._leafletElement;
+    if (!leafletElement) return;
 
-        if (isOffline || isTooFar) {
-          // Just set the position without animation
-          marker.setLatLng(position);
-          console.log(
-            `Skipping animation for ${isOffline ? "offline" : "distant"} marker`
-          );
-        } else {
-          // Cancel any ongoing animation
-          if (animationRef.current) {
-            cancelAnimationFrame(animationRef.current);
-          }
+    const now = Date.now();
+    // Store the current time for future use
+    lastUpdateTimeRef.current = now;
 
-          // Get the update interval from websocketService or use default
-          let duration = 3000;
-          try {
-            duration = getLocationUpdateInterval();
-          } catch (error) {
-            console.warn(
-              "Could not get location update interval, using default"
-            );
-          }
+    // Don't animate if this is the first position or if offline or stationary
+    if (!lastPositionRef.current || isOffline || isStationary) {
+      leafletElement.setLatLng(position);
+      lastPositionRef.current = position;
+      return;
+    }
 
-          isAnimatingRef.current = true;
-          const startTime = performance.now();
-          const startLat = currentPos.lat;
-          const startLng = currentPos.lng;
-          const endLat = position[0];
-          const endLng = position[1];
+    // Calculate animation duration based on speed
+    // Slower speed = longer animation duration for smoother transitions
+    // Faster speeds get quicker updates to show real-time changes
+    let animationDuration = 500; // default base duration in ms
+    
+    if (speed < 5) {
+      animationDuration = 800; // slower animation for slow moving shuttles
+    } else if (speed > 20) {
+      animationDuration = 300; // faster animation for fast moving shuttles
+    }
 
-          const animate = (currentTime) => {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
+    // Maximum animation duration to prevent very slow transitions
+    const maxDuration = 1500;
+    animationDuration = Math.min(animationDuration, maxDuration);
 
-            // Ease the animation using quadratic easing
-            const easeProgress =
-              progress < 0.5
-                ? 2 * progress * progress
-                : -1 + (4 - 2 * progress) * progress;
+    // Store the current position for the next update
+    lastPositionRef.current = position;
 
-            const newLat = startLat + (endLat - startLat) * easeProgress;
-            const newLng = startLng + (endLng - startLng) * easeProgress;
-
-            marker.setLatLng([newLat, newLng]);
-
-            if (progress < 1) {
-              animationRef.current = requestAnimationFrame(animate);
-            } else {
-              isAnimatingRef.current = false;
-            }
-          };
-
-          animationRef.current = requestAnimationFrame(animate);
-        }
-      } else if (!currentPos) {
-        // First position, just set it without animation
-        marker.setLatLng(position);
+    // Animate the marker movement
+    const startPosition = leafletElement.getLatLng();
+    const targetPosition = L.latLng(position[0], position[1]);
+    
+    // For longer durations, use frame-by-frame animation for smoother transitions
+    const startTime = Date.now();
+    
+    const animateStep = () => {
+      const currentTime = Date.now();
+      const progress = Math.min(1, (currentTime - startTime) / animationDuration);
+      
+      // Apply easing function for smoother motion
+      const easedProgress = 0.5 - 0.5 * Math.cos(progress * Math.PI);
+      
+      const lat = startPosition.lat + (targetPosition.lat - startPosition.lat) * easedProgress;
+      const lng = startPosition.lng + (targetPosition.lng - startPosition.lng) * easedProgress;
+      
+      leafletElement.setLatLng([lat, lng]);
+      
+      if (progress < 1) {
+        smoothAnimationRef.current = requestAnimationFrame(animateStep);
+      } else {
+        smoothAnimationRef.current = null;
       }
+    };
+    
+    smoothAnimationRef.current = requestAnimationFrame(animateStep);
 
-      lastPosition.current = position;
+    // Apply visual effects based on status
+    const iconElement = leafletElement.getElement();
+    if (iconElement) {
+      // Reset all styles first
+      iconElement.style.filter = 'none';
+      iconElement.style.animation = 'none';
+      iconElement.style.opacity = '1.0';
+      
+      // Apply specific styles based on status
+      if (isOffline) {
+        // Offline shuttles appear grayscale
+        iconElement.style.filter = 'grayscale(100%)';
+        iconElement.style.opacity = '0.6';
+      } else if (status === 'At Terminal') {
+        // At Terminal shuttles get a green tint
+        iconElement.style.filter = 'hue-rotate(90deg) saturate(1.2)';
+        iconElement.style.opacity = '0.9';
+      } else if (isStationary) {
+        // Stationary shuttles are slightly transparent
+        iconElement.style.opacity = '0.8';
+      } else if (speed > 10) {
+        // Fast moving shuttles get a pulse animation
+        iconElement.style.animation = 'pulse 1s infinite';
+      }
     }
 
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-        isAnimatingRef.current = false;
+      if (smoothAnimationRef.current) {
+        cancelAnimationFrame(smoothAnimationRef.current);
+        smoothAnimationRef.current = null;
       }
     };
-  }, [position, icon]);
+  }, [position, speed, isOffline, isStationary, status]);
 
   return (
-    <Marker ref={markerRef} position={position} icon={icon}>
+    <Marker
+      ref={markerRef}
+      position={position}
+      icon={icon}
+      eventHandlers={eventHandlers}
+    >
       {children}
     </Marker>
   );
+};
+
+MovingMarker.propTypes = {
+  position: PropTypes.array.isRequired,
+  icon: PropTypes.object,
+  eventHandlers: PropTypes.object,
+  children: PropTypes.node,
+  speed: PropTypes.number,
+  isOffline: PropTypes.bool,
+  isStationary: PropTypes.bool,
+  status: PropTypes.string
 };
 
 export default MovingMarker;

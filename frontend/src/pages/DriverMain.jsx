@@ -16,7 +16,7 @@ import {
 } from "../utils/websocketService";
 import L from "leaflet";
 import PickupRequestsPanel from "../components/PickupRequestsPanel";
-import { getTokenFromCookies } from "../utils/tokenUtils";
+import { getTokenFromCookies, getEmailFromToken } from "../utils/tokenUtils";
 import { toast } from "react-hot-toast";
 import Sidebar from "../components/Sidebar";
 import Taskbar from "../components/Taskbar";
@@ -39,49 +39,24 @@ const createNotification = (type, message) => ({
 
 // Function to calculate speed in km/h using Haversine formula
 const calculateSpeed = (prevPosition, currentPosition, timeElapsedSeconds) => {
-  console.log("Speed calculation inputs:", {
-    prevPosition,
-    currentPosition,
-    timeElapsedSeconds,
-  });
-
   if (!prevPosition || !currentPosition || timeElapsedSeconds <= 0) {
-    console.log("Speed calculation aborted:", {
-      hasPrevPosition: !!prevPosition,
-      hasCurrentPosition: !!currentPosition,
-      timeElapsedSeconds,
-    });
     return 0;
   }
 
-  const toRad = (deg) => (deg * Math.PI) / 180;
-  const R = 6371; // Earth's radius in kilometers
+  const distance = calculateDistance(
+    prevPosition[0],
+    prevPosition[1],
+    currentPosition[0],
+    currentPosition[1]
+  );
 
-  const [lat1, lon1] = prevPosition;
-  const [lat2, lon2] = currentPosition;
+  // Convert distance to km and time to hours for km/h
+  const speedKmH = (distance / 1000) / (timeElapsedSeconds / 3600);
 
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
+  // Apply bounds checking
+  const boundedSpeed = Math.min(Math.max(speedKmH, 0), 120); // Limit between 0 and 120 km/h
 
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const distance = R * c; // Distance in kilometers
-
-  // Calculate speed in km/h
-  const speedKmH = (distance / timeElapsedSeconds) * 3600;
-  console.log("Speed calculation result:", { distance, speedKmH });
-
-  // Return speed if it's within reasonable bounds (0-120 km/h), otherwise return 0
-  const finalSpeed =
-    speedKmH >= 0 && speedKmH <= 120 ? Math.round(speedKmH * 10) / 10 : 0;
-  console.log("Final speed after bounds check:", finalSpeed);
-  return finalSpeed;
+  return boundedSpeed;
 };
 
 // Function to calculate heading in degrees
@@ -215,6 +190,64 @@ const MovingMarker = memo(({ position, icon, children }) => {
 
 MovingMarker.displayName = "MovingMarker";
 
+const SOMO_COORDINATES = {
+  lat: 14.385586,
+  lng: 120.978863,
+  radius: 200 // meters
+};
+
+// Function to calculate distance between two points in meters
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371e3; // Earth's radius in meters
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) *
+    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c; // Distance in meters
+};
+
+// Function to check if coordinates are within geofence
+const isWithinGeofence = (coordinates) => {
+  if (!coordinates) return false;
+  const distance = calculateDistance(
+    coordinates[0],
+    coordinates[1],
+    SOMO_COORDINATES.lat,
+    SOMO_COORDINATES.lng
+  );
+  return distance <= SOMO_COORDINATES.radius;
+};
+
+// Function to get status label based on location and movement
+const getShuttleStatus = (coordinates, speed, isMoving) => {
+  // First check if at terminal and stationary
+  if (!isMoving && speed < 0.8 && coordinates && isWithinGeofence(coordinates)) {
+    return "At Terminal";
+  }
+  
+  // Then check if stationary elsewhere
+  if (!isMoving && speed < 0.8) {
+    return "Stationary";
+  }
+  
+  // If moving, show speed-based status
+  if (speed < 5) {
+    return "Slow Traffic";
+  } else if (speed < 15) {
+    return "Normal";
+  } else if (speed < 30) {
+    return "Fast";
+  } else {
+    return "High Speed";
+  }
+};
+
 const DriverMain = () => {
   // Create carIcon inside the component
   const carIcon = useMemo(
@@ -259,6 +292,8 @@ const DriverMain = () => {
   const [notificationEnabled, setNotificationEnabled] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
   const sidebarRef = useRef(null);
+  const lastGeofenceStatus = useRef(false);
+  const lastSpeedRef = useRef(0);
 
   // Add formatted date and time
   const formattedDate = useMemo(() => {
@@ -698,6 +733,13 @@ const DriverMain = () => {
           heading = calculateHeading(lastLocationRef.current, userCoords);
         }
 
+        // Determine if moving based on speed threshold and changes
+        const isMoving = speed > 3 || 
+          (lastSpeedRef.current && Math.abs(speed - lastSpeedRef.current) > 1);
+        
+        // Store current speed for next comparison
+        lastSpeedRef.current = speed;
+
         // Update local state
         setUserLocation(userCoords);
 
@@ -709,8 +751,65 @@ const DriverMain = () => {
           });
         }
 
+        // Check geofence status
+        const isCurrentlyInGeofence = isWithinGeofence(userCoords);
+        console.log("Geofence check:", {
+          currentCoords: userCoords,
+          somoCoords: [SOMO_COORDINATES.lat, SOMO_COORDINATES.lng],
+          distance: calculateDistance(
+            userCoords[0],
+            userCoords[1],
+            SOMO_COORDINATES.lat,
+            SOMO_COORDINATES.lng
+          ),
+          isCurrentlyInGeofence,
+          lastGeofenceStatus: lastGeofenceStatus.current
+        });
+
+        if (isCurrentlyInGeofence !== lastGeofenceStatus.current) {
+          const message = isCurrentlyInGeofence
+            ? `SHUTL. ${currentShuttleId} has arrived in SOMO - A VistaMall`
+            : `SHUTL. ${currentShuttleId} has departed SOMO - A VistaMall`;
+
+          console.log("Geofence status changed, sending notification:", message);
+
+          // Send notification through socket
+          if (socket.current) {
+            console.log("Sending geofence notification:", message);
+            socket.current.emit("send_notification", {
+              message,
+              recipientType: "Commuter"
+            });
+          }
+          
+          // Add notification to local state
+          const notification = {
+            message,
+            createdAt: new Date().toISOString(),
+            timestamp: Date.now()
+          };
+          
+          setNotifications(prev => {
+            const updatedNotifications = [notification, ...prev];
+            return updatedNotifications.slice(0, 5); // Keep only 5 most recent
+          });
+
+          // Show notification popup
+          setActivePopup("notifications");
+
+          // Auto-hide after 5 seconds
+          setTimeout(() => {
+            setActivePopup(current => current === "notifications" ? null : current);
+          }, 5000);
+
+          lastGeofenceStatus.current = isCurrentlyInGeofence;
+        }
+
         // Send location update if we have a shuttleId
         if (currentShuttleId) {
+          // Get shuttle status
+          const status = getShuttleStatus(userCoords, speed, isMoving);
+          
           const locationData = {
             shuttleId: currentShuttleId,
             coordinates: userCoords,
@@ -718,8 +817,10 @@ const DriverMain = () => {
               speed,
               heading,
               accuracy,
+              status
             },
             timestamp: new Date().toISOString(),
+            isMoving: isMoving
           };
 
           await sendLocation(locationData);
@@ -1115,15 +1216,15 @@ const DriverMain = () => {
   useEffect(() => {
     const fetchUserPreferences = async () => {
       try {
-        const email = getCookie("email");
+        const email = getEmailFromToken();
         if (!email) {
-          console.warn("No email found in cookies");
+          console.warn("No email found in token");
           return;
         }
 
         const response = await fetch(`${API_BASE_URL}/userdata/find?email=${encodeURIComponent(email)}`, {
           headers: {
-            Authorization: `Bearer ${getCookie("token")}`,
+            Authorization: `Bearer ${getTokenFromCookies()}`,
           },
         });
 

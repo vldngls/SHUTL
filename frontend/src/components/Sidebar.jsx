@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import "../css/Sidebar.css";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import { removeToken } from "../utils/tokenUtils";
 
 const Sidebar = forwardRef(
   (
@@ -113,18 +114,8 @@ const Sidebar = forwardRef(
       (e) => {
         e.stopPropagation();
 
-        // Clear the token cookie with proper attributes
-        document.cookie =
-          "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=None; Secure";
-
-        // Clear any user data from localStorage
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
-        localStorage.removeItem("notificationsEnabled");
-        localStorage.removeItem("locationEnabled");
-
-        // Clear any session storage data if used
-        sessionStorage.clear();
+        // Use the centralized removeToken function
+        removeToken();
 
         // Navigate to the logged out page
         navigate("/ShutlLoggedOut", { replace: true });

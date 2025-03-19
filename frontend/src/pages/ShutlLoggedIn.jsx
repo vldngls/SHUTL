@@ -17,7 +17,7 @@ import {
   subscribeToEvent,
   joinShuttleTracking,
   cleanupSocketService,
-  disconnectSocket,
+  disconnectSocket
 } from "../utils/websocketService";
 import { toast } from "react-hot-toast";
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
@@ -127,7 +127,6 @@ const ShutlLoggedIn = () => {
   const hasShownToastRef = useRef(false);
   const [selectedDestination, setSelectedDestination] = useState(null);
   const [selectedShuttleId, setSelectedShuttleId] = useState(null);
-  const optimizedLocations = useOptimizedLocations(shuttleLocations);
   const navigate = useNavigate();
   const [notificationEnabled, setNotificationEnabled] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
@@ -135,6 +134,8 @@ const ShutlLoggedIn = () => {
   // Add refs to track cleanup functions
   const cleanupFunctionsRef = useRef([]);
   const intervalsRef = useRef([]);
+
+  const optimizedLocations = useOptimizedLocations(shuttleLocations);
 
   // Function to update notification preference
   const updateNotificationPreference = async (enabled) => {
@@ -270,7 +271,121 @@ const ShutlLoggedIn = () => {
     fetchUserPreferences();
   }, [navigate]);
 
-  // Improved socket initialization
+  // Helper function to determine shuttle status based on speed and location
+  const getShuttleStatus = (speed, coordinates, status, isMoving) => {
+    // If the shuttle has a specific status from the optimization hook
+    if (status === 'offline') return 'Offline';
+    
+    // If the shuttle is explicitly marked as moving by the comparison of speed changes
+    if (isMoving) {
+      // If it's moving, determine how fast (never show "At Terminal" for moving shuttles)
+      if (speed < 5) {
+        return 'Slow Traffic';
+      } else if (speed < 15) {
+        return 'Normal';
+      } else if (speed < 30) {
+        return 'Fast';
+      } else {
+        return 'High Speed';
+      }
+    }
+    
+    // Handle stationary status - if speed is 0 or very low and not moving
+    if (status === 'stationary' || speed === 0 || speed < 0.8) {
+      // Check if it's within the SOMO terminal geofence
+      if (coordinates) {
+        const isInGeofence = calculateDistance(
+          coordinates[0],
+          coordinates[1],
+          14.385586, // SOMO coordinates
+          120.978863
+        ) <= 200; // 200 meters radius
+
+        // Only show "At Terminal" when both stationary AND within geofence
+        if (isInGeofence) {
+          return 'At Terminal';
+        }
+      }
+      
+      // Stationary but not at terminal
+      return 'Stationary';
+    }
+    
+    // Default status based on speed for slow but not fully stationary shuttles
+    if (speed < 5) {
+      return 'Slow Traffic';
+    } else if (speed < 15) {
+      return 'Normal';
+    } else if (speed < 30) {
+      return 'Fast';
+    } else {
+      return 'High Speed';
+    }
+  };
+
+  // Helper function to handle location updates
+  const handleLocationUpdate = (data) => {
+    console.log("Received location update:", data);
+    if (data && data.coordinates && data.shuttleId) {
+      // Extract metadata if available
+      const speed = data.speed || (data.metadata && data.metadata.speed) || 0;
+      const heading = data.heading || (data.metadata && data.metadata.heading) || 0;
+      const accuracy = data.accuracy || (data.metadata && data.metadata.accuracy) || 0;
+      const isExplicitlyOffline = data.isExplicitlyOffline || false;
+      
+      setShuttleLocations(prev => {
+        // Get previous data for this shuttle
+        const prevShuttle = prev[data.shuttleId];
+        
+        // Apply speed smoothing using exponential moving average
+        // Alpha determines how much weight to give to the new reading
+        let smoothedSpeed;
+        
+        // If raw speed is 0 (or very close to 0), increase alpha to allow quicker transition to zero
+        if (speed < 0.5) {
+          // Use higher alpha (0.6) to transition to zero more quickly when stopped
+          smoothedSpeed = prevShuttle 
+            ? prevShuttle.speed * 0.4 + speed * 0.6
+            : speed;
+            
+          // If smoothed speed is very low, just snap to zero to ensure vehicles can be fully stationary
+          if (smoothedSpeed < 0.8) {
+            smoothedSpeed = 0;
+          }
+        } else {
+          // Normal smoothing for non-zero speeds (0.3 = 30% new, 70% previous)
+          const SMOOTHING_ALPHA = 0.3;
+          smoothedSpeed = prevShuttle 
+            ? prevShuttle.speed * (1 - SMOOTHING_ALPHA) + speed * SMOOTHING_ALPHA
+            : speed;
+        }
+          
+        // Compare speed with previous speed to detect movement
+        // Use smoothed speed for more stable movement detection
+        const isMoving = prevShuttle ? 
+          (smoothedSpeed > 3 || (Math.abs(smoothedSpeed - prevShuttle.speed) > 1)) : 
+          (smoothedSpeed > 3);
+          
+        return {
+          ...prev,
+          [data.shuttleId]: {
+            coordinates: data.coordinates,
+            // Store both raw and smoothed speed
+            rawSpeed: speed,
+            speed: smoothedSpeed,
+            heading: heading,
+            accuracy: accuracy,
+            lastUpdate: new Date(),
+            timestamp: data.timestamp || new Date().toISOString(),
+            isExplicitlyOffline: isExplicitlyOffline,
+            isMoving: isMoving
+          }
+        };
+      });
+    }
+  };
+
+  // Improved socket initialization with optimized handler
   useEffect(() => {
     let isMounted = true;
 
@@ -291,179 +406,83 @@ const ShutlLoggedIn = () => {
         });
 
         // Subscribe to real-time notifications
-        const notificationCleanup = await subscribeToEvent(
-          "new_notification",
-          (notification) => {
-            // Check if this notification is for this user type (Commuter)
-            if (notification.recipientType !== "Commuter") return;
+        const cleanup = await subscribeToEvent("new_notification", (notification) => {
+          // Check if this notification is for this user type (Commuter)
+          if (notification.recipientType !== "Commuter") return;
 
-            // Format the notification to match the expected structure
-            const formattedNotification = {
-              message: notification.message,
-              createdAt: notification.createdAt || new Date(),
-            };
+          // Format the notification to match the expected structure
+          const formattedNotification = {
+            message: notification.message,
+            createdAt: notification.createdAt || new Date().toISOString(),
+            timestamp: notification.timestamp || Date.now()
+          };
 
-            // Always update the notifications array
-            setNotifications((prev) => {
-              const updatedNotifications = [formattedNotification, ...prev];
-              return updatedNotifications.slice(0, 5); // Keep only 5 most recent
-            });
+          // Update notifications state
+          setNotifications(prev => {
+            const updatedNotifications = [formattedNotification, ...prev].slice(0, 5);
+            return updatedNotifications;
+          });
 
-            // Show automatic popup only when notifications are enabled
-            if (notificationEnabled) {
-              setActivePopup("notifications");
-              // Auto-hide after 5 seconds
-              setTimeout(() => {
-                setActivePopup((current) =>
-                  current === "notifications" ? null : current
-                );
-              }, 5000);
+          // Show toast notification if enabled
+          if (notificationEnabled) {
+            // Check if it's a geofence notification
+            if (notification.message.includes("geofence")) {
+              toast(notification.message, {
+                icon: "📍",
+                duration: 4000,
+                position: "bottom-center",
+                style: {
+                  background: "#4CAF50",
+                  color: "white",
+                },
+              });
+            } else {
+              // For other notifications, show a regular toast
+              toast(notification.message, {
+                duration: 4000,
+                position: "bottom-center",
+              });
             }
           }
-        );
+        });
 
         // Subscribe to location updates if location tracking is enabled
         let locationCleanup;
         if (locationEnabled) {
-          locationCleanup = await subscribeToEvent(
+          // Subscribe to both location events
+          const cleanup1 = await subscribeToEvent(
+            "shuttle_location",
+            (data) => {
+              if (!isMounted || !locationEnabled) return;
+              console.log("Received shuttle_location:", data);
+              handleLocationUpdate(data);
+            }
+          );
+
+          const cleanup2 = await subscribeToEvent(
             "shuttle_location_update",
             (data) => {
               if (!isMounted || !locationEnabled) return;
-
-              console.log("Received shuttle location update:", data);
-
-              setShuttleLocations((prev) => {
-                // Skip update if data is identical to prevent unnecessary re-renders
-                const existingData = prev[data.shuttleId];
-                if (
-                  existingData &&
-                  existingData.coordinates &&
-                  data.coordinates &&
-                  existingData.coordinates[0] === data.coordinates[0] &&
-                  existingData.coordinates[1] === data.coordinates[1] &&
-                  existingData.lastUpdate === data.timestamp
-                ) {
-                  return prev;
-                }
-
-                // Extract speed from the data
-                const speed = data.speed || data.metadata?.speed || 0;
-                const heading = data.heading || data.metadata?.heading || 0;
-
-                // Maintain existing status or set to 'active' for new entries
-                const status = existingData?.status || 'active';
-
-                return {
-                  ...prev,
-                  [data.shuttleId]: {
-                    coordinates: data.coordinates || existingData?.coordinates || null,
-                    lastUpdate: new Date(data.timestamp || Date.now()),
-                    speed: speed,
-                    heading: heading,
-                    accuracy: data.metadata?.accuracy ?? 0,
-                    isPredicted: false,
-                    lastKnownCoordinates: data.coordinates || existingData?.lastKnownCoordinates || null,
-                    lastKnownSpeed: speed,
-                    lastKnownHeading: heading,
-                    status: status // Maintain the status
-                  },
-                };
-              });
+              console.log("Received shuttle_location_update:", data);
+              handleLocationUpdate(data);
             }
           );
+
+          locationCleanup = () => {
+            if (cleanup1) cleanup1();
+            if (cleanup2) cleanup2();
+          };
         }
-
-        // Subscribe to pickup_accepted notifications
-        const pickupAcceptedCleanup = await subscribeToEvent(
-          "pickup_accepted",
-          (data) => {
-            if (!isMounted) return;
-
-            // Only show notification if it's for the current user
-            const userEmail = getCookie("email");
-            if (data.userEmail !== userEmail) return;
-
-            // Create a notification for the accepted pickup
-            const formattedNotification = {
-              message: `Your pickup request has been accepted by Shuttle ${data.shuttleId}!`,
-              createdAt: new Date(),
-              type: "pickup_accepted",
-            };
-
-            // Update notifications array
-            setNotifications((prev) => {
-              const updatedNotifications = [formattedNotification, ...prev];
-              return updatedNotifications.slice(0, 5); // Keep only 5 most recent
-            });
-
-            // Show notification popup if enabled
-            if (notificationEnabled) {
-              setActivePopup("notifications");
-              // Auto-hide after 5 seconds
-              setTimeout(() => {
-                setActivePopup((current) =>
-                  current === "notifications" ? null : current
-                );
-              }, 5000);
-
-              // Also show a toast notification
-              toast.success(
-                `Pickup request accepted by Shuttle ${data.shuttleId}!`,
-                {
-                  duration: 4000,
-                  position: "bottom-center",
-                }
-              );
-            }
-          }
-        );
 
         // Add cleanup functions
         cleanupFunctionsRef.current.push(() => {
-          if (notificationCleanup) notificationCleanup();
           if (locationCleanup) locationCleanup();
+          if (cleanup) cleanup();
         });
-
-        // Add pickup_accepted cleanup function to the ref array
-        cleanupFunctionsRef.current.push(pickupAcceptedCleanup);
 
         // Fetch and track active shuttles
         await fetchAndTrackShuttles();
 
-        // Update shuttle locations with status instead of removing them
-        const statusUpdateInterval = setInterval(() => {
-          if (!isMounted) return;
-
-          setShuttleLocations((prev) => {
-            const now = new Date();
-            const updatedLocations = {};
-            let hasChanges = false;
-
-            Object.entries(prev).forEach(([shuttleId, data]) => {
-              const timeSinceUpdate = now - new Date(data.lastUpdate);
-              // Update status based on time since last update
-              let status = 'active';
-              if (timeSinceUpdate > 300000) { // 5 minutes
-                status = 'idle';
-              }
-              
-              // Only update if status changed
-              if (data.status !== status) {
-                hasChanges = true;
-                updatedLocations[shuttleId] = {
-                  ...data,
-                  status
-                };
-              } else {
-                updatedLocations[shuttleId] = data;
-              }
-            });
-
-            return hasChanges ? updatedLocations : prev;
-          });
-        }, 60000); // Check every minute
-
-        intervalsRef.current.push(statusUpdateInterval);
       } catch (error) {
         console.error("Socket connection error:", error);
         if (isMounted) {
@@ -521,7 +540,6 @@ const ShutlLoggedIn = () => {
     // Return cleanup function
     return () => {
       isMounted = false;
-
       // Clear all intervals
       intervalsRef.current.forEach((interval) => clearInterval(interval));
       intervalsRef.current = [];
@@ -769,41 +787,34 @@ const ShutlLoggedIn = () => {
     setIsProfileEditMode(false);
   };
 
-  // Fetch notifications
+  // Update the initial notifications fetch
   useEffect(() => {
-    let isMounted = true;
-
     const fetchInitialNotifications = async () => {
       try {
-        const token = getCookie("token");
         const response = await fetch(`${API_BASE_URL}/notifications/user`, {
-          method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+            Authorization: `Bearer ${getTokenFromCookies()}`,
           },
-          credentials: "include",
         });
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch notifications: ${response.status}`);
-        }
-
-        if (isMounted) {
+        if (response.ok) {
           const data = await response.json();
-          setNotifications(data.slice(0, 5)); // Keep only 5 most recent notifications
+          // Format notifications to include timestamp
+          const formattedNotifications = data.map(notification => ({
+            message: notification.message,
+            createdAt: notification.createdAt || new Date().toISOString(),
+            timestamp: notification.timestamp || Date.now()
+          }));
+          setNotifications(formattedNotifications.slice(0, 5));
+        } else {
+          console.error("Failed to fetch notifications:", response.statusText);
         }
       } catch (error) {
         console.error("Error fetching notifications:", error);
-        // Don't show error toast for notifications as it's not critical
       }
     };
 
     fetchInitialNotifications();
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
   // Pickup request handler
@@ -912,132 +923,150 @@ const ShutlLoggedIn = () => {
             </Marker>
           )}
 
-          {locationEnabled &&
-            Object.entries(optimizedLocations).map(([shuttleId, data]) => {
-              if (!data || !data.coordinates) return null;
+          {locationEnabled && optimizedLocations && Object.entries(optimizedLocations).map(([shuttleId, data]) => {
+            if (!data || !data.coordinates) return null;
 
-              let distance = null;
-              let eta = null;
-              const speed = data.speed || 0;
-              const trafficCondition = getTrafficCondition(speed);
+            let distance = null;
+            let eta = null;
+            const speed = data.speed || 0;
+            
+            // Determine if the shuttle is actually moving based on speed
+            // A shuttle with speed > 3 km/h is definitely moving
+            const isMoving = data.isMoving || (speed > 3);
+            
+            const status = getShuttleStatus(speed, data.coordinates, data.status, isMoving);
+            const isOffline = data.status === 'offline';
+            const isStationary = data.status === 'stationary' || status === 'Stationary';
 
-              if (userLocation) {
-                distance = calculateDistance(
-                  userLocation[0],
-                  userLocation[1],
-                  data.coordinates[0],
-                  data.coordinates[1]
-                );
-                eta = calculateETA(distance, speed);
-              }
+            if (userLocation) {
+              distance = calculateDistance(
+                userLocation[0],
+                userLocation[1],
+                data.coordinates[0],
+                data.coordinates[1]
+              );
+              eta = calculateETA(distance, speed);
+            }
 
-              return (
-                <MovingMarker
-                  key={shuttleId}
-                  position={data.coordinates}
-                  icon={carIcon}
-                  speed={speed}
-                  isOffline={!data.coordinates}
-                  eventHandlers={{
-                    click: async () => {
-                      if (!userLocation) {
-                        toast.error("Please enable location sharing first");
+            return (
+              <MovingMarker
+                key={shuttleId}
+                position={data.coordinates}
+                icon={carIcon}
+                speed={speed}
+                isOffline={isOffline}
+                isStationary={isStationary}
+                eventHandlers={{
+                  click: async () => {
+                    if (!userLocation) {
+                      toast.error("Please enable location sharing first");
+                      return;
+                    }
+
+                    try {
+                      const streetName = await reverseGeocode(userLocation[0], userLocation[1]);
+                      const userEmail = getCookie("email");
+                      const request = {
+                        shuttleId,
+                        userEmail,
+                        location: {
+                          coordinates: userLocation,
+                          streetName,
+                        },
+                        destination: "Nearest Stop", // Default destination
+                        passengers: 1, // Default passenger count
+                        notes: "", // Default empty notes
+                        timestamp: new Date().toISOString(),
+                      };
+
+                      const socketInstance = await connectSocket();
+                      if (!socketInstance) {
+                        toast.error("Unable to establish connection. Please try again.");
                         return;
                       }
 
-                      try {
-                        const streetName = await reverseGeocode(userLocation[0], userLocation[1]);
-                        const userEmail = getCookie("email");
-                        const request = {
-                          shuttleId,
-                          userEmail,
-                          location: {
-                            coordinates: userLocation,
-                            streetName,
-                          },
-                          destination: "Nearest Stop", // Default destination
-                          passengers: 1, // Default passenger count
-                          notes: "", // Default empty notes
-                          timestamp: new Date().toISOString(),
-                        };
-
-                        const socketInstance = await connectSocket();
-                        if (!socketInstance) {
-                          toast.error("Unable to establish connection. Please try again.");
+                      socketInstance.emit("pickup_request", request);
+                      toast.success("Pickup request sent successfully!");
+                    } catch (error) {
+                      console.error("Error sending pickup request:", error);
+                      toast.error("Error sending pickup request. Please try again.");
+                    }
+                  }
+                }}
+              >
+                <Popup>
+                  <div className="shuttle-popup-content">
+                    <h3>Shuttle {shuttleId}</h3>
+                    <div className="shuttle-status-info">
+                      <p><strong>Status:</strong> {status}</p>
+                      <p><strong>Speed:</strong> {speed.toFixed(1)} km/h</p>
+                      {distance !== null && (
+                        <>
+                          <p><strong>Distance:</strong> {distance.toFixed(2)} km</p>
+                          <p><strong>ETA:</strong> {eta} minutes</p>
+                        </>
+                      )}
+                      <p><strong>Last Update:</strong> {formatTimeDifference(data.lastUpdate)}</p>
+                    </div>
+                    <button 
+                      className="pick-me-up-btn"
+                      disabled={isOffline}
+                      onClick={async () => {
+                        if (!userLocation) {
+                          toast.error("Please enable location sharing first");
                           return;
                         }
 
-                        socketInstance.emit("pickup_request", request);
-                        toast.success("Pickup request sent successfully!");
-                      } catch (error) {
-                        console.error("Error sending pickup request:", error);
-                        toast.error("Error sending pickup request. Please try again.");
-                      }
-                    }
-                  }}
-                >
-                  <Popup>
-                    <div className="shuttle-popup-content">
-                      <h3>Shuttle {shuttleId}</h3>
-                      <div className="shuttle-status-info">
-                        <p><strong>Status:</strong> {trafficCondition.status}</p>
-                        <p><strong>Speed:</strong> {speed.toFixed(1)} km/h</p>
-                        {distance !== null && (
-                          <>
-                            <p><strong>Distance:</strong> {distance.toFixed(2)} km</p>
-                            <p><strong>ETA:</strong> {eta} minutes</p>
-                          </>
-                        )}
-                        <p><strong>Last Update:</strong> {formatTimeDifference(data.lastUpdate)}</p>
-                      </div>
-                      <button 
-                        className="pick-me-up-btn"
-                        onClick={async () => {
-                          if (!userLocation) {
-                            toast.error("Please enable location sharing first");
+                        try {
+                          const streetName = await reverseGeocode(userLocation[0], userLocation[1]);
+                          const userEmail = getCookie("email");
+                          const request = {
+                            shuttleId,
+                            userEmail,
+                            location: {
+                              coordinates: userLocation,
+                              streetName,
+                            },
+                            destination: "Nearest Stop", // Default destination
+                            passengers: 1, // Default passenger count
+                            notes: "", // Default empty notes
+                            timestamp: new Date().toISOString(),
+                          };
+
+                          const socketInstance = await connectSocket();
+                          if (!socketInstance) {
+                            toast.error("Unable to establish connection. Please try again.");
                             return;
                           }
 
-                          try {
-                            const streetName = await reverseGeocode(userLocation[0], userLocation[1]);
-                            const userEmail = getCookie("email");
-                            const request = {
-                              shuttleId,
-                              userEmail,
-                              location: {
-                                coordinates: userLocation,
-                                streetName,
-                              },
-                              destination: "Nearest Stop", // Default destination
-                              passengers: 1, // Default passenger count
-                              notes: "", // Default empty notes
-                              timestamp: new Date().toISOString(),
-                            };
-
-                            const socketInstance = await connectSocket();
-                            if (!socketInstance) {
-                              toast.error("Unable to establish connection. Please try again.");
-                              return;
-                            }
-
-                            socketInstance.emit("pickup_request", request);
-                            toast.success("Pickup request sent successfully!");
-                          } catch (error) {
-                            console.error("Error sending pickup request:", error);
-                            toast.error("Error sending pickup request. Please try again.");
-                          }
-                        }}
-                      >
-                        Pick Me Up
-                      </button>
-                    </div>
-                  </Popup>
-                  <Tooltip direction="right" offset={[10, 0]} permanent>
-                    {data.isPredicted ? "📡 " : ""}Shuttle {shuttleId}
-                  </Tooltip>
-                </MovingMarker>
-              );
-            })}
+                          socketInstance.emit("pickup_request", request);
+                          toast.success("Pickup request sent successfully!");
+                        } catch (error) {
+                          console.error("Error sending pickup request:", error);
+                          toast.error("Error sending pickup request. Please try again.");
+                        }
+                      }}
+                    >
+                      Pick Me Up
+                    </button>
+                  </div>
+                </Popup>
+                <Tooltip direction="top" offset={[0, -36]} opacity={1} permanent>
+                  <div className="shuttle-tooltip">
+                    <strong>Shuttle {shuttleId}</strong>
+                    <br />
+                    <span className={`status-${status.toLowerCase().replace(' ', '-')}`}>
+                      Status: {status}
+                    </span>
+                    <br />
+                    Speed: {speed.toFixed(1)} km/h
+                    <br />
+                    Last Update: {formatTimeDifference(data.lastUpdate)}
+                  </div>
+                </Tooltip>
+              </MovingMarker>
+            );
+          })}
         </MapContainer>
       </div>
 
@@ -1144,16 +1173,18 @@ const ShutlLoggedIn = () => {
 
       {/* Active Shuttles Popup */}
       {activePopup === "activeShuttles" && (
-        <ActiveShuttles
-          shuttleLocations={optimizedLocations}
-          onClose={() => setActivePopup(null)}
-          onRequestPickup={(shuttleId) => {
-            setSelectedShuttleId(shuttleId);
-            setShowPickMeUp(true);
-            setActivePopup(null);
-          }}
-          userLocation={userLocation}
-        />
+        <div>
+          <ActiveShuttles
+            shuttleLocations={optimizedLocations || {}}
+            onClose={() => setActivePopup(null)}
+            onRequestPickup={(shuttleId) => {
+              setSelectedShuttleId(shuttleId);
+              setShowPickMeUp(true);
+              setActivePopup(null);
+            }}
+            userLocation={userLocation}
+          />
+        </div>
       )}
 
       {/* Other Popups Container */}

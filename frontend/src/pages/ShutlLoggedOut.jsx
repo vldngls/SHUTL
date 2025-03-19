@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "../css/Loggedout.css";
@@ -10,6 +10,7 @@ import Sidebar from "../components/Sidebar";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import Taskbar from "../components/Taskbar";
+import { processShuttleLocationUpdate } from "../utils/locationUtils";
 
 // Define SOCKET_URL
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Ensure this is set in your environment
@@ -125,24 +126,12 @@ const ShutlLoggedOut = () => {
     // Listen for both types of location updates
     socket.current.on("shuttle_location", (data) => {
       console.log("Received shuttle location:", data);
-      setShuttleLocations((prev) => ({
-        ...prev,
-        [data.shuttleId]: {
-          coordinates: data.coordinates,
-          lastUpdate: new Date(data.timestamp),
-        },
-      }));
+      handleLocationUpdate(data);
     });
 
     socket.current.on("shuttle_location_update", (data) => {
       console.log("Received shuttle location update:", data);
-      setShuttleLocations((prev) => ({
-        ...prev,
-        [data.shuttleId]: {
-          coordinates: data.coordinates,
-          lastUpdate: new Date(data.timestamp),
-        },
-      }));
+      handleLocationUpdate(data);
     });
 
     // Ensure the map is properly sized on component mount and window resize
@@ -275,10 +264,6 @@ const ShutlLoggedOut = () => {
     setShowLogin(false);
   };
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
   const toggleSidebar = () => {
     if (window.innerWidth <= 480) {
       return; // Prevent expansion on mobile
@@ -307,6 +292,19 @@ const ShutlLoggedOut = () => {
     day: "numeric",
   });
   const formattedTime = dateTime.toLocaleTimeString("en-PH");
+
+  // Use the centralized location handling function
+  const handleLocationUpdate = (data) => {
+    if (!data || !data.coordinates || !data.shuttleId) return;
+
+    setShuttleLocations(prev => {
+      const prevShuttle = prev[data.shuttleId];
+      return {
+        ...prev,
+        [data.shuttleId]: processShuttleLocationUpdate(data, prevShuttle)
+      };
+    });
+  };
 
   return (
     <div className="ShutlLoggedOut-container">

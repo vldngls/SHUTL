@@ -1,14 +1,14 @@
 export const checkRole = (...allowedRoles) => {
     return (req, res, next) => {
         console.log('Checking role:', {
-            userRole: req.user?.role,
+            userRole: req.user?.userType,
             userType: req.user?.userType,
             allowedRoles,
             user: req.user
         });
 
         // Check both role and userType fields
-        const userRole = (req.user?.role || req.user?.userType || '').toLowerCase();
+        const userRole = (req.user?.userType || req.user?.userType || '').toLowerCase();
         
         if (!userRole) {
             return res.status(403).json({ 

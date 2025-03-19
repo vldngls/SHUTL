@@ -38,6 +38,28 @@ const getTrafficCondition = (speed) => {
   return { status: "Light Traffic", color: "green" };
 };
 
+const SOMO_COORDINATES = {
+  lat: 14.385586,
+  lng: 120.978863,
+  radius: 100 // meters
+};
+
+// Function to calculate distance between two points in meters
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371e3; // Earth's radius in meters
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) *
+    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c; // Distance in meters
+};
+
 const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
   const [totalUsers, setTotalUsers] = useState(0);
   const [activeUsers, setActiveUsers] = useState(0);
@@ -52,6 +74,7 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
   const [shuttleAssignments, setShuttleAssignments] = useState([]);
   const [shuttleLocations, setShuttleLocations] = useState({});
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
+  const [shuttleGeofenceStatus, setShuttleGeofenceStatus] = useState({});
 
   // Update shuttle locations when initialShuttleLocations changes
   useEffect(() => {
@@ -195,6 +218,54 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
+  // Function to check if a shuttle is within the geofence
+  const checkGeofenceStatus = (shuttleId, coordinates) => {
+    if (!coordinates) return false;
+    
+    const distance = calculateDistance(
+      coordinates[0],
+      coordinates[1],
+      SOMO_COORDINATES.lat,
+      SOMO_COORDINATES.lng
+    );
+
+    return distance <= SOMO_COORDINATES.radius;
+  };
+
+  // Function to handle geofence notifications
+  const handleGeofenceNotification = async (shuttleId, isEntering) => {
+    const message = isEntering
+      ? `SHUTL. ${shuttleId} has arrived in SOMO - A VistaMall`
+      : `SHUTL. ${shuttleId} has departed SOMO - A VistaMall`;
+
+    try {
+      await notificationService.sendNotification(message, "Commuter");
+      toast.success(message);
+    } catch (error) {
+      console.error("Failed to send geofence notification:", error);
+    }
+  };
+
+  // Update geofence status when shuttle locations change
+  useEffect(() => {
+    if (!shuttleLocations) return;
+
+    Object.entries(shuttleLocations).forEach(([shuttleId, data]) => {
+      if (!data || !data.coordinates) return;
+
+      const isCurrentlyInGeofence = checkGeofenceStatus(shuttleId, data.coordinates);
+      const wasInGeofence = shuttleGeofenceStatus[shuttleId];
+
+      if (isCurrentlyInGeofence !== wasInGeofence) {
+        handleGeofenceNotification(shuttleId, isCurrentlyInGeofence);
+        setShuttleGeofenceStatus(prev => ({
+          ...prev,
+          [shuttleId]: isCurrentlyInGeofence
+        }));
+      }
+    });
+  }, [shuttleLocations]);
+
   return (
     <div className="adm-dashboard">
       {/* Real-Time Status */}
@@ -236,6 +307,8 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
 
             {Object.entries(optimizedLocations).map(([shuttleId, data]) => {
               const speed = data.speed;
+              const isOffline = data.status === 'offline';
+              const isStationary = data.status === 'stationary' || (!data.isMoving && speed < 3);
               const trafficCondition = getTrafficCondition(speed);
 
               return (
@@ -243,6 +316,9 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
                   key={shuttleId}
                   position={data.coordinates}
                   icon={carIcon}
+                  speed={speed}
+                  isOffline={isOffline}
+                  isStationary={isStationary}
                 >
                   <Popup>
                     <div className="adm-shuttle-item">
@@ -251,14 +327,14 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
                         Status:{" "}
                         <span
                           style={{
-                            color: data.status === "offline" ? "var(--adm-danger)" : "var(--adm-success)",
+                            color: isOffline ? "var(--adm-danger)" : "var(--adm-success)",
                             fontWeight: "bold",
                           }}
                         >
-                          {data.status === "offline" ? "Offline" : "Online"}
+                          {isOffline ? "Offline" : isStationary ? "Stationary" : "Moving"}
                         </span>
                       </p>
-                      <p className="adm-shuttle-details">Speed: {(data.speed || 0).toFixed(1)} km/h</p>
+                      <p className="adm-shuttle-details">Speed: {(speed || 0).toFixed(1)} km/h</p>
                       <p className="adm-shuttle-details">
                         Traffic:{" "}
                         <span style={{ color: trafficCondition.color }}>
@@ -279,7 +355,7 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
                     </div>
                   </Popup>
                   <Tooltip direction="right" offset={[10, 0]} permanent>
-                    Shuttle {shuttleId}
+                    Shuttle {shuttleId} {isOffline ? "(Offline)" : isStationary ? "(Stationary)" : ""}
                   </Tooltip>
                 </MovingMarker>
               );

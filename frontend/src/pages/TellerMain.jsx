@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import { useNavigate } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
@@ -27,6 +27,11 @@ import Sidebar from "../components/Sidebar";
 import Taskbar from "../components/Taskbar";
 import { getCookie } from "../utils/cookieUtils";
 import { API_BASE_URL } from "../config/config";
+import { 
+  calculateDistance, 
+  getShuttleStatus, 
+  processShuttleLocationUpdate 
+} from "../utils/locationUtils";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -270,26 +275,20 @@ const TellerMain = () => {
               return;
             }
 
-            // Update shuttle locations
-            setShuttleLocations((prev) => ({
-              ...prev,
-              [data.shuttleId]: {
-                coordinates: data.coordinates,
-                timestamp: data.timestamp,
-                metadata: data.metadata || {},
-                speed: data.speed || data.metadata?.speed || 0,
-                heading: data.heading || data.metadata?.heading || 0,
-              },
-            }));
-
-            // Update shuttle speeds if speed data is available
-            if (data.speed !== undefined || data.metadata?.speed !== undefined) {
-              const speed = data.speed || data.metadata?.speed || 0;
-              setShuttleSpeeds((prev) => ({
+            // Use the centralized function to process location update
+            setShuttleLocations((prev) => {
+              const prevShuttle = prev[data.shuttleId];
+              return {
                 ...prev,
-                [data.shuttleId]: speed,
-              }));
-            }
+                [data.shuttleId]: processShuttleLocationUpdate(data, prevShuttle)
+              };
+            });
+
+            // Update shuttle speeds separately for other components that need access
+            setShuttleSpeeds((prev) => ({
+              ...prev,
+              [data.shuttleId]: data.speed || (data.metadata && data.metadata.speed) || 0,
+            }));
           });
         }
 
@@ -352,10 +351,13 @@ const TellerMain = () => {
             let changes = false;
 
             Object.entries(newLocations).forEach(([id, data]) => {
+              if (!data.lastUpdate) return;
+              
               const timeSinceUpdate = now - new Date(data.lastUpdate);
 
               // Mark as offline after 3 missed updates (9 seconds)
               if (
+                !data.isExplicitlyOffline &&
                 data.status !== "offline" &&
                 timeSinceUpdate > LOCATION_UPDATE_INTERVAL * 3
               ) {
@@ -371,11 +373,11 @@ const TellerMain = () => {
                 changes = true;
               }
 
-              // Remove markers that have been offline for 2 minutes
-              if (timeSinceUpdate > 120000) {
-                // 120 seconds = 2 minutes
+              // We no longer remove stationary shuttles with location sharing on
+              // Only remove markers that have location sharing explicitly turned off and been offline for 2 minutes
+              if (data.isExplicitlyOffline && timeSinceUpdate > 120000) {
                 console.log(
-                  `Removing shuttle ${id} - No updates for ${Math.round(
+                  `Removing shuttle ${id} - Explicitly offline for ${Math.round(
                     timeSinceUpdate / 1000
                   )}s (2 minutes)`
                 );
@@ -573,30 +575,16 @@ const TellerMain = () => {
   };
   const toggleSummary = () => setIsSummaryOpen(!isSummaryOpen);
   const toggleTripForm = () => setIsTripFormOpen(!isTripFormOpen);
-  const toggleSidebar = (e) => {
+  const toggleSidebar = (e, forceExpand = false) => {
     if (e) {
-      e.stopPropagation(); // Prevent event bubbling
+      e.stopPropagation();
     }
+    setIsSidebarExpanded((prev) => forceExpand ? true : !prev);
+  };
 
-    // Prevent expansion on mobile devices
-    if (window.innerWidth <= 480) {
-      return;
-    }
-
-    console.log("Toggling sidebar, current state:", isSidebarExpanded);
-
-    // Use callback form to ensure we're working with the latest state
-    setIsSidebarExpanded((prevState) => {
-      const newState = !prevState;
-      console.log("Setting sidebar expanded from", prevState, "to", newState);
-
-      // If we're collapsing the sidebar, also close settings
-      if (prevState && !newState) {
-        setIsSidebarExpanded(false);
-      }
-
-      return newState;
-    });
+  const handleSettingsClick = () => {
+    // Force expand the sidebar when settings is clicked
+    toggleSidebar(null, true);
   };
 
   // Add useEffect for click outside handling
@@ -773,31 +761,16 @@ const TellerMain = () => {
               if (!data || !data.coordinates) return null;
 
               const trafficCondition = getTrafficCondition(data.speed || 0);
-              console.log(`Shuttle ${shuttleId} display data:`, {
-                speed: data.speed,
-                trafficCondition,
-                status: data.status,
-              });
-
-              const isOffline = data.status === "offline";
-
-              const shuttleIcon = new L.Icon({
-                iconUrl: "/car.png",
-                iconRetinaUrl: "/car.png",
-                iconAnchor: [12, 41],
-                popupAnchor: [1, -34],
-                iconSize: [29, 59],
-                shadowUrl:
-                  "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-                shadowSize: [41, 41],
-                className: isOffline ? "grayscale-icon" : "",
-              });
-
+              
               return (
                 <MovingMarker
                   key={shuttleId}
                   position={data.coordinates}
-                  icon={shuttleIcon}
+                  icon={carIcon}
+                  speed={data.speed || 0}
+                  isOffline={data.status === "offline"}
+                  isStationary={!data.isMoving || data.speed < 1}
+                  status={data.status}
                 >
                   <Popup>
                     <div className="TellerMain-shuttle-info">
@@ -806,11 +779,13 @@ const TellerMain = () => {
                         Status:{" "}
                         <span
                           style={{
-                            color: isOffline ? "red" : "green",
+                            color: data.status === "offline" ? "red" : 
+                                   data.status === "At Terminal" ? "#4CAF50" :
+                                   data.status === "Stationary" ? "#ff9800" : "green",
                             fontWeight: "bold",
                           }}
                         >
-                          {isOffline ? "Offline" : "Online"}
+                          {data.status || (data.isOffline ? "Offline" : "Online")}
                         </span>
                       </p>
                       <p>
@@ -844,8 +819,10 @@ const TellerMain = () => {
                     </div>
                   </Popup>
                   <Tooltip direction="right" offset={[10, 0]} permanent>
-                    <span style={{ color: isOffline ? "#999" : "#000" }}>
-                      Shuttle {shuttleId} {isOffline ? "(Offline)" : ""}
+                    <span style={{ color: data.status === "offline" ? "#999" : "#000" }}>
+                      Shuttle {shuttleId} {data.status === "offline" ? "(Offline)" : 
+                                            data.status === "At Terminal" ? "(At Terminal)" : 
+                                            data.status === "Stationary" ? "(Stationary)" : ""}
                     </span>
                   </Tooltip>
                 </MovingMarker>
@@ -859,71 +836,138 @@ const TellerMain = () => {
         userType="teller"
         isExpanded={isSidebarExpanded}
         onToggle={toggleSidebar}
-        onProfileClick={toggleProfile}
+        onProfileClick={toggleProfilePopup}
         onMessageClick={toggleMessageBox}
-        onNotificationClick={handleNotificationClick}
+        onNotificationClick={() => console.log("Notification clicked")}
         onSummaryClick={toggleSummary}
         onTripClick={toggleTripForm}
         profileImage={profileImage}
+        onSettingsClick={handleSettingsClick}
         notificationEnabled={notificationEnabled}
-        onNotificationToggle={updateNotificationPreference}
+        onNotificationToggle={setNotificationEnabled}
         locationEnabled={locationEnabled}
-        onLocationToggle={updateLocationPreference}
-        onSettingsClick={() => {
-          if (!isSidebarExpanded) {
-            setIsSidebarExpanded(true);
-          }
-        }}
+        onLocationToggle={setLocationEnabled}
       />
 
       <Taskbar date={formattedDate} time={formattedTime} />
 
-      {/* Mobile menu content can remain if needed */}
-
-      {/* Notification Popup */}
-      {activePopup === "notifications" && (
-        <NotificationPop
-          notifications={notifications}
-          onClose={toggleNotification}
-        />
-      )}
-
-      {/* Profile Modal */}
       {isProfileOpen && (
         <TellerProfile
-          onClose={toggleProfile}
+          showProfile={isProfileOpen}
+          onToggle={toggleProfile}
           profileImage={profileImage}
-          setProfileImage={setProfileImage}
-          onImageChange={(newImage) => setProfileImage(newImage)}
+          onProfileImageChange={setProfileImage}
+          userEmail={email}
+          onNotificationToggle={(enabled) =>
+            updateNotificationPreference(enabled)
+          }
+          onLocationToggle={(enabled) => updateLocationPreference(enabled)}
+          notificationEnabled={notificationEnabled}
+          locationEnabled={locationEnabled}
         />
       )}
 
-      {/* Summary Modal */}
-      {isSummaryOpen && (
-        <TellerSummary
-          onClose={toggleSummary}
+      {isMessageBoxOpen && (
+        <DriverMessage
+          ref={chatRef}
+          messages={messages}
+          onSendMessage={handleSendMessage}
+          onClose={toggleMessageBox}
+        />
+      )}
+
+      {isSummaryOpen && <TellerSummary onClose={toggleSummary} />}
+
+      {isTripFormOpen && (
+        <ShuttleTripTracking
+          onClose={toggleTripForm}
           shuttleLocations={shuttleLocations}
         />
       )}
 
-      {/* Trip Tracking Modal */}
-      {isTripFormOpen && (
-        <ShuttleTripTracking 
-          onClose={toggleTripForm} 
-          socket={socket.current}
+      {activePopup === "notifications" && (
+        <NotificationPop
+          notifications={notifications}
+          onClose={() => setActivePopup(null)}
+          show={true}
         />
       )}
 
-      {/* Message Box */}
-      {isMessageBoxOpen && (
-        <div ref={chatRef} className="TellerMain-chat-container">
-          <DriverMessage
-            messages={messages}
-            onSendMessage={handleSendMessage}
-            onClose={toggleMessageBox}
-          />
+      <div
+        className={`TellerMain-mobile-menu-toggle ${
+          isMobileMenuOpen ? "active" : ""
+        }`}
+        onClick={toggleMobileMenu}
+      >
+        <div className="TellerMain-hamburger">
+          <span></span>
+          <span></span>
+          <span></span>
         </div>
-      )}
+      </div>
+
+      <div
+        className={`TellerMain-mobile-menu ${isMobileMenuOpen ? "open" : ""}`}
+        ref={mobileMenuRef}
+      >
+        <div className="TellerMain-mobile-menu-header">
+          <img
+            src={profileImage}
+            alt="Profile"
+            className="TellerMain-mobile-profile-pic"
+            onClick={() => handleMobileMenuAction("profile")}
+          />
+          <span className="TellerMain-mobile-menu-title">Menu</span>
+          <button
+            className="TellerMain-mobile-menu-close"
+            onClick={toggleMobileMenu}
+          >
+            &times;
+          </button>
+        </div>
+        <div className="TellerMain-mobile-menu-items">
+          <button
+            className="TellerMain-mobile-menu-item"
+            onClick={() => handleMobileMenuAction("profile")}
+          >
+            <img src="/profile-b.png" alt="Profile" />
+            Profile
+          </button>
+          <button
+            className="TellerMain-mobile-menu-item"
+            onClick={() => handleMobileMenuAction("message")}
+          >
+            <img src="/message-b.png" alt="Messages" />
+            Messages
+          </button>
+          <button
+            className="TellerMain-mobile-menu-item"
+            onClick={() => handleMobileMenuAction("notification")}
+          >
+            <img src="/notif-b.png" alt="Notifications" />
+            Notifications
+            {notifications.length > 0 && (
+              <span className="TellerMain-notification-badge">
+                {notifications.length}
+              </span>
+            )}
+          </button>
+          <button
+            className="TellerMain-mobile-menu-item"
+            onClick={() => handleMobileMenuAction("summary")}
+          >
+            <img src="/summary-b.png" alt="Summary" />
+            Summary
+          </button>
+          <button
+            className="TellerMain-mobile-menu-item"
+            onClick={() => handleMobileMenuAction("trip")}
+          >
+            <img src="/trip-b.png" alt="Trip" />
+            Trip
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

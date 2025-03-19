@@ -74,14 +74,24 @@ const LoginForm = ({ onClose }) => {
 
       if (response.ok) {
         const data = await response.json();
+        
         // Set the token using the utility function
         setToken(data.token);
+        
+        // Store user data
         localStorage.setItem('user', JSON.stringify(data.user));
         
         // Show success message
         toast.success("Successfully logged in!");
 
-        switch (data.user.userType) {
+        // Get user type from response
+        const userType = data.user.userType;
+        
+        // Store user type separately for easier access
+        localStorage.setItem('userType', userType);
+
+        // Navigate based on user type
+        switch (userType) {
           case "Commuter":
             navigate("/ShutlLoggedIn");
             break;
@@ -94,11 +104,17 @@ const LoginForm = ({ onClose }) => {
           case "Driver":
             navigate("/DriverMain");
             break;
+          default:
+            console.error("Unknown user type:", userType);
+            toast.error("Invalid user type");
+            return;
         }
+        
         onClose();
       } else {
-        setError("Invalid username or password");
-        toast.error("Invalid username or password");
+        const errorData = await response.json();
+        setError(errorData.message || "Invalid username or password");
+        toast.error(errorData.message || "Invalid username or password");
       }
     } catch (err) {
       setError("An error occurred during login");

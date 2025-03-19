@@ -17,6 +17,8 @@ import {
   subscribeToEvent,
 } from "../utils/websocketService";
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
+import { removeToken } from "../utils/tokenUtils";
+import { processShuttleLocationUpdate, calculateDistance } from "../utils/locationUtils";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -44,16 +46,8 @@ const AdministratorMain = () => {
   const socket = useRef(null);
 
   const handleLogout = () => {
-    // Clear the token cookie with proper attributes
-    document.cookie =
-      "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=None; Secure";
-
-    // Clear any user data from localStorage
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-
-    // Clear any session storage data if used
-    sessionStorage.clear();
+    // Use the centralized removeToken function
+    removeToken();
 
     // Navigate to the logged out page
     navigate("/ShutlLoggedOut", { replace: true });
@@ -169,23 +163,16 @@ const AdministratorMain = () => {
 
         await fetchAndTrackShuttles();
 
-        // Subscribe to location updates
+        // Subscribe to location updates using the centralized processShuttleLocationUpdate function
         const locationCleanup = await subscribeToLocationUpdates((data) => {
           console.log("Received shuttle location update:", data);
-          setShuttleLocations((prev) => ({
-            ...prev,
-            [data.shuttleId]: {
-              coordinates: data.coordinates,
-              lastUpdate: new Date(data.timestamp || Date.now()),
-              speed: data.metadata?.speed || 0,
-              heading: data.metadata?.heading,
-              accuracy: data.metadata?.accuracy,
-              isPredicted: false,
-              lastKnownCoordinates: data.coordinates,
-              lastKnownSpeed: data.metadata?.speed || 0,
-              lastKnownHeading: data.metadata?.heading,
-            },
-          }));
+          setShuttleLocations((prev) => {
+            const prevShuttle = prev[data.shuttleId];
+            return {
+              ...prev,
+              [data.shuttleId]: processShuttleLocationUpdate(data, prevShuttle)
+            };
+          });
         });
 
         // Clean up stale locations every minute

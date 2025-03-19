@@ -1,3 +1,170 @@
+/**
+ * Location-related utility functions for the SHUTL application
+ */
+
+// Terminal coordinates
+export const TERMINAL_COORDINATES = {
+  lat: 14.385586,
+  lng: 120.978863,
+  radius: 200 // meters
+};
+
+/**
+ * Calculate distance between two coordinates in kilometers
+ * @param {number} lat1 - First coordinate latitude
+ * @param {number} lng1 - First coordinate longitude 
+ * @param {number} lat2 - Second coordinate latitude
+ * @param {number} lng2 - Second coordinate longitude
+ * @returns {number} Distance in kilometers
+ */
+export const calculateDistance = (lat1, lng1, lat2, lng2) => {
+  const R = 6371; // Earth's radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLng / 2) *
+    Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
+/**
+ * Check if coordinates are within the SOMO terminal geofence
+ * @param {Array} coordinates - [latitude, longitude]
+ * @returns {boolean} True if within the terminal geofence
+ */
+export const isWithinTerminalGeofence = (coordinates) => {
+  if (!coordinates) return false;
+  
+  // Calculate distance between shuttle and terminal
+  const distance = calculateDistance(
+    coordinates[0],
+    coordinates[1],
+    TERMINAL_COORDINATES.lat,
+    TERMINAL_COORDINATES.lng
+  );
+  
+  return distance <= TERMINAL_COORDINATES.radius;
+};
+
+/**
+ * Get the shuttle status based on speed, location and movement
+ * @param {number} speed - Speed in km/h
+ * @param {Array} coordinates - [latitude, longitude]
+ * @param {boolean} isMoving - Whether the shuttle is moving
+ * @returns {string} Status description
+ */
+export const getShuttleStatus = (speed, coordinates, isMoving) => {
+  // If offline, maintain that status
+  if (speed === undefined || speed === null) return "Offline";
+  
+  // If moving, determine the traffic condition based on speed
+  if (isMoving) {
+    if (speed < 5) return "Slow Traffic";
+    if (speed < 15) return "Normal";
+    if (speed < 30) return "Fast";
+    return "High Speed";
+  }
+  
+  // Stationary shuttle - check if it's at the terminal
+  if (speed < 0.8 || speed === 0) {
+    if (coordinates && isWithinTerminalGeofence(coordinates)) {
+      return "At Terminal";
+    }
+    return "Stationary";
+  }
+  
+  // Default traffic status based on speed for non-moving shuttles
+  if (speed < 5) return "Slow Traffic";
+  if (speed < 15) return "Normal";
+  if (speed < 30) return "Fast";
+  return "High Speed";
+};
+
+/**
+ * Smooth a shuttle's speed using exponential moving average
+ * @param {number} rawSpeed - The new raw speed reading
+ * @param {number|null} previousSpeed - The previous smoothed speed
+ * @returns {number} The new smoothed speed
+ */
+export const smoothSpeed = (rawSpeed, previousSpeed) => {
+  if (previousSpeed === null || previousSpeed === undefined) {
+    return rawSpeed;
+  }
+  
+  // If raw speed is 0 (or very close to 0), increase alpha to allow quicker transition to zero
+  if (rawSpeed < 0.5) {
+    // Use higher alpha (0.6) to transition to zero more quickly when stopped
+    const smoothedSpeed = previousSpeed * 0.4 + rawSpeed * 0.6;
+      
+    // If smoothed speed is very low, just snap to zero to ensure vehicles can be fully stationary
+    if (smoothedSpeed < 0.8) {
+      return 0;
+    }
+    return smoothedSpeed;
+  } 
+  
+  // Normal smoothing for non-zero speeds (0.3 = 30% new, 70% previous)
+  const SMOOTHING_ALPHA = 0.3;
+  return previousSpeed * (1 - SMOOTHING_ALPHA) + rawSpeed * SMOOTHING_ALPHA;
+};
+
+/**
+ * Determine if a shuttle is moving based on speed and previous speed
+ * @param {number} speed - Current smoothed speed
+ * @param {number|null} previousSpeed - Previous smoothed speed
+ * @returns {boolean} Whether the shuttle is moving
+ */
+export const isShuttleMoving = (speed, previousSpeed) => {
+  if (previousSpeed === null || previousSpeed === undefined) {
+    return speed > 3;
+  }
+  
+  return speed > 3 || Math.abs(speed - previousSpeed) > 1;
+};
+
+/**
+ * Process a location update for a shuttle
+ * @param {object} data - The new location data
+ * @param {object} prevShuttle - The previous shuttle data (or null if new)
+ * @returns {object} The updated shuttle data
+ */
+export const processShuttleLocationUpdate = (data, prevShuttle) => {
+  // Extract speed data and other metadata
+  const rawSpeed = data.speed || (data.metadata && data.metadata.speed) || 0;
+  const heading = data.heading || (data.metadata && data.metadata.heading) || 0;
+  const accuracy = data.accuracy || (data.metadata && data.metadata.accuracy) || 0;
+  const isExplicitlyOffline = data.isExplicitlyOffline || false;
+  
+  // Apply speed smoothing using exponential moving average
+  const smoothedSpeed = smoothSpeed(rawSpeed, prevShuttle?.speed);
+  
+  // Compare speed with previous speed to detect movement
+  const isMoving = isShuttleMoving(smoothedSpeed, prevShuttle?.speed);
+  
+  // Calculate status based on location and movement
+  const status = isExplicitlyOffline 
+    ? "offline" 
+    : getShuttleStatus(smoothedSpeed, data.coordinates, isMoving);
+  
+  return {
+    coordinates: data.coordinates,
+    timestamp: data.timestamp || new Date().toISOString(),
+    lastUpdate: new Date(),
+    metadata: data.metadata || {},
+    rawSpeed: rawSpeed,
+    speed: smoothedSpeed,
+    heading: heading,
+    accuracy: accuracy,
+    isExplicitlyOffline: isExplicitlyOffline,
+    isMoving: isMoving,
+    status: status
+  };
+};
+
 // Predefined locations for the service area
 export const KNOWN_LOCATIONS = {
   // Format: "lat,lon": "location name"
@@ -201,52 +368,6 @@ function getAreaDescription(lat, lon) {
   }
   // Add more area definitions as needed
   return null;
-}
-
-// Change the function declaration to export it
-export function calculateDistance(lat1, lon1, lat2, lon2) {
-  // Handle the case where the function is called with arrays instead of separate parameters
-  if (Array.isArray(lat1) && Array.isArray(lat2)) {
-    // Format: calculateDistance([lat1, lon1], [lat2, lon2])
-    const [lat1Value, lon1Value] = lat1;
-    const [lat2Value, lon2Value] = lat2;
-    return calculateDistance(lat1Value, lon1Value, lat2Value, lon2Value);
-  }
-
-  // Ensure all parameters are numbers
-  lat1 = Number(lat1);
-  lon1 = Number(lon1);
-  lat2 = Number(lat2);
-  lon2 = Number(lon2);
-
-  // Check for invalid inputs
-  if (isNaN(lat1) || isNaN(lon1) || isNaN(lat2) || isNaN(lon2)) {
-    console.warn("Invalid parameters to calculateDistance:", {
-      lat1,
-      lon1,
-      lat2,
-      lon2,
-    });
-    return 0;
-  }
-
-  const R = 6371; // Earth's radius in km
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const distance = R * c; // Distance in km
-  return distance;
-}
-
-// Helper function for converting degrees to radians
-function toRad(degrees) {
-  return (degrees * Math.PI) / 180;
 }
 
 export const clearGeocodeCache = () => {

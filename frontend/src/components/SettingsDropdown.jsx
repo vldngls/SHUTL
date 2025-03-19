@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { removeToken } from "../utils/tokenUtils";
 import "../css/SettingsDropdown.css";
 
 const SettingsDropdown = ({
@@ -12,16 +13,8 @@ const SettingsDropdown = ({
   const handleLogout = (e) => {
     e.stopPropagation();
 
-    // Clear the token cookie with proper attributes
-    document.cookie =
-      "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=None; Secure";
-
-    // Clear any user data from localStorage
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-
-    // Clear any session storage data if used
-    sessionStorage.clear();
+    // Use the centralized removeToken function
+    removeToken();
 
     // Close the dropdown
     if (onClose) {
