@@ -263,31 +263,30 @@ const setupSocketErrorHandling = (
 
 export const disconnectSocket = () => {
   if (socket) {
-    // Clear all event listeners
+    // Clear event listeners but preserve critical ones
     for (const [event, callbacks] of eventListeners.entries()) {
-      callbacks.forEach((callback) => {
-        socket.off(event, callback);
-      });
+      // Don't remove critical event listeners like pickup_request
+      if (event !== 'pickup_request' && event !== 'shuttle_location' && event !== 'shuttle_location_update') {
+        callbacks.forEach((callback) => {
+          socket.off(event, callback);
+        });
+        // Only remove non-critical events from the map
+        eventListeners.delete(event);
+      }
     }
 
-    // Clear all event listeners and maps
-    eventListeners.clear();
-
-    // Clear the ping interval
+    // Keep the socket connection alive but mark as disconnected for the current component
+    // Don't fully disconnect or clear the socket to allow other components to use it
+    isConnecting = false;
+    
+    // Don't set socket to null or call removeAllListeners which would break event listening
+    // This allows other components to still receive events like pickup_request
+    
+    // Clear ping interval if exists
     if (socket.pingInterval) {
       clearInterval(socket.pingInterval);
       socket.pingInterval = null;
     }
-
-    // Disconnect the socket
-    socket.removeAllListeners();
-    socket.disconnect();
-    socket = null;
-    isConnecting = false;
-    reconnectAttempts = 0;
-
-    // Clear queue cleanup interval
-    clearInterval(queueCleanupInterval);
   }
 };
 
@@ -501,8 +500,31 @@ export const getStationaryUpdateInterval = () => STATIONARY_UPDATE_INTERVAL;
 
 // Add a cleanup function for application shutdown
 export const cleanupSocketService = () => {
-  disconnectSocket();
+  if (socket) {
+    // For complete application shutdown, we can fully disconnect
+    
+    // Clear all event listeners without preserving any
+    for (const [event, callbacks] of eventListeners.entries()) {
+      callbacks.forEach((callback) => {
+        socket.off(event, callback);
+      });
+    }
+    
+    // Clear all event listeners and maps
+    eventListeners.clear();
+    
+    // Fully disconnect the socket
+    socket.removeAllListeners();
+    socket.disconnect();
+    socket = null;
+    isConnecting = false;
+    reconnectAttempts = 0;
+  }
+  
+  // Clear message queues
   messageQueue = [];
   locationQueue = [];
+  
+  // Clear queue cleanup interval
   clearInterval(queueCleanupInterval);
 };

@@ -233,12 +233,9 @@ const Sidebar = forwardRef(
         }
         setIsMobileMenuOpen((prev) => !prev);
         setIsSettingsOpen(false); // Close settings when toggling mobile menu
-        if (onActiveShuttlesClick) {
-          onActiveShuttlesClick(); // Close active shuttles when mobile menu is opened
-        }
         document.body.style.overflow = !isMobileMenuOpen ? "hidden" : "";
       },
-      [isMobileMenuOpen, onActiveShuttlesClick]
+      [isMobileMenuOpen]
     );
 
     // Handle clicks outside mobile menu

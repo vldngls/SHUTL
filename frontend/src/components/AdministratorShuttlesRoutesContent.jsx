@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../css/AdministratorShuttlesRoutesContent.css";
+import { maintenanceService } from "../services/api/maintenance";
+import { toast } from "react-hot-toast";
 
 const AdministratorShuttlesRoutesContent = () => {
   const [shuttleData, setShuttleData] = useState([]);
@@ -62,13 +64,34 @@ const AdministratorShuttlesRoutesContent = () => {
           avgPassengers: 0,
         });
         fetchData(); // Refresh data
-        alert("Shuttle added successfully!");
+        
+        // Log the shuttle addition
+        await maintenanceService.createLog(
+          "New shuttle added",
+          "success",
+          `Added shuttle ${newShuttle.shuttleId} with driver ${newShuttle.driver || "none assigned"}`
+        );
+        toast.success("Shuttle added successfully!");
       } else {
-        alert("Error adding shuttle!");
+        toast.error("Error adding shuttle!");
+        
+        // Log the error
+        await maintenanceService.createLog(
+          "Shuttle addition failed",
+          "error",
+          `Failed to add shuttle ${newShuttle.shuttleId}: ${response.data.message || "Unknown error"}`
+        );
       }
     } catch (error) {
       console.error("Error adding shuttle:", error);
-      alert("Failed to add shuttle.");
+      toast.error("Failed to add shuttle.");
+      
+      // Log the error
+      await maintenanceService.createLog(
+        "Shuttle addition failed",
+        "error",
+        `Failed to add shuttle ${newShuttle.shuttleId}: ${error.message}`
+      );
     }
   };
 

@@ -3,6 +3,7 @@ import Select from "react-select";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import { toast } from "react-hot-toast";
 import "../css/CollectFare.css";
+import { maintenanceService } from "../services/api/maintenance";
 
 const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
   const [fareCounts, setFareCounts] = useState({
@@ -200,6 +201,13 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
         duration: 2000,
       });
 
+      // Log this action to maintenance logs
+      await maintenanceService.createLog(
+        "New transaction posted", 
+        "success", 
+        `Transaction for shuttle ${shuttleID}: ₱${totalFare} with ${totalPassengers} passengers`
+      );
+
       if (onTransactionSaved) {
         onTransactionSaved();
       }
@@ -209,6 +217,13 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
     } catch (error) {
       console.error("Error saving transaction:", error);
       toast.error(`Failed to collect fare: ${error.message}`);
+      
+      // Log error to maintenance logs
+      await maintenanceService.createLog(
+        "Transaction failed", 
+        "error", 
+        `Failed to create transaction: ${error.message}`
+      );
     }
   };
 

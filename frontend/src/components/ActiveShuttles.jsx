@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
 import "../css/ActiveShuttles.css";
 import { calculateDistance } from "../utils/locationUtils";
+import { useEffect, useState } from "react";
 
 const ActiveShuttles = ({
   shuttleLocations = {},
@@ -8,6 +9,18 @@ const ActiveShuttles = ({
   onRequestPickup,
   userLocation = null,
 }) => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // Check if we're on mobile for responsive display
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const getTrafficCondition = (speed, status) => {
     // Handle specific statuses first
     if (status === 'At Terminal') return { status: "At Terminal", color: "#4CAF50" };
@@ -54,33 +67,37 @@ const ActiveShuttles = ({
     return `status-${status.toLowerCase().replace(/\s+/g, '-')}`;
   };
 
+  // Get shuttles sorted by distance if user location is available
+  const sortedShuttles = userLocation 
+    ? Object.entries(shuttleLocations)
+        .filter(([, data]) => data && data.coordinates)
+        .map(([shuttleId, data]) => {
+          const distance = calculateDistance(
+            userLocation[0],
+            userLocation[1],
+            data.coordinates[0],
+            data.coordinates[1]
+          );
+          return { shuttleId, data, distance };
+        })
+        .sort((a, b) => a.distance - b.distance)
+    : Object.entries(shuttleLocations)
+        .filter(([, data]) => data && data.coordinates)
+        .map(([shuttleId, data]) => ({ shuttleId, data, distance: null }));
+
   return (
     <div className="as-container">
       <div className="as-header">
-        <h2>Active Shuttles</h2>
+        <h2>Active Shuttles {userLocation ? '(Nearest First)' : ''}</h2>
         <button className="as-close-button" onClick={onClose}>
           ×
         </button>
       </div>
-      {shuttleLocations && Object.entries(shuttleLocations).length > 0 ? (
+      {sortedShuttles.length > 0 ? (
         <div className="as-list">
-          {Object.entries(shuttleLocations).map(([shuttleId, data]) => {
-            if (!data || !data.coordinates) return null;
-
+          {sortedShuttles.map(({ shuttleId, data, distance }) => {
             const trafficCondition = getTrafficCondition(data.speed || 0, data.status);
-            let distance = null;
-            let eta = null;
-
-            if (userLocation && data.coordinates) {
-              distance = calculateDistance(
-                userLocation[0],
-                userLocation[1],
-                data.coordinates[0],
-                data.coordinates[1]
-              );
-              eta = calculateETA(distance, data.speed);
-            }
-
+            const eta = distance ? calculateETA(distance, data.speed) : null;
             const statusClass = getStatusClass(data.status);
             const isOffline = data.status === 'offline';
 
@@ -93,29 +110,46 @@ const ActiveShuttles = ({
                       className="as-traffic-indicator"
                       style={{ backgroundColor: trafficCondition.color }}
                     />
-                    {trafficCondition.status}
+                    {isMobile ? null : trafficCondition.status}
                   </div>
                 </div>
                 
                 <div className="as-item-details">
-                  <div className="as-item-info-row">
-                    <div className="as-item-detail">
-                      <strong>Speed:</strong> {(data.speed || 0).toFixed(1)} km/h
-                    </div>
-                    <div className="as-item-detail">
-                      <strong>Updated:</strong> {formatTimeDifference(data.lastUpdate)}
-                    </div>
-                  </div>
-                  
-                  {distance !== null && (
+                  {isMobile ? (
+                    // More compact layout for mobile
                     <div className="as-item-info-row">
                       <div className="as-item-detail">
-                        <strong>Distance:</strong> {distance.toFixed(1)} km
+                        <strong>Status:</strong> {trafficCondition.status}
                       </div>
-                      <div className="as-item-detail">
-                        <strong>ETA:</strong> {eta} min
-                      </div>
+                      {distance !== null && (
+                        <div className="as-item-detail">
+                          <strong>{eta} min</strong> ({distance.toFixed(1)} km)
+                        </div>
+                      )}
                     </div>
+                  ) : (
+                    // Regular layout for desktop
+                    <>
+                      <div className="as-item-info-row">
+                        <div className="as-item-detail">
+                          <strong>Speed:</strong> {(data.speed || 0).toFixed(1)} km/h
+                        </div>
+                        <div className="as-item-detail">
+                          <strong>Updated:</strong> {formatTimeDifference(data.lastUpdate)}
+                        </div>
+                      </div>
+                      
+                      {distance !== null && (
+                        <div className="as-item-info-row">
+                          <div className="as-item-detail">
+                            <strong>Distance:</strong> {distance.toFixed(1)} km
+                          </div>
+                          <div className="as-item-detail">
+                            <strong>ETA:</strong> {eta} min
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
                 
@@ -124,7 +158,7 @@ const ActiveShuttles = ({
                   onClick={() => onRequestPickup(shuttleId)}
                   disabled={isOffline}
                 >
-                  Request Pickup
+                  {isMobile ? "Request" : "Request Pickup"}
                 </button>
               </div>
             );

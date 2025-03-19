@@ -108,7 +108,7 @@ const formatTimeDifference = (lastUpdate) => {
 const ShutlLoggedIn = () => {
   const [dateTime, setDateTime] = useState(new Date());
   const [userLocation, setUserLocation] = useState(null);
-  const [activePopup, setActivePopup] = useState("activeShuttles");
+  const [activePopup, setActivePopup] = useState(null);
   const [mapInstance, setMapInstance] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [profilePicture, setProfilePicture] = useState("/icon.png");
@@ -551,6 +551,10 @@ const ShutlLoggedIn = () => {
         }
       });
       cleanupFunctionsRef.current = [];
+
+      // Disconnect socket but don't completely destroy it
+      // This will preserve critical event handlers like pickup_request
+      disconnectSocket();
     };
   }, [notificationEnabled, locationEnabled]);
 
@@ -776,7 +780,17 @@ const ShutlLoggedIn = () => {
       e.preventDefault();
       e.stopPropagation();
     }
-    setActivePopup(activePopup === "activeShuttles" ? null : "activeShuttles");
+    
+    // First check if we're on mobile
+    const isMobile = window.innerWidth <= 768;
+    
+    // If on mobile, ensure we're not setting the activePopup state to default "activeShuttles"
+    // Only toggle between null and "activeShuttles"
+    if (isMobile) {
+      setActivePopup(activePopup === "activeShuttles" ? null : "activeShuttles");
+    } else {
+      setActivePopup(activePopup === "activeShuttles" ? null : "activeShuttles");
+    }
   };
 
   // Close all popups function - modified to close all popups without showing active shuttles
@@ -883,7 +897,8 @@ const ShutlLoggedIn = () => {
       });
       cleanupFunctionsRef.current = [];
 
-      // Disconnect socket
+      // Disconnect socket but don't completely destroy it
+      // This will preserve critical event handlers like pickup_request
       disconnectSocket();
     };
   }, []);

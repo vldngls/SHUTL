@@ -363,6 +363,38 @@ const maintenanceController = {
       res.status(500).json({ error: "Failed to get user stats" });
     }
   },
+
+  // Create maintenance log
+  createLog: async (req, res) => {
+    try {
+      const { action, status, details } = req.body;
+      
+      if (!action) {
+        return res.status(400).json({ error: "Action is required" });
+      }
+
+      const log = await MaintenanceLog.create({
+        action,
+        status: status || 'success',
+        details,
+        userId: req.user?._id || null
+      });
+
+      res.json({
+        success: true,
+        log: {
+          id: log._id,
+          time: new Date(log.createdAt).toLocaleTimeString(),
+          action: log.action,
+          status: log.status,
+          details: log.details,
+        }
+      });
+    } catch (error) {
+      console.error("Log creation error:", error);
+      res.status(500).json({ error: "Failed to create maintenance log" });
+    }
+  },
 };
 
 // Helper functions

@@ -2,6 +2,8 @@
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
 import "../css/AdministratorFareContent.css";
+import { maintenanceService } from "../services/api/maintenance";
+import { toast } from "react-hot-toast";
 
 const AdministratorFareContent = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Base URL from environment variables
@@ -44,8 +46,24 @@ const AdministratorFareContent = () => {
       const data = await response.json();
       setFareMatrix([...fareMatrix, data]);
       setNewFare({ fare: "", price: "" });
+      
+      // Log the fare addition
+      await maintenanceService.createLog(
+        "New fare added",
+        "success",
+        `Added ${newFare.fare} fare with price ₱${newFare.price}`
+      );
+      toast.success("Fare added successfully");
     } catch (error) {
       console.error("Error adding fare:", error);
+      toast.error("Failed to add fare");
+      
+      // Log the error
+      await maintenanceService.createLog(
+        "Fare addition failed",
+        "error",
+        `Failed to add ${newFare.fare} fare: ${error.message}`
+      );
     }
   };
 
@@ -70,21 +88,54 @@ const AdministratorFareContent = () => {
         )
       );
       setEditingFare(null);
+      
+      // Log the fare update
+      await maintenanceService.createLog(
+        "Fare updated",
+        "success",
+        `Updated ${updatedFare.fare} fare to price ₱${updatedFare.price}`
+      );
+      toast.success("Fare updated successfully");
     } catch (error) {
       console.error("Error updating fare:", error);
+      toast.error("Failed to update fare");
+      
+      // Log the error
+      await maintenanceService.createLog(
+        "Fare update failed",
+        "error",
+        `Failed to update fare: ${error.message}`
+      );
     }
   };
 
   // Delete a fare
   const deleteFare = async (id) => {
     try {
+      const fareToDelete = fareMatrix.find(fare => fare._id === id);
       const response = await fetch(`${API_BASE_URL}/fares/${id}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Failed to delete fare");
       setFareMatrix(fareMatrix.filter((fare) => fare._id !== id));
+      
+      // Log the fare deletion
+      await maintenanceService.createLog(
+        "Fare deleted",
+        "success",
+        `Deleted ${fareToDelete?.fare || "unknown"} fare`
+      );
+      toast.success("Fare deleted successfully");
     } catch (error) {
       console.error("Error deleting fare:", error);
+      toast.error("Failed to delete fare");
+      
+      // Log the error
+      await maintenanceService.createLog(
+        "Fare deletion failed",
+        "error",
+        `Failed to delete fare: ${error.message}`
+      );
     }
   };
 

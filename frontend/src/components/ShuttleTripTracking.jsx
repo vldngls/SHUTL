@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import "../css/ShuttleTripTracking.css"; // Import the CSS file
 import { useState, useEffect } from "react";
 import { getCookie } from "../utils/cookieUtils"; // Add this import at the top with other imports
+import { maintenanceService } from "../services/api/maintenance";
 
 const ShuttleTripTracking = ({ onClose, socket }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -263,7 +264,7 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
       // Create a date object in local timezone
       const [year, month, day] = tripData.date.split("-").map(Number);
       const [hours, minutes] = tripData.time.split(":").map(Number);
-
+      
       // Create the date in local timezone
       const localDate = new Date(year, month - 1, day, hours, minutes);
 
@@ -286,10 +287,23 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
 
       showToast("Creating new trip...", "info");
       socket.emit("create_trip", tripDataToSend);
-
+      
+      // Log this trip creation to maintenance logs
+      await maintenanceService.createLog(
+        "New trip logged", 
+        "success", 
+        `Trip created for shuttle ${tripData.shuttleNumber}, driver: ${tripData.driver}, status: ${tripData.status}, passengers: ${tripData.passengerCount}`
+      );
     } catch (error) {
       console.error("Trip creation error:", error);
       showToast(error.message || "Failed to create trip", "error");
+      
+      // Log error to maintenance logs
+      await maintenanceService.createLog(
+        "Trip logging failed", 
+        "error", 
+        `Failed to log trip: ${error.message}`
+      );
     }
   };
 
@@ -301,6 +315,15 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
       // Clear roundTripId when switching to Out status
       roundTripId: newStatus === "Out" ? "" : prev.roundTripId
     }));
+    
+    // Log this status change to maintenance logs
+    maintenanceService.createLog(
+      "Trip status changed", 
+      "success", 
+      `Status changed to ${newStatus}`
+    ).catch(error => {
+      console.error("Error logging status change:", error);
+    });
   };
 
   // Calculate pagination

@@ -4,6 +4,7 @@ import { authenticateToken, isAdmin } from "../middleware/auth.js";
 import User from "../models/user.model.js";
 import { getLoginHistory } from "../controllers/userController.js";
 import MaintenanceSettings from '../models/maintenanceSettings.model.js';
+import MaintenanceLog from '../models/maintenanceLog.model.js';
 
 const router = express.Router();
 
@@ -72,6 +73,9 @@ router.get("/stats", maintenanceController.getApiStats);
 
 // Maintenance logs
 router.get("/logs", maintenanceController.getLogs);
+
+// Create maintenance log
+router.post("/logs/create", maintenanceController.createLog);
 
 // User stats
 router.get("/users/stats", maintenanceController.getUserStats);

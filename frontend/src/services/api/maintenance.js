@@ -94,4 +94,19 @@ export const maintenanceService = {
       throw new Error('Failed to toggle maintenance mode');
     }
   },
+  
+  // Create a maintenance log entry
+  createLog: async (action, status = 'success', details = '') => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/maintenance/logs/create`, 
+        { action, status, details }, 
+        { ...axiosConfig, ...getAuthHeader() }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error creating maintenance log:', error);
+      // Don't throw here to prevent breaking application flow when logging fails
+      return { success: false, error: error.message };
+    }
+  }
 }; 

@@ -423,6 +423,9 @@ const DriverMain = () => {
             return;
           }
 
+          // Add logging to track pickup request handling
+          console.log(`Processing pickup request ${request.requestId} from ${request.userEmail || 'unknown user'}`);
+
           setPickupRequests((prev) => {
             const isDuplicate = prev.some(
               (r) => r.requestId === request.requestId
@@ -441,7 +444,26 @@ const DriverMain = () => {
               request.location.streetName || "unknown location"
             }!`
           );
-          setNotifications((prev) => [notification, ...prev].slice(0, 5));
+          
+          // Ensure notification appears and triggers UI update
+          setNotifications((prev) => {
+            const updatedNotifications = [notification, ...prev].slice(0, 5);
+            console.log("Updated notifications with pickup request");
+            return updatedNotifications;
+          });
+          
+          // Force open the notifications popup to alert driver
+          setActivePopup("notifications");
+          
+          // Add a sound or toast notification for better visibility
+          toast.success(`New pickup request from ${request.userEmail || 'unknown user'}!`, {
+            position: "top-center",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
         });
 
         socketInstance.on("pickup_request_taken", (requestId) => {
