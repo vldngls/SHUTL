@@ -480,103 +480,103 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved, onCustomModeChang
                 </button>
               </div>
             ) : customTransaction ? (
-              // Original CollectFare layout for custom transactions
-              <div className="CollectFare-calculator-grid">
-                {/* Left Column */}
-                <div className="CollectFare-calculator-left">
-                  <div className="CollectFare-calculator">
-                    <div className="CollectFare-row header">
-                      <span>Customer Type</span>
-                      <span>Add/Minus</span>
-                      <span>Count</span>
-                      <span>Price</span>
-                    </div>
-                    {fareTypes.map(({ upperCase, original }) => (
-                      <div key={upperCase} className="CollectFare-row">
-                        <span>
-                          {original} (₱{fares[upperCase]})
-                        </span>
-                        <div className="CollectFare-button-group">
-                          <button
-                            onClick={() => handleCountChange(upperCase, 1)}
-                            className="CollectFare-control-button"
-                          >
-                            +
-                          </button>
-                          <button
-                            onClick={() => handleCountChange(upperCase, -1)}
-                            className="CollectFare-control-button"
-                            disabled={fareCounts[upperCase] === 0}
-                          >
-                            -
-                          </button>
-                        </div>
-                        <span className="CollectFare-passenger-count">
-                          {fareCounts[upperCase] || 0}
-                        </span>
-                        <span className="CollectFare-amount">
-                          ₱{((fareCounts[upperCase] || 0) * (fares[upperCase] || 0)).toFixed(2)}
-                        </span>
+              <>
+                <div className="CollectFare-calculator-grid">
+                  {/* Left Column */}
+                  <div className="CollectFare-calculator-left">
+                    <div className="CollectFare-calculator">
+                      <div className="CollectFare-row header">
+                        <span>Customer Type</span>
+                        <span>Add/Minus</span>
+                        <span>Count</span>
+                        <span>Price</span>
                       </div>
-                    ))}
-                    <div className="CollectFare-total">
-                      <span>Total Amount:</span>
-                      <strong>₱{calculateTotal().toFixed(2)}</strong>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Column */}
-                <div className="CollectFare-calculator-right">
-                  <div className="CollectFare-tender">
-                    <label htmlFor="tender">Tender Amount:</label>
-                    <div className="CollectFare-tender-input-container">
-                      <span className="CollectFare-peso-sign">₱</span>
-                      <input
-                        id="tender"
-                        type="text"
-                        inputMode="decimal"
-                        value={tender}
-                        onChange={handleTenderChange}
-                        placeholder="0.00"
-                        className="CollectFare-tender-input"
-                      />
-                    </div>
-                    <div className="CollectFare-preset-amounts">
-                      {presetAmounts.map((amount) => (
-                        <button
-                          key={amount}
-                          className="CollectFare-preset-amount-btn"
-                          onClick={() => handlePresetAmount(amount)}
-                        >
-                          ₱{amount}
-                        </button>
+                      {fareTypes.map(({ upperCase, original }) => (
+                        <div key={upperCase} className="CollectFare-row">
+                          <span>
+                            {original} (₱{fares[upperCase]})
+                          </span>
+                          <div className="CollectFare-button-group">
+                            <button
+                              onClick={() => handleCountChange(upperCase, 1)}
+                              className="CollectFare-control-button"
+                            >
+                              +
+                            </button>
+                            <button
+                              onClick={() => handleCountChange(upperCase, -1)}
+                              className="CollectFare-control-button"
+                              disabled={fareCounts[upperCase] === 0}
+                            >
+                              -
+                            </button>
+                          </div>
+                          <span className="CollectFare-passenger-count">
+                            {fareCounts[upperCase] || 0}
+                          </span>
+                          <span className="CollectFare-amount">
+                            ₱{((fareCounts[upperCase] || 0) * (fares[upperCase] || 0)).toFixed(2)}
+                          </span>
+                        </div>
                       ))}
+                      <div className="CollectFare-total">
+                        <span>Total Amount:</span>
+                        <strong>₱{calculateTotal().toFixed(2)}</strong>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="CollectFare-change">
-                    <span>Change:</span>
-                    <strong>₱{change >= 0 ? change.toFixed(2) : "0.00"}</strong>
-                  </div>
+                  {/* Right Column */}
+                  <div className="CollectFare-calculator-right">
+                    <div className="CollectFare-tender">
+                      <label htmlFor="tender">Tender Amount:</label>
+                      <div className="CollectFare-tender-input-container">
+                        <span className="CollectFare-peso-sign">₱</span>
+                        <input
+                          id="tender"
+                          type="text"
+                          inputMode="decimal"
+                          value={tender}
+                          onChange={handleTenderChange}
+                          placeholder="0.00"
+                          className="CollectFare-tender-input"
+                        />
+                      </div>
+                      <div className="CollectFare-preset-amounts">
+                        {presetAmounts.map((amount) => (
+                          <button
+                            key={amount}
+                            className="CollectFare-preset-amount-btn"
+                            onClick={() => handlePresetAmount(amount)}
+                          >
+                            ₱{amount}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
-                  <div className="CollectFare-commuter">
-                    <label htmlFor="commuterEmail">Commuter Email:</label>
-                    <Select
-                      options={commuterEmails}
-                      onChange={(selectedOption) =>
-                        setCommuterEmail(selectedOption?.value || "")
-                      }
-                      isClearable
-                      placeholder="Select or type an email"
-                      value={commuterEmails.find(
-                        (option) => option.value === commuterEmail
-                      )}
-                    />
-                    <button onClick={handleQrScannerToggle} className="CollectFare-qr-button">
+                    <div className="CollectFare-change">
+                      <span>Change:</span>
+                      <strong>₱{change >= 0 ? change.toFixed(2) : "0.00"}</strong>
+                    </div>
+
+                    <div className="CollectFare-commuter">
+                      <label htmlFor="commuterEmail">Commuter Email:</label>
+                      <Select
+                        options={commuterEmails}
+                        onChange={(selectedOption) =>
+                          setCommuterEmail(selectedOption?.value || "")
+                        }
+                        isClearable
+                        placeholder="Select or type an email"
+                        value={commuterEmails.find(
+                          (option) => option.value === commuterEmail
+                        )}
+                      />
+                      <button onClick={handleQrScannerToggle} className="CollectFare-qr-button">
                         Scan QR Code
-                    </button>
-                  </div>
+                      </button>
+                    </div>
 
                     <div className="CollectFare-payment-method">
                       <label>Payment Method:</label>
@@ -664,312 +664,118 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved, onCustomModeChang
                     )}
                   </div>
                 </div>
-              ) : (
-                // QR-scanned transactions form with new styling
-                <div className="CollectFare-form">
-                  <div className="CollectFare-section">
-                    <h3 className="CollectFare-section-title">Payment Method: {paymentMethod}</h3>
-                    <div className="CollectFare-payment-buttons">
-                      <button
-                        className={`CollectFare-payment-btn ${paymentMethod === "CASH" ? "active" : ""}`}
-                        onClick={() => setPaymentMethod("CASH")}
-                      >
-                        Cash
-                      </button>
-                      <button
-                        className={`CollectFare-payment-btn ${paymentMethod === "DIGITAL" ? "active" : ""}`}
-                        onClick={() => setPaymentMethod("DIGITAL")}
-                      >
-                        Digital
-                      </button>
-                    </div>
-                  </div>
 
-                  <div className="CollectFare-section">
-                    <h3 className="CollectFare-section-title">Passenger Count</h3>
-                    <div className="CollectFare-passenger-counts">
-                      {fareTypes.map(({ upperCase, original }) => (
-                        <div key={upperCase} className="CollectFare-passenger-type">
-                          <div className="CollectFare-passenger-info">
-                            <span>{original}:</span>
-                            <span className="CollectFare-fare-price">₱{fares[upperCase]} each</span>
-                          </div>
-                          <div className="CollectFare-counter-controls">
-                            <button
-                              className="CollectFare-counter-btn"
-                              onClick={() => handleCountChange(upperCase, -1)}
-                              disabled={fareCounts[upperCase] <= 0}
-                            >
-                              -
-                            </button>
-                            <span className="CollectFare-counter-value">{fareCounts[upperCase] || 0}</span>
-                            <button
-                              className="CollectFare-counter-btn"
-                              onClick={() => handleCountChange(upperCase, 1)}
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {paymentMethod === "DIGITAL" && (
-                    <div className="CollectFare-section">
-                      <h3 className="CollectFare-section-title">Digital Payment Receipt</h3>
-                      {!showCamera ? (
-                        <div className="CollectFare-camera-controls">
-                          {image ? (
-                            <div className="CollectFare-image-preview">
-                              <img src={image} alt="Digital Payment Receipt" />
-                              <button 
-                                className="CollectFare-retake-btn"
-                                onClick={() => setShowCamera(true)}
-                              >
-                                Retake
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="CollectFare-upload-options">
-                              <button 
-                                className="CollectFare-take-photo-btn"
-                                onClick={() => setShowCamera(true)}
-                              >
-                                Take Photo of Receipt
-                              </button>
-                              <div className="CollectFare-file-upload-container">
-                                <label htmlFor="receipt-upload" className="CollectFare-upload-btn">
-                                  Upload Image
-                                </label>
-                                <input
-                                  id="receipt-upload"
-                                  type="file"
-                                  accept="image/*"
-                                  style={{ display: 'none' }}
-                                  onChange={(e) => {
-                                    const file = e.target.files[0];
-                                    if (file) {
-                                      const reader = new FileReader();
-                                      reader.onloadend = () => {
-                                        setImage(reader.result);
-                                      };
-                                      reader.readAsDataURL(file);
-                                    }
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="CollectFare-camera-container">
-                          <Camera ref={camera} />
-                          <div className="CollectFare-camera-controls">
-                            <button 
-                              className="CollectFare-capture-btn"
-                              onClick={takePicture}
-                            >
-                              Capture
-                            </button>
-                            <button 
-                              className="CollectFare-cancel-camera-btn"
-                              onClick={() => setShowCamera(false)}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="CollectFare-section">
-                    <h3 className="CollectFare-section-title">Commuter</h3>
-                    <Select
-                      options={commuterEmails}
-                      value={{ label: commuterEmail, value: commuterEmail }}
-                      onChange={(option) => setCommuterEmail(option?.value || "")}
-                      className="CollectFare-commuter-email"
-                      classNamePrefix="CollectFare-select"
-                      placeholder="Select or type commuter email"
-                      isSearchable
-                      isClearable
-                    />
-                  </div>
-
-                  <div className="CollectFare-section">
-                    <h3 className="CollectFare-section-title">Summary</h3>
-                    <div className="CollectFare-summary">
-                      <div className="CollectFare-summary-row">
-                        <span className="CollectFare-summary-label">Total Fare:</span>
-                        <span className="CollectFare-summary-value">₱{calculateTotal().toFixed(2)}</span>
-                      </div>
-
-                      <div className="CollectFare-summary-row">
-                        <span className="CollectFare-summary-label">Tendered Amount:</span>
-                        <input
-                          type="text"
-                          className="CollectFare-tender-input"
-                          value={tender}
-                          onChange={handleTenderChange}
-                          placeholder="0.00"
-                        />
-                      </div>
-
-                      <div className="CollectFare-preset-amounts">
-                        {presetAmounts.map((amount) => (
-                          <button
-                            key={amount}
-                            className="CollectFare-preset-btn"
-                            onClick={() => handlePresetAmount(amount)}
-                          >
-                            ₱{amount}
-                          </button>
-                        ))}
-                      </div>
-
-                      <div className="CollectFare-summary-row">
-                        <span className="CollectFare-summary-label">Change:</span>
-                        <span className="CollectFare-summary-value">₱{Math.max(0, change).toFixed(2)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="CollectFare-form-actions">
-                    <button className="CollectFare-cancel-btn" onClick={handleCancel}>
-                      Cancel
-                    </button>
-                    <button
-                      className="CollectFare-confirm-btn"
-                      onClick={handleProceedToConfirmation}
-                      disabled={paymentMethod === "DIGITAL" && !image}
-                    >
-                      Proceed to Confirm
-                    </button>
-                  </div>
-
-                  <button 
-                    className="CollectFare-scan-qr-btn" 
-                    onClick={handleQrScannerToggle}
-                  >
-                    Scan QR Code
-                  </button>
-                </div>
-              )}
-
-              {/* Common action buttons for custom transaction mode */}
-              {customTransaction && (
-            <div className="CollectFare-actions">
-              <button onClick={handleCancel} className="secondary">
-                Cancel
-              </button>
-              <button onClick={handleSubmit} className="primary" disabled={isLoading}>
-                Save
-              </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Confirmation Modal for QR Scans */}
-          {showConfirmation && qrTransactionData && (
-            <div className="CollectFare-confirmation-modal-overlay">
-              <div className="CollectFare-confirmation-modal">
-                <h3>Confirm Transaction</h3>
-                <div className="CollectFare-confirmation-details">
-                  <p><strong>User:</strong> {qrTransactionData.email}</p>
-                  <p><strong>Fare Type:</strong> {qrTransactionData.fareType}</p>
-                  <p><strong>Amount:</strong> ₱{qrTransactionData.amount.toFixed(2)}</p>
-                  <p><strong>Payment Method:</strong> {qrTransactionData.paymentMethod}</p>
-                  <p><strong>Passengers:</strong></p>
-                  {Object.entries(qrTransactionData.passengerCounts).map(([type, count]) => (
-                    count > 0 && (
-                      <p key={type} style={{ marginLeft: '20px' }}>
-                        - {type}: {count}
-                      </p>
-                    )
-                  ))}
-                  
-                  {qrTransactionData.paymentMethod === "DIGITAL" && (
-                    <div className="CollectFare-digital-receipt-upload">
-                      <p><strong>Digital Payment Receipt:</strong></p>
-                      {!image ? (
-                        <div className="CollectFare-upload-options">
-                          <button 
-                            className="CollectFare-upload-btn"
-                            onClick={() => setShowCamera(true)}
-                          >
-                            Take Photo
-                          </button>
-                          <div className="CollectFare-file-upload-container">
-                            <label htmlFor="receipt-upload" className="CollectFare-upload-btn">
-                              Upload Image
-                            </label>
-                            <input
-                              id="receipt-upload"
-                              type="file"
-                              accept="image/*"
-                              style={{ display: 'none' }}
-                              onChange={(e) => {
-                                const file = e.target.files[0];
-                                if (file) {
-                                  const reader = new FileReader();
-                                  reader.onloadend = () => {
-                                    setImage(reader.result);
-                                  };
-                                  reader.readAsDataURL(file);
-                                }
-                              }}
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="CollectFare-receipt-preview">
-                          <img src={image} alt="Digital Payment Receipt" />
-                          <button 
-                            className="CollectFare-remove-receipt-btn"
-                            onClick={() => setImage(null)}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <div className="CollectFare-confirmation-buttons">
-                  <button className="CollectFare-cancel-confirm-btn" onClick={handleCancelConfirmation}>
+                {/* Action Buttons */}
+                <div className="CollectFare-actions">
+                  <button onClick={handleCancel} className="secondary">
                     Cancel
                   </button>
-                  <button 
-                    className="CollectFare-confirm-btn" 
-                    onClick={handleConfirmTransaction}
-                    disabled={qrTransactionData.paymentMethod === "DIGITAL" && !image}
-                  >
-                    Confirm
+                  <button onClick={handleSubmit} className="primary" disabled={isLoading}>
+                    Save
                   </button>
                 </div>
+              </>
+            ) : null}
+          </div>
+        )}
+
+        {/* Confirmation Modal for QR Scans */}
+        {showConfirmation && qrTransactionData && (
+          <div className="CollectFare-confirmation-modal-overlay">
+            <div className="CollectFare-confirmation-modal">
+              <h3>Confirm Transaction</h3>
+              <div className="CollectFare-confirmation-details">
+                <p><strong>User:</strong> {qrTransactionData.email}</p>
+                <p><strong>Fare Type:</strong> {qrTransactionData.fareType}</p>
+                <p><strong>Amount:</strong> ₱{qrTransactionData.amount.toFixed(2)}</p>
+                <p><strong>Payment Method:</strong> {qrTransactionData.paymentMethod}</p>
+                <p><strong>Passengers:</strong></p>
+                {Object.entries(qrTransactionData.passengerCounts).map(([type, count]) => (
+                  count > 0 && (
+                    <p key={type} style={{ marginLeft: '20px' }}>
+                      - {type}: {count}
+                    </p>
+                  )
+                ))}
+                
+                {qrTransactionData.paymentMethod === "DIGITAL" && (
+                  <div className="CollectFare-digital-receipt-upload">
+                    <p><strong>Digital Payment Receipt:</strong></p>
+                    {!image ? (
+                      <div className="CollectFare-upload-options">
+                        <button 
+                          className="CollectFare-upload-btn"
+                          onClick={() => setShowCamera(true)}
+                        >
+                          Take Photo
+                        </button>
+                        <div className="CollectFare-file-upload-container">
+                          <label htmlFor="receipt-upload" className="CollectFare-upload-btn">
+                            Upload Image
+                          </label>
+                          <input
+                            id="receipt-upload"
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={(e) => {
+                              const file = e.target.files[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setImage(reader.result);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="CollectFare-receipt-preview">
+                        <img src={image} alt="Digital Payment Receipt" />
+                        <button 
+                          className="CollectFare-remove-receipt-btn"
+                          onClick={() => setImage(null)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="CollectFare-confirmation-buttons">
+                <button className="CollectFare-cancel-confirm-btn" onClick={handleCancelConfirmation}>
+                  Cancel
+                </button>
+                <button 
+                  className="CollectFare-confirm-btn" 
+                  onClick={handleConfirmTransaction}
+                  disabled={qrTransactionData.paymentMethod === "DIGITAL" && !image}
+                >
+                  Confirm
+                </button>
               </div>
             </div>
-          )}
-          
-          {/* Camera Modal */}
-          {showCamera && (
-            <div className="CollectFare-camera-modal-overlay">
-              <div className="CollectFare-camera-modal">
-                <div className="CollectFare-camera-container">
-                  <Camera ref={camera} />
-                </div>
-                <div className="CollectFare-camera-buttons">
-                  <button onClick={() => setShowCamera(false)}>Cancel</button>
-                  <button onClick={takePicture}>Take Photo</button>
-                </div>
+          </div>
+        )}
+        
+        {/* Camera Modal */}
+        {showCamera && (
+          <div className="CollectFare-camera-modal-overlay">
+            <div className="CollectFare-camera-modal">
+              <div className="CollectFare-camera-container">
+                <Camera ref={camera} />
+              </div>
+              <div className="CollectFare-camera-buttons">
+                <button onClick={() => setShowCamera(false)}>Cancel</button>
+                <button onClick={takePicture}>Take Photo</button>
               </div>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
