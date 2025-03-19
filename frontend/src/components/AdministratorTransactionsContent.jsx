@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import "../css/AdministratorTransactionsContent.css";
-import { Line, Pie } from "react-chartjs-2";
+import { Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -100,12 +100,17 @@ const AdministratorTransactionsContent = () => {
       const stats = data.reduce(
         (acc, transaction) => {
           acc.totalFare += transaction.totalFare;
-          Object.entries(transaction.passengerCounts).forEach(
-            ([type, count]) => {
-              acc.passengerCounts[type] =
-                (acc.passengerCounts[type] || 0) + count;
-            }
-          );
+          
+          // Handle Regular with case sensitivity
+          acc.passengerCounts.Regular += 
+            (transaction.passengerCounts?.Regular || 0) + 
+            (transaction.passengerCounts?.REGULAR || 0);
+          
+          // Handle other passenger types
+          acc.passengerCounts.PWD += transaction.passengerCounts?.PWD || 0;
+          acc.passengerCounts.STUDENT += transaction.passengerCounts?.STUDENT || 0;
+          acc.passengerCounts.SENIOR += transaction.passengerCounts?.SENIOR || 0;
+          
           return acc;
         },
         {
@@ -341,12 +346,14 @@ const AdministratorTransactionsContent = () => {
                 <th>Student</th>
                 <th>Senior</th>
                 <th>Total Fare</th>
+                <th>Tendered</th>
+                <th>Change</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: 'var(--adm-spacing-6)' }}>
+                  <td colSpan="10" style={{ textAlign: 'center', padding: 'var(--adm-spacing-6)' }}>
                     Loading transactions...
                   </td>
                 </tr>
@@ -356,18 +363,24 @@ const AdministratorTransactionsContent = () => {
                     <td>{transaction.date}</td>
                     <td>{transaction.time}</td>
                     <td>{transaction.shuttleID}</td>
-                    <td>{transaction.passengerCounts.Regular || 0}</td>
+                    <td>{transaction.passengerCounts.Regular || transaction.passengerCounts.REGULAR || 0}</td>
                     <td>{transaction.passengerCounts.PWD || 0}</td>
                     <td>{transaction.passengerCounts.STUDENT || 0}</td>
                     <td>{transaction.passengerCounts.SENIOR || 0}</td>
                     <td>
                       <span className="adm-transaction-amount positive">₱{transaction.totalFare.toFixed(2)}</span>
                     </td>
+                    <td>
+                      <span className="adm-transaction-amount tender">₱{transaction.tender.toFixed(2)}</span>
+                    </td>
+                    <td>
+                      <span className="adm-transaction-amount change">₱{transaction.change.toFixed(2)}</span>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: 'var(--adm-spacing-6)' }}>
+                  <td colSpan="10" style={{ textAlign: 'center', padding: 'var(--adm-spacing-6)' }}>
                     No transactions found for the selected date range
                   </td>
                 </tr>

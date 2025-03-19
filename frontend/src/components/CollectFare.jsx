@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Select from "react-select";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import { toast } from "react-hot-toast";
@@ -17,6 +17,7 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
   const [qrError, setQrError] = useState("");
   const [scanner, setScanner] = useState(null);
   const [fares, setFares] = useState({});
+  const [fareTypes, setFareTypes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -34,15 +35,21 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
         const data = await response.json();
         const fareMap = {};
         const fareCountsMap = {};
+        const originalFareTypes = [];
         
         data.forEach((fare) => {
-          const fareType = fare.fare.toUpperCase();
-          fareMap[fareType] = parseFloat(fare.price);
-          fareCountsMap[fareType] = 0;
+          const upperCaseFareType = fare.fare.toUpperCase();
+          fareMap[upperCaseFareType] = parseFloat(fare.price);
+          fareCountsMap[upperCaseFareType] = 0;
+          originalFareTypes.push({
+            upperCase: upperCaseFareType,
+            original: fare.fare
+          });
         });
         
         setFares(fareMap);
         setFareCounts(fareCountsMap);
+        setFareTypes(originalFareTypes);
       } catch (error) {
         console.error("Error fetching fares:", error);
         toast.error("Failed to load fare data. Please try again.");
@@ -121,17 +128,22 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
   }, [showQrScanner]);
 
   const calculateTotal = () => {
-    return Object.entries(fareCounts).reduce((total, [fareType, count]) => {
-      const farePrice = fares[fareType] || 0;
-      return total + (count || 0) * farePrice;
+    return fareTypes.reduce((total, { upperCase }) => {
+      const count = fareCounts[upperCase] || 0;
+      const price = fares[upperCase] || 0;
+      return total + count * price;
     }, 0);
   };
 
   const handleCountChange = (fareType, increment) => {
-    setFareCounts((prev) => ({
-      ...prev,
-      [fareType]: Math.max(0, prev[fareType] + increment),
-    }));
+    setFareCounts((prev) => {
+      // Ensure the current count is a valid number before incrementing
+      const currentCount = prev[fareType] || 0;
+      return {
+        ...prev,
+        [fareType]: Math.max(0, currentCount + increment)
+      };
+    });
   };
 
   // Modify handleTenderChange to handle string inputs
@@ -181,6 +193,12 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
       const date = now.toISOString().split("T")[0]; // YYYY-MM-DD
       const time = now.toTimeString().split(" ")[0].substring(0, 5); // HH:MM
 
+      // Create passenger counts in the original case format
+      const passengerCounts = {};
+      fareTypes.forEach(({ upperCase, original }) => {
+        passengerCounts[original] = fareCounts[upperCase] || 0;
+      });
+
       const response = await fetch(`${API_BASE_URL}/fare-transactions`, {
         method: "POST",
         headers: {
@@ -188,7 +206,7 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
         },
         body: JSON.stringify({
           shuttleID,
-          passengerCounts: fareCounts,
+          passengerCounts,
           totalFare,
           tender: tenderAmount,
           change: tenderAmount - totalFare,
@@ -259,21 +277,6 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
     setShowQrScanner((prev) => !prev);
   };
 
-  const handleQrScanResult = (result) => {
-    if (result) {
-      setQrResult(result);
-      setCommuterEmail(result);
-      setShowQrScanner(false);
-    }
-  };
-
-  const handleQrError = (error) => {
-    console.error("QR Scanner Error:", error);
-    setQrError(
-      "Failed to access camera. Please ensure camera permissions are granted."
-    );
-  };
-
   return (
     <div className="CollectFare-modal">
       <div className="CollectFare-container">
@@ -293,31 +296,31 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved }) => {
                   <span>Count</span>
                   <span>Price</span>
                 </div>
-                {Object.entries(fares).map(([fareType, price]) => (
-                  <div key={fareType} className="fare-row">
+                {fareTypes.map(({ upperCase, original }) => (
+                  <div key={upperCase} className="fare-row">
                     <span>
-                      {fareType} (₱{price})
+                      {original} (₱{fares[upperCase]})
                     </span>
                     <div className="button-group">
                       <button
-                        onClick={() => handleCountChange(fareType, 1)}
+                        onClick={() => handleCountChange(upperCase, 1)}
                         className="control-button"
                       >
                         +
                       </button>
                       <button
-                        onClick={() => handleCountChange(fareType, -1)}
+                        onClick={() => handleCountChange(upperCase, -1)}
                         className="control-button"
-                        disabled={fareCounts[fareType] === 0}
+                        disabled={fareCounts[upperCase] === 0}
                       >
                         -
                       </button>
                     </div>
                     <span className="passenger-count">
-                      {fareCounts[fareType] || 0}
+                      {fareCounts[upperCase] || 0}
                     </span>
                     <span className="fare-amount">
-                      ₱{((fareCounts[fareType] || 0) * (price || 0)).toFixed(2)}
+                      ₱{((fareCounts[upperCase] || 0) * (fares[upperCase] || 0)).toFixed(2)}
                     </span>
                   </div>
                 ))}

@@ -1,5 +1,4 @@
 import { useRef, useEffect, useState, useCallback } from "react";
-import { jwtDecode } from "jwt-decode";
 import { toast } from "react-hot-toast";
 import Cropper from "react-easy-crop";
 import { createPortal } from "react-dom";
@@ -119,13 +118,6 @@ CropModal.propTypes = {
   onComplete: PropTypes.func.isRequired,
 };
 
-const DISCOUNT_TYPES = {
-  REGULAR: { label: "Regular", value: 0 },
-  PWD: { label: "PWD", value: 20 },
-  STUDENT: { label: "Student", value: 20 },
-  SENIOR: { label: "Senior Citizen", value: 20 },
-};
-
 const DISCOUNT_STATUS = {
   PENDING: { label: "Pending Approval", color: "#f0ad4e" },
   APPROVED: { label: "Approved", color: "#5cb85c" },
@@ -145,12 +137,7 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
   const [currentPage, setCurrentPage] = useState(1);
   const transactionsPerPage = 3;
   const [showTransactions, setShowTransactions] = useState(false);
-  const [discountTypes, setDiscountTypes] = useState({
-    REGULAR: { label: "Regular", value: 0 },
-    PWD: { label: "PWD", value: 20 },
-    STUDENT: { label: "Student", value: 20 },
-    SENIOR: { label: "Senior Citizen", value: 20 },
-  });
+  const [discountTypes, setDiscountTypes] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -436,7 +423,7 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
         const data = await response.json();
         const fareMap = {};
         data.forEach((fare) => {
-          fareMap[fare.fare] = {
+          fareMap[fare.fare.toUpperCase()] = {
             label: fare.fare,
             value: parseFloat(fare.price),
           };
@@ -745,11 +732,13 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
                   <p>
                     Date: {new Date(transaction.createdAt).toLocaleDateString()}
                   </p>
-                  <p>Regular: {transaction.passengerCounts?.Regular || 0}</p>
+                  <p>Regular: {transaction.passengerCounts?.Regular || transaction.passengerCounts?.REGULAR || 0}</p>
                   <p>PWD: {transaction.passengerCounts?.PWD || 0}</p>
                   <p>Student: {transaction.passengerCounts?.STUDENT || 0}</p>
                   <p>Senior: {transaction.passengerCounts?.SENIOR || 0}</p>
                   <p>Total Fare: ₱{transaction.totalFare}</p>
+                  <p>Amount Tendered: ₱{transaction.tender || 0}</p>
+                  <p>Change: ₱{transaction.change || 0}</p>
                 </div>
               ))}
             </div>

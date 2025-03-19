@@ -166,6 +166,15 @@
   font-style: italic;
 }
 
+.transaction-tender,
+.transaction-change {
+  display: block;
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 4px;
+  font-weight: normal;
+}
+
 .close-btn {
   background-color: #007bff;
   color: white;
@@ -245,6 +254,11 @@
   .transaction-total {
     flex-direction: row;
     justify-content: space-between;
+  }
+
+  .transaction-tender,
+  .transaction-change {
+    font-size: 0.8em;
   }
 }
 

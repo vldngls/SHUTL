@@ -169,7 +169,7 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
   }, [onClose]);
 
   const totalRegular = transactions.reduce(
-    (sum, t) => sum + (t.passengerCounts?.Regular || 0),
+    (sum, t) => sum + (t.passengerCounts?.Regular || t.passengerCounts?.REGULAR || 0),
     0
   );
   const totalPWD = transactions.reduce(
@@ -271,7 +271,7 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
                       <div className="transaction-details">
                         <div className="transaction-counts">
                           <span className="transaction-type">
-                            Regular: {transaction.passengerCounts?.Regular || 0}
+                            Regular: {transaction.passengerCounts?.Regular || transaction.passengerCounts?.REGULAR || 0}
                           </span>
                           <span className="transaction-type">
                             PWD: {transaction.passengerCounts?.PWD || 0}
@@ -289,6 +289,12 @@ const ShuttleDetails = ({ shuttle, onClose }) => {
                         <div className="transaction-total">
                           <span className="transaction-amount">
                             ₱{transaction.totalFare}
+                          </span>
+                          <span className="transaction-tender">
+                            Tendered: ₱{transaction.tender || 0}
+                          </span>
+                          <span className="transaction-change">
+                            Change: ₱{transaction.change || 0}
                           </span>
                           {transaction.timestamp && (
                             <span className="transaction-time">
