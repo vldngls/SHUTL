@@ -22,11 +22,9 @@
 .cf-collect-fare-popup-container {
   background-color: #ffffff;
   border-radius: 16px;
-  padding: 30px;
-  width: 450px;
-  max-width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
+  padding: 8px;
+  width: fit-content;
+  height: fit-content;
   position: relative;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
   animation: cf-slideUp 0.3s ease;
@@ -36,8 +34,7 @@
 
 /* Increase width when custom mode is active */
 .cf-collect-fare-popup-container.custom-mode {
-  width: 900px;
-  max-width: 95%;
+  width: fit-content;
 }
 
 @keyframes cf-slideUp {

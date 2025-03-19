@@ -35,33 +35,25 @@
   --CollectFare-line-height-relaxed: 1.75;
 }
 
-/* Modal Overlay */
-.CollectFare-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
 /* Base Container */
 .CollectFare-container {
   background: white;
   border-radius: var(--CollectFare-radius-lg);
-  padding: 1.5rem;
-  max-width: 1200px;
-  max-height: 90vh;
+  padding: 12px;
+  width: fit-content;
   overflow-y: auto;
   position: relative;
   box-shadow: var(--CollectFare-shadow-lg);
   font-family: var(--CollectFare-font-family);
   line-height: var(--CollectFare-line-height-normal);
   color: var(--CollectFare-neutral-800);
+}
+
+.CollectFare-container.custom-mode {
+  width: 95vw;
+  max-width: 1200px;
+  max-height: 800px;
+  overflow-y: auto;
 }
 
 /* Header */
@@ -108,7 +100,18 @@
   transform: scale(1.1);
 }
 
-/* QR Scanner Container */
+/* QR Scanner Section */
+.CollectFare-qr-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  background: var(--CollectFare-neutral-50);
+  border-radius: var(--CollectFare-radius-lg);
+}
+
 .CollectFare-qr-scanner-container {
   background: white;
   border-radius: var(--CollectFare-radius-lg);
@@ -154,75 +157,148 @@
   pointer-events: none;
 }
 
-.CollectFare-qr-scanner-frame::before {
-  content: '';
-  position: absolute;
-  top: -9999px;
-  left: -9999px;
-  right: -9999px;
-  bottom: -9999px;
-  z-index: -1;
-}
-
-/* Camera Controls */
-.CollectFare-camera-select {
+.CollectFare-qr-error {
   width: 100%;
-  max-width: 300px;
-  padding: 0.5rem;
-  border: 1px solid var(--CollectFare-neutral-300);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  background-color: #fee2e2;
+  border: 1px solid #fecaca;
   border-radius: var(--CollectFare-radius-md);
-  background: white;
+  color: #dc2626;
   font-size: 0.875rem;
-}
-
-.CollectFare-scanner-controls {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-  width: 100%;
-}
-
-.CollectFare-stop-scanning-btn {
-  padding: 0.5rem 1rem;
-  background: var(--CollectFare-danger-color);
-  color: white;
-  border: none;
-  border-radius: var(--CollectFare-radius-md);
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.CollectFare-stop-scanning-btn:hover {
-  background: var(--CollectFare-danger-hover);
-}
-
-.CollectFare-custom-transaction-btn {
-  width: 100%;
-  padding: 0.75rem;
-  background: var(--CollectFare-primary-color);
-  color: white;
-  border: none;
-  border-radius: var(--CollectFare-radius-md);
-  font-weight: 500;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s;
   text-align: center;
 }
 
-.CollectFare-custom-transaction-btn:hover {
-  background: var(--CollectFare-primary-hover);
+/* Camera Section */
+.CollectFare-camera-section {
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.CollectFare-camera-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  background: var(--CollectFare-neutral-900);
+  border-radius: var(--CollectFare-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--CollectFare-shadow-md);
+}
+
+.CollectFare-camera-container .sc-gEvEer {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4/3;
+  background: var(--CollectFare-neutral-900);
+  border-radius: var(--CollectFare-radius-md);
+  overflow: hidden;
+}
+
+.CollectFare-camera-container .sc-aXZVg {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.CollectFare-camera-container .sc-fqkvVR {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.CollectFare-camera-controls {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.CollectFare-camera-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  padding: 1rem;
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.CollectFare-camera-buttons button {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--CollectFare-radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  height: 40px;
+  font-size: var(--CollectFare-font-size-base);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+}
+
+.CollectFare-camera-buttons button:first-child {
+  background: var(--CollectFare-danger-color);
+  color: white;
+}
+
+.CollectFare-camera-buttons button:first-child:hover {
+  background: var(--CollectFare-danger-hover);
   transform: translateY(-1px);
 }
 
-/* QR Scanner Section */
-.CollectFare-qr-section {
-  padding: 1rem;
-  max-width: 480px;
+.CollectFare-camera-buttons button:last-child {
+  background: var(--CollectFare-success-color);
+  color: white;
 }
 
-/* Calculator Grid */
+.CollectFare-camera-buttons button:last-child:hover {
+  background: var(--CollectFare-success-hover);
+  transform: translateY(-1px);
+}
+
+/* Camera Modal */
+.CollectFare-camera-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.CollectFare-camera-modal {
+  width: 100%;
+  max-width: 600px;
+  background: var(--CollectFare-neutral-900);
+  border-radius: var(--CollectFare-radius-lg);
+  overflow: hidden;
+  position: relative;
+  padding: 1.5rem;
+}
+
+/* Calculator Section */
+.CollectFare-calculator {
+  background: white;
+  border-radius: var(--CollectFare-radius-md);
+  box-shadow: var(--CollectFare-shadow-sm);
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+
 .CollectFare-calculator-grid {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
@@ -237,192 +313,41 @@
   padding: 1rem;
 }
 
-/* Row Spacing */
 .CollectFare-row {
   display: grid;
   grid-template-columns: 2fr 1.2fr 0.8fr 1fr;
   gap: 0.5rem;
   align-items: center;
   padding: 0.5rem;
+  border-bottom: 1px solid var(--CollectFare-neutral-200);
 }
 
 .CollectFare-row.header {
   background: var(--CollectFare-neutral-50);
   font-weight: 600;
-  padding: 0.5rem;
+  color: var(--CollectFare-neutral-700);
+  text-transform: uppercase;
+  font-size: var(--CollectFare-font-size-xs);
+  letter-spacing: 0.05em;
+  padding: 0.375rem 0.5rem;
   margin-bottom: 0.25rem;
 }
 
-/* Tender section */
-.CollectFare-tender {
-  margin-bottom: 0.75rem;
-}
-
-.CollectFare-tender-input-container {
-  position: relative;
-  margin: 0.25rem 0;
-  width: 100%;
-}
-
-.CollectFare-peso-sign {
-  position: absolute;
-  left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--CollectFare-neutral-600);
-  font-weight: 500;
-  z-index: 1;
-}
-
-.CollectFare-tender-input {
-  width: 100%;
-  height: 2.5rem;
-  padding: 0.5rem 0.75rem 0.5rem 2rem;
-  border: 1px solid var(--CollectFare-neutral-200);
-  border-radius: var(--CollectFare-radius-md);
-  font-size: 1rem;
-  color: var(--CollectFare-neutral-800);
-  background: white;
-  transition: all 0.2s;
-  box-sizing: border-box;
-}
-
-.CollectFare-button:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--CollectFare-shadow-md);
-}
-
-.CollectFare-button.primary {
-  background: var(--CollectFare-primary-color);
-  color: white;
-}
-
-.CollectFare-button.primary:hover {
-  background: var(--CollectFare-primary-hover);
-}
-
-.CollectFare-button.secondary {
-  background: var(--CollectFare-neutral-100);
-  color: var(--CollectFare-neutral-700);
-}
-
-.CollectFare-button.secondary:hover {
-  background: var(--CollectFare-neutral-200);
-}
-
-.CollectFare-button.danger {
-  background: var(--CollectFare-danger-color);
-  color: white;
-}
-
-.CollectFare-button.danger:hover {
-  background: var(--CollectFare-danger-hover);
-}
-
-/* Input Fields */
-.CollectFare-input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--CollectFare-neutral-300);
-  border-radius: var(--CollectFare-radius-md);
-  font-size: var(--CollectFare-font-size-base);
-  transition: var(--CollectFare-transition);
-  background: white;
-  line-height: var(--CollectFare-line-height-normal);
-}
-
-.CollectFare-input:focus {
-  outline: none;
-  border-color: var(--CollectFare-primary-color);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-/* Preset amounts */
-.CollectFare-preset-amounts {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.375rem;
-  margin-top: 0.375rem;
-}
-
-.CollectFare-preset-amount-btn {
-  padding: 0.375rem;
-  font-size: 0.875rem;
-}
-
-/* Change Display */
-.CollectFare-change {
-  padding: 0.5rem;
-  margin: 0.375rem 0;
-}
-
-/* Commuter Email Section */
-.CollectFare-commuter {
-  padding: 0.5rem;
-  margin: 0.5rem 0;
-}
-
-/* Payment Method Section */
-.CollectFare-payment-method {
-  margin-top: 0.75rem;
-  gap: 0.375rem;
-}
-
-.CollectFare-payment-buttons {
-  gap: 0.5rem;
-}
-
-.CollectFare-payment-btn {
-  padding: 0.5rem;
-}
-
-/* Action Buttons */
-.CollectFare-actions {
-  padding: 0.75rem;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-  border-top: 1px solid var(--CollectFare-neutral-200);
+/* Payment Section */
+.CollectFare-payment-section {
   display: flex;
-  justify-content: flex-end;
-}
-
-.CollectFare-actions button {
-  padding: 0.5rem 1rem;
-  border-radius: var(--CollectFare-radius-md);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  min-width: 100px;
-}
-
-.CollectFare-actions .secondary {
-  background: var(--CollectFare-neutral-100);
-  color: var(--CollectFare-neutral-700);
-  border: 1px solid var(--CollectFare-neutral-200);
-}
-
-.CollectFare-actions .secondary:hover {
-  background: var(--CollectFare-neutral-200);
-  transform: translateY(-1px);
-}
-
-.CollectFare-actions .primary {
-  background: var(--CollectFare-success-color);
-  color: white;
-  border: none;
-}
-
-.CollectFare-actions .primary:hover {
-  background: var(--CollectFare-success-hover);
-}
-
-/* Payment Method Section */
-.CollectFare-payment-method {
-  background: white;
-  border: 1px solid var(--CollectFare-neutral-200);
-  border-radius: var(--CollectFare-radius-lg);
+  flex-direction: column;
+  gap: 1.5rem;
   padding: 1rem;
-  margin-bottom: 1rem;
+  background: white;
+  border-radius: var(--CollectFare-radius-lg);
+  box-shadow: var(--CollectFare-shadow-sm);
+}
+
+.CollectFare-payment-method {
+  display: flex;
+  flex-direction: column;
+  margin: 1rem 0;
 }
 
 .CollectFare-payment-method h3 {
@@ -436,323 +361,94 @@
 .CollectFare-payment-buttons {
   display: flex;
   gap: 0.5rem;
+  width: 100%;
+  max-width: 300px;
+  margin: 0.5rem 0;
 }
 
 .CollectFare-payment-btn {
   flex: 1;
-  padding: 0.5rem 1rem;
-  background: white;
-  border: 1px solid var(--CollectFare-neutral-200);
+  padding: 4px;
+  border: 2px solid var(--CollectFare-neutral-200);
   border-radius: var(--CollectFare-radius-md);
-  color: var(--CollectFare-neutral-600);
+  background: white;
+  color: var(--CollectFare-neutral-700);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  text-align: center;
   height: 36px;
-}
-
-.CollectFare-payment-btn:hover {
-  background: var(--CollectFare-neutral-50);
-  border-color: var(--CollectFare-primary-color);
+  text-align: center;
 }
 
 .CollectFare-payment-btn.active {
   background: var(--CollectFare-primary-color);
+  color: white;
   border-color: var(--CollectFare-primary-color);
-  color: white;
 }
 
-/* Digital Receipt Section */
-.CollectFare-digital-receipt {
-  padding: 15px;
-  background: var(--CollectFare-neutral-50);
-  border-radius: var(--CollectFare-radius-lg);
-  border: 1px solid var(--CollectFare-neutral-200);
-  margin-top: 10px;
-}
-
-.CollectFare-digital-receipt h3 {
-  color: var(--CollectFare-neutral-700);
-  font-size: 1rem;
-  font-weight: 600;
-  text-align: center;
-  margin: 0px !important;
-}
-
-.CollectFare-upload-options {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.CollectFare-upload-btn {
-  padding: 4px 12px;
-  background: var(--CollectFare-primary-color);
-  color: white;
-  border: none;
-  border-radius: var(--CollectFare-radius-md);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.CollectFare-upload-btn:hover {
-  background: var(--CollectFare-primary-hover);
+.CollectFare-payment-btn:hover {
+  border-color: var(--CollectFare-primary-color);
   transform: translateY(-1px);
 }
 
-.CollectFare-receipt-preview {
-  position: relative;
-  width: 100%;
-  max-width: 300px;
-  margin: 0 auto;
-  border-radius: var(--CollectFare-radius-md);
-  overflow: hidden;
-  box-shadow: var(--CollectFare-shadow-md);
+.CollectFare-payment-btn.active:hover {
+  background: var(--CollectFare-primary-hover);
 }
 
-.CollectFare-receipt-preview img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.CollectFare-remove-receipt-btn {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  padding: 0.5rem;
-  background: rgba(220, 38, 38, 0.9);
-  color: white;
-  border: none;
-  border-radius: var(--CollectFare-radius-sm);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.CollectFare-remove-receipt-btn:hover {
-  background: rgb(220, 38, 38);
-}
-
-/* QR Scanner Section */
-.CollectFare-qr-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 1.5rem;
-  background: var(--CollectFare-neutral-50);
-  border-radius: var(--CollectFare-radius-lg);
-}
-
-.CollectFare-qr-error {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
-  background-color: #fee2e2;
-  border: 1px solid #fecaca;
-  border-radius: var(--CollectFare-radius-md);
-  color: #dc2626;
-  font-size: 0.875rem;
-  text-align: center;
-}
-
-.CollectFare-scanner-actions {
-  width: 100%;
+/* Commuter Section */
+.CollectFare-commuter {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  margin-top: 1.5rem;
+  padding: 0.5rem;
+  margin: 0.5rem 0;
 }
 
-/* Camera Selection */
-.CollectFare-camera-select {
+.CollectFare-commuter label {
+  font-weight: 500;
+  color: var(--CollectFare-neutral-700);
+}
+
+/* Tender Input */
+.CollectFare-tender-input-container {
+  position: relative;
   width: 100%;
   max-width: 300px;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--CollectFare-neutral-200);
-  border-radius: var(--CollectFare-radius-md);
-  background: white;
-  color: var(--CollectFare-neutral-800);
-  font-size: 0.875rem;
-  cursor: pointer;
+  margin: 0.5rem 0;
 }
 
-.CollectFare-camera-select:focus {
+.CollectFare-peso-sign {
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--CollectFare-neutral-500);
+  font-size: var(--CollectFare-font-size-base);
+  font-weight: 500;
+  pointer-events: none;
+}
+
+.CollectFare-tender-input {
+  width: 100%;
+  padding: 0.5rem 1rem 0.5rem 2rem;
+  border: 1px solid var(--CollectFare-neutral-300);
+  border-radius: var(--CollectFare-radius-md);
+  font-size: var(--CollectFare-font-size-base);
+  font-weight: 500;
+  color: var(--CollectFare-neutral-800);
+  transition: var(--CollectFare-transition);
+  background: white;
+  text-align: right;
+  height: 36px;
+}
+
+.CollectFare-tender-input:focus {
   outline: none;
   border-color: var(--CollectFare-primary-color);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* Scanner Controls */
-.CollectFare-scanner-controls {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-/* Custom Mode Styles */
-.CollectFare-container.custom-mode {
-  width: 95vw;
-  max-width: 1200px;
-  height: 90vh;
-  max-height: 800px;
-  overflow-y: auto;
-}
-
-/* Status Text */
-.CollectFare-status {
-  font-size: var(--CollectFare-font-size-sm);
-  font-weight: 500;
-  padding: 0.25rem 0.75rem;
-  border-radius: var(--CollectFare-radius-sm);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.CollectFare-status.success {
-  color: var(--CollectFare-success-color);
-  background: rgba(16, 185, 129, 0.1);
-}
-
-.CollectFare-status.error {
-  color: var(--CollectFare-danger-color);
-  background: rgba(239, 68, 68, 0.1);
-}
-
-.CollectFare-status.warning {
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.1);
-}
-
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .CollectFare-calculator-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-  
-  .CollectFare-container {
-    width: 100%;
-    height: 100vh;
-    max-height: none;
-    border-radius: 0;
-  }
-}
-
-@media (max-width: 768px) {
-  .CollectFare-container {
-    padding: 1rem;
-  }
-  
-  .CollectFare-header {
-    padding: 0.75rem;
-  }
-  
-  .CollectFare-section {
-    padding: 1rem;
-  }
-  
-  .CollectFare-button {
-    height: 40px;
-    min-width: 100px;
-    font-size: var(--CollectFare-font-size-xs);
-  }
-  
-  .CollectFare-input {
-    padding: 0.625rem 0.875rem;
-    font-size: var(--CollectFare-font-size-xs);
-  }
-  
-  .CollectFare-qr-scanner-frame {
-    width: 200px;
-    height: 200px;
-  }
-  
-  .CollectFare-header h2 {
-    font-size: var(--CollectFare-font-size-lg);
-  }
-  
-  .CollectFare-section-title {
-    font-size: var(--CollectFare-font-size-base);
-  }
-  
-  .CollectFare-amount {
-    font-size: var(--CollectFare-font-size-base);
-  }
-  
-  .CollectFare-change strong {
-    font-size: var(--CollectFare-font-size-lg);
-  }
-}
-
-/* Accessibility Improvements */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* Focus Styles */
-:focus-visible {
-  outline: 2px solid var(--CollectFare-primary-color);
-  outline-offset: 2px;
-}
-
-/* High Contrast Mode */
-@media (forced-colors: active) {
-  .CollectFare-button {
-    border: 2px solid currentColor;
-  }
-  
-  .CollectFare-input {
-    border: 2px solid currentColor;
-  }
-}
-
-/* Print Styles */
-@media print {
-  .CollectFare-container {
-    box-shadow: none;
-    border: 1px solid var(--CollectFare-neutral-300);
-  }
-  
-  .CollectFare-button {
-    border: 1px solid var(--CollectFare-neutral-300);
-  }
-  
-  .CollectFare-container {
-    font-size: var(--CollectFare-font-size-sm);
-  }
-  
-  .CollectFare-header h2 {
-    font-size: var(--CollectFare-font-size-lg);
-  }
-  
-  .CollectFare-section-title {
-    font-size: var(--CollectFare-font-size-base);
-  }
-  
-  .CollectFare-amount,
-  .CollectFare-change strong {
-    font-size: var(--CollectFare-font-size-lg);
-  }
-}
-
-/* Preset Amount Buttons */
+/* Preset Amounts */
 .CollectFare-preset-amounts {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -812,415 +508,157 @@
   color: rgba(255, 255, 255, 0.8);
 }
 
-/* Responsive adjustments for preset amount buttons */
-@media (max-width: 768px) {
-  .CollectFare-preset-amounts {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.25rem;
-    padding: 0.25rem;
-  }
-
-  .CollectFare-preset-amount-btn {
-    padding: 0.375rem;
-    font-size: var(--CollectFare-font-size-xs);
-    min-height: 32px;
-  }
-
-  .CollectFare-preset-amount-btn::before {
-    left: 0.25rem;
-    font-size: var(--CollectFare-font-size-xs);
-  }
-}
-
-/* Custom amount input container */
-.CollectFare-custom-amount-container {
-  position: relative;
-  margin-top: 1rem;
-}
-
-.CollectFare-custom-amount-container::before {
-  content: '₱';
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--CollectFare-neutral-500);
-  font-size: var(--CollectFare-font-size-base);
-  font-weight: 500;
-  pointer-events: none;
-}
-
-.CollectFare-custom-amount-input {
-  width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.5rem;
-  border: 1px solid var(--CollectFare-neutral-200);
-  border-radius: var(--CollectFare-radius-md);
-  font-size: var(--CollectFare-font-size-base);
-  font-weight: 500;
-  color: var(--CollectFare-neutral-800);
-  transition: var(--CollectFare-transition);
-  background: white;
-}
-
-.CollectFare-custom-amount-input:focus {
-  outline: none;
-  border-color: var(--CollectFare-primary-color);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.CollectFare-custom-amount-input::placeholder {
-  color: var(--CollectFare-neutral-400);
-  font-weight: normal;
-}
-
-@media (max-width: 768px) {
-  .CollectFare-custom-amount-container::before {
-    left: 0.75rem;
-    font-size: var(--CollectFare-font-size-sm);
-  }
-
-  .CollectFare-custom-amount-input {
-    padding: 0.5rem 0.75rem 0.5rem 2rem;
-    font-size: var(--CollectFare-font-size-sm);
-  }
-}
-
-/* Fare Calculator */
-.CollectFare-calculator {
-  background: white;
-  border-radius: var(--CollectFare-radius-md);
-  box-shadow: var(--CollectFare-shadow-sm);
-  overflow: hidden;
-  margin: 0.5rem 0;
-}
-
-.CollectFare-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  align-items: center;
-  padding: 0.5rem;
-  border-bottom: 1px solid var(--CollectFare-neutral-200);
-  gap: 0.5rem;
-}
-
-.CollectFare-row.header {
+/* Digital Receipt */
+.CollectFare-digital-receipt {
+  padding: 15px;
   background: var(--CollectFare-neutral-50);
-  font-weight: 600;
+  border-radius: var(--CollectFare-radius-lg);
+  border: 1px solid var(--CollectFare-neutral-200);
+  margin-top: 10px;
+}
+
+.CollectFare-digital-receipt h3 {
   color: var(--CollectFare-neutral-700);
-  text-transform: uppercase;
-  font-size: var(--CollectFare-font-size-xs);
-  letter-spacing: 0.05em;
-  padding: 0.375rem 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  margin: 0px !important;
 }
 
-.CollectFare-row span {
-  font-size: var(--CollectFare-font-size-sm);
+.CollectFare-upload-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.CollectFare-button-group {
+.CollectFare-upload-btn {
+  padding: 4px 12px;
+  background: var(--CollectFare-primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--CollectFare-radius-md);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
   display: flex;
-  gap: 0.25rem;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
 }
 
-.CollectFare-control-button {
-  width: 24px;
-  height: 24px;
-  font-size: var(--CollectFare-font-size-base);
+.CollectFare-upload-btn:hover {
+  background: var(--CollectFare-primary-hover);
+  transform: translateY(-1px);
 }
 
-.CollectFare-passenger-count {
-  font-size: var(--CollectFare-font-size-sm);
-  min-width: 1.5rem;
-  height: 24px;
-}
-
-.CollectFare-amount {
-  font-size: var(--CollectFare-font-size-sm);
-}
-
-.CollectFare-total {
-  padding: 0.5rem;
-  font-size: var(--CollectFare-font-size-base);
-}
-
-/* Tender Input Container */
-.CollectFare-tender-input-container {
+.CollectFare-receipt-preview {
   position: relative;
   width: 100%;
   max-width: 300px;
-  margin: 0.5rem 0;
-}
-
-.CollectFare-peso-sign {
-  position: absolute;
-  left: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--CollectFare-neutral-500);
-  font-size: var(--CollectFare-font-size-base);
-  font-weight: 500;
-  pointer-events: none;
-}
-
-.CollectFare-tender-input {
-  width: 100%;
-  padding: 0.5rem 1rem 0.5rem 2rem;
-  border: 1px solid var(--CollectFare-neutral-300);
+  margin: 0 auto;
   border-radius: var(--CollectFare-radius-md);
-  font-size: var(--CollectFare-font-size-base);
-  font-weight: 500;
-  color: var(--CollectFare-neutral-800);
-  transition: var(--CollectFare-transition);
-  background: white;
-  text-align: right;
-  height: 36px;
+  overflow: hidden;
+  box-shadow: var(--CollectFare-shadow-md);
 }
 
-.CollectFare-tender-input:focus {
-  outline: none;
-  border-color: var(--CollectFare-primary-color);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-/* Payment Method Section */
-.CollectFare-payment-method {
-  margin: 1rem 0;
-}
-
-.CollectFare-payment-method h3 {
-  margin-bottom: 0.75rem;
-}
-
-.CollectFare-payment-buttons {
-  display: flex;
-  gap: 0.5rem;
+.CollectFare-receipt-preview img {
   width: 100%;
-  max-width: 300px;
-  margin: 0.5rem 0;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .CollectFare-email-input {
-    margin: 0.375rem 0 1.5rem 0;
-  }
-
-  .CollectFare-qr-button {
-    margin: 0 0 1.5rem 0;
-  }
-
-  .CollectFare-payment-method {
-    margin: 0.75rem 0;
-  }
-}
-
-/* Print styles */
-@media print {
-  .CollectFare-calculator {
-    border: 1px solid var(--CollectFare-neutral-300);
-  }
-
-  .CollectFare-row.header {
-    background: var(--CollectFare-neutral-100);
-  }
-
-  .CollectFare-total {
-    background: white;
-    border: 1px solid var(--CollectFare-neutral-300);
-  }
-}
-
-.sc-fqkvVR.txYHk {
-  width: 100%;
-  max-width: 300px;
   height: auto;
-  aspect-ratio: 4/3;
-  object-fit: cover;
-  border-radius: var(--CollectFare-radius-md);
-  margin: 2rem auto 1rem;
   display: block;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .sc-fqkvVR.txYHk {
-    max-width: 250px;
-    margin: 1.5rem auto 1rem;
-  }
-
-  .CollectFare-tender-input-container,
-  .CollectFare-payment-buttons,
-  .CollectFare-qr-button {
-    max-width: 250px;
-  }
-
-  .CollectFare-payment-btn {
-    height: 32px;
-    font-size: var(--CollectFare-font-size-sm);
-  }
-}
-
-/* Camera Container and Controls */
-.CollectFare-camera-container {
-  width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
-  position: relative;
-  background: var(--CollectFare-neutral-900);
-  border-radius: var(--CollectFare-radius-lg);
-  overflow: hidden;
-}
-
-.CollectFare-camera-buttons {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  padding: 1rem;
-  margin-top: 1rem;
-  width: 100%;
-}
-
-.CollectFare-cancel-camera-btn,
-.CollectFare-capture-btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: var(--CollectFare-radius-md);
-  font-weight: 500;
+.CollectFare-remove-receipt-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(220, 38, 38, 0.9);
+  color: white;
+  border: none;
+  border-radius: var(--CollectFare-radius-sm);
   cursor: pointer;
   transition: all 0.2s;
-  height: 40px;
-  font-size: var(--CollectFare-font-size-base);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 120px;
-  color: white;
 }
 
-.CollectFare-cancel-camera-btn {
-  background: var(--CollectFare-danger-color);
+.CollectFare-remove-receipt-btn:hover {
+  background: rgb(220, 38, 38);
 }
 
-.CollectFare-cancel-camera-btn:hover {
-  background: var(--CollectFare-danger-hover);
-  transform: translateY(-1px);
-}
-
-.CollectFare-capture-btn {
-  background: var(--CollectFare-success-color);
-}
-
-.CollectFare-capture-btn:hover {
-  background: var(--CollectFare-success-hover);
-  transform: translateY(-1px);
-}
-
-/* Camera Modal */
-.CollectFare-camera-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.85);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1100;
-}
-
-.CollectFare-camera-modal {
-  width: 100%;
-  max-width: 600px;
-  background: var(--CollectFare-neutral-900);
-  border-radius: var(--CollectFare-radius-lg);
-  overflow: hidden;
-  position: relative;
-  padding: 1.5rem;
-}
-
-.CollectFare-camera-container {
-  width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
-  position: relative;
-  background: var(--CollectFare-neutral-900);
-  border-radius: var(--CollectFare-radius-lg);
-  overflow: hidden;
-}
-
-/* Style the video element */
-.CollectFare-camera-container .sc-gEvEer {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 4/3;
-  background: var(--CollectFare-neutral-900);
-  border-radius: var(--CollectFare-radius-md);
-  overflow: hidden;
-}
-
-.CollectFare-camera-container .sc-aXZVg {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.CollectFare-camera-container .sc-fqkvVR {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.CollectFare-camera-buttons {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  padding: 1rem;
-  margin-top: 1rem;
-  width: 100%;
-}
-
-.CollectFare-camera-buttons button {
-  padding: 0.75rem 1.5rem;
-  border-radius: var(--CollectFare-radius-md);
+/* Status Text */
+.CollectFare-status {
+  font-size: var(--CollectFare-font-size-sm);
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  height: 40px;
-  font-size: var(--CollectFare-font-size-base);
-  border: none;
-  display: flex;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--CollectFare-radius-sm);
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-width: 120px;
+  gap: 0.5rem;
 }
 
-.CollectFare-camera-buttons button:first-child {
-  background: var(--CollectFare-danger-color);
-  color: white;
+.CollectFare-status.success {
+  color: var(--CollectFare-success-color);
+  background: rgba(16, 185, 129, 0.1);
 }
 
-.CollectFare-camera-buttons button:first-child:hover {
-  background: var(--CollectFare-danger-hover);
-  transform: translateY(-1px);
+.CollectFare-status.error {
+  color: var(--CollectFare-danger-color);
+  background: rgba(239, 68, 68, 0.1);
 }
 
-.CollectFare-camera-buttons button:last-child {
-  background: var(--CollectFare-success-color);
-  color: white;
+.CollectFare-status.warning {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
 }
 
-.CollectFare-camera-buttons button:last-child:hover {
-  background: var(--CollectFare-success-hover);
-  transform: translateY(-1px);
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .CollectFare-container {
+    min-width: 600px;
+    padding: 1rem;
+  }
+  
+  .CollectFare-calculator-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
+  .CollectFare-container {
+    min-width: 95%;
+    padding: 0.75rem;
+    height: 100vh;
+    max-height: none;
+    border-radius: 0;
+  }
+  
+  .CollectFare-header {
+    padding: 0.75rem;
+  }
+  
+  .CollectFare-header h2 {
+    font-size: var(--CollectFare-font-size-lg);
+  }
+  
+  .CollectFare-qr-scanner-container {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .CollectFare-qr-scanner-component {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4/3;
+  }
+
+  .CollectFare-qr-scanner-frame {
+    width: 200px;
+    height: 200px;
+  }
+
   .CollectFare-camera-modal {
     margin: 1rem;
     padding: 1rem;
@@ -1240,179 +678,110 @@
     min-width: 100px;
     font-size: var(--CollectFare-font-size-sm);
   }
-}
 
-@media (max-width: 768px) {
-  .CollectFare-qr-scanner-container {
-    width: 100%;
-    max-width: 400px;
+  .CollectFare-preset-amounts {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.25rem;
+    padding: 0.25rem;
   }
 
-  .CollectFare-qr-scanner-component {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 4/3;
+  .CollectFare-preset-amount-btn {
+    padding: 0.375rem;
+    font-size: var(--CollectFare-font-size-xs);
+    min-height: 32px;
+  }
+
+  .CollectFare-preset-amount-btn::before {
+    left: 0.25rem;
+    font-size: var(--CollectFare-font-size-xs);
+  }
+
+  .CollectFare-tender-input-container,
+  .CollectFare-payment-buttons,
+  .CollectFare-qr-button {
+    max-width: 250px;
+  }
+
+  .CollectFare-payment-btn {
+    height: 32px;
+    font-size: var(--CollectFare-font-size-sm);
+  }
+
+  .CollectFare-email-input {
+    margin: 0.375rem 0 1.5rem 0;
+  }
+
+  .CollectFare-qr-button {
+    margin: 0 0 1.5rem 0;
+  }
+
+  .CollectFare-payment-method {
+    margin: 0.75rem 0;
   }
 }
 
-/* Payment Section Styles */
-.CollectFare-payment-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  padding: 1rem;
-  background: white;
-  border-radius: var(--CollectFare-radius-lg);
-  box-shadow: var(--CollectFare-shadow-sm);
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
-.CollectFare-commuter {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+/* Focus Styles */
+:focus-visible {
+  outline: 2px solid var(--CollectFare-primary-color);
+  outline-offset: 2px;
 }
 
-.CollectFare-commuter label {
-  font-weight: 500;
-  color: var(--CollectFare-neutral-700);
-}
-
-.CollectFare-payment-method {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.CollectFare-payment-buttons {
-  display: flex;
-  gap: 1rem;
-}
-
-.CollectFare-payment-btn {
-  flex: 1;
-  padding: 4px;
-  border: 2px solid var(--CollectFare-neutral-200);
-  border-radius: var(--CollectFare-radius-md);
-  background: white;
-  color: var(--CollectFare-neutral-700);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.CollectFare-payment-btn.active {
-  background: var(--CollectFare-primary-color);
-  color: white;
-  border-color: var(--CollectFare-primary-color);
-}
-
-.CollectFare-payment-btn:hover {
-  border-color: var(--CollectFare-primary-color);
-  transform: translateY(-1px);
-}
-
-.CollectFare-payment-btn.active:hover {
-  background: var(--CollectFare-primary-hover);
-}
-
-/* Camera Section Styles */
-.CollectFare-camera-section {
-  padding: 10px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-}
-
-.CollectFare-camera-container {
-  position: relative;
-  width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  aspect-ratio: 4/3;
-}
-
-.CollectFare-camera-controls {
-  position: absolute;
-  bottom: 10px;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  padding: 8px;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.CollectFare-camera-btn {
-  padding: 4px 12px;
-  border: none;
-  border-radius: var(--CollectFare-radius-md);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background-color: #4CAF50;
-  color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.CollectFare-camera-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-top: 10px;
-}
-
-.CollectFare-preview {
-  margin-top: 10px;
-  text-align: center;
-}
-
-.CollectFare-preview img {
-  max-width: 150px;
-  max-height: 150px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  object-fit: cover;
-}
-
-.CollectFare-retake-btn {
-  margin-top: 8px;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 16px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background-color: #f44336;
-  color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Responsive adjustments */
-@media (max-width: 1024px) {
-  .CollectFare-container {
-    min-width: 600px;
-    padding: 1rem;
+/* High Contrast Mode */
+@media (forced-colors: active) {
+  .CollectFare-button {
+    border: 2px solid currentColor;
   }
   
-  .CollectFare-calculator-grid {
-    gap: 0.75rem;
-    padding: 0.75rem;
+  .CollectFare-input {
+    border: 2px solid currentColor;
   }
 }
 
-@media (max-width: 768px) {
+/* Print Styles */
+@media print {
   .CollectFare-container {
-    min-width: 95%;
-    padding: 0.75rem;
+    box-shadow: none;
+    border: 1px solid var(--CollectFare-neutral-300);
+    font-size: var(--CollectFare-font-size-sm);
   }
   
-  .CollectFare-calculator-grid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
+  .CollectFare-header h2 {
+    font-size: var(--CollectFare-font-size-lg);
+  }
+  
+  .CollectFare-section-title {
+    font-size: var(--CollectFare-font-size-base);
+  }
+  
+  .CollectFare-amount,
+  .CollectFare-change strong {
+    font-size: var(--CollectFare-font-size-lg);
+  }
+  
+  .CollectFare-button {
+    border: 1px solid var(--CollectFare-neutral-300);
+  }
+  
+  .CollectFare-calculator {
+    border: 1px solid var(--CollectFare-neutral-300);
+  }
+
+  .CollectFare-row.header {
+    background: var(--CollectFare-neutral-100);
+  }
+
+  .CollectFare-total {
+    background: white;
+    border: 1px solid var(--CollectFare-neutral-300);
   }
 }
