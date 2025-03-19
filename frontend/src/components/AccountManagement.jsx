@@ -59,7 +59,7 @@ const AccountManagement = () => {
         userData.map(async (user) => {
           try {
             const dataResponse = await fetch(
-              `${API_BASE_URL}/api/userData/find?email=${user.email}`
+              `${API_BASE_URL}/userData/find?email=${user.email}`
             );
             if (dataResponse.ok) {
               const additionalData = await dataResponse.json();

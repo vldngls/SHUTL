@@ -17,6 +17,7 @@
   border-radius: 16px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   text-align: center;
+  min-width: 300px;
 }
 
 .payment-qr-container h2 {
@@ -26,16 +27,17 @@
 
 .qr-display {
   width: 200px;
-  height: 200px;
+  height: auto;
   margin: 20px auto;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
 }
 
 .qr-placeholder {
   width: 100%;
-  height: 100%;
+  height: 200px;
   border: 2px dashed #ccc;
   border-radius: 8px;
 }
@@ -53,4 +55,38 @@
 
 .generate-qr-btn:hover {
   background-color: #404040;
-} 
+}
+
+.qr-info {
+  margin-top: 16px;
+  width: 100%;
+}
+
+.qr-info p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.user-info {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+  text-align: left;
+}
+
+.user-info p {
+  margin: 5px 0;
+  font-size: 13px;
+}
+
+.loading-indicator {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  font-size: 14px;
+}

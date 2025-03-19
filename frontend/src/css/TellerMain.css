@@ -1,15 +1,69 @@
-/* Base Layout */
-html,
-body,
-#root {
+/* Base layout */
+:root {
+  --dynamic-vh: 100vh;
+}
+
+html, body, #root {
   margin: 0;
   padding: 0;
   height: 100%;
   width: 100%;
   overflow: hidden;
-  touch-action: pan-x pan-y; /* Allow only scroll, prevent pinch zoom */
-  -webkit-text-size-adjust: 100%; /* Prevent text scaling */
-  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+}
+
+/* Main container */
+.TellerMain-container {
+  display: flex;
+  height: var(--dynamic-vh);
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Map container */
+.TellerMain-map-container {
+  flex: 1;
+  height: 100%;
+  position: relative;
+  margin-left: 0; /* Remove margin so map renders full width */
+  width: 100%; /* Make map take full width */
+  overflow: hidden;
+}
+
+.TellerMain-map-container.sidebar-expanded {
+  margin-left: 180px; /* Match expanded Sidebar width */
+  width: calc(100% - 180px); /* Match expanded Sidebar width */
+}
+
+/* Map Container */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .TellerMain-map-container {
+    margin-left: 0;
+    margin-top: 60px;
+    width: 100%;
+  }
+
+  .TellerMain-map-container.sidebar-expanded {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .TellerMain-map-container {
+    margin-top: calc(env(safe-area-inset-top, 0px) + 60px);
+  }
 }
 
 /* Add CSS variables for dynamic viewport height */
@@ -26,34 +80,6 @@ textarea {
   font-size: 16px !important; /* Prevent iOS zoom on focus */
 }
 
-/* Map Container */
-.TellerMain-map-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  height: calc(var(--vh, 1vh) * 100);
-  z-index: 1;
-  touch-action: pan-x pan-y;
-  transition: left 0.3s ease, width 0.3s ease;
-}
-
-.TellerMain-navbar ~ .TellerMain-map-container {
-  left: 64px;
-  width: calc(100% - 64px);
-}
-
-.TellerMain-navbar.expanded ~ .TellerMain-map-container {
-  left: 180px !important;
-  width: calc(100% - 180px) !important;
-}
-
-.leaflet-container {
-  width: 100%;
-  height: 100%;
-}
-
 /* Ensure map tiles load properly */
 .leaflet-tile {
   visibility: inherit !important;
@@ -64,205 +90,6 @@ textarea {
   z-index: 1000;
 }
 
-/* Navbar */
-.TellerMain-navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  width: 64px;
-  background-color: #232323;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: width 0.3s ease;
-  z-index: 1000;
-  border-top-right-radius: 38.5px;
-  border-bottom-right-radius: 38.5px;
-  padding: 24px 8px;
-  box-sizing: border-box;
-}
-
-.TellerMain-logo {
-  font-size: 18px;
-  color: #fff;
-  white-space: nowrap;
-  overflow: hidden;
-  margin-bottom: 32px;
-  width: 100%;
-  text-align: center;
-  font-weight: bold;
-  letter-spacing: 1px;
-}
-
-.TellerMain-navbar.expanded {
-  width: 180px;
-}
-
-.TellerMain-navbar.expanded .TellerMain-logo {
-  text-align: left;
-  padding-left: 16px;
-}
-
-.TellerMain-navbar.expanded .TellerMain-icon-image {
-  display: none;
-}
-
-.TellerMain-navbar.expanded .button-label {
-  display: block;
-  font-weight: normal;
-  color: #fff;
-  font-size: 16px;
-}
-
-.TellerMain-navbar-buttons {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 28px;
-  margin-top: 20px;
-  width: 100%;
-}
-
-.TellerMain-icon-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  padding: 8px;
-  color: #fff;
-  transition: background-color 0.3s ease;
-  width: 100%;
-  justify-content: center;
-}
-
-.TellerMain-navbar.expanded .TellerMain-icon-btn {
-  justify-content: flex-start;
-  padding-left: 16px;
-}
-
-.TellerMain-icon-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.button-label {
-  display: none;
-  margin-left: 15px;
-  white-space: nowrap;
-}
-
-/* Exception for the bottom profile image */
-.TellerMain-icon-container .TellerMain-icon-image {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.TellerMain-icon-image {
-  width: 24px;
-  height: 24px;
-  display: block;
-}
-
-.TellerMain-icon-container {
-  margin-top: auto;
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-
-.TellerMain-line {
-  width: 80%;
-  height: 1px;
-  background-color: rgba(255, 255, 255, 0.2);
-  margin: 20px 0;
-}
-
-.TellerMain-navbar.expanded .TellerMain-line {
-  width: 100%;
-}
-
-/* Settings Dropdown */
-.TellerMain-settings-dropdown {
-  position: absolute;
-  top: 0;
-  right: -220px;
-  width: 200px;
-  background-color: #232323;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  z-index: 1001;
-  overflow: hidden;
-}
-
-/* Adjust settings dropdown position when sidebar is expanded */
-.TellerMain-navbar.expanded .TellerMain-settings-dropdown {
-  right: -220px;
-  top: 0;
-}
-
-/* Mobile Navigation Menu */
-.TellerMain-mobile-menu {
-  display: none;
-  position: fixed;
-  top: 0;
-  right: -100%; /* Changed from left to right */
-  width: 250px;
-  height: 100vh; /* Fallback */
-  height: calc(var(--vh, 1vh) * 100);
-  background-color: #232323;
-  padding: 20px;
-  z-index: 1001;
-  transition: right 0.3s ease; /* Changed from left to right */
-  box-sizing: border-box;
-  touch-action: pan-y;
-  -webkit-overflow-scrolling: touch;
-}
-
-.TellerMain-mobile-menu.active {
-  display: block !important;
-  right: 0 !important; /* Changed from left to right */
-}
-
-.TellerMain-mobile-menu-header {
-  text-align: center;
-  margin-bottom: 40px;
-  padding-top: 20px;
-}
-
-.TellerMain-mobile-menu-logo {
-  font-size: 1.8em;
-  font-weight: bold;
-  color: white;
-  margin-bottom: 10px;
-}
-
-.TellerMain-mobile-menu-items {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.TellerMain-mobile-menu button {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 16px;
-  padding: 15px 20px;
-  cursor: pointer;
-  text-align: left;
-  transition: background-color 0.3s ease;
-  width: 100%;
-}
-
-.TellerMain-mobile-menu button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
 /* Popup Modal Overlay */
 .TellerMain-modal-overlay {
   position: fixed;
@@ -270,14 +97,14 @@ textarea {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: transparent; /* Change from rgba(0, 0, 0, 0.6) to transparent */
-  backdrop-filter: none; /* Remove blur effect */
+  background-color: transparent;
+  backdrop-filter: none;
   z-index: 999;
   display: flex;
   justify-content: center;
   align-items: center;
-  touch-action: pan-y; /* Only allow vertical scrolling */
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Popup Modals */
@@ -368,8 +195,8 @@ textarea {
   max-height: 90vh;
   max-height: calc(var(--vh, 1vh) * 90);
   overflow-y: auto;
-  touch-action: pan-y; /* Only allow vertical scrolling */
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 .TellerMain-summary-header {
@@ -406,36 +233,6 @@ textarea {
 
 /* Media Queries */
 @media (max-width: 768px) {
-  .TellerMain-navbar {
-    width: 64px !important;
-    border-radius: 0 !important;
-    padding: 12px 8px !important;
-    z-index: 1000 !important;
-  }
-
-  .TellerMain-navbar.expanded {
-    width: 64px !important;
-  }
-
-  .TellerMain-navbar.expanded .button-label {
-    display: none;
-  }
-
-  .TellerMain-logo {
-    font-size: 1.2em;
-    margin-bottom: 30px;
-  }
-
-  .TellerMain-mobile-menu {
-    display: none;
-    right: -250px;
-  }
-
-  .TellerMain-mobile-menu.active {
-    display: block !important;
-    right: 0 !important;
-  }
-
   .TellerMain-map-container {
     left: 0 !important;
     width: 100% !important;
@@ -456,30 +253,9 @@ textarea {
   .TellerMain-taskbar {
     transition: left 0.3s ease, width 0.3s ease;
   }
-
-  .TellerMain-settings-dropdown {
-    right: -220px;
-    top: 0;
-  }
 }
 
 @media (max-width: 480px) {
-  .TellerMain-navbar {
-    width: 64px !important;
-    border-radius: 0 !important;
-    padding: 12px 8px !important;
-  }
-
-  .TellerMain-logo {
-    font-size: 1.2em;
-    margin-bottom: 30px;
-  }
-
-  .TellerMain-mobile-menu {
-    width: 100%;
-    right: -100%;
-  }
-
   .TellerMain-map-container {
     left: 0 !important;
     width: 100% !important;
@@ -496,19 +272,6 @@ textarea {
     left: 0 !important;
     width: 100% !important;
     font-size: 0.8em;
-  }
-
-  .TellerMain-navbar.expanded {
-    width: 64px !important;
-  }
-
-  .TellerMain-navbar.expanded .button-label {
-    display: none !important;
-  }
-
-  .TellerMain-settings-dropdown {
-    right: 70px;
-    top: 0;
   }
 }
 
@@ -548,8 +311,8 @@ textarea {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   width: 300px;
   z-index: 3;
-  touch-action: pan-y; /* Only allow vertical scrolling */
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 .suggestion-form-container form {
@@ -613,8 +376,8 @@ textarea {
   z-index: 3;
   display: flex;
   flex-direction: column;
-  touch-action: pan-y; /* Only allow vertical scrolling */
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 .TellerMain-chat-container .driver-message {

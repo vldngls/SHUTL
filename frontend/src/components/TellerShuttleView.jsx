@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import '../css/TellerShuttleView.css';
 
@@ -19,7 +19,7 @@ const TellerShuttleView = ({
   useEffect(() => {
     const calculateEarnings = () => {
       const regularEarning = regularPassengers * 50; // Example fare for regular passengers
-      const discountEarning = discountPassengers * 30; // Example fare for discount passengers
+      const discountEarning = discountPassengers * 24; // 20% discount from 30 pesos base fare
       return regularEarning + discountEarning;
     };
 

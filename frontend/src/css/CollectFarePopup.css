@@ -1,4 +1,5 @@
-.collect-fare-popup-overlay {
+/* Popup Overlay */
+.cf-collect-fare-popup-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -10,15 +11,15 @@
   align-items: center;
   z-index: 1001;
   backdrop-filter: blur(4px);
-  animation: fadeIn 0.2s ease;
+  animation: cf-fadeIn 0.2s ease;
 }
 
-@keyframes fadeIn {
+@keyframes cf-fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-.collect-fare-popup-container {
+.cf-collect-fare-popup-container {
   background-color: #ffffff;
   border-radius: 16px;
   padding: 30px;
@@ -28,11 +29,18 @@
   overflow-y: auto;
   position: relative;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-  animation: slideUp 0.3s ease;
+  animation: cf-slideUp 0.3s ease;
   transform-origin: center bottom;
+  transition: width 0.3s ease, max-width 0.3s ease;
 }
 
-@keyframes slideUp {
+/* Increase width when custom mode is active */
+.cf-collect-fare-popup-container.custom-mode {
+  width: 900px;
+  max-width: 95%;
+}
+
+@keyframes cf-slideUp {
   from { 
     transform: translateY(20px);
     opacity: 0;
@@ -43,7 +51,7 @@
   }
 }
 
-.collect-fare-close-btn {
+.cf-collect-fare-close-btn {
   position: absolute;
   top: 18px;
   right: 18px;
@@ -62,18 +70,18 @@
   z-index: 10;
 }
 
-.collect-fare-close-btn:hover {
+.cf-collect-fare-close-btn:hover {
   background-color: rgba(0, 0, 0, 0.1);
   color: #000;
   transform: rotate(90deg);
 }
 
-.shuttle-selection {
+.cf-shuttle-selection {
   text-align: center;
   padding: 10px 0;
 }
 
-.shuttle-selection h2 {
+.cf-shuttle-selection h2 {
   margin-top: 0;
   margin-bottom: 30px;
   color: #333;
@@ -83,7 +91,7 @@
   display: inline-block;
 }
 
-.shuttle-selection h2:after {
+.cf-shuttle-selection h2:after {
   content: '';
   position: absolute;
   left: 50%;
@@ -95,7 +103,7 @@
   border-radius: 3px;
 }
 
-.shuttle-buttons {
+.cf-shuttle-buttons {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -103,7 +111,7 @@
   margin: 0 auto;
 }
 
-.shuttle-select-btn {
+.cf-shuttle-select-btn {
   background-color: #4CAF50;
   color: white;
   border: none;
@@ -119,7 +127,7 @@
   letter-spacing: 0.5px;
 }
 
-.shuttle-select-btn:before {
+.cf-shuttle-select-btn:before {
   content: '';
   position: absolute;
   top: 0;
@@ -131,49 +139,49 @@
   transition: transform 0.6s ease;
 }
 
-.shuttle-select-btn:hover {
+.cf-shuttle-select-btn:hover {
   background-color: #45a049;
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(76, 175, 80, 0.35);
 }
 
-.shuttle-select-btn:hover:before {
+.cf-shuttle-select-btn:hover:before {
   transform: translateX(100%);
 }
 
-.shuttle-select-btn:active {
+.cf-shuttle-select-btn:active {
   transform: translateY(0);
   box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
 }
 
-.shuttle-select-btn.offline {
+.cf-shuttle-select-btn.offline {
   background-color: #e0e0e0;
   color: #999;
   cursor: not-allowed;
   box-shadow: none;
 }
 
-.shuttle-select-btn.offline:hover {
+.cf-shuttle-select-btn.offline:hover {
   background-color: #e0e0e0;
   transform: none;
   box-shadow: none;
 }
 
-.shuttle-select-btn.offline:before {
+.cf-shuttle-select-btn.offline:before {
   display: none;
 }
 
 @media (max-width: 768px) {
-  .collect-fare-popup-container {
+  .cf-collect-fare-popup-container {
     width: 95%;
     padding: 25px 20px;
   }
   
-  .shuttle-selection h2 {
+  .cf-shuttle-selection h2 {
     font-size: 22px;
   }
   
-  .shuttle-select-btn {
+  .cf-shuttle-select-btn {
     padding: 16px;
     font-size: 16px;
   }

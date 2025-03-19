@@ -7,10 +7,10 @@ const fareTransactionSchema = mongoose.Schema(
       required: true,
     },
     passengerCounts: {
-      Regular: { type: Number, required: true, default: 0 },
-      PWD: { type: Number, required: true, default: 0 },
-      STUDENT: { type: Number, required: true, default: 0 },
-      SENIOR: { type: Number, required: true, default: 0 },
+      type: Map,
+      of: Number,
+      required: true,
+      default: {}
     },
     totalFare: { type: Number, required: true },
     tender: { type: Number, required: true },
@@ -18,6 +18,18 @@ const fareTransactionSchema = mongoose.Schema(
     shuttleID: { type: String, required: true },
     date: { type: String }, // YYYY-MM-DD format
     time: { type: String }, // HH:MM format
+    paymentMethod: {
+      type: String,
+      enum: ['CASH', 'DIGITAL'],
+      required: true,
+      default: 'CASH'
+    },
+    receiptImage: {
+      type: String, // Base64 encoded image for digital payment receipts
+      required: function() {
+        return this.paymentMethod === 'DIGITAL';
+      }
+    }
   },
   {
     timestamps: true,
@@ -26,15 +38,19 @@ const fareTransactionSchema = mongoose.Schema(
 
 // Add virtual properties for backward compatibility
 fareTransactionSchema.virtual("regularCount").get(function () {
-  return this.passengerCounts.Regular || 0;
+  return this.passengerCounts.get('Regular') || 0;
 });
 
-fareTransactionSchema.virtual("discountedCount").get(function () {
-  return (
-    (this.passengerCounts.PWD || 0) +
-    (this.passengerCounts.STUDENT || 0) +
-    (this.passengerCounts.SENIOR || 0)
-  );
+fareTransactionSchema.virtual("pwdCount").get(function () {
+  return this.passengerCounts.get('PWD') || 0;
+});
+
+fareTransactionSchema.virtual("studentCount").get(function () {
+  return this.passengerCounts.get('Student') || 0;
+});
+
+fareTransactionSchema.virtual("seniorCount").get(function () {
+  return this.passengerCounts.get('Senior') || 0;
 });
 
 // Ensure virtuals are included in JSON output

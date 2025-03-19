@@ -1,9 +1,11 @@
+/* Base Sidebar */
 .Sidebar {
   position: fixed;
   top: 0;
   left: 0;
   width: 70px;
   height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
   background: linear-gradient(90deg, 
     rgba(0, 0, 0, 0.5) 0%,
     rgba(0, 0, 0, 0.65) 100%
@@ -28,6 +30,16 @@
   width: 64px;
 }
 
+/* Expanded state */
+.Sidebar.expanded {
+  width: 200px;
+  background: linear-gradient(90deg, 
+    rgba(0, 0, 0, 0.55) 0%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+}
+
+/* Logo */
 .Sidebar-logo {
   padding-top: 24px;
   font-size: 18px;
@@ -42,20 +54,13 @@
   flex-shrink: 0;
 }
 
-.Sidebar.expanded {
-  width: 200px;
-  background: linear-gradient(90deg, 
-    rgba(0, 0, 0, 0.55) 0%,
-    rgba(0, 0, 0, 0.7) 100%
-  );
-}
-
 .Sidebar.expanded .Sidebar-logo {
   text-align: left;
   padding-left: 16px;
   white-space: nowrap;
 }
 
+/* Navigation buttons */
 .Sidebar-buttons {
   display: flex;
   flex-direction: column;
@@ -79,6 +84,7 @@
   width: 100%;
   transition: background-color 0.2s ease;
   border-radius: 8px;
+  color: #fff;
 }
 
 .Sidebar.expanded .Sidebar-icon-btn {
@@ -94,6 +100,7 @@
   background-color: rgba(255, 255, 255, 0.15);
 }
 
+/* Button labels */
 .button-label {
   display: none;
   margin-left: 15px;
@@ -110,6 +117,7 @@
   display: block;
 }
 
+/* Icons */
 .Sidebar-icon-image {
   width: 36px;
   height: 36px;
@@ -134,6 +142,7 @@
   display: block !important;
 }
 
+/* Divider */
 .Sidebar-line {
   width: 80%;
   height: 1px;
@@ -316,124 +325,33 @@
   }
 
   .Sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 50%;
-    height: 100dvh;
-    height: 100vh;
-    height: -webkit-fill-available;
-    border-radius: 0;
     transform: translateX(-100%);
-    display: flex;
-    flex-direction: column;
-    background: linear-gradient(90deg, 
-      rgba(0, 0, 0, 0.9) 0%,
-      rgba(0, 0, 0, 0.95) 100%
-    );
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    z-index: 1001;
-    padding: env(safe-area-inset-top, 0px) 8px env(safe-area-inset-bottom, 0px);
-    margin: 0;
+    width: 100%;
+    max-width: 300px;
+    border-radius: 0;
     transition: transform 0.3s ease;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
   }
 
   .Sidebar.mobile-open {
     transform: translateX(0);
-    width: 50% !important;
   }
 
   .Sidebar.expanded {
-    width: 50% !important;
-    background: linear-gradient(90deg, 
-      rgba(0, 0, 0, 0.9) 0%,
-      rgba(0, 0, 0, 0.95) 100%
-    );
-  }
-
-  .Sidebar-content {
-    padding: calc(env(safe-area-inset-top, 0px) + 60px)
-      env(safe-area-inset-right, 16px) env(safe-area-inset-bottom, 0px)
-      env(safe-area-inset-left, 16px);
-    height: 100%;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    display: flex;
-    flex-direction: column;
     width: 100%;
-  }
-
-  .Sidebar-buttons {
-    padding: 32px 16px;
-    height: auto;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    margin-bottom: auto;
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .Sidebar-icon-btn {
-    justify-content: flex-start;
-    padding: 16px 24px;
-    width: 100%;
-    border-radius: 8px;
-    background-color: rgba(255, 255, 255, 0.03);
-    box-sizing: border-box;
-  }
-
-  .Sidebar-settings-dropdown {
-    position: static;
-    left: 0;
-    width: 100%;
-    margin: 4px 0;
-    border: none;
-    border-radius: 8px;
-    background-color: rgba(255, 255, 255, 0.03);
-    box-sizing: border-box;
-    overflow: hidden;
-  }
-
-  .Sidebar.expanded .Sidebar-settings-dropdown {
-    margin: 4px 0;
-  }
-
-  .Sidebar-settings-option {
-    padding: 16px 24px;
-    font-size: 16px;
-    height: 56px;
-    background-color: transparent;
-  }
-
-  .Sidebar-settings-option[data-enabled] {
-    padding: 16px 24px;
-    height: 56px;
-  }
-
-  .Sidebar-settings-dropdown hr {
-    margin: 0;
-    opacity: 0.1;
+    max-width: 300px;
   }
 
   .button-label {
     display: block;
-    margin-left: 24px;
-    font-size: 16px;
-    white-space: nowrap;
   }
 
-  .Sidebar-logo {
-    display: none;
+  .Sidebar-buttons {
+    padding: 32px 0;
   }
 
-  .Sidebar-icon-image {
-    width: 24px;
-    height: 24px;
-    min-width: 24px;
+  .Sidebar-icon-btn {
+    justify-content: flex-start;
+    padding-left: 24px;
   }
 }
 
@@ -445,7 +363,7 @@
     padding-right: max(16px, env(safe-area-inset-right, 16px));
   }
 
-  .Sidebar-content {
+  .Sidebar {
     padding-top: calc(env(safe-area-inset-top, 0px) + 60px);
   }
 

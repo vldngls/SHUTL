@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import CollectFare from "./CollectFare";
 import "../css/CollectFarePopup.css";
 
 const CollectFarePopup = ({ onClose, shuttleLocations }) => {
   const [selectedShuttle, setSelectedShuttle] = useState(null);
+  const [isCustomMode, setIsCustomMode] = useState(false);
   
   // Get active shuttles from the locations data
   const shuttles = Object.keys(shuttleLocations || {}).map(id => ({
@@ -24,21 +25,39 @@ const CollectFarePopup = ({ onClose, shuttleLocations }) => {
   const handleTransactionSaved = () => {
     setSelectedShuttle(null);
   };
+  
+  // Listen for custom mode changes
+  useEffect(() => {
+    const handleCustomModeChange = (event) => {
+      if (event.detail && event.detail.isCustomMode !== undefined) {
+        setIsCustomMode(event.detail.isCustomMode);
+      }
+    };
+    
+    document.addEventListener('customModeChange', handleCustomModeChange);
+    
+    return () => {
+      document.removeEventListener('customModeChange', handleCustomModeChange);
+    };
+  }, []);
 
   return (
-    <div className="collect-fare-popup-overlay" onClick={handleClose}>
-      <div className="collect-fare-popup-container" onClick={(e) => e.stopPropagation()}>
-        <button className="collect-fare-close-btn" onClick={handleClose}>×</button>
+    <div className="cf-collect-fare-popup-overlay" onClick={handleClose}>
+      <div 
+        className={`cf-collect-fare-popup-container ${isCustomMode ? 'custom-mode' : ''}`} 
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button className="cf-collect-fare-close-btn" onClick={handleClose}>×</button>
         
         {!selectedShuttle ? (
-          <div className="shuttle-selection">
+          <div className="cf-shuttle-selection">
             <h2>Select Shuttle to Collect Fare</h2>
-            <div className="shuttle-buttons">
+            <div className="cf-shuttle-buttons">
               {shuttles.length > 0 ? (
                 shuttles.map((shuttle) => (
                   <button
                     key={shuttle.id}
-                    className={`shuttle-select-btn ${shuttle.status === "offline" ? "offline" : ""}`}
+                    className={`cf-shuttle-select-btn ${shuttle.status === "offline" ? "offline" : ""}`}
                     onClick={() => handleShuttleSelect(shuttle.id)}
                     disabled={shuttle.status === "offline"}
                   >
@@ -56,6 +75,7 @@ const CollectFarePopup = ({ onClose, shuttleLocations }) => {
             onClose={() => setSelectedShuttle(null)} 
             shuttleID={selectedShuttle}
             onTransactionSaved={handleTransactionSaved}
+            onCustomModeChange={(isCustom) => setIsCustomMode(isCustom)}
           />
         )}
       </div>

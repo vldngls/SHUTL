@@ -1,427 +1,941 @@
-.CollectFare-modal {
+/* Modern Variables */
+:root {
+  --CollectFare-primary-color: #2563eb;
+  --CollectFare-primary-hover: #1d4ed8;
+  --CollectFare-success-color: #10b981;
+  --CollectFare-success-hover: #059669;
+  --CollectFare-danger-color: #ef4444;
+  --CollectFare-danger-hover: #dc2626;
+  --CollectFare-neutral-50: #f9fafb;
+  --CollectFare-neutral-100: #f3f4f6;
+  --CollectFare-neutral-200: #e5e7eb;
+  --CollectFare-neutral-300: #d1d5db;
+  --CollectFare-neutral-400: #9ca3af;
+  --CollectFare-neutral-500: #6b7280;
+  --CollectFare-neutral-600: #4b5563;
+  --CollectFare-neutral-700: #374151;
+  --CollectFare-neutral-800: #1f2937;
+  --CollectFare-neutral-900: #111827;
+  --CollectFare-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --CollectFare-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --CollectFare-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --CollectFare-radius-sm: 0.375rem;
+  --CollectFare-radius-md: 0.5rem;
+  --CollectFare-radius-lg: 0.75rem;
+}
+
+/* Modal Overlay */
+.CollectFare-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  padding: 20px;
-  box-sizing: border-box;
 }
 
+/* Base Container */
 .CollectFare-container {
-  background: #ffffff;
-  padding: 2rem;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 1000px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  max-height: 90vh;
+  position: relative;
+  background: white;
+  border-radius: var(--CollectFare-radius-lg);
+  box-shadow: var(--CollectFare-shadow-lg);
+  width: 85vw;
+  max-width: 800px;
+  max-height: 85vh;
   overflow-y: auto;
 }
 
-.fare-calculator-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  align-items: start;
-}
-
-.fare-calculator-left,
-.fare-calculator-right {
+/* Header */
+.CollectFare-header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--CollectFare-neutral-200);
   display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.CollectFare-container h2 {
-  margin: 0 0 1rem 0;
-  color: #2c3e50;
-  font-size: 1.5rem;
-  text-align: center;
-  border-bottom: 2px solid #eee;
-  padding-bottom: 1rem;
-}
-
-.fare-calculator {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  background-color: #f8f9fa;
-  padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
-}
-
-.fare-row {
-  display: grid;
-  grid-template-columns: 2fr 1.5fr 0.8fr 1fr;
+  justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem;
-  border-bottom: 1px solid #eee;
-  font-size: 0.95rem;
+  background: white;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
-.fare-row.header {
+.CollectFare-header h2 {
+  font-size: 1.125rem;
   font-weight: 600;
-  color: #2c3e50;
-  border-bottom: 2px solid #ddd;
-  background-color: #fff;
-  border-radius: 6px;
+  color: var(--CollectFare-neutral-800);
+  margin: 0;
 }
 
-.button-group {
+.CollectFare-close-button {
+  background: transparent;
+  border: none;
+  color: var(--CollectFare-neutral-500);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--CollectFare-radius-sm);
+  transition: all 0.2s;
+}
+
+.CollectFare-close-button:hover {
+  background-color: var(--CollectFare-neutral-100);
+  color: var(--CollectFare-neutral-700);
+}
+
+/* QR Scanner Container */
+.CollectFare-qr-scanner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  gap: 1rem;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.CollectFare-qr-scanner-component {
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--CollectFare-neutral-900);
+  border-radius: var(--CollectFare-radius-md);
+  overflow: hidden;
+  position: relative;
+}
+
+.CollectFare-qr-scanner-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 65%;
+  height: 65%;
+  border: 2px solid var(--CollectFare-primary-color);
+  border-radius: 8px;
+}
+
+.CollectFare-qr-scanner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.CollectFare-qr-scanner-frame::before {
+  content: '';
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+  right: -9999px;
+  bottom: -9999px;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: -1;
+}
+
+/* Camera Controls */
+.CollectFare-camera-select {
+  width: 100%;
+  max-width: 300px;
+  padding: 0.5rem;
+  border: 1px solid var(--CollectFare-neutral-300);
+  border-radius: var(--CollectFare-radius-md);
+  background: white;
+  font-size: 0.875rem;
+}
+
+.CollectFare-scanner-controls {
   display: flex;
   gap: 0.5rem;
   justify-content: center;
+  width: 100%;
 }
 
-.control-button {
-  width: 36px;
-  height: 36px;
-  font-size: 1.2rem;
-  border-radius: 8px;
-  background-color: #3498db;
+.CollectFare-stop-scanning-btn {
+  padding: 0.5rem 1rem;
+  background: var(--CollectFare-danger-color);
   color: white;
   border: none;
+  border-radius: var(--CollectFare-radius-md);
+  font-weight: 500;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s;
 }
 
-.control-button:hover:not(:disabled) {
-  background-color: #2980b9;
-  transform: scale(1.05);
+.CollectFare-stop-scanning-btn:hover {
+  background: var(--CollectFare-danger-hover);
 }
 
-.control-button:disabled {
-  background-color: #e0e0e0;
-  cursor: not-allowed;
-}
-
-.passenger-count {
-  text-align: center;
+.CollectFare-custom-transaction-btn {
+  width: 100%;
+  max-width: 300px;
+  padding: 0.75rem;
+  background: var(--CollectFare-primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--CollectFare-radius-md);
   font-weight: 500;
-  color: #2c3e50;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.fare-amount {
-  text-align: right;
-  font-weight: 500;
-  color: #2c3e50;
+.CollectFare-custom-transaction-btn:hover {
+  background: var(--CollectFare-primary-hover);
+  transform: translateY(-1px);
 }
 
-.fare-tender {
-  background-color: #f8f9fa;
-  padding: 1.5rem;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
+/* Calculator Grid */
+.CollectFare-calculator-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 1rem;
+  padding: 1rem;
 }
 
-.fare-tender label {
-  display: block;
-  margin-bottom: 0.75rem;
-  color: #2c3e50;
-  font-weight: 500;
-}
-
-.tender-input-container {
-  position: relative;
-  display: flex;
-  align-items: center;
+/* Form Sections */
+.CollectFare-section {
+  background: white;
+  border: 1px solid var(--CollectFare-neutral-200);
+  border-radius: var(--CollectFare-radius-md);
+  padding: 1rem;
   margin-bottom: 1rem;
 }
 
-.peso-sign {
-  position: absolute;
-  left: 1rem;
-  color: #2c3e50;
-  font-weight: 500;
-}
-
-.tender-input {
-  width: 100%;
-  height: 45px;
-  padding: 0.5rem 1rem 0.5rem 2rem;
+.CollectFare-section-title {
   font-size: 1rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.tender-input:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-}
-
-.preset-amounts {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.preset-amount-btn {
-  padding: 0.5rem;
-  background-color: #fff;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: #2c3e50;
-  font-weight: 500;
-  text-align: center;
-}
-
-.preset-amount-btn:hover {
-  background-color: #f8f9fa;
-  transform: scale(1.05);
-  border-color: #3498db;
-}
-
-.fare-total,
-.fare-change {
-  display: flex;
-  justify-content: space-between;
-  padding: 1rem;
-  border-radius: 8px;
-  font-size: 1.1rem;
   font-weight: 600;
-  color: #2c3e50;
-  margin-top: 1rem;
+  color: var(--CollectFare-neutral-700);
+  margin: 0 0 0.75rem 0;
 }
 
-.fare-total {
-  background-color: #e8f4f8;
-  border: 1px solid #bee3f8;
-}
-
-.fare-change {
-  background-color: #f0fff4;
-  border: 1px solid #c6f6d5;
-}
-
-.fare-commuter {
-  background-color: #f8f9fa;
-  padding: 1.5rem;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
-  margin-top: 1rem;
-}
-
-.fare-commuter label {
-  display: block;
-  margin-bottom: 0.75rem;
-  color: #2c3e50;
-  font-weight: 500;
-}
-
-/* QR Scanner styles */
-.qr-scanner {
-  margin: 1.5rem 0;
-  text-align: center;
-}
-
-#reader {
-  width: 100% !important;
-  max-width: 300px;
-  margin: 0 auto;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-#reader video {
-  width: 100% !important;
-  border-radius: 12px;
-}
-
-.qr-button {
-  width: 100%;
-  margin-top: 1rem;
-  padding: 0.75rem;
-  background-color: #4a5568;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: 500;
-}
-
-.qr-button:hover {
-  background-color: #2d3748;
-}
-
-.qr-confirmation {
-  margin: 1rem 0;
-  padding: 1rem;
-  background-color: #f0fff4;
-  border: 1px solid #c6f6d5;
-  border-radius: 8px;
-  color: #2c3e50;
-}
-
-.error-message {
-  color: #e53e3e;
-  margin: 0.5rem 0;
-  padding: 0.5rem;
-  background-color: #fff5f5;
-  border: 1px solid #fed7d7;
-  border-radius: 6px;
-}
-
-.fare-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e9ecef;
-}
-
-.fare-actions button {
-  flex: 1;
-  padding: 0.75rem;
-  font-size: 1rem;
-  font-weight: 500;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.fare-actions button.primary {
-  background-color: #3498db;
-  color: white;
-  border: none;
-}
-
-.fare-actions button.primary:hover {
-  background-color: #2980b9;
-}
-
-.fare-actions button.secondary {
-  background-color: #f8f9fa;
-  color: #2c3e50;
-  border: 1px solid #dee2e6;
-}
-
-.fare-actions button.secondary:hover {
-  background-color: #e9ecef;
-}
-
-/* Mobile Responsiveness */
-@media screen and (max-width: 768px) {
+/* Responsive Design */
+@media (max-width: 768px) {
   .CollectFare-container {
-    padding: 1rem;
-    max-width: 95%;
-    max-height: 85vh;
+    width: 95vw;
+    max-height: 90vh;
   }
 
-  .fare-calculator-grid {
+  .CollectFare-calculator-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
   }
 
-  .fare-row {
-    font-size: 0.9rem;
-    gap: 0.5rem;
-    padding: 0.5rem;
-  }
-
-  .control-button {
-    width: 32px;
-    height: 32px;
-    font-size: 1rem;
-  }
-
-  .preset-amounts {
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-  }
-
-  .preset-amount-btn {
-    padding: 0.4rem;
-    font-size: 0.9rem;
-  }
-
-  .tender-input {
-    height: 40px;
-    font-size: 0.95rem;
-  }
-
-  .fare-total,
-  .fare-change {
-    font-size: 1rem;
+  .CollectFare-qr-scanner-container {
     padding: 0.75rem;
   }
 
-  .fare-actions {
-    flex-direction: column;
+  .CollectFare-qr-scanner-component {
+    aspect-ratio: 4/3;
+  }
+
+  .CollectFare-qr-scanner-frame {
+    width: 75%;
+    height: 60%;
   }
 }
 
-/* Small mobile devices */
-@media screen and (max-width: 400px) {
-  .fare-row {
-    grid-template-columns: 1.5fr 1.2fr 0.8fr 1fr;
-    font-size: 0.85rem;
-    gap: 0.25rem;
-  }
-
-  .CollectFare-container h2 {
-    font-size: 1.25rem;
-  }
-
-  .control-button {
-    width: 28px;
-    height: 28px;
-  }
-
-  .preset-amounts {
-    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-  }
+/* Custom Mode Adjustments */
+.CollectFare-container.custom-mode {
+  max-width: 1000px;
 }
 
-.loading-container {
+/* Confirmation Modal */
+.CollectFare-confirmation-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 200px;
-  padding: 30px;
+  z-index: 1100;
+}
+
+.CollectFare-confirmation-modal {
+  background: white;
+  border-radius: var(--CollectFare-radius-lg);
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 400px;
+  position: relative;
+}
+
+/* Camera Modal */
+.CollectFare-camera-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1100;
+}
+
+.CollectFare-camera-modal {
+  background: white;
+  border-radius: var(--CollectFare-radius-lg);
+  padding: 1rem;
+  width: 90%;
+  max-width: 600px;
+  position: relative;
+}
+
+/* Main Content Area */
+.CollectFare-content {
+  padding: 1.5rem;
+}
+
+/* Grid Layout */
+.CollectFare-calculator-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.CollectFare-calculator-left,
+.CollectFare-calculator-right {
+  background: white;
+  border-radius: var(--CollectFare-radius-lg);
+  box-shadow: var(--CollectFare-shadow-sm);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Fare Calculator */
+.CollectFare-calculator {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: var(--CollectFare-radius-lg);
+}
+
+.CollectFare-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 0.8fr 1fr;
+  align-items: center;
+  padding: 0.875rem 1.25rem;
+  gap: 1rem;
+}
+
+.CollectFare-row.header {
+  background: var(--CollectFare-neutral-50);
+  font-weight: 600;
+  color: var(--CollectFare-neutral-700);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.CollectFare-row:not(.header) {
+  border-bottom: 1px solid var(--CollectFare-neutral-100);
+}
+
+.CollectFare-row:last-child {
+  border-bottom: none;
+}
+
+/* Counter Controls */
+.CollectFare-button-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.CollectFare-control-button {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: 1px solid var(--CollectFare-neutral-200);
+  color: var(--CollectFare-neutral-700);
+  border-radius: var(--CollectFare-radius-sm);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.CollectFare-control-button:hover:not(:disabled) {
+  background: var(--CollectFare-neutral-50);
+  border-color: var(--CollectFare-neutral-300);
+}
+
+.CollectFare-control-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.CollectFare-passenger-count {
+  font-weight: 600;
+  color: var(--CollectFare-neutral-800);
   text-align: center;
 }
 
-.loading-container p {
-  font-size: 16px;
-  color: #666;
+.CollectFare-amount {
+  font-weight: 500;
+  color: var(--CollectFare-neutral-700);
+  text-align: right;
+}
+
+/* Total Section */
+.CollectFare-total {
+  margin-top: auto;
+  padding: 1rem 1.25rem;
+  background: var(--CollectFare-neutral-50);
+  border-top: 1px solid var(--CollectFare-neutral-200);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.CollectFare-total strong {
+  font-size: 1.25rem;
+  color: var(--CollectFare-neutral-800);
+}
+
+/* Right Side Panel */
+.CollectFare-tender {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--CollectFare-neutral-100);
+}
+
+.CollectFare-tender-input-container {
   position: relative;
-  padding-bottom: 30px;
+  margin: 0.5rem 0 1rem;
 }
 
-.loading-container p::after {
-  content: '';
+.CollectFare-peso-sign {
   position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 40px;
-  height: 4px;
-  background-color: #4CAF50;
-  border-radius: 2px;
-  animation: loading-pulse 1.5s infinite ease-in-out;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--CollectFare-neutral-600);
+  font-weight: 500;
 }
 
-@keyframes loading-pulse {
-  0% { opacity: 0.4; width: 40px; }
-  50% { opacity: 1; width: 80px; }
-  100% { opacity: 0.4; width: 40px; }
+.CollectFare-tender-input {
+  width: 100%;
+  height: 2.75rem;
+  padding: 0.5rem 1rem 0.5rem 2rem;
+  border: 1px solid var(--CollectFare-neutral-200);
+  border-radius: var(--CollectFare-radius-md);
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.CollectFare-tender-input:focus {
+  outline: none;
+  border-color: var(--CollectFare-primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Preset Amount Buttons */
+.CollectFare-preset-amounts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.CollectFare-preset-amount-btn {
+  padding: 0.5rem;
+  background: white;
+  border: 1px solid var(--CollectFare-neutral-200);
+  border-radius: var(--CollectFare-radius-md);
+  color: var(--CollectFare-neutral-700);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.CollectFare-preset-amount-btn:hover {
+  background: var(--CollectFare-neutral-50);
+  border-color: var(--CollectFare-neutral-300);
+}
+
+/* Change Display */
+.CollectFare-change {
+  padding: 1.25rem;
+  background: var(--CollectFare-neutral-50);
+  border-bottom: 1px solid var(--CollectFare-neutral-100);
+}
+
+.CollectFare-change strong {
+  font-size: 1.25rem;
+  color: var(--CollectFare-success-color);
+}
+
+/* Commuter Email Section */
+.CollectFare-commuter {
+  padding: 1.25rem;
+}
+
+/* QR Scanner Button */
+.CollectFare-qr-button {
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 0.75rem;
+  background: var(--CollectFare-primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--CollectFare-radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.CollectFare-qr-button:hover {
+  background: var(--CollectFare-primary-hover);
+}
+
+/* Action Buttons */
+.CollectFare-actions {
+  padding: 1.25rem;
+  display: flex;
+  gap: 0.75rem;
+  margin-top: auto;
+  background: white;
+  border-top: 1px solid var(--CollectFare-neutral-200);
+}
+
+.CollectFare-actions button {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--CollectFare-radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.CollectFare-actions .secondary {
+  background: var(--CollectFare-neutral-100);
+  color: var(--CollectFare-neutral-700);
+  border: none;
+}
+
+.CollectFare-actions .secondary:hover {
+  background: var(--CollectFare-neutral-200);
+}
+
+.CollectFare-actions .primary {
+  background: var(--CollectFare-success-color);
+  color: white;
+  border: none;
+  flex: 1;
+}
+
+.CollectFare-actions .primary:hover {
+  background: var(--CollectFare-success-hover);
+}
+
+/* Payment Method Section */
+.CollectFare-payment-method {
+  background: white;
+  border: 1px solid var(--CollectFare-neutral-200);
+  border-radius: var(--CollectFare-radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.CollectFare-payment-method h3 {
+  color: var(--CollectFare-neutral-700);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.CollectFare-payment-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.CollectFare-payment-btn {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  background: white;
+  border: 1px solid var(--CollectFare-neutral-200);
+  border-radius: var(--CollectFare-radius-md);
+  color: var(--CollectFare-neutral-600);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.CollectFare-payment-btn:hover {
+  background: var(--CollectFare-neutral-50);
+  border-color: var(--CollectFare-primary-color);
+}
+
+.CollectFare-payment-btn.active {
+  background: var(--CollectFare-primary-color);
+  border-color: var(--CollectFare-primary-color);
+  color: white;
+}
+
+/* Digital Receipt Section */
+.CollectFare-digital-receipt {
+  background: white;
+  border: 1px solid var(--CollectFare-neutral-200);
+  border-radius: var(--CollectFare-radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.CollectFare-digital-receipt h3 {
+  color: var(--CollectFare-neutral-700);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.CollectFare-upload-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.CollectFare-take-photo-btn,
+.CollectFare-upload-btn {
+  padding: 1rem 1.5rem;
+  background: var(--CollectFare-primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--CollectFare-radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: center;
+}
+
+.CollectFare-take-photo-btn:hover,
+.CollectFare-upload-btn:hover {
+  background: var(--CollectFare-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--CollectFare-shadow-md);
+}
+
+/* Image Preview */
+.CollectFare-image-preview {
+  margin: 1rem 0;
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  border-radius: var(--CollectFare-radius-md);
+  overflow: hidden;
+  box-shadow: var(--CollectFare-shadow-md);
+}
+
+.CollectFare-image-preview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Camera Controls */
+.CollectFare-camera-controls {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+.CollectFare-retake-btn,
+.CollectFare-remove-receipt-btn {
+  padding: 0.75rem 1.25rem;
+  background: var(--CollectFare-danger-color);
+  color: white;
+  border: none;
+  border-radius: var(--CollectFare-radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.CollectFare-retake-btn:hover,
+.CollectFare-remove-receipt-btn:hover {
+  background: var(--CollectFare-danger-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--CollectFare-shadow-md);
+}
+
+.CollectFare-file-upload-container {
+  position: relative;
+  width: 100%;
+}
+
+.CollectFare-file-upload-container input[type="file"] {
+  display: none;
+}
+
+/* QR Scanner Section */
+.CollectFare-qr-scanner-container {
+  background: white;
+  border-radius: var(--CollectFare-radius-lg);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.CollectFare-qr-scanner-container h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--CollectFare-neutral-800);
+  margin: 0;
+  text-align: center;
+}
+
+.CollectFare-qr-scanner-component {
+  width: 100%;
+  max-width: 500px;
+  aspect-ratio: 4/3;
+  background: var(--CollectFare-neutral-900);
+  border-radius: var(--CollectFare-radius-lg);
+  overflow: hidden;
+  position: relative;
+}
+
+.CollectFare-qr-scanner-component video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.CollectFare-qr-scanner-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  border: 2px solid var(--CollectFare-primary-color);
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+}
+
+/* Camera Selection */
+.CollectFare-camera-select {
+  width: 100%;
+  max-width: 300px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--CollectFare-neutral-200);
+  border-radius: var(--CollectFare-radius-md);
+  background: white;
+  color: var(--CollectFare-neutral-800);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.CollectFare-camera-select:focus {
+  outline: none;
+  border-color: var(--CollectFare-primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Scanner Controls */
+.CollectFare-scanner-controls {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.CollectFare-stop-scanning-btn {
+  padding: 0.75rem 1.5rem;
+  background: var(--CollectFare-danger-color);
+  color: white;
+  border: none;
+  border-radius: var(--CollectFare-radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.CollectFare-stop-scanning-btn:hover {
+  background: var(--CollectFare-danger-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--CollectFare-shadow-md);
+}
+
+/* Custom Transaction Button */
+.CollectFare-custom-transaction-btn {
+  width: 100%;
+  max-width: 300px;
+  padding: 0.875rem 1.5rem;
+  background: var(--CollectFare-primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--CollectFare-radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.CollectFare-custom-transaction-btn:hover {
+  background: var(--CollectFare-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--CollectFare-shadow-md);
+}
+
+/* QR Error Message */
+.CollectFare-qr-error {
+  color: var(--CollectFare-danger-color);
+  font-size: 0.875rem;
+  text-align: center;
+  padding: 0.5rem;
+  background: var(--CollectFare-danger-color-light);
+  border-radius: var(--CollectFare-radius-md);
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .CollectFare-calculator-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .CollectFare-container {
+    height: calc(100vh - 2rem);
+    max-height: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .CollectFare-header {
+    padding: 1rem;
+  }
+  
+  .CollectFare-content {
+    padding: 1rem;
+  }
+  
+  .CollectFare-row {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .CollectFare-preset-amounts {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .CollectFare-actions {
+    flex-direction: column;
+  }
+  
+  .CollectFare-actions button {
+    width: 100%;
+  }
+
+  .CollectFare-container {
+    width: 100vw;
+    max-width: none;
+    height: 100vh;
+    border-radius: 0;
+  }
+
+  .CollectFare-payment-buttons {
+    flex-direction: column;
+  }
+
+  .CollectFare-upload-options {
+    grid-template-columns: 1fr;
+  }
+
+  .CollectFare-image-preview {
+    max-width: 100%;
+  }
+
+  .CollectFare-qr-scanner-container {
+    padding: 1rem;
+  }
+
+  .CollectFare-qr-scanner-component {
+    max-width: 100%;
+  }
+
+  .CollectFare-qr-scanner-frame {
+    width: 160px;
+    height: 160px;
+  }
+
+  .CollectFare-custom-transaction-btn {
+    max-width: 100%;
+  }
+}
+
+/* Custom Mode Styles */
+.CollectFare-container.custom-mode {
+  width: 95vw;
+  max-width: 1200px;
+}
+
+.CollectFare-container.custom-mode .CollectFare-content {
+  background: white;
+  padding: 2rem;
+}
+
+.CollectFare-container.custom-mode .CollectFare-calculator-grid {
+  height: auto;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 2rem;
+}
+
+.CollectFare-camera-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4/3;
+  margin-bottom: 1rem;
+}
+
+.CollectFare-camera-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.CollectFare-camera-buttons button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border: none;
+}
+
+.CollectFare-camera-buttons button:first-child {
+  background-color: #f1f1f1;
+  color: #333;
+}
+
+.CollectFare-camera-buttons button:last-child {
+  background-color: #4caf50;
+  color: white;
+}
+
+.CollectFare-camera-buttons button:hover {
+  opacity: 0.9;
 }

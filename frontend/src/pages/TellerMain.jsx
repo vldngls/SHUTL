@@ -631,55 +631,6 @@ const TellerMain = () => {
     };
   }, [isMessageBoxOpen]);
 
-  // Handle outside clicks for mobile menu
-  useEffect(() => {
-    const handleOutsideClick = (event) => {
-      if (
-        mobileMenuRef.current &&
-        !mobileMenuRef.current.contains(event.target) &&
-        !event.target.closest(".TellerMain-hamburger")
-      ) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-    };
-  }, []);
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const handleMobileMenuAction = (action) => {
-    setIsMobileMenuOpen(false);
-
-    switch (action) {
-      case "profile":
-        toggleProfile();
-        break;
-      case "message":
-        toggleMessageBox();
-        break;
-      case "notification":
-        toggleNotification();
-        break;
-      case "summary":
-        toggleSummary();
-        break;
-      case "trip":
-        toggleTripForm();
-        break;
-      case "collectFare":
-        toggleCollectFare();
-        break;
-      default:
-        break;
-    }
-  };
-
   // Add formatted date and time
   const formattedDate = useMemo(() => {
     return dateTime.toLocaleDateString("en-PH", {
@@ -907,82 +858,6 @@ const TellerMain = () => {
           show={true}
         />
       )}
-
-      <div
-        className={`TellerMain-mobile-menu-toggle ${
-          isMobileMenuOpen ? "active" : ""
-        }`}
-        onClick={toggleMobileMenu}
-      >
-        <div className="TellerMain-hamburger">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-      </div>
-
-      <div
-        className={`TellerMain-mobile-menu ${isMobileMenuOpen ? "open" : ""}`}
-        ref={mobileMenuRef}
-      >
-        <div className="TellerMain-mobile-menu-header">
-          <img
-            src={profileImage}
-            alt="Profile"
-            className="TellerMain-mobile-profile-pic"
-            onClick={() => handleMobileMenuAction("profile")}
-          />
-          <span className="TellerMain-mobile-menu-title">Menu</span>
-          <button
-            className="TellerMain-mobile-menu-close"
-            onClick={toggleMobileMenu}
-          >
-            &times;
-          </button>
-        </div>
-        <div className="TellerMain-mobile-menu-items">
-          <button
-            className="TellerMain-mobile-menu-item"
-            onClick={() => handleMobileMenuAction("profile")}
-          >
-            <img src="/profile-b.png" alt="Profile" />
-            Profile
-          </button>
-          <button
-            className="TellerMain-mobile-menu-item"
-            onClick={() => handleMobileMenuAction("message")}
-          >
-            <img src="/message-b.png" alt="Messages" />
-            Messages
-          </button>
-          <button
-            className="TellerMain-mobile-menu-item"
-            onClick={() => handleMobileMenuAction("notification")}
-          >
-            <img src="/notif-b.png" alt="Notifications" />
-            Notifications
-            {notifications.length > 0 && (
-              <span className="TellerMain-notification-badge">
-                {notifications.length}
-              </span>
-            )}
-          </button>
-          <button
-            className="TellerMain-mobile-menu-item"
-            onClick={() => handleMobileMenuAction("summary")}
-          >
-            <img src="/summary-b.png" alt="Summary" />
-            Summary
-          </button>
-          <button
-            className="TellerMain-mobile-menu-item"
-            onClick={() => handleMobileMenuAction("trip")}
-          >
-            <img src="/trip-b.png" alt="Trip" />
-            Trip
-          </button>
-        </div>
-      </div>
     </div>
   );
 };

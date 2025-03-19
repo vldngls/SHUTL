@@ -13,6 +13,8 @@ export const createFareTransaction = async (req, res) => {
       commuterEmail,
       date,
       time,
+      paymentMethod,
+      receiptImage
     } = req.body;
 
     // Validate required fields
@@ -21,16 +23,31 @@ export const createFareTransaction = async (req, res) => {
       !passengerCounts ||
       !totalFare ||
       !tender ||
-      !commuterEmail
+      !commuterEmail ||
+      !paymentMethod
     ) {
       return res
         .status(400)
         .json({ message: "All required fields must be provided" });
     }
 
+    // Validate payment method
+    if (!['CASH', 'GCASH'].includes(paymentMethod)) {
+      return res
+        .status(400)
+        .json({ message: "Invalid payment method. Must be either CASH or GCASH" });
+    }
+
+    // Validate GCash receipt requirement
+    if (paymentMethod === 'GCASH' && !receiptImage) {
+      return res
+        .status(400)
+        .json({ message: "Receipt image is required for GCash payments" });
+    }
+
     // Validate passenger counts
     const totalPassengers = Object.values(passengerCounts).reduce(
-      (sum, count) => sum + count,
+      (sum, count) => sum + (typeof count === 'number' ? count : 0),
       0
     );
     if (totalPassengers === 0) {
@@ -39,20 +56,27 @@ export const createFareTransaction = async (req, res) => {
         .json({ message: "At least one passenger is required" });
     }
 
-    // Create new transaction
+    // Create new transaction with Map for passengerCounts
     const fareTransaction = new FareTransaction({
       shuttleID,
-      passengerCounts,
+      passengerCounts: new Map(Object.entries(passengerCounts)),
       totalFare,
       tender,
       change,
       commuterEmail,
       date: date || new Date().toISOString().split("T")[0],
       time: time || new Date().toTimeString().split(" ")[0].substring(0, 5),
+      paymentMethod,
+      receiptImage
     });
 
     const savedTransaction = await fareTransaction.save();
-    res.status(201).json(savedTransaction);
+    
+    // Convert Map back to object for response
+    const response = savedTransaction.toObject();
+    response.passengerCounts = Object.fromEntries(response.passengerCounts);
+    
+    res.status(201).json(response);
   } catch (error) {
     console.error("Error in createFareTransaction:", error);
     res.status(500).json({

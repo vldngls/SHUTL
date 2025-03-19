@@ -442,7 +442,11 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
   // Calculate current transactions
   const indexOfLastTransaction = currentPage * transactionsPerPage;
   const indexOfFirstTransaction = indexOfLastTransaction - transactionsPerPage;
-  const currentTransactions = transactions.slice(
+  // Sort transactions by createdAt in descending order (newest first)
+  const sortedTransactions = [...transactions].sort((a, b) => 
+    new Date(b.createdAt) - new Date(a.createdAt)
+  );
+  const currentTransactions = sortedTransactions.slice(
     indexOfFirstTransaction,
     indexOfLastTransaction
   );
@@ -607,15 +611,19 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
               <label className="shutl-profile-popup-edit-label">
                 Payment Method
               </label>
-              <input
+              <select
                 name="paymentMethod"
-                type="text"
                 value={
-                  editedData.paymentMethod || userData?.paymentMethod || ""
+                  editedData.paymentMethod || userData?.paymentMethod || "CASH"
                 }
                 onChange={handleInputChange}
-                placeholder="Payment Method"
-              />
+              >
+                <option value="CASH">Cash</option>
+                <option value="DIGITAL">Digital</option>
+              </select>
+              <small className="shutl-profile-popup-form-hint">
+                Your preferred payment method will be included in your QR code
+              </small>
             </div>
 
             <div className="shutl-profile-popup-form-group">
@@ -700,8 +708,10 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
             <div className="shutl-details-category">
               <h4>Payment Information</h4>
               <p>
-                <strong>Payment Method</strong>
-                {userData?.paymentMethod || "N/A"}
+                <strong>Payment Method</strong>{" "}
+                {userData?.paymentMethod === "DIGITAL" ? "Digital" : 
+                 userData?.paymentMethod === "CASH" ? "Cash" : 
+                 userData?.paymentMethod || "Cash"}
               </p>
             </div>
           </div>
@@ -739,6 +749,18 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
                   <p>Total Fare: ₱{transaction.totalFare}</p>
                   <p>Amount Tendered: ₱{transaction.tender || 0}</p>
                   <p>Change: ₱{transaction.change || 0}</p>
+                  <p>Payment Method: {transaction.paymentMethod || 'CASH'}</p>
+                  {transaction.paymentMethod === 'DIGITAL' && transaction.receiptImage && (
+                    <div className="shutl-transaction-receipt">
+                      <p><strong>Digital Payment Receipt:</strong></p>
+                      <img 
+                        src={transaction.receiptImage} 
+                        alt="Digital Payment Receipt" 
+                        className="shutl-receipt-image"
+                        onClick={() => window.open(transaction.receiptImage, '_blank')}
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
