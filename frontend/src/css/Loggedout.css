@@ -123,18 +123,32 @@ body {
   position: fixed;
   bottom: 0;
   left: 0;
-  width: calc(100% + 80px); /* Expand width to cover entire screen width */
+  right: 0;
+  width: 100vw;
   background-color: #f5f5f5;
   color: #333;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
-  border-top: 2px solid #e0e0e0;
-  font-size: 1em; /* Adjusted to relative units */
-  z-index: 2; /* Ensure it is behind the navbar */
+  padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid #e0e0e0;
+  font-size: 12px;
+  z-index: 2;
   box-sizing: border-box;
-  margin-left: -80px; /* Shift taskbar left to align with the navbar's edge */
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+  margin: 0;
+}
+
+.ShutlLoggedOut .Taskbar {
+  width: 100vw;
+  margin-left: 0;
+  justify-content: space-between;
+}
+
+.ShutlLoggedOut .Taskbar-content {
+  justify-content: space-between;
+  padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
+  width: 100%;
 }
 
 /* Hamburger Menu Button */
@@ -178,58 +192,80 @@ body {
 }
 
 .ShutlLoggedOut-mobile-menu-header {
+  padding: calc(env(safe-area-inset-top, 0px) + 16px) 24px 24px;
+  margin-bottom: 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 40px;
-  padding-top: 20px;
+  z-index: 10000;
+  background-color: #232323;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: 80px;
+  position: relative;
 }
 
 .ShutlLoggedOut-mobile-menu-logo {
-  font-size: 1.8em;
+  font-size: 24px;
   font-weight: bold;
   color: white;
+  letter-spacing: 1px;
+  margin-left: 4px;
+  z-index: 10001; /* Ensure logo stays above close button */
 }
 
 .ShutlLoggedOut-mobile-menu-close {
   background: none;
   border: none;
   color: white;
-  font-size: 24px;
-  padding: 8px;
+  padding: 12px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   transition: background-color 0.2s ease;
+  z-index: 10001;
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 16px);
+  right: 8px; /* Adjust right position to prevent overlap */
 }
 
-.ShutlLoggedOut-mobile-menu-close:hover {
+.ShutlLoggedOut-mobile-menu-close:active {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
+.ShutlLoggedOut-mobile-menu-close svg {
+  width: 28px;
+  height: 28px;
+  stroke-width: 2px;
+}
+
 .ShutlLoggedOut-mobile-menu-items {
+  padding: 0 24px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  margin-top: 16px; /* Add some spacing from header */
 }
 
 .ShutlLoggedOut-mobile-menu button {
   background: none;
   border: none;
   color: white;
-  font-size: 16px;
-  padding: 15px 20px;
+  font-size: 18px;
+  padding: 16px 20px;
   cursor: pointer;
   text-align: left;
-  transition: background-color 0.3s ease;
-  width: 100%;
+  transition: all 0.2s ease;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
 }
 
-.ShutlLoggedOut-mobile-menu button:hover {
+.ShutlLoggedOut-mobile-menu button:active {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -373,10 +409,10 @@ body {
     width: 44px;
     height: 44px;
     position: relative;
-    z-index: 10000;
+    z-index: 10002; /* Ensure hamburger stays above menu */
     -webkit-tap-highlight-color: transparent;
     border-radius: 50%;
-    margin-left: -8px; /* Change from margin-right to margin-left */
+    margin-left: 0;
   }
 
   .hamburger-menu:active {
@@ -391,19 +427,20 @@ body {
     background-color: #fff;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 2px;
+    transform-origin: center; /* Add transform origin */
   }
 
   .hamburger-menu.active span:nth-child(1) {
-    transform: translateY(6px) rotate(45deg);
+    transform: translateY(4px) rotate(45deg); /* Reduce translateY */
   }
 
   .hamburger-menu.active span:nth-child(2) {
     opacity: 0;
-    transform: translateX(-100%);
+    transform: scaleX(0); /* Use scaleX instead of translateX */
   }
 
   .hamburger-menu.active span:nth-child(3) {
-    transform: translateY(-6px) rotate(-45deg);
+    transform: translateY(-4px) rotate(-45deg); /* Reduce translateY */
   }
 
   /* Improved Mobile Menu */
@@ -423,89 +460,6 @@ body {
   .ShutlLoggedOut-mobile-menu.active {
     right: 0;
     left: auto;
-  }
-
-  /* Improved Mobile Menu Header */
-  .ShutlLoggedOut-mobile-menu-header {
-    padding: calc(env(safe-area-inset-top, 0px) + 16px) 24px 24px;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    z-index: 10000;
-    background-color: #232323;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    height: 80px; /* Fixed height for better positioning */
-    position: relative; /* Add position relative for absolute positioning of X */
-  }
-
-  .ShutlLoggedOut-mobile-menu-logo {
-    font-size: 24px;
-    font-weight: bold;
-    color: white;
-    letter-spacing: 1px;
-    margin-left: 4px; /* Add a bit of margin */
-  }
-
-  .ShutlLoggedOut-mobile-menu-close {
-    background: none;
-    border: none;
-    color: white;
-    padding: 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    transition: background-color 0.2s ease;
-    z-index: 10001;
-    position: absolute; /* Position absolutely */
-    top: calc(env(safe-area-inset-top, 0px) + 16px); /* Position at the top */
-    right: 16px; /* Position at the right */
-  }
-
-  .ShutlLoggedOut-mobile-menu-close:active {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-
-  .ShutlLoggedOut-mobile-menu-close svg {
-    width: 28px;
-    height: 28px;
-    stroke-width: 2px;
-  }
-
-  .ShutlLoggedOut-mobile-menu-items {
-    padding: 0 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-top: 16px; /* Add some spacing from header */
-  }
-
-  .ShutlLoggedOut-mobile-menu button {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 18px;
-    padding: 16px 20px;
-    cursor: pointer;
-    text-align: left;
-    transition: all 0.2s ease;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    font-weight: 500;
-  }
-
-  .ShutlLoggedOut-mobile-menu button:active {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-
-  /* Reload map button */
-  .ShutlLoggedOut-reload-map-btn {
-    z-index: 1002; /* Lower than mobile menu */
   }
 
   /* Ensure the map container adjusts for iOS safe areas */
@@ -600,11 +554,11 @@ body {
     background-color: #f5f5f5;
     color: #333;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    padding: calc(12px + env(safe-area-inset-bottom, 0px));
+    padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid #e0e0e0;
-    font-size: 14px;
+    font-size: 12px;
     z-index: 2;
     box-sizing: border-box;
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
@@ -614,16 +568,139 @@ body {
   .ShutlLoggedOut .Taskbar {
     width: 100vw;
     margin-left: 0;
-    justify-content: center;
+    justify-content: space-between;
   }
 
   .ShutlLoggedOut .Taskbar-content {
-    justify-content: center;
-    padding: calc(12px + env(safe-area-inset-bottom, 0px));
+    justify-content: space-between;
+    padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
+    width: 100%;
   }
 
   .desktop-only {
     display: none;
+  }
+
+  /* Sidebar mobile styles */
+  .Sidebar {
+    width: 100% !important;
+    height: 100dvh !important;
+    border-radius: 0 38.5px 38.5px 0 !important;
+    padding: 20px !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 1000 !important;
+    background-color: rgba(245, 245, 245, 0.95) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    transform: translateX(-100%) !important;
+    transition: transform 0.3s ease-in-out !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .Sidebar.mobile-open {
+    transform: translateX(0) !important;
+  }
+
+  .Sidebar-logo {
+    font-size: 24px !important;
+    margin-bottom: 30px !important;
+    margin-top: 0 !important;
+    color: white !important;
+  }
+
+  .Sidebar-close-button {
+    display: none !important;
+    position: absolute !important;
+    top: 20px !important;
+    right: 20px !important;
+    background: none !important;
+    border: none !important;
+    padding: 8px !important;
+    cursor: pointer !important;
+    z-index: 1001 !important;
+  }
+
+  .Sidebar-close-button svg {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  .Sidebar-buttons {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    flex: 1 !important;
+  }
+
+  .Sidebar-icon-container {
+    position: relative !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 20px !important;
+    border-top: 1px solid #e0e0e0 !important;
+    margin-top: auto !important;
+    width: 100% !important;
+  }
+
+  .Sidebar-line {
+    display: none !important;
+  }
+
+  .Sidebar-profile-section {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .Sidebar-icon-image {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .Sidebar-profile-text {
+    color: white !important;
+    font-size: 16px !important;
+  }
+
+  /* Ensure the map container adjusts for the mobile sidebar */
+  .ShutlLoggedOut-map-container {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100dvh !important;
+    z-index: 1 !important;
+  }
+
+  /* Remove the desktop-only elements */
+  .desktop-only {
+    display: none !important;
+  }
+
+  /* Remove the reload map button styles since we removed the button */
+  .ShutlLoggedOut-reload-map-btn {
+    display: none !important;
+  }
+
+  /* Mobile date format */
+  .Taskbar-date {
+    font-size: 12px;
+  }
+  
+  .Taskbar-date .date-text {
+    display: none;
+  }
+  
+  .Taskbar-date .date-number {
+    display: inline;
   }
 }
 

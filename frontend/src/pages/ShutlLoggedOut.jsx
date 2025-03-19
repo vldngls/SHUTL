@@ -387,17 +387,6 @@ const ShutlLoggedOut = () => {
 
       <Taskbar date={formattedDate} time={formattedTime} />
 
-      <button
-        className="ShutlLoggedOut-update-location-btn"
-        onClick={updateUserLocation}
-      >
-        <img
-          src="/locup.png"
-          alt="Update Location"
-          className="ShutlLoggedOut-update-location-icon"
-        />
-      </button>
-
       {showLogin && <LoginForm onClose={handleCloseLogin} />}
     </div>
   );
