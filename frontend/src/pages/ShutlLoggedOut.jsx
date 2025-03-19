@@ -44,15 +44,16 @@ const ShutlLoggedOut = () => {
   const mapRef = useRef();
   const socket = useRef(null);
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
-  const [mapReady, setMapReady] = useState(false);
   const sidebarRef = useRef(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setDateTime(new Date());
     }, 1000);
+
+    // Get user location on mount
+    updateUserLocation();
 
     // Function to clean up stale locations
     const cleanupStaleLocations = () => {
@@ -189,9 +190,6 @@ const ShutlLoggedOut = () => {
         if (userLocation) {
           mapRef.current.setView(userLocation, 15.5, { animate: false });
         }
-
-        // Mark map as ready
-        setMapReady(true);
       }
     };
 
@@ -256,7 +254,6 @@ const ShutlLoggedOut = () => {
 
   const handleLoginClick = () => {
     setShowLogin(true);
-    setIsMobileMenuOpen(false);
     setIsSidebarExpanded(false);
   };
 
@@ -269,19 +266,6 @@ const ShutlLoggedOut = () => {
       return; // Prevent expansion on mobile
     }
     setIsSidebarExpanded(!isSidebarExpanded);
-  };
-
-  // Add this function to force map reload if needed
-  const forceMapReload = () => {
-    if (mapRef.current) {
-      // Force map to recalculate its size
-      mapRef.current.invalidateSize(true);
-
-      // If user location exists, center map on it
-      if (userLocation) {
-        mapRef.current.setView(userLocation, 15.5, { animate: false });
-      }
-    }
   };
 
   // Format date and time for Taskbar
@@ -307,46 +291,19 @@ const ShutlLoggedOut = () => {
   };
 
   return (
-    <div className="ShutlLoggedOut-container">
-      <div
-        className="ShutlLoggedOut-map-container"
-        id="map-container"
-        onClick={forceMapReload}
-      >
+    <div className="logged-out__container">
+      <div id="map-container" className="logged-out__map-container">
         <MapContainer
-          key="map-container"
-          style={{
-            height: "100%",
-            width: "100%",
-            visibility: "visible",
-            opacity: 1,
-          }}
-          center={[14.377, 120.983]}
+          center={userLocation || [0, 0]}
           zoom={15.5}
-          zoomControl={false}
-          whenReady={(map) => {
-            mapRef.current = map.target;
-            setTimeout(() => {
-              if (mapRef.current) {
-                mapRef.current.invalidateSize(true);
-                setMapReady(true);
-              }
-            }, 100);
-          }}
+          style={{ height: "100%", width: "100%" }}
+          ref={mapRef}
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
-          {userLocation && (
-            <Marker position={userLocation}>
-              <Popup>You are here.</Popup>
-            </Marker>
-          )}
           {Object.entries(optimizedLocations).map(([shuttleId, data]) => {
-            if (!data || !data.coordinates || data.status === "offline")
-              return null;
-
             return (
               <Marker
                 key={shuttleId}
@@ -354,7 +311,7 @@ const ShutlLoggedOut = () => {
                 icon={driverIcon}
               >
                 <Popup>
-                  <div className="ShutlLoggedOut-shuttle-info">
+                  <div className="logged-out__shuttle-info">
                     <h3>SHUTL {shuttleId}</h3>
                     <p>Last updated: {data.lastUpdate.toLocaleTimeString()}</p>
                     <p>
@@ -371,19 +328,26 @@ const ShutlLoggedOut = () => {
         </MapContainer>
       </div>
 
-      {/* Remove the desktop-only div and use the Sidebar directly */}
       <Sidebar
         ref={sidebarRef}
         userType="guest"
         isExpanded={isSidebarExpanded}
         onToggle={toggleSidebar}
         onProfileClick={handleLoginClick}
+        onMessageClick={handleLoginClick}
+        onNotificationClick={handleLoginClick}
+        onActiveShuttlesClick={() => {}}
         profileImage="/icon.png"
+        onSettingsClick={() => {
+          if (!isSidebarExpanded) {
+            setIsSidebarExpanded(true);
+          }
+        }}
+        notificationEnabled={false}
+        onNotificationToggle={() => {}}
+        locationEnabled={false}
+        onLocationToggle={() => {}}
       />
-
-      {/* Remove the Mobile top bar since it's now handled by Sidebar */}
-
-      {/* Remove the Mobile menu since it's now handled by Sidebar */}
 
       <Taskbar date={formattedDate} time={formattedTime} />
 

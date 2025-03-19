@@ -1,3 +1,6 @@
+/* Import shared variables */
+@import './shared/variables.css';
+
 /* Base layout */
 :root {
   --dynamic-vh: 100vh;
@@ -12,27 +15,40 @@ html, body, #root {
 }
 
 /* Main container */
-.TellerMain-container {
-  display: flex;
+.teller-main__container {
   height: var(--dynamic-vh);
   width: 100%;
   position: relative;
   overflow: hidden;
+  background-color: var(--primary-color);
 }
 
 /* Map container */
-.TellerMain-map-container {
-  flex: 1;
-  height: 100%;
-  position: relative;
-  margin-left: 0; /* Remove margin so map renders full width */
-  width: 100%; /* Make map take full width */
-  overflow: hidden;
+.teller-main__map-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--dynamic-vh);
+  z-index: var(--z-index-map);
+  box-sizing: border-box;
+  background-color: var(--primary-color);
 }
 
-.TellerMain-map-container.sidebar-expanded {
-  margin-left: 180px; /* Match expanded Sidebar width */
-  width: calc(100% - 180px); /* Match expanded Sidebar width */
+/* Create a pseudo-element to create space for the sidebar */
+.sidebar ~ .teller-main__map-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: 100%;
+  pointer-events: none;
+  transition: width var(--transition-normal);
+}
+
+.sidebar--expanded ~ .teller-main__map-container::before {
+  width: var(--sidebar-expanded-width);
 }
 
 /* Map Container */
@@ -47,22 +63,52 @@ html, body, #root {
 }
 
 /* Mobile styles */
-@media (max-width: 768px) {
-  .TellerMain-map-container {
-    margin-left: 0;
+@media (max-width: var(--mobile-breakpoint)) {
+  .teller-main__map-container {
     margin-top: 60px;
+  }
+
+  /* Remove the sidebar space on mobile */
+  .sidebar ~ .teller-main__map-container::before {
+    display: none;
+  }
+
+  .sidebar--expanded ~ .teller-main__map-container::before {
+    display: none;
+  }
+
+  /* Adjust the map container to take full width on mobile */
+  .teller-main__map-container {
+    left: 0;
     width: 100%;
   }
 
-  .TellerMain-map-container.sidebar-expanded {
-    margin-left: 0;
-    width: 100%;
+  /* Ensure the map is properly positioned under the mobile top bar */
+  .teller-main__map-container .leaflet-container {
+    height: calc(100% - 60px) !important;
+  }
+
+  /* Adjust taskbar position for mobile */
+  .taskbar {
+    bottom: env(safe-area-inset-bottom, 0px);
   }
 }
 
-@media (max-width: 480px) {
-  .TellerMain-map-container {
+@media (max-width: var(--small-mobile-breakpoint)) {
+  .teller-main__map-container {
     margin-top: calc(env(safe-area-inset-top, 0px) + 60px);
+  }
+
+  /* Adjust map container height for iOS devices */
+  .teller-main__map-container .leaflet-container {
+    height: calc(100% - calc(env(safe-area-inset-top, 0px) + 60px)) !important;
+  }
+}
+
+/* iOS support */
+@supports (-webkit-touch-callout: none) {
+  .teller-main__container {
+    height: -webkit-fill-available;
   }
 }
 
@@ -91,7 +137,7 @@ textarea {
 }
 
 /* Popup Modal Overlay */
-.TellerMain-modal-overlay {
+.teller-main__modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -99,7 +145,7 @@ textarea {
   bottom: 0;
   background-color: transparent;
   backdrop-filter: none;
-  z-index: 999;
+  z-index: var(--z-index-overlay);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -108,7 +154,7 @@ textarea {
 }
 
 /* Popup Modals */
-.TellerMain-TripTracking-popup {
+.teller-main__trip-tracking-popup {
   position: fixed;
   top: 0;
   left: 0;
@@ -117,16 +163,16 @@ textarea {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
-  padding: 20px;
-  background-color: rgba(0, 0, 0, 0.5);
+  z-index: var(--z-index-modal);
+  padding: var(--spacing-lg);
+  background-color: var(--overlay-color);
   backdrop-filter: blur(4px);
 }
 
 .shuttle-tracking-container {
-  background-color: white;
-  border-radius: 12px;
-  padding: 24px;
+  background-color: var(--secondary-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
   width: 95%;
   max-width: 1400px;
   max-height: 90vh;
@@ -134,64 +180,64 @@ textarea {
   position: relative;
   display: grid;
   grid-template-columns: 1fr 380px;
-  gap: 24px;
+  gap: var(--spacing-xl);
   margin: 0 auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Close Button */
-.TellerMain-close-popup-btn {
+.teller-main__close-popup-btn {
   position: fixed;
-  top: 20px;
-  right: 20px;
-  background: white;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  background: var(--secondary-color);
   color: #ef4444;
   border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
   cursor: pointer;
   font-weight: 500;
-  z-index: 1001;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
+  z-index: var(--z-index-modal);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
   touch-action: manipulation;
   user-select: none;
 }
 
-.TellerMain-close-popup-btn:hover {
+.teller-main__close-popup-btn:hover {
   background-color: #fee2e2;
 }
 
 /* Modal Content Container */
-.TellerMain-modal-content {
+.teller-main__modal-content {
   flex: 1;
   overflow: auto;
-  padding: 1.5rem;
-  background: #ffffff;
+  padding: var(--spacing-lg);
+  background: var(--secondary-color);
 }
 
 /* Summary and Overlay */
-.TellerMain-summary-overlay {
+.teller-main__summary-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   background-color: transparent;
-  z-index: 1000;
+  z-index: var(--z-index-overlay);
 }
 
-.TellerMain-summary-panel {
+.teller-main__summary-panel {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 400px;
-  background-color: white;
-  padding: 20px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
-  z-index: 1001;
+  background-color: var(--secondary-color);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--border-radius-lg);
+  z-index: var(--z-index-modal);
   max-height: 90vh;
   max-height: calc(var(--vh, 1vh) * 90);
   overflow-y: auto;
@@ -199,83 +245,79 @@ textarea {
   -webkit-overflow-scrolling: touch;
 }
 
-.TellerMain-summary-header {
+.teller-main__summary-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #ddd;
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--border-color);
 }
 
 /* Taskbar */
-.TellerMain-taskbar {
+.teller-main__taskbar {
   position: fixed;
   bottom: 0;
-  left: 64px;
-  width: calc(100% - 64px);
+  left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
   background-color: #f5f5f5;
-  color: #333;
+  color: var(--text-color);
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding: 8px 16px;
-  border-top: 1px solid #e0e0e0;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-top: 1px solid var(--border-color);
   font-size: 14px;
-  z-index: 2;
+  z-index: var(--z-index-base);
   box-sizing: border-box;
-  transition: left 0.3s ease, width 0.3s ease;
+  transition: left var(--transition-normal), width var(--transition-normal);
 }
 
-.TellerMain-navbar.expanded ~ .TellerMain-taskbar {
-  left: 180px !important;
-  width: calc(100% - 180px) !important;
+.teller-main__navbar--expanded ~ .teller-main__taskbar {
+  left: var(--sidebar-expanded-width) !important;
+  width: calc(100% - var(--sidebar-expanded-width)) !important;
 }
 
 /* Media Queries */
-@media (max-width: 768px) {
-  .TellerMain-map-container {
+@media (max-width: var(--mobile-breakpoint)) {
+  .teller-main__map-container {
     left: 0 !important;
     width: 100% !important;
   }
 
-  .TellerMain-taskbar {
-    left: 64px;
-    width: calc(100% - 64px);
+  .teller-main__taskbar {
+    left: 0;
+    width: 100%;
   }
 
-  .TellerMain-TripTracking-popup,
-  .TellerMain-modal-overlay {
-    left: 64px;
-    width: calc(100% - 64px);
-  }
-
-  .TellerMain-map-container,
-  .TellerMain-taskbar {
-    transition: left 0.3s ease, width 0.3s ease;
+  .teller-main__trip-tracking-popup,
+  .teller-main__modal-overlay {
+    left: 0;
+    width: 100%;
   }
 }
 
-@media (max-width: 480px) {
-  .TellerMain-map-container {
+@media (max-width: var(--small-mobile-breakpoint)) {
+  .teller-main__map-container {
     left: 0 !important;
     width: 100% !important;
     height: calc(var(--vh, 1vh) * 100);
   }
 
-  .TellerMain-TripTracking-popup,
-  .TellerMain-modal-overlay {
+  .teller-main__trip-tracking-popup,
+  .teller-main__modal-overlay {
     left: 0;
     width: 100%;
   }
 
-  .TellerMain-taskbar {
+  .teller-main__taskbar {
     left: 0 !important;
     width: 100% !important;
     font-size: 0.8em;
   }
 }
 
-.TellerMain-suggestion-btn {
+/* Suggestion Button */
+.teller-main__suggestion-btn {
   position: fixed;
   bottom: 20px;
   right: 20px;
@@ -295,12 +337,13 @@ textarea {
   user-select: none;
 }
 
-.TellerMain-suggestion-icon {
+.teller-main__suggestion-icon {
   width: 30px;
   height: 30px;
   filter: invert(1);
 }
 
+/* Suggestion Form */
 .suggestion-form-container {
   position: fixed;
   bottom: 90px;
@@ -352,18 +395,8 @@ textarea {
   background-color: #45a049;
 }
 
-@media (max-width: 600px) {
-  .suggestion-form-container {
-    width: calc(100% - 40px);
-    right: 20px;
-  }
-
-  .TellerMain-suggestion-btn {
-    bottom: 80px;
-  }
-}
-
-.TellerMain-chat-container {
+/* Chat Container */
+.teller-main__chat-container {
   position: fixed;
   bottom: 80px;
   right: 20px;
@@ -380,12 +413,12 @@ textarea {
   -webkit-overflow-scrolling: touch;
 }
 
-.TellerMain-chat-container .driver-message {
+.teller-main__chat-container .driver-message {
   padding: 10px;
   border-bottom: 1px solid #eee;
 }
 
-.TellerMain-close-btn {
+.teller-main__close-btn {
   position: absolute;
   top: 10px;
   right: 10px;
@@ -397,22 +430,23 @@ textarea {
   transition: color 0.2s;
 }
 
-.TellerMain-close-btn:hover {
+.teller-main__close-btn:hover {
   color: #333;
 }
 
-.TellerMain-shuttle-info {
+/* Shuttle Info */
+.teller-main__shuttle-info {
   padding: 10px;
   background-color: white;
 }
 
-.TellerMain-shuttle-info h3 {
+.teller-main__shuttle-info h3 {
   margin: 0 0 5px 0;
   font-size: 16px;
   color: #333;
 }
 
-.TellerMain-shuttle-info p {
+.teller-main__shuttle-info p {
   margin: 5px 0;
   font-size: 14px;
   color: #666;
@@ -423,24 +457,35 @@ textarea {
   opacity: 0.5;
 }
 
-/* Add viewport height fix for mobile browsers */
-@media (max-width: 768px) {
-  .TellerMain-chat-container {
+/* Mobile Responsive Styles */
+@media (max-width: 600px) {
+  .suggestion-form-container {
+    width: calc(100% - 40px);
+    right: 20px;
+  }
+
+  .teller-main__suggestion-btn {
+    bottom: 80px;
+  }
+}
+
+@media (max-width: var(--mobile-breakpoint)) {
+  .teller-main__chat-container {
     width: calc(100% - 40px);
     max-height: 50vh;
     max-height: calc(var(--vh, 1vh) * 50);
   }
 }
 
-@media (max-width: 480px) {
-  .TellerMain-suggestion-btn {
+@media (max-width: var(--small-mobile-breakpoint)) {
+  .teller-main__suggestion-btn {
     width: 50px;
     height: 50px;
     bottom: 70px;
     right: 15px;
   }
 
-  .TellerMain-suggestion-icon {
+  .teller-main__suggestion-icon {
     width: 25px;
     height: 25px;
   }
@@ -453,23 +498,8 @@ textarea {
   }
 }
 
-.sidebar-settings-container {
-  position: fixed;
-  left: 70px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 1002;
-  width: 200px;
-}
-
-@media (max-width: 768px) {
-  .sidebar-settings-container {
-    left: 64px;
-  }
-}
-
-/* Trip button styles */
-.TellerMain-trip-btn {
+/* Trip Button */
+.teller-main__trip-btn {
   background-color: #4CAF50;
   color: white;
   border: none;
@@ -480,6 +510,6 @@ textarea {
   transition: background-color 0.2s ease;
 }
 
-.TellerMain-trip-btn:hover {
+.teller-main__trip-btn:hover {
   background-color: #45a049;
 }

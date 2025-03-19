@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import '../css/TellerShuttleView.css';
+import { API_BASE_URL } from '../config/config';
 
 const TellerShuttleView = ({
   shuttleName,
@@ -14,17 +15,37 @@ const TellerShuttleView = ({
   const [discountPassengers, setDiscountPassengers] = useState(initialDiscountPassengers || 0);
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
+  const [fares, setFares] = useState({});
+
+  // Fetch fares when component mounts
+  useEffect(() => {
+    const fetchFares = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/fares`);
+        const data = await response.json();
+        const fareMap = {};
+        data.forEach((fare) => {
+          fareMap[fare.fare.toUpperCase()] = parseFloat(fare.price);
+        });
+        setFares(fareMap);
+      } catch (error) {
+        console.error("Error fetching fares:", error);
+      }
+    };
+
+    fetchFares();
+  }, []);
 
   // Calculate total earnings whenever passenger values change
   useEffect(() => {
     const calculateEarnings = () => {
-      const regularEarning = regularPassengers * 50; // Example fare for regular passengers
-      const discountEarning = discountPassengers * 24; // 20% discount from 30 pesos base fare
+      const regularEarning = regularPassengers * fares['REGULAR'];
+      const discountEarning = discountPassengers * fares['STUDENT'];
       return regularEarning + discountEarning;
     };
 
     setTotalEarnings(calculateEarnings());
-  }, [regularPassengers, discountPassengers]);
+  }, [regularPassengers, discountPassengers, fares]);
 
   const handleSave = () => {
     setIsEditing(false);

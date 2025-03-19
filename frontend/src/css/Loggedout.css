@@ -1,9 +1,14 @@
+/* Import shared variables */
+@import './shared/variables.css';
+
+/* General Reset for Body */
 html,
 body {
   margin: 0;
   padding: 0;
   height: 100%;
-  overflow: hidden; /* Prevent scroll bars */
+  overflow: hidden;
+  font-family: var(--font-family);
 }
 
 /* Add a root container to handle dynamic viewport height */
@@ -14,428 +19,185 @@ body {
   flex-direction: column;
 }
 
-/* ShutlLoggedOut Map container */
-.ShutlLoggedOut-container {
-  height: 100vh; /* Fallback */
-  height: calc(var(--vh, 1vh) * 100);
+/* Main container */
+.logged-out__container {
+  height: var(--dynamic-vh);
   width: 100%;
   position: relative;
   overflow: hidden;
-  background-color: #232323; /* Add background color to prevent white flash */
+  background-color: var(--primary-color);
 }
 
-.ShutlLoggedOut-map-container {
+.logged-out__map-container {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 100vh; /* Fallback */
-  height: calc(var(--vh, 1vh) * 100);
-  z-index: 1;
+  height: var(--dynamic-vh);
+  z-index: var(--z-index-map);
   box-sizing: border-box;
-  background-color: #232323; /* Add background color to prevent white flash */
+  background-color: var(--primary-color);
 }
 
-/* Create a pseudo-element to create space for the sidebar instead of using left/width adjustments */
-.Sidebar ~ .ShutlLoggedOut-map-container::before {
+/* Create a pseudo-element to create space for the sidebar */
+.sidebar ~ .logged-out__map-container::before {
   content: "";
   position: absolute;
   top: 0;
   left: 0;
-  width: 70px; /* Match the width of the collapsed sidebar */
+  width: var(--sidebar-width);
   height: 100%;
   pointer-events: none;
-  transition: width 0.3s ease;
+  transition: width var(--transition-normal);
 }
 
-.Sidebar.expanded ~ .ShutlLoggedOut-map-container::before {
-  width: 200px; /* Match the width of the expanded sidebar */
+.sidebar--expanded ~ .logged-out__map-container::before {
+  width: var(--sidebar-expanded-width);
 }
 
-/* Base styles for the ShutlLoggedOut navbar */
-.ShutlLoggedOut-navbar {
+/* Base styles for the navbar */
+.logged-out__navbar {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 64px;
-  height: 100dvh;
-  background-color: #232323;
-  color: white;
-  border-radius: 0 38.5px 38.5px 0;
-  padding: 16px;
+  width: var(--sidebar-width);
+  height: var(--dynamic-vh);
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
+  border-radius: 0 var(--border-radius-xl) var(--border-radius-xl) 0;
+  padding: var(--spacing-md);
   position: fixed;
   left: 0;
   top: 0;
-  z-index: 3;
+  z-index: var(--z-index-sidebar);
   box-sizing: border-box;
   justify-content: flex-start;
 }
 
-.ShutlLoggedOut-logo {
+.logged-out__logo {
   font-size: 1.4em;
   font-weight: bold;
-  margin-bottom: 20px;
-  margin-top: 8px;
+  margin-bottom: var(--spacing-lg);
+  margin-top: var(--spacing-sm);
   text-align: center;
 }
 
-.ShutlLoggedOut-status {
-  font-size: 1em; /* Adjusted to relative units */
+.logged-out__status {
+  font-size: 1em;
   margin-top: auto;
 }
 
-.ShutlLoggedOut-icon-container {
+.logged-out__icon-container {
   position: relative;
-  width: auto; /* Adjusted size */
-  height: auto; /* Adjusted size */
-  margin-top: 24px;
+  width: auto;
+  height: auto;
+  margin-top: var(--spacing-lg);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.ShutlLoggedOut-line {
+.logged-out__divider {
   position: absolute;
   top: -10px;
   left: 50%;
   transform: translateX(-50%);
   width: 58px;
   height: 1px;
-  background-color: white;
+  background-color: var(--secondary-color);
 }
 
-.ShutlLoggedOut-nav-icon {
-  width: 38px; /* Adjusted size */
-  height: 38px; /* Adjusted size */
+.logged-out__nav-icon {
+  width: 38px;
+  height: 38px;
   margin-top: 4px;
   margin-bottom: 2px;
 }
 
-/* Ensure Taskbar is styled correctly in ShutlLoggedOut */
-.ShutlLoggedOut .Taskbar {
-  width: calc(100% + 80px);
-  margin-left: -80px;
-  z-index: 2;
-}
-
-/* Maintain existing ShutlLoggedOut-taskbar styles for backward compatibility */
-.ShutlLoggedOut-taskbar {
+/* Taskbar styles */
+.logged-out__taskbar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   width: 100vw;
-  background-color: #f5f5f5;
-  color: #333;
+  background-color: var(--background-color);
+  color: var(--text-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid #e0e0e0;
+  padding: var(--spacing-sm) var(--spacing-md) calc(var(--spacing-sm) + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--border-color);
   font-size: 12px;
-  z-index: 2;
+  z-index: var(--z-index-base);
   box-sizing: border-box;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
   margin: 0;
 }
 
-.ShutlLoggedOut .Taskbar {
-  width: 100vw;
-  margin-left: 0;
+.logged-out__taskbar-content {
   justify-content: space-between;
-}
-
-.ShutlLoggedOut .Taskbar-content {
-  justify-content: space-between;
-  padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
+  padding: var(--spacing-sm) var(--spacing-md) calc(var(--spacing-sm) + env(safe-area-inset-bottom, 0px));
   width: 100%;
 }
 
-/* Hamburger Menu Button */
-.ShutlLoggedOut-hamburger {
-  display: none;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 24px;
-  height: 20px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  margin-bottom: 20px;
-}
-
-.ShutlLoggedOut-hamburger span {
-  width: 100%;
-  height: 2px;
-  background-color: white;
-  transition: all 0.3s ease;
-}
-
-
-@media (max-width: 480px) {
-  /* Container and map adjustments */
-  .ShutlLoggedOut-container {
-    height: 100dvh;
-    width: 100%;
-    position: relative;
-    overflow: hidden;
-    background-color: #232323; /* Add background color to prevent white flash */
-  }
-
-  .ShutlLoggedOut-map-container {
-    position: fixed !important;
-    top: calc(env(safe-area-inset-top, 0px) + 60px) !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: calc(
-      100dvh - 60px - env(safe-area-inset-top, 0px) -
-        env(safe-area-inset-bottom, 0px)
-    ) !important;
-    z-index: 1 !important;
-    background-color: #232323; /* Add background color to prevent white flash */
-  }
-
-  /* Make sure Leaflet map container takes full height */
-  .ShutlLoggedOut-map-container .leaflet-container {
-    height: 100% !important;
-    width: 100% !important;
-    z-index: 1 !important;
-    background-color: #232323 !important; /* Add background color to prevent white flash */
-  }
-
-  /* Force the map to be visible */
-  .leaflet-container {
-    visibility: visible !important;
-    opacity: 1 !important;
-    z-index: 1 !important;
-  }
-
-  /* Ensure map tiles are visible */
-  .leaflet-tile-container {
-    visibility: visible !important;
-    opacity: 1 !important;
-    z-index: 1 !important;
-  }
-
-
-
-  /* Ensure the map container adjusts for iOS safe areas */
-  @supports (-webkit-touch-callout: none) {
-    .ShutlLoggedOut-map-container {
-      height: calc(
-        100vh - 60px - env(safe-area-inset-top, 0px) -
-          env(safe-area-inset-bottom, 0px)
-      ) !important;
-    }
-  }
-
-  /* Add reload map button styling */
-  .ShutlLoggedOut-reload-map-btn {
-    position: fixed;
-    left: 20px;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 70px);
-    z-index: 1002;
-    background: rgba(255, 255, 255, 0.9);
-    border: none;
-    padding: 12px;
-    cursor: pointer;
-    border-radius: 50%;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* Fix for map visibility issues on mobile */
-  #map-container {
-    visibility: visible !important;
-    opacity: 1 !important;
-    display: block !important;
-    background-color: #232323 !important;
-  }
-
-  /* Force leaflet container to be visible */
-  .leaflet-container {
-    visibility: visible !important;
-    opacity: 1 !important;
-    display: block !important;
-    background-color: #232323 !important;
-  }
-
-  /* Force map panes to be visible */
-  .leaflet-map-pane,
-  .leaflet-tile,
-  .leaflet-marker-icon,
-  .leaflet-marker-shadow,
-  .leaflet-tile-pane,
-  .leaflet-overlay-pane,
-  .leaflet-shadow-pane,
-  .leaflet-marker-pane,
-  .leaflet-popup-pane {
-    visibility: visible !important;
-    opacity: 1 !important;
-    display: block !important;
-    z-index: auto !important;
-  }
-
-  /* Ensure map tiles are loaded */
-  .leaflet-tile-loaded {
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-
-  /* Update location button */
-  .ShutlLoggedOut-update-location-btn {
-    position: fixed;
-    right: 20px;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 70px);
-    z-index: 1002; /* Lower than mobile menu */
-    background: rgba(255, 255, 255, 0.9);
-    border: none;
-    padding: 12px;
-    cursor: pointer;
-    border-radius: 50%;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* Taskbar adjustments */
-  .ShutlLoggedOut-taskbar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100vw; /* Use viewport width to ensure full width */
-    background-color: #f5f5f5;
-    color: #333;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
-    border-top: 1px solid #e0e0e0;
-    font-size: 12px;
-    z-index: 2;
-    box-sizing: border-box;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
-    margin: 0; /* Remove any margin */
-  }
-
-  .ShutlLoggedOut .Taskbar {
-    width: 100vw;
-    margin-left: 0;
-    justify-content: space-between;
-  }
-
-  .ShutlLoggedOut .Taskbar-content {
-    justify-content: space-between;
-    padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
-    width: 100%;
-  }
-
-  .desktop-only {
-    display: none;
-  }
-  .ShutlLoggedOut-map-container {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100dvh !important;
-    z-index: 1 !important;
-  }
-
-  /* Remove the desktop-only elements */
-  .desktop-only {
-    display: none !important;
-  }
-
-  /* Remove the reload map button styles since we removed the button */
-  .ShutlLoggedOut-reload-map-btn {
-    display: none !important;
-  }
-
-  /* Mobile date format */
-  .Taskbar-date {
-    font-size: 12px;
-  }
-  
-  .Taskbar-date .date-text {
-    display: none;
-  }
-  
-  .Taskbar-date .date-number {
-    display: inline;
+/* Mobile styles */
+@media (max-width: var(--mobile-breakpoint)) {
+  .logged-out__map-container {
+    margin-top: 60px;
   }
 }
 
-/* iOS-specific adjustments */
+@media (max-width: var(--small-mobile-breakpoint)) {
+  .logged-out__map-container {
+    margin-top: calc(env(safe-area-inset-top, 0px) + 60px);
+  }
+}
+
+/* iOS support */
 @supports (-webkit-touch-callout: none) {
-  .ShutlLoggedOut-container {
+  .logged-out__container,
+  .logged-out__navbar {
     height: -webkit-fill-available;
-  }
-
-  .ShutlLoggedOut-map-container {
-    height: -webkit-fill-available;
-  }
-
-  @media (max-width: 480px) {
-    .ShutlLoggedOut-map-container {
-      height: calc(
-        100vh - 60px - env(safe-area-inset-top, 0px) -
-          env(safe-area-inset-bottom, 0px)
-      ) !important;
-    }
-
-    .ShutlLoggedOut-mobile-menu {
-      height: calc(
-        100vh - 60px - env(safe-area-inset-top, 0px) -
-          env(safe-area-inset-bottom, 0px)
-      ) !important;
-    }
   }
 }
 
-/* Popup Overlay */
-.ShutlLoggedOut-overlay {
+/* Popup styles */
+.logged-out__overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-  z-index: 1000; /* Ensure it appears above other elements */
+  background-color: var(--overlay-color);
+  z-index: var(--z-index-overlay);
 }
 
-/* Popup Container */
-.ShutlLoggedOut-popup {
+.logged-out__popup {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 1001; /* Ensure it's above the overlay */
+  z-index: var(--z-index-modal);
 }
 
-/* Shuttle Info Popup */
-.ShutlLoggedOut-shuttle-info {
-  padding: 10px;
+.logged-out__shuttle-info {
+  padding: var(--spacing-sm);
   text-align: center;
 }
 
-.ShutlLoggedOut-shuttle-info h3 {
-  margin: 0 0 5px 0;
-  color: #333;
+.logged-out__shuttle-info h3 {
+  margin: 0 0 var(--spacing-xs) 0;
+  color: var(--text-color);
 }
 
-.ShutlLoggedOut-shuttle-info p {
+.logged-out__shuttle-info p {
   margin: 0;
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
-.ShutlLoggedOut-update-location-icon {
+.logged-out__update-location-icon {
   width: 24px;
   height: 24px;
   filter: none;
@@ -455,11 +217,6 @@ body {
 
 @media (max-width: 480px) {
   .desktop-only {
-    display: none;
-  }
-
-  /* Remove the reload map button styles since we removed the button */
-  .ShutlLoggedOut-reload-map-btn {
     display: none;
   }
 }

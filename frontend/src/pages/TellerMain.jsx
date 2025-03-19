@@ -805,6 +805,7 @@ const TellerMain = () => {
         onNotificationToggle={setNotificationEnabled}
         locationEnabled={locationEnabled}
         onLocationToggle={setLocationEnabled}
+        className="teller-main__sidebar"
       />
 
       <Taskbar date={formattedDate} time={formattedTime} />

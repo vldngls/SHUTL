@@ -1,0 +1,128 @@
+/* CSS Variables */
+:root {
+  /* Layout */
+  --sidebar-width: 70px;
+  --sidebar-expanded-width: 200px;
+  --vh: 1vh;
+  --dynamic-vh: 100vh;
+  
+  /* Colors */
+  --primary-color: #232323;
+  --secondary-color: #ffffff;
+  --text-color: #333333;
+  --border-color: #e0e0e0;
+  --overlay-color: rgba(0, 0, 0, 0.5);
+  --hover-color: rgba(255, 255, 255, 0.1);
+  
+  /* Z-index hierarchy */
+  --z-index-base: 1;
+  --z-index-map: 2;
+  --z-index-sidebar: 1003;
+  --z-index-popup: 1001;
+  --z-index-modal: 1002;
+  --z-index-overlay: 1003;
+  
+  /* Breakpoints */
+  --mobile-breakpoint: 768px;
+  --small-mobile-breakpoint: 480px;
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  /* Border radius */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 38.5px;
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.15);
+  
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
+
+/* Reset and Base Styles */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: Inter, sans-serif;
+}
+
+/* Common Map Container Styles */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-index-map);
+}
+
+/* Common Button Styles */
+button {
+  touch-action: manipulation;
+  font-size: 16px !important;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Common Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--overlay-color);
+  backdrop-filter: blur(4px);
+  z-index: var(--z-index-overlay);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: var(--secondary-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  max-width: 90%;
+  max-height: 90vh;
+  overflow: auto;
+  position: relative;
+  z-index: var(--z-index-modal);
+}
+
+/* Common Media Queries */
+@media (max-width: var(--mobile-breakpoint)) {
+  .leaflet-container {
+    margin-top: 60px;
+  }
+  
+  .modal-content {
+    width: 95%;
+    margin: var(--spacing-md);
+  }
+}
+
+@media (max-width: var(--small-mobile-breakpoint)) {
+  .leaflet-container {
+    margin-top: calc(env(safe-area-inset-top, 0px) + 60px);
+  }
+} 

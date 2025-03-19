@@ -1,3 +1,6 @@
+/* Import shared variables */
+@import './shared/variables.css';
+
 /* General Reset for Body */
 html,
 body {
@@ -10,30 +13,30 @@ body {
 }
 
 /* Map Container */
-.ShutlLoggedIn-map-container {
+.logged-in__map-container {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 100vh;
-  z-index: 1;
+  height: var(--dynamic-vh);
+  z-index: var(--z-index-map);
   box-sizing: border-box;
 }
 
 /* Create a pseudo-element to create space for the sidebar */
-.Sidebar ~ .ShutlLoggedIn-map-container::before {
+.sidebar ~ .logged-in__map-container::before {
   content: "";
   position: absolute;
   top: 0;
   left: 0;
-  width: 70px;
+  width: var(--sidebar-width);
   height: 100%;
   pointer-events: none;
-  transition: width 0.3s ease;
+  transition: width var(--transition-normal);
 }
 
-.Sidebar.expanded ~ .ShutlLoggedIn-map-container::before {
-  width: 200px;
+.sidebar--expanded ~ .logged-in__map-container::before {
+  width: var(--sidebar-expanded-width);
 }
 
 /* Make sure the map takes up the full container */
@@ -44,98 +47,94 @@ body {
 }
 
 /* Navbar - Base Styles */
-.ShutlLoggedIn-navbar {
+.logged-in__navbar {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 64px;
-  height: 100vh;
-  background-color: #232323;
-  color: white;
-  border-top-right-radius: 38.5px;
-  border-bottom-right-radius: 38.5px;
-  padding: 16px 8px;
+  width: var(--sidebar-width);
+  height: var(--dynamic-vh);
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
+  border-top-right-radius: var(--border-radius-xl);
+  border-bottom-right-radius: var(--border-radius-xl);
+  padding: var(--spacing-md) var(--spacing-sm);
   position: fixed;
   left: 0;
   top: 0;
-  z-index: 1001;
+  z-index: var(--z-index-sidebar);
   box-sizing: border-box;
   justify-content: space-between;
-  transition: width 0.3s ease;
+  transition: width var(--transition-normal);
   cursor: pointer;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
 /* Logo */
-.ShutlLoggedIn-logo {
+.logged-in__logo {
   font-size: 1.4em;
   font-weight: bold;
-  margin-bottom: 40px;
+  margin-bottom: var(--spacing-xl);
   text-align: center;
   width: 100%;
 }
 
 /* Navbar Buttons Container */
-.ShutlLoggedIn-navbar-buttons {
+.logged-in__navbar-buttons {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 30px;
+  gap: var(--spacing-xl);
   width: 100%;
   margin-top: auto;
   margin-bottom: auto;
 }
 
 /* Individual Buttons */
-.ShutlLoggedIn-notif-btn,
-.ShutlLoggedIn-setting-btn,
-.ShutlLoggedIn-money-btn {
+.logged-in__button {
   width: 42px;
   height: 42px;
   background: none;
   border: none;
-  color: white;
+  color: var(--secondary-color);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   border-radius: 50%;
-  transition: transform 0.2s ease;
+  transition: transform var(--transition-fast);
   pointer-events: auto;
-  z-index: 3;
+  z-index: var(--z-index-base);
 }
 
 /* Button Icons */
-.ShutlLoggedIn-notif-icon,
-.ShutlLoggedIn-setting-icon,
-.ShutlLoggedIn-money-icon {
+.logged-in__icon {
   width: 42px;
   height: 42px;
 }
 
 /* Profile Container */
-.ShutlLoggedIn-icon-container {
+.logged-in__profile-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
   margin-top: auto;
-  padding-top: 20px;
+  padding-top: var(--spacing-lg);
   cursor: pointer;
   pointer-events: auto;
 }
 
 /* Profile Divider Line */
-.ShutlLoggedIn-line {
+.logged-in__divider {
   width: 42px;
   height: 1px;
   background-color: rgba(255, 255, 255, 0.3);
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-lg);
 }
 
 /* Profile Icon */
-.ShutlLoggedIn-nav-icon {
+.logged-in__profile-icon {
   border-radius: 50%;
   width: 42px;
   height: 42px;
@@ -143,86 +142,80 @@ body {
 }
 
 /* EXPANDED STATE STYLES */
-.ShutlLoggedIn-navbar.expanded {
-  width: 200px;
+.logged-in__navbar--expanded {
+  width: var(--sidebar-expanded-width);
   align-items: flex-start;
-  padding: 16px;
+  padding: var(--spacing-md);
 }
 
 /* Logo in Expanded State */
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-logo {
+.logged-in__navbar--expanded .logged-in__logo {
   text-align: left;
-  padding-left: 8px;
-  margin-bottom: 40px;
+  padding-left: var(--spacing-sm);
+  margin-bottom: var(--spacing-xl);
 }
 
 /* Buttons in Expanded State */
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-notif-btn,
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-setting-btn,
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-money-btn {
+.logged-in__navbar--expanded .logged-in__button {
   width: 100%;
   justify-content: flex-start;
-  padding: 8px 16px;
-  border-radius: 8px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
 }
 
 /* Button Icons in Expanded State */
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-notif-icon,
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-setting-icon,
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-money-icon {
-  margin-right: 12px;
+.logged-in__navbar--expanded .logged-in__icon {
+  margin-right: var(--spacing-md);
 }
 
 /* Button Labels in Expanded State */
-.ShutlLoggedIn-navbar.expanded .button-label {
+.logged-in__navbar--expanded .logged-in__label {
   display: inline;
-  color: white;
+  color: var(--secondary-color);
   font-size: 14px;
 }
 
 /* Profile Container in Expanded State */
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-icon-container {
+.logged-in__navbar--expanded .logged-in__profile-container {
   align-items: flex-start;
-  padding-left: 16px;
+  padding-left: var(--spacing-md);
 }
 
 /* Profile Divider in Expanded State */
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-line {
+.logged-in__navbar--expanded .logged-in__divider {
   width: 100%;
 }
 
 /* Button Hover Effects in Expanded State */
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-notif-btn:hover,
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-setting-btn:hover,
-.ShutlLoggedIn-navbar.expanded .ShutlLoggedIn-money-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+.logged-in__navbar--expanded .logged-in__button:hover {
+  background-color: var(--hover-color);
 }
 
 /* Status Styles */
-.ShutlLoggedIn-status {
+.logged-in__status {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: white;
-  padding: 10px 20px;
-  border-radius: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  bottom: var(--spacing-lg);
+  right: var(--spacing-lg);
+  background-color: var(--secondary-color);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-sm);
+  z-index: var(--z-index-base);
 }
 
 /* Update Location Button */
 .ShutlLoggedIn-update-location-btn {
   position: fixed;
-  right: 20px;
-  bottom: 48px;
-  padding: 12px;
+  right: var(--spacing-lg);
+  bottom: calc(var(--spacing-xl) + var(--spacing-lg));
+  padding: var(--spacing-md);
   border: none;
   border-radius: 50%;
-  background: white;
+  background: var(--secondary-color);
   cursor: pointer;
-  z-index: 998;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: var(--z-index-base);
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -232,7 +225,7 @@ body {
 
 .ShutlLoggedIn-update-location-btn:hover {
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-lg);
 }
 
 .ShutlLoggedIn-update-location-icon {
@@ -243,25 +236,25 @@ body {
 }
 
 /* Shuttle Info */
-.ShutlLoggedIn-shuttle-info {
-  padding: 10px;
-  background-color: white;
-  border-radius: 8px;
+.logged-in__shuttle-info {
+  padding: var(--spacing-sm);
+  background-color: var(--secondary-color);
+  border-radius: var(--border-radius-md);
 }
 
-.ShutlLoggedIn-shuttle-info h3 {
+.logged-in__shuttle-info h3 {
   margin: 0 0 5px 0;
   font-size: 16px;
 }
 
-.ShutlLoggedIn-shuttle-info p {
+.logged-in__shuttle-info p {
   margin: 5px 0;
   font-size: 14px;
   color: #666;
 }
 
 /* Pickup Button */
-.ShutlLoggedIn-pickup-btn {
+.logged-in__pickup-btn {
   background-color: #4caf50;
   color: white;
   border: none;
@@ -273,12 +266,12 @@ body {
   transition: background-color 0.2s;
 }
 
-.ShutlLoggedIn-pickup-btn:hover {
+.logged-in__pickup-btn:hover {
   background-color: #45a049;
 }
 
 /* Settings Dropdown */
-.ShutlLoggedIn-settings-dropdown {
+.logged-in__settings-dropdown {
   position: absolute;
   top: 100%;
   right: 0;
@@ -289,7 +282,7 @@ body {
 }
 
 /* Settings Content */
-.ShutlLoggedIn-settings-content {
+.logged-in__settings-content {
   padding: 10px;
 }
 
@@ -402,18 +395,18 @@ hr {
 }
 
 /* Suggestion Button */
-.ShutlLoggedIn-suggestion-btn {
+.logged-in__suggestion-btn {
   position: fixed;
-  left: calc(70px + 20px);
-  bottom: 48px;
-  padding: 12px;
+  left: calc(var(--sidebar-width) + var(--spacing-md));
+  bottom: calc(var(--spacing-xl) + var(--spacing-lg));
+  padding: var(--spacing-md);
   border: none;
   border-radius: 50%;
   background: white;
   cursor: pointer;
-  z-index: 997;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: var(--z-index-base);
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -422,39 +415,38 @@ hr {
 }
 
 /* Adjust suggestion button position when sidebar is expanded */
-.Sidebar.expanded ~ .ShutlLoggedIn-map-container .ShutlLoggedIn-suggestion-btn {
-  left: calc(200px + 20px); /* 200px for expanded sidebar + 20px padding */
+.sidebar--expanded ~ .logged-in__map-container .logged-in__suggestion-btn {
+  left: calc(var(--sidebar-expanded-width) + var(--spacing-md));
 }
 
-.ShutlLoggedIn-suggestion-btn:hover {
+.logged-in__suggestion-btn:hover {
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-lg);
 }
 
-.ShutlLoggedIn-suggestion-icon {
+.logged-in__suggestion-icon {
   width: 32px;
   height: 32px;
   display: block;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
 }
 
-  .ShutlLoggedIn-suggestion-btn,
-  .ShutlLoggedIn-update-location-btn {
-    bottom: 60px;
-    padding: 10px;
-    width: 48px;
-    height: 48px;
-  }
+.logged-in__suggestion-btn,
+.logged-in__update-location-btn {
+  bottom: calc(var(--spacing-xl) + var(--spacing-lg));
+  padding: var(--spacing-md);
+  width: 48px;
+  height: 48px;
+}
 
-  .ShutlLoggedIn-suggestion-btn {
-    left: 20px;
-  }
-  
-  .ShutlLoggedIn-suggestion-icon,
-  .ShutlLoggedIn-update-location-icon {
-    width: 28px;
-    height: 28px;
-  }
+.logged-in__suggestion-btn {
+  left: var(--spacing-md);
+}
+
+.logged-in__suggestion-icon,
+.logged-in__update-location-icon {
+  width: 28px;
+  height: 28px;
 }
 
 /* Predicted Marker */
@@ -576,7 +568,7 @@ hr {
 .teller-summary-container {
   position: fixed;
   top: 0;
-  left: 70px;  /* Accounts for the sidebar width */
+  left: var(--sidebar-width);  /* Accounts for the sidebar width */
   width: 320px;
   height: 100vh;
   background-color: white;
@@ -588,8 +580,8 @@ hr {
 }
 
 /* When sidebar is expanded */
-.Sidebar.expanded ~ .teller-summary-container {
-  left: 200px;  /* Adjusted for expanded sidebar width */
+.sidebar--expanded ~ .teller-summary-container {
+  left: var(--sidebar-expanded-width);  /* Adjusted for expanded sidebar width */
 }
 
 .teller-summary-container::-webkit-scrollbar {
@@ -739,4 +731,25 @@ hr {
 /* Ensure popups are above the map but below modals */
 .popup-content {
   z-index: 1000;
+}
+
+/* Media Queries */
+@media (max-width: var(--mobile-breakpoint)) {
+  .logged-in__map-container {
+    margin-top: 60px;
+  }
+  
+  .logged-in__navbar {
+    transform: translateX(-100%);
+  }
+  
+  .logged-in__navbar--expanded {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: var(--small-mobile-breakpoint)) {
+  .logged-in__map-container {
+    margin-top: calc(env(safe-area-inset-top, 0px) + 60px);
+  }
 }

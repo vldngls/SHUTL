@@ -33,7 +33,6 @@ const Sidebar = forwardRef(
     const dropdownRef = useRef(null);
     const [username, setUsername] = useState(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const mobileMenuRef = useRef(null);
     const isMobile = window.innerWidth <= 768;
 
     // Calculate dropdown position once when opened
@@ -252,8 +251,8 @@ const Sidebar = forwardRef(
           isMobileMenuOpen &&
           ref.current &&
           !ref.current.contains(e.target) &&
-          !e.target.closest(".hamburger-menu") &&
-          !e.target.closest(".Mobile-top-bar")
+          !e.target.closest(".sidebar__hamburger-menu") &&
+          !e.target.closest(".sidebar__mobile-top-bar")
         ) {
           setIsMobileMenuOpen(false);
           document.body.style.overflow = "";
@@ -316,10 +315,9 @@ const Sidebar = forwardRef(
 
     return (
       <>
-        <div className="Mobile-top-bar">
-          <div className="mobile-logo">SHUTL.</div>
+        <div className="sidebar__mobile-top-bar">
           <button
-            className={`hamburger-menu ${isMobileMenuOpen ? "active" : ""}`}
+            className={`sidebar__hamburger-menu ${isMobileMenuOpen ? "active" : ""}`}
             onClick={toggleMobileMenu}
             aria-label="Toggle menu"
             aria-expanded={isMobileMenuOpen}
@@ -328,68 +326,40 @@ const Sidebar = forwardRef(
             <span></span>
             <span></span>
           </button>
+          <div className="sidebar__mobile-logo">SHUTL.</div>
         </div>
 
         <nav
           ref={ref}
-          className={`Sidebar ${isExpanded || isMobile ? "expanded" : ""} ${
-            isMobileMenuOpen ? "mobile-open" : ""
-          } ${userType === "teller" ? "TellerMain-navbar" : ""}`}
+          className={`sidebar ${isExpanded || isMobileMenuOpen ? "sidebar--expanded" : ""} ${
+            isMobileMenuOpen ? "sidebar--mobile-open" : ""
+          } ${userType === "teller" ? "teller-main__sidebar" : ""}`}
           onClick={(e) => {
             if (!isMobile) {
               onToggle(e);
             }
           }}
         >
-          <div className="Sidebar-logo">
-            {isExpanded ? (
-              "SHUTL."
-            ) : (
-              <>
-                SHU
-                <br />
-                TL.
-              </>
-            )}
-          </div>
-
-          {isMobileMenuOpen && (
-            <button
-              className="Sidebar-close-button"
-              onClick={toggleMobileMenu}
-              aria-label="Close menu"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M18 6L6 18"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M6 6L18 18"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
+          {!isMobile && (
+            <div className="sidebar__logo">
+              {isExpanded ? (
+                "SHUTL."
+              ) : (
+                <>
+                  SHU
+                  <br />
+                  TL.
+                </>
+              )}
+            </div>
           )}
 
-          <div className="Sidebar-buttons">
+          <div className="sidebar__buttons">
             {getButtonsConfig().map((button) => (
               <button
                 key={button.id}
-                className={`Sidebar-icon-btn ${
-                  button.id === "settings" && isSettingsOpen ? "active" : ""
+                className={`sidebar__button ${
+                  button.id === "settings" && isSettingsOpen ? "sidebar__button--active" : ""
                 }`}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -403,10 +373,10 @@ const Sidebar = forwardRef(
                 <img
                   src={button.icon}
                   alt={button.label}
-                  className="Sidebar-icon-image"
+                  className="sidebar__icon"
                 />
                 {(isExpanded || isMobile) && (
-                  <span className="button-label">{button.label}</span>
+                  <span className="sidebar__label">{button.label}</span>
                 )}
               </button>
             ))}
@@ -415,14 +385,14 @@ const Sidebar = forwardRef(
             {isSettingsOpen && userType !== "guest" && (
               <div
                 ref={dropdownRef}
-                className="Sidebar-settings-dropdown"
+                className={`sidebar__settings-dropdown ${isSettingsOpen ? "sidebar__settings-dropdown--open" : ""}`}
                 onClick={(e) => e.stopPropagation()}
                 role="menu"
                 aria-label="Settings menu"
                 style={!isExpanded && !isMobile ? { top: `${dropdownPosition.top}px` } : undefined}
               >
                 <button
-                  className="Sidebar-settings-option"
+                  className="sidebar__settings-option"
                   onClick={handleProfileClick}
                   role="menuitem"
                 >
@@ -431,7 +401,7 @@ const Sidebar = forwardRef(
                 <hr />
                 {onNotificationToggle && (
                   <>
-                    <div className="Sidebar-settings-option" data-enabled>
+                    <div className="sidebar__settings-option" data-enabled>
                       Notifications
                       <label className="switch">
                         <input
@@ -447,7 +417,7 @@ const Sidebar = forwardRef(
                 )}
                 {onLocationToggle && (
                   <>
-                    <div className="Sidebar-settings-option" data-enabled>
+                    <div className="sidebar__settings-option" data-enabled>
                       Location
                       <label className="switch">
                         <input
@@ -462,7 +432,7 @@ const Sidebar = forwardRef(
                   </>
                 )}
                 <button
-                  className="Sidebar-settings-option"
+                  className="sidebar__settings-option"
                   onClick={handleLogout}
                   role="menuitem"
                 >
@@ -472,13 +442,13 @@ const Sidebar = forwardRef(
             )}
           </div>
 
-          <div className="Sidebar-icon-container">
-            <div className="Sidebar-line"></div>
-            <div className="Sidebar-profile-section">
+          <div className="sidebar__icon-container">
+            <div className="sidebar__divider"></div>
+            <div className="sidebar__profile-section">
               <img
                 src={profileImage || "/icon.png"}
                 alt="Profile"
-                className="Sidebar-icon-image"
+                className="sidebar__icon"
                 onClick={handleProfileClick}
                 style={{ cursor: "pointer" }}
                 onError={(e) => {
@@ -486,7 +456,7 @@ const Sidebar = forwardRef(
                   e.target.src = "/icon.png";
                 }}
               />
-              <span className="Sidebar-profile-text">
+              <span className="sidebar__profile-text">
                 {userType === "guest" ? "Login" : username || "Profile"}
               </span>
             </div>
