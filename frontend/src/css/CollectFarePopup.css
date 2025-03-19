@@ -35,6 +35,7 @@
 /* Increase width when custom mode is active */
 .cf-collect-fare-popup-container.custom-mode {
   width: fit-content;
+  padding: 12px;
 }
 
 @keyframes cf-slideUp {

@@ -35,6 +35,13 @@
   --CollectFare-line-height-relaxed: 1.75;
 }
 
+.CollectFare-total {
+  background: white;
+  padding: 4px;
+  border-radius: var(--CollectFare-radius-md);
+  border: 1px solid var(--CollectFare-neutral-300);
+}
+
 /* Base Container */
 .CollectFare-container {
   background: white;
@@ -98,6 +105,16 @@
   background-color: var(--CollectFare-neutral-100);
   color: var(--CollectFare-neutral-700);
   transform: scale(1.1);
+}
+
+.CollectFare-custom-transaction-btn{
+  color: var(--CollectFare-neutral-50);
+  background-color: var(--CollectFare-primary-color);
+  border: 1px solid var(--CollectFare-neutral-200);
+  border-radius: var(--CollectFare-radius-md);
+  padding: 0.5rem 1rem;
+  font-size: var(--CollectFare-font-size-sm);
+  
 }
 
 /* QR Scanner Section */
@@ -393,6 +410,47 @@
 
 .CollectFare-payment-btn.active:hover {
   background: var(--CollectFare-primary-hover);
+}
+
+/* Action Buttons */
+.CollectFare-actions {
+  padding: 0.75rem;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--CollectFare-neutral-200);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.CollectFare-actions button {
+  padding: 0.5rem 1rem;
+  border-radius: var(--CollectFare-radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 100px;
+}
+
+.CollectFare-actions .secondary {
+  background: var(--CollectFare-neutral-100);
+  color: var(--CollectFare-neutral-700);
+  border: 1px solid var(--CollectFare-neutral-200);
+}
+
+.CollectFare-actions .secondary:hover {
+  background: var(--CollectFare-neutral-200);
+  transform: translateY(-1px);
+}
+
+.CollectFare-actions .primary {
+  background: var(--CollectFare-success-color);
+  color: white;
+  border: none;
+}
+
+.CollectFare-actions .primary:hover {
+  background: var(--CollectFare-success-hover);
+  transform: translateY(-1px);
 }
 
 /* Commuter Section */
