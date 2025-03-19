@@ -114,7 +114,56 @@
   border-radius: var(--CollectFare-radius-md);
   padding: 0.5rem 1rem;
   font-size: var(--CollectFare-font-size-sm);
-  
+}
+
+.CollectFare-preview {
+  max-width: 320px;
+  max-height: 180px;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: var(--CollectFare-radius-md);
+  overflow: hidden;
+  box-shadow: var(--CollectFare-shadow-md);
+  background: var(--CollectFare-neutral-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.CollectFare-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.CollectFare-retake-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  padding: 0;
+  transition: var(--CollectFare-transition);
+  z-index: 10;
+}
+
+.CollectFare-retake-btn:hover {
+  background: var(--CollectFare-danger-color);
+  transform: scale(1.1);
 }
 
 /* QR Scanner Section */
@@ -188,9 +237,9 @@
 
 /* Camera Section */
 .CollectFare-camera-section {
-  padding: 10px;
   background-color: #f8f9fa;
   border-radius: 8px;
+  align-items: center;
 }
 
 .CollectFare-camera-container {
@@ -239,47 +288,35 @@
   background-color: rgba(0, 0, 0, 0.5);
 }
 
-.CollectFare-camera-buttons {
+.CollectFare-camera-actions {
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
   justify-content: center;
-  padding: 1rem;
-  margin-top: 1rem;
-  width: 100%;
+  margin: 1rem 0;
 }
 
-.CollectFare-camera-buttons button {
-  padding: 0.75rem 1.5rem;
+.CollectFare-camera-btn,
+.CollectFare-upload-btn {
+  min-width: 120px;
+  min-height: 36px;
+  background: var(--CollectFare-primary-color);
+  color: white;
+  border: none;
   border-radius: var(--CollectFare-radius-md);
-  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  height: 40px;
-  font-size: var(--CollectFare-font-size-base);
-  border: none;
+  text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 120px;
+  gap: 0.5rem;
+  width: 100px;
+  font-weight: normal;
 }
 
-.CollectFare-camera-buttons button:first-child {
-  background: var(--CollectFare-danger-color);
-  color: white;
-}
-
-.CollectFare-camera-buttons button:first-child:hover {
-  background: var(--CollectFare-danger-hover);
-  transform: translateY(-1px);
-}
-
-.CollectFare-camera-buttons button:last-child {
-  background: var(--CollectFare-success-color);
-  color: white;
-}
-
-.CollectFare-camera-buttons button:last-child:hover {
-  background: var(--CollectFare-success-hover);
+.CollectFare-camera-btn:hover,
+.CollectFare-upload-btn:hover {
+  background: var(--CollectFare-primary-hover);
   transform: translateY(-1px);
 }
 
@@ -318,16 +355,34 @@
 
 .CollectFare-calculator-grid {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 0.75rem;
-  padding: 0.5rem;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+  padding: 1rem;
 }
 
-.CollectFare-calculator-left,
-.CollectFare-calculator-right {
-  background: #f8f9fa;
-  border-radius: 8px;
+.CollectFare-calculator-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: var(--CollectFare-neutral-50);
+  border-radius: var(--CollectFare-radius-md);
   padding: 1rem;
+}
+
+.CollectFare-calculator-right {
+  background: var(--CollectFare-neutral-50);
+  border-radius: var(--CollectFare-radius-md);
+  padding: 1rem;
+}
+
+.CollectFare-tender-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: white;
+  border-radius: var(--CollectFare-radius-md);
+  box-shadow: var(--CollectFare-shadow-sm);
 }
 
 .CollectFare-row {
@@ -568,11 +623,11 @@
 
 /* Digital Receipt */
 .CollectFare-digital-receipt {
-  padding: 15px;
+  padding: 4px;
   background: var(--CollectFare-neutral-50);
   border-radius: var(--CollectFare-radius-lg);
   border: 1px solid var(--CollectFare-neutral-200);
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 .CollectFare-digital-receipt h3 {
@@ -581,6 +636,9 @@
   font-weight: 600;
   text-align: center;
   margin: 0px !important;
+  margin-bottom: 8px !important;
+  margin-top: 8px !important;
+  align-items: center;
 }
 
 .CollectFare-upload-options {
@@ -590,40 +648,27 @@
   margin-bottom: 1.5rem;
 }
 
-.CollectFare-upload-btn {
-  padding: 4px 12px;
-  background: var(--CollectFare-primary-color);
-  color: white;
-  border: none;
-  border-radius: var(--CollectFare-radius-md);
-  cursor: pointer;
-  transition: all 0.2s;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.CollectFare-upload-btn:hover {
-  background: var(--CollectFare-primary-hover);
-  transform: translateY(-1px);
-}
-
 .CollectFare-receipt-preview {
   position: relative;
   width: 100%;
   max-width: 300px;
+  height: 200px;
   margin: 0 auto;
   border-radius: var(--CollectFare-radius-md);
   overflow: hidden;
   box-shadow: var(--CollectFare-shadow-md);
+  background: var(--CollectFare-neutral-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .CollectFare-receipt-preview img {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: contain;
   display: block;
+  padding: 0.5rem;
 }
 
 .CollectFare-remove-receipt-btn {

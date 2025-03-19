@@ -549,11 +549,9 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved, onCustomModeChang
                       <strong>₱{calculateTotal().toFixed(2)}</strong>
                     </div>
                   </div>
-                </div>
 
-                {/* Right Column */}
-                <div className="CollectFare-calculator-right">
-                  <div className="CollectFare-tender">
+                  {/* Moved Tender Section Here */}
+                  <div className="CollectFare-tender-section">
                     <label htmlFor="tender">Tender Amount:</label>
                     <div className="CollectFare-tender-input-container">
                       <span className="CollectFare-peso-sign">₱</span>
@@ -578,13 +576,15 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved, onCustomModeChang
                         </button>
                       ))}
                     </div>
+                    <div className="CollectFare-change">
+                      <span>Change:</span>
+                      <strong>₱{change >= 0 ? change.toFixed(2) : "0.00"}</strong>
+                    </div>
                   </div>
+                </div>
 
-                  <div className="CollectFare-change">
-                    <span>Change:</span>
-                    <strong>₱{change >= 0 ? change.toFixed(2) : "0.00"}</strong>
-                  </div>
-
+                {/* Right Column */}
+                <div className="CollectFare-calculator-right">
                   <div className="CollectFare-commuter">
                     <label htmlFor="commuterEmail">Commuter Email:</label>
                     <Select
@@ -665,7 +665,7 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved, onCustomModeChang
                               Take Photo
                             </button>
                             <label className="CollectFare-upload-btn">
-                              Upload Image
+                              Upload
                               <input
                                 type="file"
                                 accept="image/*"
@@ -682,7 +682,7 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved, onCustomModeChang
                               className="CollectFare-retake-btn"
                               onClick={() => setImage(null)}
                             >
-                              Retake
+                              ×
                             </button>
                           </div>
                         )}
@@ -737,7 +737,7 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved, onCustomModeChang
                         </button>
                         <div className="CollectFare-file-upload-container">
                           <label htmlFor="receipt-upload" className="CollectFare-upload-btn">
-                            Upload Image
+                            Upload
                           </label>
                           <input
                             id="receipt-upload"
