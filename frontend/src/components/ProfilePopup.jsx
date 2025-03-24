@@ -6,19 +6,23 @@ import PropTypes from "prop-types";
 import { getCookie } from "../utils/cookieUtils";
 import "../css/ProfilePopup.css";
 import { FaEdit, FaHistory } from "react-icons/fa";
+import { compressImage } from "../utils/imageOptimizer";
 
 // Move CropModal completely outside the main component
 const CropModal = ({ showModal, image, onCancel, onComplete }) => {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Reset state when modal opens or closes
   useEffect(() => {
     if (showModal) {
+      console.log("CropModal opened with image:", image ? "present" : "missing");
       setCrop({ x: 0, y: 0 });
       setZoom(1);
       setCroppedAreaPixels(null);
+      setIsProcessing(false);
     }
   }, [showModal]);
 
@@ -30,6 +34,37 @@ const CropModal = ({ showModal, image, onCancel, onComplete }) => {
     },
     []
   );
+
+  const handleApply = async () => {
+    console.log("Apply button clicked");
+    if (!croppedAreaPixels) {
+      console.warn("No cropped area available");
+      toast.error("Please crop the image before applying");
+      return;
+    }
+
+    if (isProcessing) {
+      console.warn("Already processing an image");
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      console.log("Calling onComplete with croppedAreaPixels");
+      const croppedImage = await onComplete(croppedAreaPixels);
+      if (croppedImage) {
+        console.log("Crop applied successfully");
+      } else {
+        console.warn("Crop completed but no image returned");
+        toast.error("Failed to process the image. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error applying crop:", error);
+      toast.error("Failed to process the image. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   // Prevent clicks from propagating to parent components
   const stopPropagation = (e) => {
@@ -84,24 +119,9 @@ const CropModal = ({ showModal, image, onCancel, onComplete }) => {
           />
         </div>
         <div className="crop-actions">
-          <button onClick={onCancel}>Cancel</button>
-          <button
-            onClick={async () => {
-              if (croppedAreaPixels) {
-                try {
-                  const croppedImage = await onComplete(croppedAreaPixels);
-                  if (croppedImage) {
-                    console.log("Crop applied successfully");
-                  }
-                } catch (error) {
-                  console.error("Error applying crop:", error);
-                }
-              } else {
-                console.warn("No cropped area available");
-              }
-            }}
-          >
-            Apply
+          <button onClick={onCancel} disabled={isProcessing}>Cancel</button>
+          <button onClick={handleApply} disabled={isProcessing}>
+            {isProcessing ? "Processing..." : "Apply"}
           </button>
         </div>
       </div>
@@ -239,15 +259,93 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
       image.src = url;
     });
 
+  const handleImageChange = async (e) => {
+    console.log("handleImageChange triggered");
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      console.log("File selected:", {
+        name: file.name,
+        type: file.type,
+        size: file.size
+      });
+      
+      const reader = new FileReader();
+      reader.onload = async () => {
+        console.log("FileReader onload triggered");
+        const result = reader.result;
+        console.log("File read result type:", typeof result);
+        console.log("File read result length:", result.length);
+        console.log("File read result start:", result.substring(0, 50));
+        
+        // Ensure the result is a valid base64 string
+        if (typeof result === 'string' && result.startsWith('data:image/')) {
+          try {
+            // Create image element
+            const image = await createImage(result);
+            
+            // Calculate default crop area (center square)
+            const size = Math.min(image.naturalWidth, image.naturalHeight);
+            const x = (image.naturalWidth - size) / 2;
+            const y = (image.naturalHeight - size) / 2;
+            
+            const croppedPixels = {
+              x,
+              y,
+              width: size,
+              height: size
+            };
+
+            console.log("Auto-cropping image with pixels:", croppedPixels);
+            const croppedImage = await getCroppedImg(result, croppedPixels);
+
+            if (!croppedImage) {
+              console.error("Failed to generate cropped image");
+              toast.error("Failed to process image. Please try again.");
+              return;
+            }
+
+            console.log("Setting profile image with cropped result");
+            setProfileImage(croppedImage);
+            setEditedData(prev => {
+              console.log("Updating editedData with new profile picture");
+              return { ...prev, profilePicture: croppedImage };
+            });
+          } catch (error) {
+            console.error("Error processing image:", error);
+            toast.error("Failed to process image. Please try again.");
+          }
+        } else {
+          console.error("Invalid image data format");
+          toast.error("Invalid image format. Please try again.");
+        }
+      };
+      
+      reader.onerror = (error) => {
+        console.error("FileReader error:", error);
+        toast.error("Failed to read image file");
+      };
+      
+      reader.readAsDataURL(file);
+    } else {
+      console.warn("No file selected");
+    }
+  };
+
   const getCroppedImg = async (imageSrc, pixelCrop) => {
     try {
-      console.log("Starting crop with:", { pixelCrop });
+      console.log("Starting getCroppedImg with:", {
+        imageSrcType: typeof imageSrc,
+        imageSrcLength: imageSrc?.length,
+        imageSrcStart: imageSrc?.substring(0, 50),
+        pixelCrop
+      });
 
       // Create image element
       const image = await createImage(imageSrc);
-      console.log("Image loaded:", {
+      console.log("Image loaded successfully:", {
         width: image.naturalWidth,
         height: image.naturalHeight,
+        src: image.src.substring(0, 50) + "..."
       });
 
       // Create canvas
@@ -322,23 +420,58 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
       // Convert to blob and then to base64
       return new Promise((resolve, reject) => {
         canvas.toBlob(
-          (blob) => {
+          async (blob) => {
             if (!blob) {
               console.error("Canvas is empty");
               reject(new Error("Canvas is empty"));
               return;
             }
 
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              console.log("Crop completed successfully");
-              resolve(reader.result);
-            };
-            reader.onerror = () => {
-              console.error("FileReader error");
-              reject(new Error("FileReader error"));
-            };
-            reader.readAsDataURL(blob);
+            console.log("Canvas converted to blob:", {
+              type: blob.type,
+              size: blob.size
+            });
+
+            try {
+              // Compress the image before converting to base64
+              const compressedBlob = await compressImage(blob, {
+                quality: 0.8,
+                maxWidth: size,
+                format: "jpeg"
+              });
+
+              // Convert blob to base64 string
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                const base64String = reader.result;
+                console.log("Image converted to base64:", {
+                  type: typeof base64String,
+                  length: base64String.length,
+                  start: base64String.substring(0, 50)
+                });
+                resolve(base64String);
+              };
+              reader.onerror = () => {
+                console.error("FileReader error converting blob to base64");
+                reject(new Error("FileReader error"));
+              };
+              reader.readAsDataURL(compressedBlob);
+            } catch (error) {
+              console.error("Error compressing image:", error);
+              // Fallback to original blob if compression fails
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                const base64String = reader.result;
+                console.log("Image converted to base64 (fallback):", {
+                  type: typeof base64String,
+                  length: base64String.length,
+                  start: base64String.substring(0, 50)
+                });
+                resolve(base64String);
+              };
+              reader.onerror = () => reject(new Error("FileReader error"));
+              reader.readAsDataURL(blob);
+            }
           },
           "image/jpeg",
           0.95
@@ -350,31 +483,41 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
     }
   };
 
-  const handleImageChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = () => {
-        setImageSrc(reader.result);
-        setShowCropModal(true);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleSave = async () => {
     try {
-      // Merge existing userData with editedData to ensure all fields are present
-      const dataToUpdate = {
-        ...userData,
-        ...editedData,
-        profileImage: profileImage || userData.profileImage,
-      };
+      console.log("Starting handleSave with data:", {
+        profileImage: profileImage ? "present" : "missing",
+        editedData: {
+          ...editedData,
+          profilePicture: editedData.profilePicture ? "present" : "missing"
+        },
+        userData: {
+          ...userData,
+          profilePicture: userData?.profilePicture ? "present" : "missing"
+        }
+      });
 
-      // If discount type is REGULAR, remove idPicture from the update data
-      if (dataToUpdate.discountType === "REGULAR") {
-        delete dataToUpdate.idPicture;
+      // Ensure we have the latest profile image
+      const currentProfileImage = profileImage || editedData.profilePicture || userData?.profilePicture;
+      console.log("Current profile image:", {
+        present: !!currentProfileImage,
+        type: typeof currentProfileImage,
+        length: currentProfileImage?.length,
+        start: currentProfileImage?.substring(0, 50)
+      });
+
+      if (!currentProfileImage) {
+        console.warn("No profile image available to update");
+        toast.error("Please select a profile image before saving");
+        return;
       }
+
+      // Create a clean data object with only the necessary fields
+      const dataToUpdate = {
+        email: userData.email,
+        profilePicture: currentProfileImage,
+        ...editedData
+      };
 
       // Remove any undefined or null values
       Object.keys(dataToUpdate).forEach(
@@ -383,27 +526,72 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
           delete dataToUpdate[key]
       );
 
+      const token = getCookie("token");
+      if (!token) {
+        console.error("No authentication token found");
+        toast.error("Please log in again to update your profile");
+        return;
+      }
+
+      console.log("Sending update request with data:", {
+        email: dataToUpdate.email,
+        profilePicture: {
+          present: !!dataToUpdate.profilePicture,
+          type: typeof dataToUpdate.profilePicture,
+          length: dataToUpdate.profilePicture?.length,
+          start: dataToUpdate.profilePicture?.substring(0, 50)
+        },
+        otherFields: Object.keys(dataToUpdate).filter(key => key !== 'email' && key !== 'profilePicture')
+      });
+
       const response = await fetch(`${API_BASE_URL}/userdata/update`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         credentials: "include",
         body: JSON.stringify(dataToUpdate),
       });
 
+      console.log("Update response status:", response.status);
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
+        console.error("Update failed:", errorData);
         throw new Error(errorData?.message || "Failed to update profile");
       }
 
       const updatedData = await response.json();
-      setUserData(updatedData);
+      console.log("Update successful:", {
+        email: updatedData.email,
+        profilePicture: {
+          present: !!updatedData.profilePicture,
+          type: typeof updatedData.profilePicture,
+          length: updatedData.profilePicture?.length,
+          start: updatedData.profilePicture?.substring(0, 50)
+        },
+        otherFields: Object.keys(updatedData).filter(key => key !== 'email' && key !== 'profilePicture')
+      });
+
+      // Update both userData and profileImage state
+      setUserData(prevData => ({
+        ...prevData,
+        ...updatedData,
+        profilePicture: updatedData.profilePicture
+      }));
+      
+      if (updatedData.profilePicture) {
+        console.log("Setting new profile image");
+        setProfileImage(updatedData.profilePicture);
+      }
+
       setIsEditing(false);
       
       // Notify parent component about profile image update
-      if (onProfileImageUpdate && profileImage) {
-        onProfileImageUpdate(profileImage);
+      if (onProfileImageUpdate && updatedData.profilePicture) {
+        console.log("Notifying parent about profile image update");
+        onProfileImageUpdate(updatedData.profilePicture);
       }
       
       toast.success("Profile updated successfully", {
@@ -468,17 +656,15 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
               }}
             />
             {isEditing && (
-              <>
+              <div className="shutl-profile-popup-picture-overlay">
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleImageChange}
                   className="shutl-profile-popup-upload"
                 />
-                <div className="shutl-profile-popup-picture-overlay">
-                  Change Photo
-                </div>
-              </>
+                <span>Change Photo</span>
+              </div>
             )}
           </div>
           <div className="shutl-profile-popup-info">
@@ -800,11 +986,14 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
         showModal={showCropModal}
         image={imageSrc}
         onCancel={() => {
+          console.log("Crop modal cancelled");
           setShowCropModal(false);
           setImageSrc(null);
         }}
         onComplete={async (croppedPixels) => {
           try {
+            console.log("Crop modal completed with pixels:", croppedPixels);
+            
             if (!croppedPixels) {
               console.warn("No cropped pixels provided");
               return null;
@@ -821,7 +1010,10 @@ const ShutlProfilePopup = ({ onClose, initialEditMode = false, onProfileImageUpd
 
             console.log("Setting profile image with cropped result");
             setProfileImage(croppedImage);
-            setEditedData({ ...editedData, profilePicture: croppedImage });
+            setEditedData(prev => {
+              console.log("Updating editedData with new profile picture");
+              return { ...prev, profilePicture: croppedImage };
+            });
             setShowCropModal(false);
             setImageSrc(null);
             return croppedImage;

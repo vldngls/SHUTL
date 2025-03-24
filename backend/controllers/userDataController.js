@@ -116,6 +116,11 @@ export const updateUserDataByEmail = async (req, res) => {
       }
     });
 
+    // Ensure profile picture is properly set
+    if (updates.profilePicture) {
+      userData.profilePicture = updates.profilePicture;
+    }
+
     await userData.save();
     res.status(200).json(userData);
   } catch (error) {

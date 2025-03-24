@@ -74,6 +74,7 @@
   width: 80px;
   height: 80px;
   flex-shrink: 0;
+  transition: transform 0.2s ease;
 }
 
 .shutl-profile-popup-picture {
@@ -604,7 +605,7 @@
   height: 100%;
   opacity: 0;
   cursor: pointer;
-  z-index: 2;
+  z-index: 3;
 }
 
 /* Edit mode header styling */
@@ -813,27 +814,24 @@
   background-color: rgba(0, 0, 0, 0.5);
   border-radius: var(--shutl-radius-full);
   display: flex;
-  align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 14px;
+  align-items: center;
   opacity: 0;
   transition: opacity 0.2s ease;
   cursor: pointer;
+  z-index: 2;
+}
+
+.shutl-profile-popup-picture-overlay span {
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  pointer-events: none;
 }
 
 .shutl-profile-popup-picture-container:hover .shutl-profile-popup-picture-overlay {
   opacity: 1;
-}
-
-.shutl-profile-popup-picture-overlay::before {
-  content: "Change Photo";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  font-weight: 500;
 }
 
 .shutl-transaction-receipt {
@@ -867,4 +865,9 @@
   .shutl-receipt-image {
     margin-top: 6px;
   }
+}
+
+/* Add hover effect to the container */
+.shutl-profile-popup-picture-container:hover {
+  transform: scale(1.05);
 }
