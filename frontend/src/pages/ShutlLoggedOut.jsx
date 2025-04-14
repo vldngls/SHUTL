@@ -185,11 +185,8 @@ const ShutlLoggedOut = () => {
       if (mapRef.current) {
         // Invalidate map size to force recalculation
         mapRef.current.invalidateSize();
-
-        // If user location exists, center map on it
-        if (userLocation) {
-          mapRef.current.setView(userLocation, 15.5, { animate: false });
-        }
+        // Always set to default center coordinates
+        mapRef.current.setView([14.376921, 120.989457], 15.5, { animate: false });
       }
     };
 
@@ -206,7 +203,7 @@ const ShutlLoggedOut = () => {
       clearTimeout(timer);
       clearTimeout(secondTimer);
     };
-  }, [userLocation]);
+  }, []); // Remove userLocation dependency
 
   // Use layout effect to set up the map container before rendering
   useLayoutEffect(() => {
@@ -233,10 +230,7 @@ const ShutlLoggedOut = () => {
           const { latitude, longitude } = position.coords;
           const userCoords = [latitude, longitude];
           setUserLocation(userCoords);
-
-          if (mapRef.current) {
-            mapRef.current.setView(userCoords, 15.5, { animate: true });
-          }
+          // Don't center map on user location, just store it
         },
         (error) => {
           console.error("Error accessing location", error);
@@ -294,7 +288,7 @@ const ShutlLoggedOut = () => {
     <div className="logged-out__container">
       <div id="map-container" className="logged-out__map-container">
         <MapContainer
-          center={userLocation || [0, 0]}
+          center={[14.376921, 120.989457]}
           zoom={15.5}
           style={{ height: "100%", width: "100%" }}
           ref={mapRef}
