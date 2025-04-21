@@ -213,7 +213,7 @@ body {
   border-radius: 50%;
   background: var(--secondary-color);
   cursor: pointer;
-  z-index: var(--z-index-base);
+  z-index: 1000;
   transition: all var(--transition-fast);
   box-shadow: var(--shadow-md);
   display: flex;

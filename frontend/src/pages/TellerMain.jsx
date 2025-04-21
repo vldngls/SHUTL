@@ -896,6 +896,13 @@ const TellerMain = () => {
           show={true}
         />
       )}
+
+      {isProfilePopupOpen && (
+        <TellerProfile
+          onClose={toggleProfilePopup}
+          onImageChange={setProfileImage}
+        />
+      )}
     </div>
   );
 };
