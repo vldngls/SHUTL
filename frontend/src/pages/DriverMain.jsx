@@ -1325,16 +1325,22 @@ const DriverMain = () => {
     const message = `🚨 EMERGENCY ALERT: Driver ${driverName} (Shuttle ${shuttleId}) has activated emergency button`;
     console.log("Sending emergency alert:", message);
     
-    // Send to both Teller and Admin
-    socket.current.emit("send_notification", {
+    // Send to both Teller and Admin using the correct event name
+    const notificationData = {
       message,
-      recipientType: "Teller"
-    });
-
-    socket.current.emit("send_notification", {
-      message,
+      recipientType: "Teller",
+      createdAt: new Date().toISOString(),
+      timestamp: Date.now()
+    };
+    
+    socket.current.emit("send_notification", notificationData);
+    
+    // Send to Administrator
+    const adminNotificationData = {
+      ...notificationData,
       recipientType: "Administrator"
-    });
+    };
+    socket.current.emit("send_notification", adminNotificationData);
 
     // Add to driver's own notifications
     const notification = {
@@ -1374,6 +1380,21 @@ const DriverMain = () => {
   const handleEmergencyCancel = () => {
     setShowEmergencyConfirm(false);
   };
+
+  // Add auto-close effect for emergency confirmation
+  useEffect(() => {
+    let timeoutId;
+    if (showEmergencyConfirm) {
+      timeoutId = setTimeout(() => {
+        setShowEmergencyConfirm(false);
+      }, 10000); // 10 seconds
+    }
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [showEmergencyConfirm]);
 
   return (
     <div className="DriverMain-container">

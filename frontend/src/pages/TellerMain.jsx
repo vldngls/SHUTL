@@ -225,7 +225,8 @@ const TellerMain = () => {
             // Format the notification to match the expected structure
             const formattedNotification = {
               message: notification.message,
-              createdAt: notification.createdAt || new Date(),
+              createdAt: notification.createdAt || new Date().toISOString(),
+              timestamp: notification.timestamp || Date.now()
             };
 
             // Always update the notifications array regardless of enabled state
@@ -234,9 +235,39 @@ const TellerMain = () => {
               return updatedNotifications.slice(0, 5); // Keep only 5 most recent
             });
 
-            // Only show notification popup if notifications are enabled
+            // Show notification popup and toast for emergency alerts
+            if (notification.message.includes("EMERGENCY ALERT")) {
+              setActivePopup("notifications");
+              // Show emergency toast notification
+              toast.error(notification.message, {
+                position: "top-center",
+                autoClose: false,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                style: {
+                  background: "#ff4444",
+                  color: "white",
+                  fontWeight: "bold",
+                },
+              });
+              // Don't auto-hide emergency alerts
+              return;
+            }
+
+            // For non-emergency notifications, respect the notificationEnabled setting
             if (notificationEnabled) {
               setActivePopup("notifications");
+              // Show regular toast notification
+              toast(notification.message, {
+                position: "bottom-center",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+              });
 
               // Auto-hide after 5 seconds
               setTimeout(() => {
@@ -472,7 +503,7 @@ const TellerMain = () => {
     };
   }, [notificationEnabled, locationEnabled]);
 
-  // Add this useEffect after the socket initialization useEffect
+  // Update the initial notifications fetch
   useEffect(() => {
     const fetchInitialNotifications = async () => {
       try {
@@ -484,7 +515,13 @@ const TellerMain = () => {
 
         if (response.ok) {
           const data = await response.json();
-          setNotifications(data.slice(0, 5)); // Keep only 5 most recent notifications
+          // Format notifications to include timestamp
+          const formattedNotifications = data.map(notification => ({
+            message: notification.message,
+            createdAt: notification.createdAt || new Date().toISOString(),
+            timestamp: notification.timestamp || Date.now()
+          }));
+          setNotifications(formattedNotifications.slice(0, 5));
         } else {
           console.error("Failed to fetch notifications:", response.statusText);
         }
@@ -611,7 +648,7 @@ const TellerMain = () => {
   };
 
   const handleNotificationClick = () => {
-    toggleNotification();
+    setActivePopup(activePopup === "notifications" ? null : "notifications");
   };
 
   // Add this useEffect for chat click outside handling
@@ -795,16 +832,16 @@ const TellerMain = () => {
         onToggle={toggleSidebar}
         onProfileClick={toggleProfilePopup}
         onMessageClick={toggleMessageBox}
-        onNotificationClick={() => console.log("Notification clicked")}
+        onNotificationClick={handleNotificationClick}
         onSummaryClick={toggleSummary}
         onTripClick={toggleTripForm}
         onCollectFareClick={toggleCollectFare}
         profileImage={profileImage}
         onSettingsClick={handleSettingsClick}
         notificationEnabled={notificationEnabled}
-        onNotificationToggle={setNotificationEnabled}
+        onNotificationToggle={updateNotificationPreference}
         locationEnabled={locationEnabled}
-        onLocationToggle={setLocationEnabled}
+        onLocationToggle={updateLocationPreference}
         className="teller-main__sidebar"
       />
 

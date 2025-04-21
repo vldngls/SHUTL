@@ -85,22 +85,55 @@ const AdministratorMain = () => {
             // Format the notification to match the expected structure
             const formattedNotification = {
               message: notification.message,
-              createdAt: notification.createdAt || new Date(),
-              // Add any other required fields
+              createdAt: notification.createdAt || new Date().toISOString(),
+              timestamp: notification.timestamp || Date.now()
             };
 
+            // Always update the notifications array
             setNotifications((prev) => {
               const updatedNotifications = [formattedNotification, ...prev];
               return updatedNotifications.slice(0, 5); // Keep only 5 most recent
             });
 
-            // Show notification popup
-            setShowPopup(true);
+            // Show notification popup and toast for emergency alerts
+            if (notification.message.includes("EMERGENCY ALERT")) {
+              setShowPopup(true);
+              // Show emergency toast notification
+              toast.error(notification.message, {
+                position: "top-center",
+                autoClose: false,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                style: {
+                  background: "#ff4444",
+                  color: "white",
+                  fontWeight: "bold",
+                },
+              });
+              // Don't auto-hide emergency alerts
+              return;
+            }
 
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-              setShowPopup(false);
-            }, 5000);
+            // For non-emergency notifications, respect the notificationEnabled setting
+            if (notificationEnabled) {
+              setShowPopup(true);
+              // Show regular toast notification
+              toast(notification.message, {
+                position: "bottom-center",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+              });
+
+              // Auto-hide after 5 seconds
+              setTimeout(() => {
+                setShowPopup(false);
+              }, 5000);
+            }
           }
         );
 
