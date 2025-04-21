@@ -55,9 +55,16 @@ export const getShuttles = async (req, res) => {
 export const updateShuttle = async (req, res) => {
   try {
     const { shuttleId } = req.params;
+    const updateData = { ...req.body };
+
+    // If status is being updated, ensure it's lowercase
+    if (updateData.status) {
+      updateData.status = updateData.status.toLowerCase();
+    }
+
     const shuttle = await ShuttleDetails.findOneAndUpdate(
       { shuttleId },
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     );
 

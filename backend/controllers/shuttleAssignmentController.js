@@ -25,13 +25,7 @@ export const assignShuttle = async (req, res) => {
 export const getAllAssignments = async (req, res) => {
   try {
     const assignments = await ShuttleAssignment.find();
-    // Transform the data to match frontend expectations
-    const transformedAssignments = assignments.map(assignment => ({
-      shuttleNumber: assignment.shuttleId,
-      driver: assignment.driverEmail,
-      status: assignment.status
-    }));
-    res.status(200).json(transformedAssignments);
+    res.status(200).json(assignments);
   } catch (error) {
     console.error("Error in getAllAssignments:", error);
     res.status(500).json({ error: error.message });
@@ -98,15 +92,21 @@ export const createAssignment = async (req, res) => {
     }
 
     // Check if the shuttle is already assigned to another driver
-    const existingShuttleAssignment = await ShuttleAssignment.findOne({ shuttleId });
+    const existingShuttleAssignment = await ShuttleAssignment.findOne({ 
+      shuttleId,
+      status: { $ne: "inactive" } // Only check active assignments
+    });
     if (existingShuttleAssignment) {
       return res.status(400).json({
         error: `Shuttle ${shuttleId} is already assigned to another driver`,
       });
     }
 
-    // Check if the driver already has an assignment
-    const existingDriverAssignment = await ShuttleAssignment.findOne({ driverEmail });
+    // Check if the driver already has an active assignment
+    const existingDriverAssignment = await ShuttleAssignment.findOne({ 
+      driverEmail,
+      status: { $ne: "inactive" } // Only check active assignments
+    });
     if (existingDriverAssignment) {
       return res.status(400).json({
         error: `Driver ${driverEmail} already has an assigned shuttle`,
@@ -116,7 +116,7 @@ export const createAssignment = async (req, res) => {
     const assignment = new ShuttleAssignment({
       driverEmail,
       shuttleId,
-      status: status || "active",
+      status: status ? status.toLowerCase() : "active",
     });
 
     await assignment.save();
