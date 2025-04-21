@@ -30,6 +30,7 @@ const AccountManagement = () => {
   const [userToDelete, setUserToDelete] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
   const [pendingDiscountUsers, setPendingDiscountUsers] = useState([]);
+  const [expandedImage, setExpandedImage] = useState(null);
 
   useEffect(() => {
     fetchUsers();
@@ -747,7 +748,21 @@ const AccountManagement = () => {
                 {viewingUser.idPicture && (
                   <div className="adm-user-detail">
                     <div className="adm-detail-label">ID Picture</div>
-                    <img className="adm-user-image" src={viewingUser.idPicture} alt="User ID" />
+                    <div 
+                      className="adm-image-container"
+                      onClick={() => setExpandedImage(expandedImage ? null : viewingUser.idPicture)}
+                    >
+                      <img 
+                        className="adm-user-image" 
+                        src={viewingUser.idPicture} 
+                        alt="User ID" 
+                      />
+                      {expandedImage && (
+                        <div className="adm-image-expanded">
+                          <img src={expandedImage} alt="Expanded ID" />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
