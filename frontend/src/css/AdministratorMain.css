@@ -243,6 +243,7 @@ body {
 
 /* Floating Action Button */
 .adm-fab {
+  display: none !important; /* Hide the floating action button in admin view */
   position: fixed;
   right: var(--adm-spacing-6);
   bottom: 60px;

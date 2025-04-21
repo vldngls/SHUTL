@@ -133,20 +133,24 @@
   background-color: white;
   border-radius: var(--adm-radius-lg);
   box-shadow: var(--adm-shadow);
-  padding: var(--adm-spacing-6);
+  padding: var(--adm-spacing-4);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .adm-form-title {
-  font-size: var(--adm-font-size-xl);
+  font-size: var(--adm-font-size-lg);
   font-weight: 600;
   color: var(--adm-gray-800);
-  margin: 0 0 var(--adm-spacing-5) 0;
-  padding-bottom: var(--adm-spacing-3);
+  margin: 0 0 var(--adm-spacing-3) 0;
+  padding-bottom: var(--adm-spacing-2);
   border-bottom: 1px solid var(--adm-gray-200);
 }
 
 .adm-form-group {
-  margin-bottom: var(--adm-spacing-4);
+  margin-bottom: var(--adm-spacing-3);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .adm-form-label {
@@ -154,13 +158,14 @@
   font-size: var(--adm-font-size-sm);
   font-weight: 500;
   color: var(--adm-gray-700);
-  margin-bottom: var(--adm-spacing-2);
+  margin-bottom: var(--adm-spacing-1);
 }
 
 .adm-form-input,
 .adm-form-select {
   width: 100%;
-  padding: var(--adm-spacing-3);
+  box-sizing: border-box;
+  padding: var(--adm-spacing-2) var(--adm-spacing-3);
   border: 1px solid var(--adm-gray-300);
   border-radius: var(--adm-radius);
   font-family: var(--adm-font-main);
@@ -185,18 +190,21 @@
 .adm-form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: var(--adm-spacing-3);
-  margin-top: var(--adm-spacing-6);
+  margin-top: var(--adm-spacing-4);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .adm-btn {
-  padding: var(--adm-spacing-3) var(--adm-spacing-5);
+  padding: var(--adm-spacing-2) var(--adm-spacing-4);
   border-radius: var(--adm-radius);
   font-size: var(--adm-font-size-sm);
   font-weight: 600;
   cursor: pointer;
   transition: var(--adm-transition);
   border: none;
+  background-color: var(--adm-primary);
+  color: white;
 }
 
 .adm-btn-primary {
@@ -537,6 +545,102 @@
   margin-top: var(--adm-spacing-4);
   padding-top: var(--adm-spacing-4);
   border-top: 1px solid var(--adm-gray-200);
+}
+
+/* Fare Form */
+.adm-fare-form {
+  background-color: white;
+  border-radius: var(--adm-radius-lg);
+  box-shadow: var(--adm-shadow);
+  padding: var(--adm-spacing-4);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.adm-fare-form-header {
+  margin-bottom: var(--adm-spacing-4);
+}
+
+.adm-fare-form-title {
+  font-size: var(--adm-font-size-lg);
+  font-weight: 600;
+  color: var(--adm-gray-800);
+  margin: 0 0 var(--adm-spacing-2) 0;
+}
+
+.adm-fare-form-description {
+  color: var(--adm-gray-600);
+  font-size: var(--adm-font-size-sm);
+}
+
+.adm-fare-form-group {
+  margin-bottom: var(--adm-spacing-3);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.adm-fare-form-label {
+  display: block;
+  font-size: var(--adm-font-size-sm);
+  font-weight: 500;
+  color: var(--adm-gray-700);
+  margin-bottom: var(--adm-spacing-1);
+}
+
+.adm-fare-form-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--adm-spacing-2) var(--adm-spacing-3);
+  border: 1px solid var(--adm-gray-300);
+  border-radius: var(--adm-radius);
+  font-family: var(--adm-font-main);
+  font-size: var(--adm-font-size-sm);
+  background-color: white;
+  transition: var(--adm-transition);
+}
+
+.adm-fare-form-input:focus {
+  border-color: var(--adm-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+}
+
+.adm-fare-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--adm-spacing-2);
+  margin-top: var(--adm-spacing-4);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.adm-fare-btn {
+  padding: var(--adm-spacing-2) var(--adm-spacing-4);
+  border-radius: var(--adm-radius);
+  font-size: var(--adm-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--adm-transition);
+  border: none;
+}
+
+.adm-fare-btn-primary {
+  background-color: var(--adm-primary);
+  color: white;
+}
+
+.adm-fare-btn-primary:hover {
+  background-color: var(--adm-primary-dark);
+}
+
+.adm-fare-btn-secondary {
+  background-color: white;
+  color: var(--adm-gray-700);
+  border: 1px solid var(--adm-gray-300);
+}
+
+.adm-fare-btn-secondary:hover {
+  background-color: var(--adm-gray-100);
 }
 
 /* Responsive Design */
