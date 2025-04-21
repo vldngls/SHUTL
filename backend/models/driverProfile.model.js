@@ -11,6 +11,7 @@ const driverProfileSchema = new mongoose.Schema(
     dob: { type: String },
     profilePic: { type: String, default: null },
     signature: { type: String, default: null },
+    idPicture: { type: String, default: null },
   },
   { timestamps: true }
 );

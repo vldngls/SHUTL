@@ -39,7 +39,8 @@ export const uploadProfileImage = async (req, res) => {
   try {
     const { imageType, imageData } = req.body;
 
-    if (!["profilePic", "signature"].includes(imageType)) {
+    // Add idPicture to the list of valid image types
+    if (!["profilePic", "signature", "idPicture"].includes(imageType)) {
       return res.status(400).json({ error: "Invalid image type" });
     }
 
