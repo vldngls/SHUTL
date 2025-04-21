@@ -126,6 +126,8 @@
   box-shadow: var(--adm-shadow);
   padding: var(--adm-spacing-6);
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .adm-shuttle-list-header {
@@ -135,6 +137,8 @@
   margin-bottom: var(--adm-spacing-5);
   padding-bottom: var(--adm-spacing-3);
   border-bottom: 1px solid var(--adm-gray-200);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .adm-shuttle-list-title {
@@ -148,10 +152,13 @@
   flex: 1;
   max-width: 300px;
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .adm-shuttle-search-input {
   width: 100%;
+  box-sizing: border-box;
   padding: var(--adm-spacing-2) var(--adm-spacing-3);
   padding-left: 36px;
   border: 1px solid var(--adm-gray-300);
