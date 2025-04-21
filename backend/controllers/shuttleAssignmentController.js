@@ -97,6 +97,22 @@ export const createAssignment = async (req, res) => {
       });
     }
 
+    // Check if the shuttle is already assigned to another driver
+    const existingShuttleAssignment = await ShuttleAssignment.findOne({ shuttleId });
+    if (existingShuttleAssignment) {
+      return res.status(400).json({
+        error: `Shuttle ${shuttleId} is already assigned to another driver`,
+      });
+    }
+
+    // Check if the driver already has an assignment
+    const existingDriverAssignment = await ShuttleAssignment.findOne({ driverEmail });
+    if (existingDriverAssignment) {
+      return res.status(400).json({
+        error: `Driver ${driverEmail} already has an assigned shuttle`,
+      });
+    }
+
     const assignment = new ShuttleAssignment({
       driverEmail,
       shuttleId,
