@@ -156,7 +156,7 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
 
   const fetchPendingOutTrips = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/shuttle/pending-trips`);
+      const response = await fetch(`${API_BASE_URL}/shuttle/pending-out`);
       const data = await response.json();
       setPendingOutTrips(data);
     } catch (error) {
@@ -166,7 +166,7 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
 
   const fetchRecentTrips = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/shuttle/recent-trips`);
+      const response = await fetch(`${API_BASE_URL}/shuttle/recent`);
       const data = await response.json();
       setRecentTrips(data);
     } catch (error) {

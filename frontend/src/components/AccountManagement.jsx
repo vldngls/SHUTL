@@ -97,12 +97,17 @@ const AccountManagement = () => {
         ? `${API_BASE_URL}/users/update/${editingUser._id}`
         : `${API_BASE_URL}/users/register`;
 
+      // Add agreeToTerms as true for admin-created users
+      const userData = editingUser 
+        ? formData 
+        : { ...formData, agreeToTerms: true };
+
       const response = await fetch(url, {
         method: editingUser ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(userData),
       });
 
       if (response.ok) {

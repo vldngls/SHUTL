@@ -22,6 +22,7 @@ export const registerUser = async (req, res) => {
       idPicture,
       googleId,
       agreeToTerms,
+      userType,
     } = req.body;
 
     // Add detailed logging for request body and terms
@@ -91,7 +92,7 @@ export const registerUser = async (req, res) => {
       email,
       username,
       password: hashedPassword,
-      userType: "Commuter",
+      userType: userType || "Commuter",
       googleId: googleId || null,
     });
 

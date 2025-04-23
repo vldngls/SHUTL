@@ -654,3 +654,79 @@ export const getShuttleLocationById = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Get shuttle routes
+export const getShuttleRoutes = async (req, res) => {
+  try {
+    // Get today's date in UTC
+    const today = new Date();
+    const todayUTC = new Date(
+      Date.UTC(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+        0,
+        0,
+        0,
+        0
+      )
+    );
+
+    const tomorrowUTC = new Date(
+      Date.UTC(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() + 1,
+        0,
+        0,
+        0,
+        0
+      )
+    );
+
+    // Get all trips for today
+    const todayTrips = await ShuttleTrip.find({
+      date: {
+        $gte: todayUTC,
+        $lt: tomorrowUTC,
+      },
+    }).lean();
+
+    // Group trips by shuttle number and calculate route metrics
+    const routeMetrics = {};
+    todayTrips.forEach((trip) => {
+      if (!routeMetrics[trip.shuttleNumber]) {
+        routeMetrics[trip.shuttleNumber] = {
+          totalPassengers: 0,
+          roundTrips: 0,
+          averagePassengers: 0,
+        };
+      }
+
+      // Add passengers
+      routeMetrics[trip.shuttleNumber].totalPassengers += trip.passengerCount || 0;
+
+      // Count round trips
+      if (trip.status === "In") {
+        routeMetrics[trip.shuttleNumber].roundTrips += 1;
+      }
+    });
+
+    // Calculate average passengers per trip
+    Object.keys(routeMetrics).forEach((shuttleNumber) => {
+      const metrics = routeMetrics[shuttleNumber];
+      const totalTrips = metrics.roundTrips * 2; // Each round trip has 2 trips (out and in)
+      metrics.averagePassengers = totalTrips > 0 
+        ? Math.round(metrics.totalPassengers / totalTrips) 
+        : 0;
+    });
+
+    res.status(200).json(routeMetrics);
+  } catch (error) {
+    console.error("Error fetching shuttle routes:", error);
+    res.status(500).json({
+      message: "Failed to fetch shuttle routes",
+      error: error.message,
+    });
+  }
+};

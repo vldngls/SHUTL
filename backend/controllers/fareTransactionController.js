@@ -176,7 +176,14 @@ export const getTotalEarnings = async (req, res) => {
         $group: {
           _id: null,
           totalFare: { $sum: "$totalFare" },
-          regularCount: { $sum: "$passengerCounts.Regular" },
+          regularCount: { 
+            $sum: { 
+              $add: [
+                { $ifNull: ["$passengerCounts.Regular", 0] },
+                { $ifNull: ["$passengerCounts.REGULAR", 0] }
+              ]
+            }
+          },
           pwdCount: { $sum: "$passengerCounts.PWD" },
           studentCount: { $sum: "$passengerCounts.STUDENT" },
           seniorCount: { $sum: "$passengerCounts.SENIOR" },

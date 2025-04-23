@@ -5,6 +5,7 @@ import {
   getFareTransactionsByShuttleId,
   getFareTransactionsByDateRange,
   getFareTransactionsByCommuterEmail,
+  getTotalEarnings
 } from "../controllers/fareTransactionController.js";
 import { authMiddleware } from '../middleware/authMiddleware.js';
 
@@ -24,5 +25,8 @@ router.get("/date-range", getFareTransactionsByDateRange);
 
 // Get fare transactions for the authenticated commuter
 router.get("/me", authMiddleware, getFareTransactionsByCommuterEmail);
+
+// Get total earnings
+router.get("/earnings", getTotalEarnings);
 
 export default router;

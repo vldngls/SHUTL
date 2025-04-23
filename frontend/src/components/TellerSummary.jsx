@@ -49,8 +49,13 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
     endTime: "22:00",
   });
   const [earningsData, setEarningsData] = useState({
-    regular: 0,
-    discounted: 0,
+    totalFare: 0,
+    passengerCounts: {
+      Regular: 0,
+      PWD: 0,
+      STUDENT: 0,
+      SENIOR: 0
+    }
   });
   const [streetNames, setStreetNames] = useState({});
   const geocodeTimeoutRef = useRef(null);
@@ -340,12 +345,17 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
 
   // Prepare data for the pie chart
   const pieChartData = {
-    labels: ["Regular", "Discounted"],
+    labels: ["Regular", "PWD", "Student", "Senior"],
     datasets: [
       {
-        data: [earningsData.regular || 0, earningsData.discounted || 0],
-        backgroundColor: ["#4A90E2", "#E27A4A"],
-        borderColor: ["#ffffff", "#ffffff"],
+        data: [
+          earningsData.passengerCounts?.Regular || 0,
+          earningsData.passengerCounts?.PWD || 0,
+          earningsData.passengerCounts?.STUDENT || 0,
+          earningsData.passengerCounts?.SENIOR || 0,
+        ],
+        backgroundColor: ["#4A90E2", "#E27A4A", "#50E3C2", "#F5A623"],
+        borderColor: ["#ffffff", "#ffffff", "#ffffff", "#ffffff"],
         borderWidth: 1,
       },
     ],
@@ -580,7 +590,7 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
             Fare Breakdown
           </h3>
           <p className="operational-hours-note">
-            (Data for operational hours: {earningsData.operationalHours?.startTime} - {earningsData.operationalHours?.endTime})
+            (Data for operational hours: {operationalHours.startTime} - {operationalHours.endTime})
           </p>
           <div className="TellerSummary-chart">
             <Pie data={pieChartData} options={pieChartOptions} />
@@ -591,11 +601,15 @@ const TellerSummary = ({ onClose, shuttleLocations }) => {
               <span>Total Earnings</span>
             </div>
             <div>
-              <strong>{earningsData.regular || 0}</strong>
+              <strong>{earningsData.passengerCounts?.Regular || 0}</strong>
               <span>Regular Passengers</span>
             </div>
             <div>
-              <strong>{earningsData.discounted || 0}</strong>
+              <strong>
+                {(earningsData.passengerCounts?.PWD || 0) + 
+                 (earningsData.passengerCounts?.STUDENT || 0) + 
+                 (earningsData.passengerCounts?.SENIOR || 0)}
+              </strong>
               <span>Discounted Passengers</span>
             </div>
           </div>
