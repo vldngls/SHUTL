@@ -5,6 +5,7 @@ import "../css/ShuttleTripTracking.css"; // Import the CSS file
 import { useState, useEffect } from "react";
 import { getCookie } from "../utils/cookieUtils"; // Add this import at the top with other imports
 import { maintenanceService } from "../services/api/maintenance";
+import { MdEdit, MdDelete, MdClose, MdCheck } from 'react-icons/md';
 
 const ShuttleTripTracking = ({ onClose, socket }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -42,6 +43,11 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
 
   // Add state for shuttle assignments
   const [shuttleAssignments, setShuttleAssignments] = useState([]);
+
+  const [editingTrip, setEditingTrip] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const [tripToDelete, setTripToDelete] = useState(null);
 
   const showToast = (message, type = "info") => {
     switch (type) {
@@ -356,6 +362,149 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
     }
   };
 
+  // Add handlers for editing and deleting trips
+  const handleEditTrip = (trip) => {
+    setEditingTrip(trip);
+    setIsEditing(true);
+    setTripData({
+      date: new Date(trip.date).toLocaleDateString("en-CA"),
+      time: trip.time,
+      shuttleNumber: trip.shuttleNumber,
+      driver: trip.driver,
+      status: trip.status,
+      passengerCount: trip.passengerCount,
+      roundTripId: trip.roundTripId,
+    });
+  };
+
+  const handleDeleteTrip = async (tripId) => {
+    if (tripToDelete === tripId) {
+      try {
+        const token = getCookie('token');
+        const response = await fetch(`${API_BASE_URL}/shuttle/trips/${tripId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        showToast("Trip deleted successfully", "success");
+        fetchRecentTrips();
+        setTripToDelete(null);
+        
+        // Log deletion to maintenance logs
+        await maintenanceService.createLog(
+          "Trip deleted", 
+          "success", 
+          `Trip ${tripId} was deleted`
+        );
+      } catch (error) {
+        console.error("Error deleting trip:", error);
+        showToast(error.message || "Failed to delete trip", "error");
+        setTripToDelete(null);
+        
+        // Log error to maintenance logs
+        await maintenanceService.createLog(
+          "Trip deletion failed", 
+          "error", 
+          `Failed to delete trip: ${error.message}`
+        );
+      }
+    } else {
+      setTripToDelete(tripId);
+    }
+  };
+
+  const handleUpdateTrip = async (e) => {
+    e.preventDefault();
+    if (!socket) {
+      showToast("Socket connection not available", "error");
+      return;
+    }
+
+    if (!isWithinHours) {
+      alert(
+        `Trips can only be created between ${operationalHours.startTime} and ${operationalHours.endTime}`
+      );
+      return;
+    }
+
+    try {
+      if (tripData.status === "In" && !tripData.roundTripId) {
+        showToast("Please select a matching out trip", "error");
+        return;
+      }
+
+      // Create a date object in local timezone
+      const [year, month, day] = tripData.date.split("-").map(Number);
+      const [hours, minutes] = tripData.time.split(":").map(Number);
+      
+      // Create the date in local timezone
+      const localDate = new Date(year, month - 1, day, hours, minutes);
+
+      // Convert to UTC while preserving the intended local time
+      const utcDate = new Date(
+        Date.UTC(
+          localDate.getFullYear(),
+          localDate.getMonth(),
+          localDate.getDate(),
+          localDate.getHours(),
+          localDate.getMinutes()
+        )
+      );
+
+      const tripDataToSend = {
+        ...tripData,
+        date: utcDate.toISOString(),
+        localTime: tripData.time,
+      };
+
+      const token = getCookie('token');
+      const response = await fetch(`${API_BASE_URL}/shuttle/trips/${editingTrip._id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(tripDataToSend),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const updatedTrip = await response.json();
+      showToast("Trip updated successfully", "success");
+      setIsEditing(false);
+      setEditingTrip(null);
+      fetchRecentTrips();
+      
+      // Log update to maintenance logs
+      await maintenanceService.createLog(
+        "Trip updated", 
+        "success", 
+        `Trip ${editingTrip._id} was updated`
+      );
+    } catch (error) {
+      console.error("Trip update error:", error);
+      showToast(error.message || "Failed to update trip", "error");
+      
+      // Log error to maintenance logs
+      await maintenanceService.createLog(
+        "Trip update failed", 
+        "error", 
+        `Failed to update trip: ${error.message}`
+      );
+    }
+  };
+
   return (
     <div
       className="stt-popup"
@@ -418,6 +567,7 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
                     <th>Driver</th>
                     <th>Status</th>
                     <th>Passengers</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -434,6 +584,22 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
                         </span>
                       </td>
                       <td>{trip.passengerCount}</td>
+                      <td>
+                        <button
+                          className="stt-edit-button"
+                          onClick={() => handleEditTrip(trip)}
+                          title="Edit trip"
+                        >
+                          <MdEdit size={16} />
+                        </button>
+                        <button
+                          className={`stt-delete-button ${tripToDelete === trip._id ? 'confirm' : ''}`}
+                          onClick={() => handleDeleteTrip(trip._id)}
+                          title={tripToDelete === trip._id ? "Click again to confirm deletion" : "Delete trip"}
+                        >
+                          {tripToDelete === trip._id ? <MdCheck size={16} /> : <MdDelete size={16} />}
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -459,7 +625,7 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
           </div>
         </div>
         <div className="stt-form-section">
-          <h2 className="stt-form-title">Add New Trip</h2>
+          <h2 className="stt-form-title">{isEditing ? "Edit Trip" : "Add New Trip"}</h2>
           {operationalHours && (
             <p className="stt-operational-hours-notice">
               Operational Hours: {operationalHours.startTime} -{" "}
@@ -471,7 +637,7 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
               Selected time is outside operational hours
             </p>
           )}
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={isEditing ? handleUpdateTrip : handleSubmit}>
             <div className="stt-form-group">
               <label>Date:</label>
               <input
@@ -572,8 +738,30 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
               )}
             </div>
             <button className="stt-submit-button" type="submit">
-              Add Shuttle Trip
+              {isEditing ? "Update Trip" : "Add Shuttle Trip"}
             </button>
+            {isEditing && (
+              <button
+                type="button"
+                className="stt-cancel-button"
+                onClick={() => {
+                  setIsEditing(false);
+                  setEditingTrip(null);
+                  setTripData({
+                    date: new Date().toLocaleDateString("en-CA"),
+                    time: getCurrentTime(),
+                    shuttleNumber: "",
+                    driver: "",
+                    status: "Out",
+                    passengerCount: 0,
+                    roundTripId: "",
+                  });
+                }}
+                title="Cancel editing"
+              >
+                <MdClose size={18} />
+              </button>
+            )}
           </form>
         </div>
       </div>

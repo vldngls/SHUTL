@@ -494,3 +494,86 @@
 .stt-table-container::-webkit-scrollbar-thumb:hover {
   background: #a1a1a1;
 }
+
+.stt-edit-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 6px 8px;
+  margin-right: 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+
+.stt-edit-button:hover {
+  background-color: #45a049;
+  transform: scale(1.1);
+}
+
+.stt-delete-button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+
+.stt-delete-button:hover {
+  background-color: #da190b;
+  transform: scale(1.1);
+}
+
+.stt-delete-button.confirm {
+  background-color: #4CAF50;
+  animation: pulse 1s infinite;
+}
+
+.stt-delete-button.confirm:hover {
+  background-color: #45a049;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.stt-cancel-button {
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  padding: 8px;
+  margin-left: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.stt-cancel-button:hover {
+  background-color: #f57c00;
+  transform: scale(1.1);
+}
