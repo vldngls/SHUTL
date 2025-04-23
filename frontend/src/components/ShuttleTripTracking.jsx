@@ -209,13 +209,13 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
   // Handle shuttle selection
   const handleShuttleChange = (event) => {
     const selectedShuttle = shuttleAssignments.find(
-      assignment => assignment.shuttleNumber === event.target.value
+      assignment => assignment.shuttleId === event.target.value
     );
     if (selectedShuttle) {
       setTripData((prev) => ({
         ...prev,
-        shuttleNumber: selectedShuttle.shuttleNumber,
-        driver: selectedShuttle.driver
+        shuttleNumber: selectedShuttle.shuttleId,
+        driver: selectedShuttle.driverEmail
       }));
     }
   };
@@ -502,8 +502,8 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
               >
                 <option value="">Select a shuttle</option>
                 {shuttleAssignments.map(assignment => (
-                  <option key={assignment.shuttleNumber} value={assignment.shuttleNumber}>
-                    {assignment.shuttleNumber}
+                  <option key={assignment.shuttleId} value={assignment.shuttleId}>
+                    {assignment.shuttleId}
                   </option>
                 ))}
               </select>
