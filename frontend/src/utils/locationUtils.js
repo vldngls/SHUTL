@@ -47,7 +47,9 @@ export const isWithinTerminalGeofence = (coordinates) => {
     TERMINAL_COORDINATES.lng
   );
   
-  return distance <= TERMINAL_COORDINATES.radius;
+  // Convert radius from meters to kilometers for comparison
+  const radiusInKm = TERMINAL_COORDINATES.radius / 1000;
+  return distance <= radiusInKm;
 };
 
 /**
@@ -70,10 +72,12 @@ export const getShuttleStatus = (speed, coordinates, isMoving) => {
   }
   
   // Stationary shuttle - check if it's at the terminal
-  if (speed < 0.8 || speed === 0) {
+  if (speed < 0.8) {
+    // Only show "At Terminal" if both stationary AND within geofence
     if (coordinates && isWithinTerminalGeofence(coordinates)) {
       return "At Terminal";
     }
+    // If stationary but not at terminal, show "Stationary"
     return "Stationary";
   }
   

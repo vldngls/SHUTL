@@ -31,7 +31,9 @@ import { API_BASE_URL } from "../config/config";
 import { 
   calculateDistance, 
   getShuttleStatus, 
-  processShuttleLocationUpdate 
+  processShuttleLocationUpdate,
+  isWithinTerminalGeofence,
+  TERMINAL_COORDINATES
 } from "../utils/locationUtils";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -754,17 +756,44 @@ const TellerMain = () => {
             Object.entries(optimizedLocations).map(([shuttleId, data]) => {
               if (!data || !data.coordinates) return null;
 
-              const trafficCondition = getTrafficCondition(data.speed || 0);
+              const speed = data.speed || 0;
+              const isOffline = data.status === 'offline';
+              const isMoving = data.isMoving || speed > 3;
+              const isInGeofence = data.coordinates && isWithinTerminalGeofence(data.coordinates);
+              const isStationary = !isMoving && speed < 0.8;
               
+              // Debug logging
+              console.log(`Shuttle ${shuttleId} status check:`, {
+                coordinates: data.coordinates,
+                speed,
+                isMoving,
+                isInGeofence,
+                isStationary,
+                distance: data.coordinates ? calculateDistance(
+                  data.coordinates[0],
+                  data.coordinates[1],
+                  TERMINAL_COORDINATES.lat,
+                  TERMINAL_COORDINATES.lng
+                ) : null,
+                processedStatus: data.status
+              });
+
+              // Use the processed status from locationUtils
+              const status = data.status || (isOffline ? 'Offline' : 
+                            (isStationary && isInGeofence) ? 'At Terminal' :
+                            isStationary ? 'Stationary' :
+                            getTrafficCondition(speed).status);
+              const trafficCondition = getTrafficCondition(speed);
+
               return (
                 <MovingMarker
                   key={shuttleId}
                   position={data.coordinates}
                   icon={carIcon}
-                  speed={data.speed || 0}
-                  isOffline={data.status === "offline"}
-                  isStationary={!data.isMoving || data.speed < 1}
-                  status={data.status}
+                  speed={speed}
+                  isOffline={isOffline}
+                  isStationary={isStationary}
+                  status={status}
                 >
                   <Popup>
                     <div className="TellerMain-shuttle-info">
@@ -773,19 +802,19 @@ const TellerMain = () => {
                         Status:{" "}
                         <span
                           style={{
-                            color: data.status === "offline" ? "red" : 
-                                   data.status === "At Terminal" ? "#4CAF50" :
-                                   data.status === "Stationary" ? "#ff9800" : "green",
+                            color: isOffline ? "red" : 
+                                   status === "At Terminal" ? "#4CAF50" :
+                                   status === "Stationary" ? "#ff9800" : "green",
                             fontWeight: "bold",
                           }}
                         >
-                          {data.status || (data.isOffline ? "Offline" : "Online")}
+                          {status}
                         </span>
                       </p>
                       <p>
                         Speed:{" "}
                         <span style={{ fontWeight: "bold" }}>
-                          {(data.speed || 0).toFixed(1)} km/h
+                          {(speed || 0).toFixed(1)} km/h
                         </span>
                       </p>
                       <p>
@@ -810,13 +839,24 @@ const TellerMain = () => {
                         )}
                         s ago
                       </p>
+                      <p>
+                        Distance from Terminal:{" "}
+                        <span style={{ fontWeight: "bold" }}>
+                          {data.coordinates ? Math.round(calculateDistance(
+                            data.coordinates[0],
+                            data.coordinates[1],
+                            TERMINAL_COORDINATES.lat,
+                            TERMINAL_COORDINATES.lng
+                          )) : 'N/A'} meters
+                        </span>
+                      </p>
                     </div>
                   </Popup>
                   <Tooltip direction="right" offset={[10, 0]} permanent>
-                    <span style={{ color: data.status === "offline" ? "#999" : "#000" }}>
-                      Shuttle {shuttleId} {data.status === "offline" ? "(Offline)" : 
-                                            data.status === "At Terminal" ? "(At Terminal)" : 
-                                            data.status === "Stationary" ? "(Stationary)" : ""}
+                    <span style={{ color: isOffline ? "#999" : "#000" }}>
+                      Shuttle {shuttleId} {isOffline ? "(Offline)" : 
+                                          status === "At Terminal" ? "(At Terminal)" : 
+                                          status === "Stationary" ? "(Stationary)" : ""}
                     </span>
                   </Tooltip>
                 </MovingMarker>
