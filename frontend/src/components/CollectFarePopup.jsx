@@ -84,11 +84,11 @@ const CollectFarePopup = ({ onClose, shuttleLocations }) => {
               {shuttles.length > 0 ? (
                 shuttles.map((shuttle) => (
                   <button
-                    key={shuttle.shuttleNumber}
+                    key={shuttle.shuttleId}
                     className={`cf-shuttle-select-btn ${shuttle.status !== "active" ? "offline" : ""}`}
-                    onClick={() => handleShuttleSelect(shuttle.shuttleNumber)}
+                    onClick={() => handleShuttleSelect(shuttle.shuttleId)}
                   >
-                    Shuttle {shuttle.shuttleNumber}
+                    Shuttle {shuttle.shuttleId}
                     {shuttle.status !== "active" && ` (${shuttle.status.charAt(0).toUpperCase() + shuttle.status.slice(1)})`}
                   </button>
                 ))
