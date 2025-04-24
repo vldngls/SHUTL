@@ -972,40 +972,10 @@ const ShutlLoggedIn = () => {
                 isOffline={isOffline}
                 isStationary={isStationary}
                 eventHandlers={{
-                  click: async () => {
-                    if (!userLocation) {
-                      toast.error("Please enable location sharing first");
-                      return;
-                    }
-
-                    try {
-                      const streetName = await reverseGeocode(userLocation[0], userLocation[1]);
-                      const userEmail = getCookie("email");
-                      const request = {
-                        shuttleId,
-                        userEmail,
-                        location: {
-                          coordinates: userLocation,
-                          streetName,
-                        },
-                        destination: "Nearest Stop", // Default destination
-                        passengers: 1, // Default passenger count
-                        notes: "", // Default empty notes
-                        timestamp: new Date().toISOString(),
-                      };
-
-                      const socketInstance = await connectSocket();
-                      if (!socketInstance) {
-                        toast.error("Unable to establish connection. Please try again.");
-                        return;
-                      }
-
-                      socketInstance.emit("pickup_request", request);
-                      toast.success("Pickup request sent successfully!");
-                    } catch (error) {
-                      console.error("Error sending pickup request:", error);
-                      toast.error("Error sending pickup request. Please try again.");
-                    }
+                  click: () => {
+                    // Only show the popup, don't automatically send pickup request
+                    setSelectedShuttleId(shuttleId);
+                    setShowPickMeUp(true);
                   }
                 }}
               >
@@ -1026,40 +996,9 @@ const ShutlLoggedIn = () => {
                     <button 
                       className="pick-me-up-btn"
                       disabled={isOffline}
-                      onClick={async () => {
-                        if (!userLocation) {
-                          toast.error("Please enable location sharing first");
-                          return;
-                        }
-
-                        try {
-                          const streetName = await reverseGeocode(userLocation[0], userLocation[1]);
-                          const userEmail = getCookie("email");
-                          const request = {
-                            shuttleId,
-                            userEmail,
-                            location: {
-                              coordinates: userLocation,
-                              streetName,
-                            },
-                            destination: "Nearest Stop", // Default destination
-                            passengers: 1, // Default passenger count
-                            notes: "", // Default empty notes
-                            timestamp: new Date().toISOString(),
-                          };
-
-                          const socketInstance = await connectSocket();
-                          if (!socketInstance) {
-                            toast.error("Unable to establish connection. Please try again.");
-                            return;
-                          }
-
-                          socketInstance.emit("pickup_request", request);
-                          toast.success("Pickup request sent successfully!");
-                        } catch (error) {
-                          console.error("Error sending pickup request:", error);
-                          toast.error("Error sending pickup request. Please try again.");
-                        }
+                      onClick={() => {
+                        setSelectedShuttleId(shuttleId);
+                        setShowPickMeUp(true);
                       }}
                     >
                       Pick Me Up

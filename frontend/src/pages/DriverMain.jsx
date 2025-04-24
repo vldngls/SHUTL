@@ -440,25 +440,8 @@ const DriverMain = () => {
             console.log("✅ Adding new pickup request to state");
             return [...prev, request];
           });
-
-          const notification = createNotification(
-            "pickup_request",
-            `New pickup request received at ${
-              request.location.streetName || "unknown location"
-            }!`
-          );
           
-          // Ensure notification appears and triggers UI update
-          setNotifications((prev) => {
-            const updatedNotifications = [notification, ...prev].slice(0, 5);
-            console.log("Updated notifications with pickup request");
-            return updatedNotifications;
-          });
-          
-          // Force open the notifications popup to alert driver
-          setActivePopup("notifications");
-          
-          // Add a sound or toast notification for better visibility
+          // Add a toast notification for better visibility
           toast.success(`New pickup request from ${request.userEmail || 'unknown user'}!`, {
             position: "top-center",
             autoClose: 5000,
