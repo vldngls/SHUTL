@@ -31,7 +31,7 @@
 .adm-transactions-stats {
   grid-column: span 12;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--adm-spacing-4);
   margin-bottom: var(--adm-spacing-6);
 }
@@ -372,11 +372,13 @@
   align-items: center;
   margin-top: var(--adm-spacing-6);
   gap: var(--adm-spacing-2);
+  padding: var(--adm-spacing-4) 0;
 }
 
 .adm-pagination-btn {
-  width: 36px;
+  min-width: 36px;
   height: 36px;
+  padding: 0 var(--adm-spacing-3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -384,12 +386,19 @@
   border: 1px solid var(--adm-gray-300);
   border-radius: var(--adm-radius);
   font-size: var(--adm-font-size-sm);
+  color: var(--adm-gray-700);
   cursor: pointer;
   transition: var(--adm-transition);
 }
 
-.adm-pagination-btn:hover {
+.adm-pagination-btn:hover:not(:disabled) {
   background-color: var(--adm-gray-100);
+  border-color: var(--adm-gray-400);
+}
+
+.adm-pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .adm-pagination-btn.active {
@@ -539,7 +548,7 @@
 /* Responsive Design */
 @media (max-width: 1200px) {
   .adm-transactions-stats {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--adm-spacing-4);
   }
 }
@@ -583,6 +592,11 @@
   .adm-transaction-chart-container {
     height: 250px;
   }
+  
+  .adm-transactions-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--adm-spacing-3);
+  }
 }
 
 @media (max-width: 576px) {
@@ -592,6 +606,7 @@
   
   .adm-transactions-stats {
     grid-template-columns: 1fr;
+    gap: var(--adm-spacing-3);
   }
   
   .adm-filters-form {

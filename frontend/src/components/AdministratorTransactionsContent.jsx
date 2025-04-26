@@ -13,6 +13,7 @@ import {
   ArcElement,
 } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
+import { toast } from "react-hot-toast";
 
 ChartJS.register(
   CategoryScale,
@@ -42,6 +43,8 @@ const AdministratorTransactionsContent = () => {
     },
   });
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchTransactions();
@@ -186,6 +189,156 @@ const AdministratorTransactionsContent = () => {
     },
   };
 
+  const handleExportCSV = () => {
+    if (transactions.length === 0) {
+      toast.error("No transactions to export");
+      return;
+    }
+
+    // Create CSV header
+    const headers = [
+      "Date",
+      "Time",
+      "Shuttle ID",
+      "Regular Passengers",
+      "PWD Passengers",
+      "Student Passengers",
+      "Senior Passengers",
+      "Total Fare",
+      "Tendered Amount",
+      "Change"
+    ];
+
+    // Create CSV rows
+    const rows = transactions.map(transaction => [
+      transaction.date,
+      transaction.time,
+      transaction.shuttleID,
+      transaction.passengerCounts.Regular || transaction.passengerCounts.REGULAR || 0,
+      transaction.passengerCounts.PWD || 0,
+      transaction.passengerCounts.STUDENT || 0,
+      transaction.passengerCounts.SENIOR || 0,
+      `₱${transaction.totalFare.toFixed(2)}`,
+      `₱${transaction.tender.toFixed(2)}`,
+      `₱${transaction.change.toFixed(2)}`
+    ]);
+
+    // Combine header and rows
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n");
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `transactions_${new Date().toISOString().split("T")[0]}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Calculate pagination
+  const totalPages = Math.ceil(transactions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentTransactions = transactions.slice(startIndex, endIndex);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const renderPagination = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    if (startPage > 1) {
+      pages.push(
+        <button
+          key="first"
+          className="adm-pagination-btn"
+          onClick={() => handlePageChange(1)}
+        >
+          1
+        </button>
+      );
+      if (startPage > 2) {
+        pages.push(
+          <span key="start-ellipsis" className="adm-pagination-ellipsis">
+            ...
+          </span>
+        );
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <button
+          key={i}
+          className={`adm-pagination-btn ${currentPage === i ? "active" : ""}`}
+          onClick={() => handlePageChange(i)}
+        >
+          {i}
+        </button>
+      );
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        pages.push(
+          <span key="end-ellipsis" className="adm-pagination-ellipsis">
+            ...
+          </span>
+        );
+      }
+      pages.push(
+        <button
+          key="last"
+          className="adm-pagination-btn"
+          onClick={() => handlePageChange(totalPages)}
+        >
+          {totalPages}
+        </button>
+      );
+    }
+
+    return (
+      <div className="adm-transactions-pagination">
+        <button
+          className="adm-pagination-btn"
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          title="Previous page"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 18l-6-6 6-6"/>
+          </svg>
+        </button>
+        {pages}
+        <button
+          className="adm-pagination-btn"
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          title="Next page"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className="adm-transactions">
       <div className="adm-transactions-header">
@@ -297,20 +450,6 @@ const AdministratorTransactionsContent = () => {
             <div className="adm-transactions-stat-label">Total Transactions</div>
           </div>
         </div>
-        
-        <div className="adm-transactions-stat-card">
-          <div className="adm-transactions-stat-icon">
-            <i>📈</i>
-          </div>
-          <div className="adm-transactions-stat-content">
-            <div className="adm-transactions-stat-value">
-              <button className="adm-filter-btn adm-filter-btn-apply" style={{ fontSize: '0.8rem', padding: '4px 8px' }}>
-                Export Data
-              </button>
-            </div>
-            <div className="adm-transactions-stat-label">Generate Reports</div>
-          </div>
-        </div>
       </div>
 
       {/* Transaction Chart Section */}
@@ -329,7 +468,7 @@ const AdministratorTransactionsContent = () => {
       <div className="adm-transactions-list">
         <div className="adm-transactions-list-header">
           <h3 className="adm-transactions-list-title">Transaction History</h3>
-          <button className="adm-transactions-export">
+          <button className="adm-transactions-export" onClick={handleExportCSV}>
             <i>📥</i> Export CSV
           </button>
         </div>
@@ -357,8 +496,8 @@ const AdministratorTransactionsContent = () => {
                     Loading transactions...
                   </td>
                 </tr>
-              ) : transactions.length > 0 ? (
-                transactions.map((transaction, index) => (
+              ) : currentTransactions.length > 0 ? (
+                currentTransactions.map((transaction, index) => (
                   <tr key={index}>
                     <td>{transaction.date}</td>
                     <td>{transaction.time}</td>
@@ -388,6 +527,7 @@ const AdministratorTransactionsContent = () => {
             </tbody>
           </table>
         </div>
+        {transactions.length > 0 && renderPagination()}
       </div>
     </div>
   );

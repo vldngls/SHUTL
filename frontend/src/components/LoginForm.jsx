@@ -247,6 +247,7 @@ const LoginForm = ({ onClose }) => {
       if (response.ok) {
         setResetMessage("Password has been reset successfully");
         setError("");
+        toast.success("Password Changed. Please Login!");
         // Return to login form after 3 seconds
         setTimeout(() => {
           setShowForgotPassword(false);
