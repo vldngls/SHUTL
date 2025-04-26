@@ -10,6 +10,8 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 import MovingMarker from "../components/MovingMarker";
+import { getDashboardStats } from '../services/adminService';
+import DashboardStats from './DashboardStats';
 
 // Fix for default Leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -61,8 +63,16 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 };
 
 const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
-  const [totalUsers, setTotalUsers] = useState(0);
-  const [activeUsers, setActiveUsers] = useState(0);
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalShuttles: 0,
+    totalDrivers: 0,
+    totalTransactions: 0,
+    totalTrips: 0,
+    roundTrips: 0,
+    activeShuttles: 0,
+    totalPassengers: 0
+  });
   const [notificationMessage, setNotificationMessage] = useState("");
   const [recipientType, setRecipientType] = useState("Commuter");
   const [notificationStatus, setNotificationStatus] = useState(null);
@@ -103,55 +113,19 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
   }, [shuttleLocations]);
 
   useEffect(() => {
-    const fetchUserCounts = async () => {
+    const fetchStatistics = async () => {
       try {
-        const data = await userService.getActiveCounts();
-        setTotalUsers(data.totalUsers);
-        setActiveUsers(data.activeUsers);
+        const data = await getDashboardStats();
+        setStats(data);
       } catch (error) {
-        console.error("Error fetching user counts:", error);
+        console.error("Error fetching statistics:", error);
+        toast.error("Failed to load dashboard statistics");
       }
     };
 
-    fetchUserCounts();
-    const interval = setInterval(fetchUserCounts, 10000);
+    fetchStatistics();
+    const interval = setInterval(fetchStatistics, 30000); // Update every 30 seconds
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const fetchShuttleData = async () => {
-      try {
-        const summaryData = await shuttleService.getSummary();
-
-        setShuttleStats({
-          roundTrips: summaryData.roundTrips || 0,
-          totalPassengers: summaryData.totalPassengers || 0,
-          inTrips: summaryData.activeShuttles || 0,
-          outTrips: summaryData.routeMetrics
-            ? Object.keys(summaryData.routeMetrics).length
-            : 0,
-        });
-      } catch (error) {
-        console.error("Error fetching shuttle data:", error);
-      }
-    };
-
-    fetchShuttleData();
-    const interval = setInterval(fetchShuttleData, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const fetchOperationalHours = async () => {
-      try {
-        const data = await operationsService.getOperationalHours();
-        setOperationalHours(data);
-      } catch (error) {
-        console.error("Error fetching operational hours:", error);
-      }
-    };
-
-    fetchOperationalHours();
   }, []);
 
   const handleSendNotification = async () => {
@@ -268,23 +242,38 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
 
   return (
     <div className="adm-dashboard">
-      {/* Real-Time Status */}
-      <div className="adm-status-section">
+      <div className="adm-top-stats-grid">
+        <div className="adm-stat-card">
+          <h3>Total Users</h3>
+          <p>{stats.totalUsers}</p>
+        </div>
+        <div className="adm-stat-card">
+          <h3>Total Shuttles</h3>
+          <p>{stats.totalShuttles}</p>
+        </div>
+        <div className="adm-stat-card">
+          <h3>Total Drivers</h3>
+          <p>{stats.totalDrivers}</p>
+        </div>
+        <div className="adm-stat-card">
+          <h3>Total Transactions</h3>
+          <p>{stats.totalTransactions}</p>
+        </div>
+        <div className="adm-stat-card">
+          <h3>Total Trips</h3>
+          <p>{stats.totalTrips}</p>
+        </div>
         <div className="adm-status-card">
-          <div className="adm-status-card-value">{shuttleStats?.roundTrips || 0}</div>
           <div className="adm-status-card-label">Round Trips</div>
+          <div className="adm-status-card-value">{stats.roundTrips}</div>
         </div>
         <div className="adm-status-card">
-          <div className="adm-status-card-value">{shuttleStats?.inTrips || 0}</div>
           <div className="adm-status-card-label">Active Shuttles</div>
+          <div className="adm-status-card-value">{stats.activeShuttles}</div>
         </div>
         <div className="adm-status-card">
-          <div className="adm-status-card-value">{shuttleStats?.outTrips || 0}</div>
-          <div className="adm-status-card-label">Total Routes</div>
-        </div>
-        <div className="adm-status-card">
-          <div className="adm-status-card-value">{shuttleStats?.totalPassengers || 0}</div>
           <div className="adm-status-card-label">Total Passengers</div>
+          <div className="adm-status-card-value">{stats.totalPassengers}</div>
         </div>
       </div>
 

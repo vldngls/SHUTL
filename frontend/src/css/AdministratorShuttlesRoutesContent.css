@@ -770,3 +770,22 @@
     margin: 1rem;
   }
 }
+
+.adm-routes-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+.adm-routes-page-info {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.adm-routes-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

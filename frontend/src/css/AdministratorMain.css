@@ -216,7 +216,7 @@ body {
   margin-left: 280px;
   padding: var(--adm-spacing-8);
   overflow-y: auto;
-  height: 100vh;
+  height: calc(100vh - 40px); /* Subtract taskbar height */
   box-sizing: border-box;
   background-color: var(--adm-gray-100);
   transition: var(--adm-transition-slow);
@@ -402,4 +402,32 @@ body {
   .adm-card {
     padding: var(--adm-spacing-4);
   }
+}
+
+.adm-user-stats {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0 1rem;
+}
+
+.adm-stat-card {
+  background: var(--adm-card-bg);
+  border-radius: 8px;
+  padding: 1rem;
+  flex: 1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.adm-stat-card h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--adm-text-secondary);
+}
+
+.adm-stat-card p {
+  margin: 0.5rem 0 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--adm-text-primary);
 }

@@ -28,6 +28,8 @@ import suggestionRoutes from "./routes/suggestionRoutes.js";
 import operationalHoursRoutes from "./routes/operationalHoursRoutes.js";
 import maintenanceRoutes from "./routes/maintenanceRoutes.js";
 import routeRoutes from "./routes/routesRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import shuttleTripRoutes from "./routes/shuttleTripRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -113,6 +115,8 @@ app.use("/api/suggestions", suggestionRoutes);
 app.use("/api/operational-hours", operationalHoursRoutes);
 app.use("/api/maintenance", maintenanceRoutes);
 app.use("/api/routes", routeRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/shuttle-trips", shuttleTripRoutes);
 app.get("/api", (req, res) => {
   res.json({ message: "API is working!" });
 });

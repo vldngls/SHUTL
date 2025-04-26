@@ -7,6 +7,8 @@
   grid-template-columns: repeat(12, 1fr);
   gap: var(--adm-spacing-6);
   width: 100%;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
 }
 
 /* Status Cards Section */
@@ -423,4 +425,89 @@
     width: 100%;
     margin-left: 0;
   }
+}
+
+.adm-stats-grid {
+  grid-column: span 12;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 0 1rem;
+}
+
+.adm-stat-card {
+  background: var(--adm-card-bg);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.adm-stat-card:hover {
+  transform: translateY(-2px);
+}
+
+.adm-stat-card h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--adm-text-secondary);
+  font-weight: 500;
+}
+
+.adm-stat-card p {
+  margin: 0.5rem 0 0;
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--adm-text-primary);
+}
+
+/* Unified top stats/status grid */
+.adm-top-stats-grid {
+  grid-column: span 12;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: 1fr;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 0.7rem;
+  padding: 0.5rem 0 0.5rem 0;
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Shared card style for stats and status */
+.adm-stat-card,
+.adm-status-card {
+  background: var(--adm-card-bg, #fff);
+  border-radius: 8px;
+  padding: 0.8rem 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+}
+
+.adm-stat-card:hover,
+.adm-status-card:hover {
+  transform: translateY(-2px);
+}
+
+.adm-stat-card h3,
+.adm-status-card-label {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--adm-text-secondary, #888);
+  font-weight: 500;
+  text-align: center;
+}
+
+.adm-stat-card p,
+.adm-status-card-value {
+  margin: 0.3rem 0 0;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--adm-text-primary, #222);
+  text-align: center;
 }

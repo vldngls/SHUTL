@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/AdministratorMain.css";
 import AdministratorDashboardContent from "@components/AdministratorDashboardContent.jsx";
@@ -18,9 +18,11 @@ import {
 } from "../utils/websocketService";
 import { useOptimizedLocations } from "../hooks/useOptimizedLocations";
 import { removeToken } from "../utils/tokenUtils";
-import { processShuttleLocationUpdate, calculateDistance } from "../utils/locationUtils";
+import { processShuttleLocationUpdate } from "../utils/locationUtils";
+import { get as apiGet } from "../services/api";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const USER_COUNT_CACHE_TTL = 30 * 1000; // 30 seconds
 
 // Add getCookie function
 const getCookie = (name) => {
@@ -36,14 +38,44 @@ const AdministratorMain = () => {
   const [dateTime, setDateTime] = useState(new Date());
   const [notifications, setNotifications] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
-  const [userLocation, setUserLocation] = useState(null);
   const [isLocationSharing, setIsLocationSharing] = useState(false);
   const [shuttleLocations, setShuttleLocations] = useState({});
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [activeUsers, setActiveUsers] = useState(0);
   const optimizedLocations = useOptimizedLocations(shuttleLocations);
   const watchIdRef = useRef(null);
   const hasShownToastRef = useRef(false);
   const socket = useRef(null);
+  const cleanupFunctionsRef = useRef([]);
+  const intervalsRef = useRef([]);
+
+  // Fetch Total & Active Users with memoized function
+  const fetchUserCounts = useCallback(async () => {
+    try {
+      const data = await apiGet("/users/active-users", USER_COUNT_CACHE_TTL);
+      setTotalUsers(data.totalUsers);
+      setActiveUsers(data.activeUsers);
+    } catch (error) {
+      console.error("Error fetching user counts:", error);
+    }
+  }, []);
+
+  // Set up user count polling
+  useEffect(() => {
+    let isMounted = true;
+    fetchUserCounts();
+    const interval = setInterval(() => {
+      if (isMounted) {
+        fetchUserCounts();
+      }
+    }, 30000);
+    intervalsRef.current.push(interval);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [fetchUserCounts]);
 
   const handleLogout = () => {
     // Use the centralized removeToken function
@@ -302,7 +334,6 @@ const AdministratorMain = () => {
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
       setIsLocationSharing(false);
-      setUserLocation(null);
       hasShownToastRef.current = false;
       toast("Location sharing stopped", {
         icon: "🚫",
@@ -331,7 +362,6 @@ const AdministratorMain = () => {
         console.error("Location error:", error);
         toast.error(`Location error: ${error.message}`);
         setIsLocationSharing(false);
-        setUserLocation(null);
         watchIdRef.current = null;
         hasShownToastRef.current = false;
       },
@@ -349,8 +379,6 @@ const AdministratorMain = () => {
       if (watchIdRef.current) {
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
-        setUserLocation(null);
-        hasShownToastRef.current = false;
       }
     };
   }, []);
@@ -359,6 +387,23 @@ const AdministratorMain = () => {
   const toggleMobileMenu = () => {
     setShowMobileMenu(prev => !prev);
   };
+
+  // Final cleanup
+  useEffect(() => {
+    return () => {
+      // Clear all intervals
+      intervalsRef.current.forEach((interval) => clearInterval(interval));
+      intervalsRef.current = [];
+
+      // Execute all cleanup functions
+      cleanupFunctionsRef.current.forEach((cleanup) => {
+        if (typeof cleanup === "function") {
+          cleanup();
+        }
+      });
+      cleanupFunctionsRef.current = [];
+    };
+  }, []);
 
   return (
     <div className="adm-container">
