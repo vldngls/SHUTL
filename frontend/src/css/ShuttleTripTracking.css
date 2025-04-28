@@ -412,14 +412,13 @@
   }
 
   .stt-container {
-    grid-template-columns: 1fr;
+    display: block !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box;
     padding: 0.5rem;
-    max-height: 100vh;
-    height: 100vh;
-    border-radius: 0;
-    margin: 0;
-    width: 100%;
-    max-width: 100%;
   }
 
   .stt-tables-section {
@@ -607,15 +606,11 @@
 }
 
 /* Prevent address bar from showing/hiding on scroll */
-html {
-  height: 100%;
-  overflow: hidden;
-}
-
-body {
+html, body {
   height: 100%;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
+  overflow-x: hidden !important;
 }
 
 /* Scrollbar styling */
