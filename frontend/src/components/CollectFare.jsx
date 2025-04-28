@@ -218,6 +218,13 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved, onCustomModeChang
     setChange(amount - calculateTotal());
   };
 
+  // Add new handler for exact amount
+  const handleExactAmount = () => {
+    const total = calculateTotal();
+    setTender(total.toString());
+    setChange(0);
+  };
+
   const createTransactionPayload = () => {
     // Create passenger counts matching the database case format
     const passengerCounts = {};
@@ -546,19 +553,28 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved, onCustomModeChang
 
                   {/* Moved Tender Section Here */}
                   <div className="CollectFare-tender-section">
-                    <label htmlFor="tender">Tender Amount:</label>
+                    <div className="CollectFare-amount-display">
+                      <div className="CollectFare-total-amount">
+                        <label>Total Fare:</label>
+                        <span>₱{calculateTotal().toFixed(2)}</span>
+                      </div>
+                      <div className="CollectFare-tendered-amount">
+                        <label>Tendered Amount:</label>
+                        <span>₱{parseFloat(tender || 0).toFixed(2)}</span>
+                      </div>
+                    </div>
+                    
                     <div className="CollectFare-tender-input-container">
                       <span className="CollectFare-peso-sign">₱</span>
                       <input
-                        id="tender"
                         type="text"
-                        inputMode="decimal"
+                        className="CollectFare-tender-input"
                         value={tender}
                         onChange={handleTenderChange}
                         placeholder="0.00"
-                        className="CollectFare-tender-input"
                       />
                     </div>
+
                     <div className="CollectFare-preset-amounts">
                       {presetAmounts.map((amount) => (
                         <button
@@ -566,13 +582,20 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved, onCustomModeChang
                           className="CollectFare-preset-amount-btn"
                           onClick={() => handlePresetAmount(amount)}
                         >
-                          ₱{amount}
+                          {amount}
                         </button>
                       ))}
+                      <button
+                        className="CollectFare-preset-amount-btn exact"
+                        onClick={handleExactAmount}
+                      >
+                        Exact
+                      </button>
                     </div>
+
                     <div className="CollectFare-change">
-                      <span>Change:</span>
-                      <strong>₱{change >= 0 ? change.toFixed(2) : "0.00"}</strong>
+                      <label>Change:</label>
+                      <span>₱{change.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>

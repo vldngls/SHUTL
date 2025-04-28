@@ -10,8 +10,9 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  padding: 1rem;
+  padding: 0;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Main container */
@@ -405,39 +406,104 @@
 
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
+  .stt-popup {
+    padding: 0;
+    align-items: flex-start;
+  }
+
   .stt-container {
     grid-template-columns: 1fr;
-    padding: 0.75rem;
+    padding: 0.5rem;
+    max-height: 100vh;
+    height: 100vh;
+    border-radius: 0;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
   }
 
   .stt-tables-section {
     height: auto;
     overflow-y: visible;
+    padding: 0.5rem;
   }
 
   .stt-form-section {
-    padding: 0.75rem;
+    padding: 0.5rem;
     margin-top: 0;
     height: auto;
     overflow-y: visible;
   }
 
-  .stt-pending-trips-table .stt-table-container {
-    height: auto;
-    max-height: 150px;
-  }
-
-  .stt-recent-trips-table .stt-table-container {
-    height: auto;
-    max-height: 200px;
+  .stt-table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 4px;
+    border: 1px solid #dcdde1;
+    margin: 0.5rem 0;
   }
 
   .stt-table {
-    min-width: 800px; /* Increased minimum width for better readability on mobile */
+    min-width: 800px;
+  }
+
+  .stt-pending-trips-table,
+  .stt-recent-trips-table {
+    margin-bottom: 1rem;
   }
 
   .stt-form-group {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .stt-form-group input,
+  .stt-form-group select,
+  .stt-pending-trips select {
+    height: 40px;
+    width: 100%;
+  }
+
+  .stt-status-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .stt-status-button {
+    flex: 1;
+  }
+
+  .stt-submit-button {
+    margin-top: 1rem;
+  }
+
+  .stt-close-button {
+    position: fixed;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+}
+
+@media (max-width: 480px) {
+  .stt-container {
+    padding: 0.25rem;
+  }
+
+  .stt-tables-section,
+  .stt-form-section {
+    padding: 0.25rem;
+  }
+
+  .stt-table {
+    min-width: 700px;
   }
 
   .stt-form-group input,
@@ -445,35 +511,44 @@
   .stt-pending-trips select {
     height: 36px;
   }
+
+  .stt-pagination {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .stt-pagination-button {
+    min-width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
+  }
 }
 
-@media (max-width: 480px) {
+/* iOS-specific fixes */
+@supports (-webkit-touch-callout: none) {
+  .stt-popup {
+    height: -webkit-fill-available;
+  }
+
   .stt-container {
-    padding: 0.5rem;
-    height: 98vh;
+    height: -webkit-fill-available;
   }
 
-  .stt-form-section {
-    padding: 0.5rem;
+  .stt-table-container {
+    -webkit-overflow-scrolling: touch;
   }
+}
 
-  .stt-form-group input,
-  .stt-form-group select,
-  .stt-pending-trips select {
-    height: 34px;
-  }
+/* Prevent address bar from showing/hiding on scroll */
+html {
+  height: 100%;
+  overflow: hidden;
+}
 
-  .stt-pending-trips-table .stt-table-container {
-    max-height: 120px;
-  }
-
-  .stt-recent-trips-table .stt-table-container {
-    max-height: 180px;
-  }
-
-  .stt-table {
-    min-width: 700px; /* Slightly reduced minimum width for very small screens */
-  }
+body {
+  height: 100%;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Scrollbar styling */
