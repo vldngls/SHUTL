@@ -47,17 +47,33 @@ const QRScannerComponent = forwardRef(({ onScanSuccess, onScanError }, ref) => {
     // Check camera permissions
     const checkCameraPermissions = async () => {
       try {
-        // First try to get camera access directly
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        stream.getTracks().forEach(track => track.stop()); // Stop the stream immediately
-        setPermissionStatus('granted');
+        // First check if we're on a mobile device
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         
-        // Then check the permissions API if available
+        // For mobile devices, we need to handle permissions differently
+        if (isMobile) {
+          // On mobile, we need to request permissions first
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+              facingMode: 'environment',
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            } 
+          });
+          stream.getTracks().forEach(track => track.stop());
+          setPermissionStatus('granted');
+        } else {
+          // For desktop, proceed with normal permission check
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          stream.getTracks().forEach(track => track.stop());
+          setPermissionStatus('granted');
+        }
+        
+        // Check the permissions API if available
         if (navigator.permissions && navigator.permissions.query) {
           const result = await navigator.permissions.query({ name: 'camera' });
           setPermissionStatus(result.state);
           
-          // Listen for permission changes
           result.addEventListener('change', () => {
             setPermissionStatus(result.state);
           });
@@ -88,37 +104,30 @@ const QRScannerComponent = forwardRef(({ onScanSuccess, onScanError }, ref) => {
         containerRef.current.style.display = 'block';
         containerRef.current.style.opacity = '1';
 
-        // Enhanced scanner configuration
-        scannerRef.current = new Html5QrcodeScanner('qr-reader', {
-          qrbox: {
-            width: 250,
-            height: 250,
+        // Add a small delay to ensure the container is properly rendered
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Check if we're on a mobile device
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+        // Initialize the scanner with mobile-specific settings
+        const scanner = new Html5QrcodeScanner(
+          "qr-reader",
+          {
+            fps: isMobile ? 10 : 30, // Lower FPS for mobile devices
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0,
+            videoConstraints: {
+              facingMode: isMobile ? "environment" : "user",
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            }
           },
-          fps: 10,
-          rememberLastUsedCamera: true,
-          aspectRatio: 1.0,
-          showTorchButtonIfSupported: true,
-          videoConstraints: {
-            facingMode: { ideal: "environment" }
-          },
-          formatsToSupport: [
-            Html5QrcodeSupportedFormats.QR_CODE,
-            Html5QrcodeSupportedFormats.AZTEC,
-            Html5QrcodeSupportedFormats.PDF_417,
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.CODE_39,
-            Html5QrcodeSupportedFormats.EAN_13,
-            Html5QrcodeSupportedFormats.EAN_8,
-            Html5QrcodeSupportedFormats.UPC_A,
-            Html5QrcodeSupportedFormats.UPC_E
-          ],
-          experimentalFeatures: {
-            useBarCodeDetectorIfSupported: true
-          }
-        });
+          false
+        );
 
         // Start scanning with enhanced error reporting
-        await scannerRef.current.render(
+        await scanner.render(
           (decodedText, result) => {
             // Stop scanning immediately to prevent multiple detections
             stopScanning();

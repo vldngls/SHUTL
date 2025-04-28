@@ -188,14 +188,16 @@
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  width: 400px;
+  width: 100%;
+  max-width: 400px;
   margin: 0 auto;
   box-shadow: var(--CollectFare-shadow-md);
 }
 
 .CollectFare-qr-scanner-component {
-  width: 400px;
-  height: 300px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4/3;
   background: var(--CollectFare-neutral-900);
   border-radius: var(--CollectFare-radius-lg);
   overflow: hidden;
@@ -208,8 +210,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 250px;
-  height: 250px;
+  width: 200px;
+  height: 200px;
   border: 3px solid var(--CollectFare-primary-color);
   border-radius: var(--CollectFare-radius-lg);
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
@@ -812,7 +814,8 @@
   
   .CollectFare-qr-scanner-container {
     width: 100%;
-    max-width: 400px;
+    max-width: none;
+    padding: 0.5rem;
   }
 
   .CollectFare-qr-scanner-component {
@@ -822,8 +825,8 @@
   }
 
   .CollectFare-qr-scanner-frame {
-    width: 200px;
-    height: 200px;
+    width: 180px;
+    height: 180px;
   }
 
   .CollectFare-camera-modal {
@@ -938,6 +941,17 @@
   .CollectFare-qr-button {
     width: 100%;
     margin: 0.5rem 0;
+  }
+
+  #qr-reader {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  #qr-reader video {
+    width: 100% !important;
+    height: auto !important;
+    object-fit: cover;
   }
 }
 
