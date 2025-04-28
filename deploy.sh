@@ -2,26 +2,72 @@
 
 echo "🚀 Starting deployment process..."
 
+# Function to check if files have changed
+check_changes() {
+    local dir=$1
+    local last_hash_file=".last_${dir}_hash"
+    local current_hash=$(find $dir -type f -name "package.json" -o -name "package-lock.json" | sort | xargs cat | md5sum | cut -d' ' -f1)
+    
+    if [ -f "$last_hash_file" ]; then
+        local last_hash=$(cat "$last_hash_file")
+        if [ "$current_hash" = "$last_hash" ]; then
+            return 1  # No changes
+        fi
+    fi
+    
+    echo "$current_hash" > "$last_hash_file"
+    return 0  # Changes detected
+}
+
 # Pull latest changes (force sync with remote)
 echo "📡 Pulling latest changes..."
 git fetch --all
 git reset --hard origin/deployment  # ⚠️ WARNING: This will discard local changes!
 
-# Backend setup
-echo "🛠 Installing backend dependencies..."
-cd backend
-npm install
-cd ..
+# Create a temporary directory for npm cache
+NPM_CACHE_DIR="/tmp/npm_cache_$(date +%s)"
+mkdir -p "$NPM_CACHE_DIR"
 
-# Frontend build
+# Export npm cache directory
+export npm_config_cache="$NPM_CACHE_DIR"
+
+# Function to install dependencies with caching
+install_deps() {
+    local dir=$1
+    if check_changes "$dir"; then
+        echo "📦 Installing dependencies in $dir..."
+        cd "$dir"
+        npm ci --prefer-offline --no-audit
+        cd ..
+    else
+        echo "📦 Skipping dependency installation in $dir (no changes detected)"
+    fi
+}
+
+# Run backend and frontend installations in parallel
+echo "🛠 Installing dependencies..."
+(install_deps "backend") &
+(install_deps "frontend") &
+wait
+
+# Frontend build with optimized settings
 echo "📦 Building frontend..."
 cd frontend
-npm install
 
-# Increase memory limit to prevent 'JavaScript heap out of memory' error
+# Increase memory limit and add build optimizations
 export NODE_OPTIONS="--max-old-space-size=4096"
+export NODE_ENV=production
 
-npm run build || { echo "❌ Frontend build failed! Exiting..."; exit 1; }
+# Use build cache if available
+if [ -d ".next/cache" ]; then
+    echo "🔄 Using build cache..."
+fi
+
+# Run build with progress indicator
+npm run build -- --profile || { 
+    echo "❌ Frontend build failed! Exiting..."; 
+    exit 1; 
+}
 
 cd ..
 
@@ -33,5 +79,8 @@ pm2 save
 # Reload nginx
 echo "🔄 Reloading nginx..."
 sudo systemctl reload nginx
+
+# Cleanup npm cache
+rm -rf "$NPM_CACHE_DIR"
 
 echo "✅ Deployment complete!"
