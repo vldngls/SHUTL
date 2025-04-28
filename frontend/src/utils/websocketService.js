@@ -68,101 +68,62 @@ export const addToLocationQueue = (locationData) => {
 };
 
 export const connectSocket = async () => {
-  try {
-    // If already connecting, wait for the connection
+  if (socket) return socket;
+
+  return new Promise((resolve, reject) => {
     if (isConnecting) {
-      console.log("Socket connection already in progress, waiting...");
-      return socket;
-    }
-
-    // If socket exists and is connected, return it
-    if (socket && socket.connected) {
-      console.log("Using existing socket connection");
-      return socket;
-    }
-
-    // Get user data from token
-    const token = getTokenFromCookies();
-    if (!token) {
-      console.error("No token found");
-      return null;
-    }
-
-    const decoded = decodeToken(token);
-    if (!decoded || !decoded.email) {
-      console.error("Invalid token");
-      return null;
-    }
-
-    // Get user data from localStorage as fallback
-    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-    const userType = decoded.userType || userData.userType;
-    const userId = userData._id;
-
-    if (!userType) {
-      console.error("Missing user type for socket connection");
-      return null;
+      const checkConnection = setInterval(() => {
+        if (socket) {
+          clearInterval(checkConnection);
+          resolve(socket);
+        }
+      }, 100);
+      return;
     }
 
     isConnecting = true;
-    reconnectAttempts = 0;
+    const token = getTokenFromCookies();
+    const userType = getUserTypeFromToken(token);
 
-    // Connect to socket with auth data
+    if (!token) {
+      isConnecting = false;
+      reject(new Error("No authentication token found"));
+      return;
+    }
+
     const socketInstance = io(SOCKET_URL, {
-      path: '/socket.io/',
-      auth: {
-        userType,
-        email: decoded.email,
-        userId
-      },
+      auth: { token },
       transports: ["websocket"],
       reconnection: true,
       reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
       reconnectionDelay: RECONNECT_DELAY,
-      reconnectionDelayMax: 5000,
-      timeout: 20000
     });
 
-    // Only log successful connection
-    socketInstance.on("connect", () => {
-      console.log("Socket connected successfully");
-      isConnecting = false;
-      reconnectAttempts = 0;
-      // Process any queued messages after successful connection
-      processQueuedMessages();
-    });
-
-    // Handle connection errors
-    socketInstance.on("connect_error", (error) => {
-      console.error("Socket connection error:", error.message);
-      isConnecting = false;
-
-      if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-        reconnectAttempts++;
-        setTimeout(() => {
-          if (reconnectAttempts === 1 || reconnectAttempts === MAX_RECONNECT_ATTEMPTS) {
-            console.log(`Attempting to reconnect (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
-          }
-          socketInstance.connect();
-        }, RECONNECT_DELAY * reconnectAttempts);
-      } else {
-        console.error("Max reconnection attempts reached");
-        socket = null;
+    const connectionTimeout = setTimeout(() => {
+      if (!socketInstance.connected) {
         isConnecting = false;
-        reconnectAttempts = 0;
+        socketInstance.disconnect();
+        reject(new Error("Connection timeout"));
       }
+    }, CONNECTION_TIMEOUT);
+
+    socketInstance.on("connect", () => {
+      clearTimeout(connectionTimeout);
+      isConnecting = false;
+      socket = socketInstance;
+      
+      // Join the user type room
+      if (userType) {
+        socketInstance.emit("join", userType.toLowerCase());
+      }
+      
+      // Process any queued messages
+      processQueuedMessages();
+      resolve(socket);
     });
 
-    // Set up error handling
-    setupSocketErrorHandling(socketInstance);
-
-    socket = socketInstance;
-    return socketInstance;
-  } catch (error) {
-    console.error("Error connecting to socket:", error.message);
-    isConnecting = false;
-    return null;
-  }
+    setupSocketErrorHandling(socketInstance, connectionTimeout, resolve, reject);
+  });
 };
 
 // Helper function to process queued messages

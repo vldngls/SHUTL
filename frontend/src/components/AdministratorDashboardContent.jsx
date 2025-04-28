@@ -407,6 +407,8 @@ const AdministratorDashboardContent = ({ initialShuttleLocations }) => {
         >
           <option value="Commuter">Commuters</option>
           <option value="Driver">Drivers</option>
+          <option value="Teller">Tellers</option>
+          <option value="Administrator">Administrators</option>
           <option value="All">All Users</option>
         </select>
         <button className="adm-notification-btn" onClick={handleSendNotification}>

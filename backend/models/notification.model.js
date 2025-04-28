@@ -1,12 +1,40 @@
 // backend/models/notification.model.js
 import mongoose from "mongoose";
 
+const VALID_RECIPIENT_TYPES = ["Commuter", "Driver", "Teller", "Administrator", "All"];
+
 const notificationSchema = new mongoose.Schema({
-  message: { type: String, required: true },
-  sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: false }, // Optional sender ID
-  recipientType: { type: String, required: true }, // Type of users (e.g., "Commuter", "Driver", etc.)
-  createdAt: { type: Date, default: Date.now },
-  readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // IDs of users who have read it
+  message: { 
+    type: String, 
+    required: true,
+    trim: true,
+    minlength: 1,
+    maxlength: 500
+  },
+  sender: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "User", 
+    required: false 
+  },
+  recipientType: { 
+    type: String, 
+    required: true,
+    enum: VALID_RECIPIENT_TYPES,
+    validate: {
+      validator: function(v) {
+        return VALID_RECIPIENT_TYPES.includes(v);
+      },
+      message: props => `${props.value} is not a valid recipient type!`
+    }
+  },
+  createdAt: { 
+    type: Date, 
+    default: Date.now 
+  },
+  readBy: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "User" 
+  }]
 });
 
 notificationSchema.index({ recipientType: 1, createdAt: -1 });
