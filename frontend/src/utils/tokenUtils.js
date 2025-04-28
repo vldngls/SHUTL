@@ -49,6 +49,13 @@ export const getEmailFromToken = () => {
 
 export const setToken = (token) => {
     try {
+        // Check if token already exists in cookies
+        const existingToken = getTokenFromCookies();
+        if (existingToken === token) {
+            console.log('Token already exists, skipping set');
+            return;
+        }
+
         // Get the current domain
         const domain = window.location.hostname;
         
