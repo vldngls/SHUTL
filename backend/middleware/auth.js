@@ -38,13 +38,16 @@ export const authenticateToken = async (req, res, next) => {
       email: user.email, // Ensure email is included
     };
 
-    // Set cookie with proper attributes for cross-site compatibility
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    });
+    // Only set cookie if it doesn't already exist
+    if (!req.cookies.token) {
+      // Set cookie with proper attributes for cross-site compatibility
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      });
+    }
 
     next();
   } catch (error) {
