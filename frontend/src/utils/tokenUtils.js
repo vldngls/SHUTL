@@ -49,7 +49,7 @@ export const getEmailFromToken = () => {
 
 export const setToken = (token) => {
     try {
-        // Check if token already exists in cookies
+        // Check if token already exists in cookies with either domain format
         const existingToken = getTokenFromCookies();
         if (existingToken === token) {
             console.log('Token already exists, skipping set');
@@ -58,6 +58,10 @@ export const setToken = (token) => {
 
         // Get the current domain
         const domain = window.location.hostname;
+        
+        // Remove any existing token cookies first
+        document.cookie = `token=; path=/; domain=${domain}; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=None; Secure`;
+        document.cookie = `token=; path=/; domain=.${domain}; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=None; Secure`;
         
         // Set cookie with all necessary attributes
         document.cookie = `token=${token}; path=/; max-age=86400; domain=${domain}; SameSite=None; Secure`;
