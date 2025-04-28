@@ -385,17 +385,28 @@ const ShutlLoggedIn = () => {
     }
   };
 
-  // Improved socket initialization with optimized handler
+  // Initialize socket and handle events
   useEffect(() => {
-    let isMounted = true;
-
     const initializeSocket = async () => {
       try {
-        // Connect to socket
+        // Wait for socket connection
         const socketInstance = await connectSocket();
-        if (!socketInstance || !isMounted) return;
+        if (!socketInstance) {
+          toast.error("Unable to establish connection. Please refresh the page.");
+          return;
+        }
 
         socket.current = socketInstance;
+
+        // Subscribe to pickup accepted event
+        socketInstance.on("pickup_accepted", (request) => {
+          if (request.userEmail === getCookie("email")) {
+            toast.success("Your pickup request has been accepted by the driver!", {
+              position: "bottom-center",
+              duration: 5000,
+            });
+          }
+        });
 
         // Set initial preferences
         socketInstance.emit("notification_preference", {
@@ -849,8 +860,8 @@ const ShutlLoggedIn = () => {
           coordinates: userLocation,
           streetName,
         },
-        destination: "Nearest Stop", // Default destination for marker click
-        passengers: 1, // Default passenger count
+        destination: "Nearest Stop", // Default destination
+        passengers: 1, // Default to 1 passenger
         notes: "", // Default empty notes
         timestamp: new Date().toISOString(),
       };
@@ -996,10 +1007,7 @@ const ShutlLoggedIn = () => {
                     <button 
                       className="pick-me-up-btn"
                       disabled={isOffline}
-                      onClick={() => {
-                        setSelectedShuttleId(shuttleId);
-                        setShowPickMeUp(true);
-                      }}
+                      onClick={(e) => handlePickupRequest(e, shuttleId)}
                     >
                       Pick Me Up
                     </button>
