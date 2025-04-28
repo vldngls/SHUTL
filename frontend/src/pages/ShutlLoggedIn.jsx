@@ -25,6 +25,7 @@ import MovingMarker from "../components/MovingMarker";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Taskbar from "../components/Taskbar";
+import ShuttleInfoPopup from '../components/ShuttleInfoPopup';
 
 // Fix for default Leaflet icons issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -987,9 +988,9 @@ const ShutlLoggedIn = () => {
                 isStationary={isStationary}
                 eventHandlers={{
                   click: () => {
-                    // Only show the popup, don't automatically send pickup request
+                    // Show shuttle information popup
                     setSelectedShuttleId(shuttleId);
-                    setShowPickMeUp(true);
+                    setActivePopup("shuttleInfo");
                   }
                 }}
               >
@@ -1184,6 +1185,16 @@ const ShutlLoggedIn = () => {
               <PaymentQR onClose={() => setActivePopup(null)} />
             </div>
           </div>
+        )}
+
+        {activePopup === "shuttleInfo" && (
+          <ShuttleInfoPopup
+            shuttleId={selectedShuttleId}
+            onClose={() => {
+              setActivePopup(null);
+              setSelectedShuttleId(null);
+            }}
+          />
         )}
       </div>
 
