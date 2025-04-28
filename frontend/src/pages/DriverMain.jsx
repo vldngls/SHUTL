@@ -16,7 +16,7 @@ import {
 } from "../utils/websocketService";
 import L from "leaflet";
 import PickupRequestsPanel from "../components/PickupRequestsPanel";
-import { getTokenFromCookies, getEmailFromToken } from "../utils/tokenUtils";
+import { getTokenFromCookies, getEmailFromToken, validateToken } from "../utils/tokenUtils";
 import { toast } from "react-hot-toast";
 import Sidebar from "../components/Sidebar";
 import Taskbar from "../components/Taskbar";
@@ -598,6 +598,9 @@ const DriverMain = () => {
       try {
         console.log("Fetching shuttle assignment for driver...");
 
+        // Debug: Log current cookies
+        console.debug("Current cookies:", document.cookie);
+
         // First check localStorage for cached assignment
         const cachedAssignment = localStorage.getItem(
           "driverShuttleAssignment"
@@ -609,11 +612,23 @@ const DriverMain = () => {
           shuttleIdRef.current = parsedAssignment.shuttleId;
         }
 
+        // Debug: Log token value
         const token = getTokenFromCookies();
+        console.debug("Token from cookies:", token);
+
+        // Validate token before making the request
+        if (!validateToken()) {
+          console.error("Invalid or expired authentication token");
+          toast.error("Your session has expired. Please log in again.");
+          // Redirect to login page
+          window.location.href = '/login';
+          return;
+        }
 
         if (!token) {
           console.error("No authentication token found");
           toast.error("Authentication error. Please log in again.");
+          window.location.href = '/login';
           return;
         }
 
