@@ -284,6 +284,31 @@ const ShutlLoggedOut = () => {
     });
   };
 
+  // Periodically clear all storage and cookies while logged out
+  useEffect(() => {
+    const clearAllSiteData = () => {
+      // Clear localStorage and sessionStorage
+      localStorage.clear();
+      sessionStorage.clear();
+
+      // Remove all cookies set by the site
+      const cookies = document.cookie.split(';');
+      for (const cookie of cookies) {
+        const eqPos = cookie.indexOf('=');
+        const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+        // Remove cookie for current domain and path
+        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;SameSite=None;Secure`;
+        // Try also without SameSite/secure for legacy cookies
+        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;`;
+      }
+    };
+
+    // Run immediately and then every 5 seconds
+    clearAllSiteData();
+    const interval = setInterval(clearAllSiteData, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="logged-out__container">
       <div id="map-container" className="logged-out__map-container">
