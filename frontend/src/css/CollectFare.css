@@ -33,6 +33,8 @@
   --CollectFare-line-height-tight: 1.25;
   --CollectFare-line-height-normal: 1.5;
   --CollectFare-line-height-relaxed: 1.75;
+  --CollectFare-button-size: 2.5rem;
+  --CollectFare-button-size-mobile: 2rem;
 }
 
 .CollectFare-total {
@@ -714,21 +716,83 @@
   background: rgba(245, 158, 11, 0.1);
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .CollectFare-container {
-    min-width: 600px;
-    padding: 1rem;
-  }
-  
-  .CollectFare-calculator-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    gap: 0.75rem;
-    padding: 0.75rem;
-  }
+/* Passenger Count Controls */
+.CollectFare-passenger-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
 }
 
+.CollectFare-count-button {
+  width: var(--CollectFare-button-size);
+  height: var(--CollectFare-button-size);
+  border-radius: 50%;
+  border: 2px solid var(--CollectFare-neutral-300);
+  background: white;
+  color: var(--CollectFare-neutral-700);
+  font-size: 1.25rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--CollectFare-transition);
+  position: relative;
+  box-shadow: var(--CollectFare-shadow-sm);
+}
+
+.CollectFare-count-button:hover {
+  background: var(--CollectFare-neutral-100);
+  border-color: var(--CollectFare-neutral-400);
+  transform: translateY(-1px);
+  box-shadow: var(--CollectFare-shadow-md);
+}
+
+.CollectFare-count-button:active {
+  transform: translateY(0);
+  box-shadow: var(--CollectFare-shadow-sm);
+}
+
+.CollectFare-count-button.minus {
+  color: var(--CollectFare-danger-color);
+}
+
+.CollectFare-count-button.plus {
+  color: var(--CollectFare-success-color);
+}
+
+.CollectFare-count-button::before {
+  content: '';
+  position: absolute;
+  width: 1rem;
+  height: 0.2rem;
+  background: currentColor;
+  border-radius: 0.1rem;
+}
+
+.CollectFare-count-button.plus::after {
+  content: '';
+  position: absolute;
+  width: 0.2rem;
+  height: 1rem;
+  background: currentColor;
+  border-radius: 0.1rem;
+}
+
+.CollectFare-count-display {
+  min-width: 2.5rem;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--CollectFare-neutral-800);
+  padding: 0.5rem;
+  background: var(--CollectFare-neutral-100);
+  border-radius: var(--CollectFare-radius-md);
+  border: 1px solid var(--CollectFare-neutral-300);
+}
+
+/* Mobile Responsiveness */
 @media (max-width: 768px) {
   .CollectFare-container {
     min-width: 95%;
@@ -821,6 +885,32 @@
   .CollectFare-payment-method {
     margin: 0.75rem 0;
   }
+
+  .CollectFare-count-button {
+    width: var(--CollectFare-button-size-mobile);
+    height: var(--CollectFare-button-size-mobile);
+    font-size: 1rem;
+  }
+
+  .CollectFare-count-button::before {
+    width: 0.75rem;
+    height: 0.15rem;
+  }
+
+  .CollectFare-count-button.plus::after {
+    width: 0.15rem;
+    height: 0.75rem;
+  }
+
+  .CollectFare-count-display {
+    min-width: 2rem;
+    font-size: 1rem;
+    padding: 0.25rem;
+  }
+
+  .CollectFare-passenger-controls {
+    gap: 0.25rem;
+  }
 }
 
 /* Accessibility Improvements */
@@ -847,6 +937,19 @@
   
   .CollectFare-input {
     border: 2px solid currentColor;
+  }
+
+  .CollectFare-count-button {
+    border: 2px solid CanvasText;
+  }
+
+  .CollectFare-count-button::before,
+  .CollectFare-count-button.plus::after {
+    background: CanvasText;
+  }
+
+  .CollectFare-count-display {
+    border: 1px solid CanvasText;
   }
 }
 

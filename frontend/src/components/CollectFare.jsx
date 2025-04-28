@@ -518,30 +518,24 @@ const CollectFare = ({ onClose, shuttleID, onTransactionSaved, onCustomModeChang
                     </div>
                     {fareTypes.map(({ upperCase, original }) => (
                       <div key={upperCase} className="CollectFare-row">
-                        <span>
-                          {original} (₱{fares[upperCase]})
-                        </span>
-                        <div className="CollectFare-button-group">
+                        <span>{original}</span>
+                        <div className="CollectFare-passenger-controls">
                           <button
+                            className="CollectFare-count-button plus"
                             onClick={() => handleCountChange(upperCase, 1)}
-                            className="CollectFare-control-button"
-                          >
-                            +
-                          </button>
+                            aria-label={`Add ${original} passenger`}
+                          />
+                          <span className="CollectFare-count-display" aria-label={`${original} passenger count`}>
+                            {fareCounts[upperCase] || 0}
+                          </span>
                           <button
+                            className="CollectFare-count-button minus"
                             onClick={() => handleCountChange(upperCase, -1)}
-                            className="CollectFare-control-button"
                             disabled={fareCounts[upperCase] === 0}
-                          >
-                            -
-                          </button>
+                            aria-label={`Remove ${original} passenger`}
+                          />
                         </div>
-                        <span className="CollectFare-passenger-count">
-                          {fareCounts[upperCase] || 0}
-                        </span>
-                        <span className="CollectFare-amount">
-                          ₱{((fareCounts[upperCase] || 0) * (fares[upperCase] || 0)).toFixed(2)}
-                        </span>
+                        <span>₱{((fareCounts[upperCase] || 0) * (fares[upperCase] || 0)).toFixed(2)}</span>
                       </div>
                     ))}
                     <div className="CollectFare-total">

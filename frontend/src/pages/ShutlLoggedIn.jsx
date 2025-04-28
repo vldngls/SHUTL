@@ -130,6 +130,7 @@ const ShutlLoggedIn = () => {
   const navigate = useNavigate();
   const [notificationEnabled, setNotificationEnabled] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
+  const isMounted = useRef(true);
 
   // Add refs to track cleanup functions
   const cleanupFunctionsRef = useRef([]);
@@ -249,7 +250,13 @@ const ShutlLoggedIn = () => {
           credentials: 'include'
         });
 
-        if (!response.ok) {
+        if (response.ok) {
+          const data = await response.json();
+          if (isMounted.current) {
+            setNotificationEnabled(data.preferences?.notifications ?? true);
+            setLocationEnabled(data.preferences?.location ?? true);
+          }
+        } else {
           if (response.status === 401) {
             console.warn("Invalid or expired token - redirecting to ShutlLoggedOut");
             navigate("/ShutlLoggedOut");
@@ -257,10 +264,6 @@ const ShutlLoggedIn = () => {
           }
           throw new Error(`Failed to fetch user preferences: ${response.status}`);
         }
-
-        const userData = await response.json();
-        setNotificationEnabled(userData.preferences?.notifications ?? true);
-        setLocationEnabled(userData.preferences?.location ?? true);
       } catch (error) {
         console.error("Error fetching user preferences:", error);
         toast.error("Failed to load user preferences");
@@ -464,7 +467,7 @@ const ShutlLoggedIn = () => {
           const cleanup1 = await subscribeToEvent(
             "shuttle_location",
             (data) => {
-              if (!isMounted || !locationEnabled) return;
+              if (!isMounted.current || !locationEnabled) return;
               console.log("Received shuttle_location:", data);
               handleLocationUpdate(data);
             }
@@ -473,7 +476,7 @@ const ShutlLoggedIn = () => {
           const cleanup2 = await subscribeToEvent(
             "shuttle_location_update",
             (data) => {
-              if (!isMounted || !locationEnabled) return;
+              if (!isMounted.current || !locationEnabled) return;
               console.log("Received shuttle_location_update:", data);
               handleLocationUpdate(data);
             }
@@ -496,7 +499,7 @@ const ShutlLoggedIn = () => {
 
       } catch (error) {
         console.error("Socket connection error:", error);
-        if (isMounted) {
+        if (isMounted.current) {
           toast.error("Failed to connect to server");
         }
       }
@@ -533,13 +536,13 @@ const ShutlLoggedIn = () => {
 
         // Join tracking for each active shuttle
         for (const assignment of assignments) {
-          if (assignment && assignment.shuttleId && isMounted) {
+          if (assignment && assignment.shuttleId && isMounted.current) {
             await joinShuttleTracking(assignment.shuttleId);
           }
         }
       } catch (error) {
         console.error("Error fetching shuttle assignments:", error);
-        if (isMounted && error.message !== "No authentication token found") {
+        if (isMounted.current && error.message !== "No authentication token found") {
           toast.error("Failed to fetch shuttle assignments");
         }
       }
@@ -550,7 +553,7 @@ const ShutlLoggedIn = () => {
 
     // Return cleanup function
     return () => {
-      isMounted = false;
+      isMounted.current = false;
       // Clear all intervals
       intervalsRef.current.forEach((interval) => clearInterval(interval));
       intervalsRef.current = [];
