@@ -88,8 +88,11 @@ export const removeToken = () => {
     try {
         const domain = window.location.hostname;
         
-        // Remove cookie with all attributes
+        // Remove cookie with exact attributes matching the original cookie
         document.cookie = `token=; path=/; domain=${domain}; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=None; Secure`;
+        
+        // Also try with the specific domain shutl.justbecause.ph
+        document.cookie = `token=; path=/; domain=shutl.justbecause.ph; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=None; Secure`;
         
         // Clear all storage
         localStorage.clear();
