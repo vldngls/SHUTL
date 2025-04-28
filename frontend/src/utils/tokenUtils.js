@@ -33,8 +33,8 @@ export const getEmailFromToken = () => {
 };
 
 export const setToken = (token) => {
-    // Set token with correct attributes for persistence
-    document.cookie = `token=${token}; path=/; max-age=86400`;
+    // Set token with correct attributes for persistence and cross-site compatibility
+    document.cookie = `token=${token}; path=/; max-age=86400; SameSite=None; Secure`;
     
     // Store user data from token
     try {

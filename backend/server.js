@@ -90,10 +90,12 @@ app.use(
   })
 );
 
-// Add Cross-Origin-Opener-Policy header
+// Add security headers
 app.use((req, res, next) => {
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   next();
 });
 
@@ -137,7 +139,8 @@ const io = new Server(server, {
   cookie: {
     name: "token",
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "none",
+    secure: true
   },
 });
 

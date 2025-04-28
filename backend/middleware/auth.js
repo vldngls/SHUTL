@@ -14,6 +14,7 @@ export const authenticateToken = async (req, res, next) => {
     }
 
     if (!token) {
+      console.log("No token found in request");
       return res
         .status(401)
         .json({ error: "Access denied. No token provided." });
@@ -36,6 +37,15 @@ export const authenticateToken = async (req, res, next) => {
       ...decoded,
       email: user.email, // Ensure email is included
     };
+
+    // Set cookie with proper attributes for cross-site compatibility
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+
     next();
   } catch (error) {
     console.error("Auth error:", error);

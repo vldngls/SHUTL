@@ -16,8 +16,10 @@ const getAuthHeader = () => {
   const token = getCookie('token');
   return {
     headers: {
-      'Authorization': `Bearer ${token}`
-    }
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    withCredentials: true
   };
 };
 
