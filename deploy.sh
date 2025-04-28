@@ -31,7 +31,8 @@ mkdir -p "$NPM_CACHE_DIR"
 # Export npm cache directory and increase memory limits
 export npm_config_cache="$NPM_CACHE_DIR"
 export NODE_OPTIONS="--max-old-space-size=8192"  # Increased to 8GB
-export VITE_MAX_WORKERS=4  # Limit Vite workers to prevent memory issues
+export VITE_MAX_WORKERS=2  # Reduced to 2 workers to prevent memory issues
+export NODE_ENV=production
 
 # Function to install dependencies with caching
 install_deps() {
@@ -61,17 +62,36 @@ echo "🧹 Cleaning previous build..."
 rm -rf dist
 rm -rf node_modules/.vite
 
-# Set production environment
-export NODE_ENV=production
-
 # Run build with optimized settings
 echo "🏗 Building with optimized settings..."
-npm run build -- --profile --mode production || { 
-    echo "❌ Frontend build failed! Exiting..."; 
-    exit 1; 
+# Run build in a subshell to handle potential memory issues
+(
+    npm run build -- --profile --mode production
+    BUILD_EXIT_CODE=$?
+    if [ $BUILD_EXIT_CODE -eq 0 ]; then
+        echo "✅ Frontend build completed successfully"
+        # Move build artifacts to a safe location before cleanup
+        mkdir -p ../build_artifacts
+        cp -r dist/* ../build_artifacts/
+    else
+        echo "❌ Frontend build failed with exit code $BUILD_EXIT_CODE"
+        exit $BUILD_EXIT_CODE
+    fi
+) || {
+    echo "❌ Frontend build failed! Exiting...";
+    exit 1;
 }
 
 cd ..
+
+# If we have build artifacts, move them to the correct location
+if [ -d "build_artifacts" ]; then
+    echo "📦 Moving build artifacts to final location..."
+    rm -rf frontend/dist
+    mkdir -p frontend/dist
+    cp -r build_artifacts/* frontend/dist/
+    rm -rf build_artifacts
+fi
 
 # Restart services with PM2 (without reinstalling)
 echo "🔄 Restarting services..."
@@ -83,6 +103,7 @@ echo "🔄 Reloading nginx..."
 sudo systemctl reload nginx
 
 # Cleanup npm cache
+echo "🧹 Cleaning up temporary files..."
 rm -rf "$NPM_CACHE_DIR"
 
 echo "✅ Deployment complete!"
