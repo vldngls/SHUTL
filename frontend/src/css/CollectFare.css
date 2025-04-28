@@ -911,6 +911,34 @@
   .CollectFare-passenger-controls {
     gap: 0.25rem;
   }
+
+  .CollectFare-calculator-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 0.75rem;
+  }
+
+  .CollectFare-calculator-left,
+  .CollectFare-calculator-right {
+    width: 100%;
+    padding: 0.75rem;
+  }
+
+  .CollectFare-row {
+    grid-template-columns: 1.5fr 1fr 0.8fr 1fr;
+    gap: 0.25rem;
+    padding: 0.25rem;
+  }
+
+  .CollectFare-row.header {
+    padding: 0.25rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .CollectFare-qr-button {
+    width: 100%;
+    margin: 0.5rem 0;
+  }
 }
 
 /* Accessibility Improvements */

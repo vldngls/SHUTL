@@ -8,10 +8,7 @@ const QRScannerComponent = forwardRef(({ onScanSuccess, onScanError }, ref) => {
   const containerRef = useRef(null);
   const lastScannedCode = useRef(null);
   const lastScanTime = useRef(0);
-  const [permissionStatus, setPermissionStatus] = useState(() => {
-    // Initialize from localStorage if available
-    return localStorage.getItem('cameraPermission') || null;
-  });
+  const [permissionStatus, setPermissionStatus] = useState(null);
   const [isContainerReady, setIsContainerReady] = useState(false);
   const [initializationError, setInitializationError] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -21,15 +18,6 @@ const QRScannerComponent = forwardRef(({ onScanSuccess, onScanError }, ref) => {
   useImperativeHandle(ref, () => ({
     stopScanning
   }));
-
-  // Add a function to check container dimensions
-  const checkContainerDimensions = () => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      return rect.width > 0 && rect.height > 0;
-    }
-    return false;
-  };
 
   const stopScanning = async () => {
     if (scannerRef.current) {
@@ -59,31 +47,25 @@ const QRScannerComponent = forwardRef(({ onScanSuccess, onScanError }, ref) => {
     // Check camera permissions
     const checkCameraPermissions = async () => {
       try {
-        // If we already have a stored permission status, use it
-        const storedStatus = localStorage.getItem('cameraPermission');
-        if (storedStatus === 'granted') {
-          setPermissionStatus('granted');
-          return;
-        }
-
-        const result = await navigator.permissions.query({ name: 'camera' });
-        setPermissionStatus(result.state);
+        // First try to get camera access directly
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream.getTracks().forEach(track => track.stop()); // Stop the stream immediately
+        setPermissionStatus('granted');
         
-        // Store permission status
-        localStorage.setItem('cameraPermission', result.state);
-        
-        // Listen for permission changes
-        result.addEventListener('change', () => {
+        // Then check the permissions API if available
+        if (navigator.permissions && navigator.permissions.query) {
+          const result = await navigator.permissions.query({ name: 'camera' });
           setPermissionStatus(result.state);
-          localStorage.setItem('cameraPermission', result.state);
-        });
+          
+          // Listen for permission changes
+          result.addEventListener('change', () => {
+            setPermissionStatus(result.state);
+          });
+        }
       } catch (error) {
         console.error('Error checking camera permissions:', error);
-        // If we have a stored status, use it as fallback
-        const storedStatus = localStorage.getItem('cameraPermission');
-        if (storedStatus) {
-          setPermissionStatus(storedStatus);
-        }
+        setPermissionStatus('denied');
+        onScanError('Camera permission was denied. Please allow camera access in your browser settings.');
       }
     };
 
@@ -119,7 +101,6 @@ const QRScannerComponent = forwardRef(({ onScanSuccess, onScanError }, ref) => {
           videoConstraints: {
             facingMode: { ideal: "environment" }
           },
-          // Add support for more formats
           formatsToSupport: [
             Html5QrcodeSupportedFormats.QR_CODE,
             Html5QrcodeSupportedFormats.AZTEC,
@@ -131,7 +112,6 @@ const QRScannerComponent = forwardRef(({ onScanSuccess, onScanError }, ref) => {
             Html5QrcodeSupportedFormats.UPC_A,
             Html5QrcodeSupportedFormats.UPC_E
           ],
-          // Add experimental features
           experimentalFeatures: {
             useBarCodeDetectorIfSupported: true
           }
@@ -208,11 +188,9 @@ const QRScannerComponent = forwardRef(({ onScanSuccess, onScanError }, ref) => {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       stream.getTracks().forEach(track => track.stop()); // Stop the stream immediately
       setPermissionStatus('granted');
-      localStorage.setItem('cameraPermission', 'granted');
     } catch (error) {
       console.error('Error requesting camera permission:', error);
       setPermissionStatus('denied');
-      localStorage.setItem('cameraPermission', 'denied');
       onScanError('Camera permission was denied');
     }
   };
@@ -224,9 +202,6 @@ const QRScannerComponent = forwardRef(({ onScanSuccess, onScanError }, ref) => {
     stopScanning();
   };
 
-  // Only show permission request UI if we don't have a stored permission status
-  const showPermissionRequest = !localStorage.getItem('cameraPermission');
-
   return (
     <div className="qr-scanner-container" style={{
       display: 'flex',
@@ -237,7 +212,7 @@ const QRScannerComponent = forwardRef(({ onScanSuccess, onScanError }, ref) => {
       margin: '0 auto',
       minHeight: '400px'
     }}>
-      {showPermissionRequest && permissionStatus === 'denied' ? (
+      {permissionStatus === 'denied' ? (
         <div style={{
           padding: '20px',
           textAlign: 'center',
@@ -262,7 +237,7 @@ const QRScannerComponent = forwardRef(({ onScanSuccess, onScanError }, ref) => {
             Request Camera Access
           </button>
         </div>
-      ) : showPermissionRequest && permissionStatus === 'prompt' ? (
+      ) : permissionStatus === 'prompt' ? (
         <div style={{
           padding: '20px',
           textAlign: 'center',

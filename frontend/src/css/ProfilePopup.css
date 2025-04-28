@@ -327,13 +327,21 @@
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .shutl-profile-popup {
-    padding: 16px;
+    padding: 0;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    height: 100vh;
+    height: -webkit-fill-available;
   }
 
   .shutl-profile-popup-content {
     width: 100%;
     max-width: none;
     padding: 20px;
+    height: 100%;
+    max-height: none;
+    border-radius: 0;
+    margin: 0;
   }
 
   .shutl-profile-popup-header {
@@ -416,6 +424,17 @@
 
   .shutl-page-info {
     font-size: 16px;
+  }
+}
+
+/* iOS support */
+@supports (-webkit-touch-callout: none) {
+  .shutl-profile-popup {
+    height: -webkit-fill-available;
+  }
+  
+  .shutl-profile-popup-content {
+    height: -webkit-fill-available;
   }
 }
 
