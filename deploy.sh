@@ -28,8 +28,10 @@ git reset --hard origin/deployment  # ⚠️ WARNING: This will discard local ch
 NPM_CACHE_DIR="/tmp/npm_cache_$(date +%s)"
 mkdir -p "$NPM_CACHE_DIR"
 
-# Export npm cache directory
+# Export npm cache directory and increase memory limits
 export npm_config_cache="$NPM_CACHE_DIR"
+export NODE_OPTIONS="--max-old-space-size=8192"  # Increased to 8GB
+export VITE_MAX_WORKERS=4  # Limit Vite workers to prevent memory issues
 
 # Function to install dependencies with caching
 install_deps() {
@@ -54,17 +56,17 @@ wait
 echo "📦 Building frontend..."
 cd frontend
 
-# Increase memory limit and add build optimizations
-export NODE_OPTIONS="--max-old-space-size=4096"
+# Clean previous build artifacts
+echo "🧹 Cleaning previous build..."
+rm -rf dist
+rm -rf node_modules/.vite
+
+# Set production environment
 export NODE_ENV=production
 
-# Use build cache if available
-if [ -d ".next/cache" ]; then
-    echo "🔄 Using build cache..."
-fi
-
-# Run build with progress indicator
-npm run build -- --profile || { 
+# Run build with optimized settings
+echo "🏗 Building with optimized settings..."
+npm run build -- --profile --mode production || { 
     echo "❌ Frontend build failed! Exiting..."; 
     exit 1; 
 }
