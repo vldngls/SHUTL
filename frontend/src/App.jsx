@@ -12,6 +12,7 @@ import { cleanupImageOptimizer } from "./utils/imageOptimizer";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { cleanupSocketService } from "./utils/websocketService";
 import { maintenanceService } from "./services/api/maintenance";
+import { initSafariToolbar } from "./utils/safariToolbar";
 // import { MemoryMonitoringDashboard } from "./components/MemoryMonitoringDashboard";
 
 // Implement more granular code splitting with prefetching
@@ -91,6 +92,12 @@ function App() {
   const location = useLocation();
   const isAdminRoute = location.pathname.includes('AdministratorMain');
   const isLoginRoute = location.pathname.includes('LoginForm');
+
+  // Initialize Safari toolbar auto-closing
+  useEffect(() => {
+    const cleanup = initSafariToolbar();
+    return cleanup;
+  }, []);
 
   // Preload critical components after initial render
   useEffect(() => {

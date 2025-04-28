@@ -558,7 +558,8 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
           </div>
           <div className="stt-recent-trips-table">
             <h3>Recent Trips</h3>
-            <div className="stt-table-container">
+            {/* Desktop Table View */}
+            <div className="stt-table-container stt-desktop-only">
               <table className="stt-table">
                 <thead>
                   <tr>
@@ -605,7 +606,49 @@ const ShuttleTripTracking = ({ onClose, socket }) => {
                 </tbody>
               </table>
             </div>
-
+            {/* Mobile Card View */}
+            <div className="stt-mobile-only">
+              {currentTrips.map((trip) => (
+                <div key={trip._id} className={`stt-trip-card ${trip.status.toLowerCase()}`}> 
+                  <div className="stt-trip-card-row">
+                    <span className="stt-trip-card-label">Time:</span>
+                    <span className="stt-trip-card-value">{trip.time}</span>
+                  </div>
+                  <div className="stt-trip-card-row">
+                    <span className="stt-trip-card-label">Shuttle:</span>
+                    <span className="stt-trip-card-value">{trip.shuttleNumber}</span>
+                  </div>
+                  <div className="stt-trip-card-row">
+                    <span className="stt-trip-card-label">Driver:</span>
+                    <span className="stt-trip-card-value">{trip.driver}</span>
+                  </div>
+                  <div className="stt-trip-card-row">
+                    <span className="stt-trip-card-label">Status:</span>
+                    <span className={`stt-status-badge ${trip.status.toLowerCase()}`}>{trip.status}</span>
+                  </div>
+                  <div className="stt-trip-card-row">
+                    <span className="stt-trip-card-label">Passengers:</span>
+                    <span className="stt-trip-card-value">{trip.passengerCount}</span>
+                  </div>
+                  <div className="stt-trip-card-actions">
+                    <button
+                      className="stt-edit-button"
+                      onClick={() => handleEditTrip(trip)}
+                      title="Edit trip"
+                    >
+                      <MdEdit size={16} />
+                    </button>
+                    <button
+                      className={`stt-delete-button ${tripToDelete === trip._id ? 'confirm' : ''}`}
+                      onClick={() => handleDeleteTrip(trip._id)}
+                      title={tripToDelete === trip._id ? "Click again to confirm deletion" : "Delete trip"}
+                    >
+                      {tripToDelete === trip._id ? <MdCheck size={16} /> : <MdDelete size={16} />}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
             {/* Pagination Controls */}
             <div className="stt-pagination">
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(
