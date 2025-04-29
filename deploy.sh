@@ -91,9 +91,28 @@ check_disk_space() {
     if [ "$available_space" -lt "$required_space" ]; then
         log "⚠️ Low disk space: $available_space MB available, $required_space MB required"
         log "🧹 Cleaning up temporary files..."
+        
+        # Clean npm cache
+        npm cache clean --force
+        
+        # Remove temporary files
         rm -rf /tmp/npm-*
         rm -rf /tmp/vite-*
         rm -rf node_modules
+        rm -rf dist
+        rm -rf build_artifacts
+        
+        # Clean apt cache if available
+        if command -v apt-get &> /dev/null; then
+            apt-get clean
+            apt-get autoremove -y
+        fi
+        
+        # Clean journal logs if available
+        if command -v journalctl &> /dev/null; then
+            journalctl --vacuum-time=1d
+        fi
+        
         available_space=$(df -m . | awk 'NR==2 {print $4}')
         
         if [ "$available_space" -lt "$required_space" ]; then
@@ -108,18 +127,18 @@ check_disk_space() {
 log "📦 Building frontend..."
 cd frontend
 
-# Check disk space before installation
-if ! check_disk_space 1000; then
+# Check disk space before installation (reduced requirement)
+if ! check_disk_space 500; then
     log "❌ Deployment failed due to insufficient disk space"
     exit 1
 fi
 
-# Clean install dependencies
+# Clean install dependencies with minimal disk usage
 log "📦 Performing clean installation of dependencies..."
 rm -rf node_modules
 rm -f package-lock.json
-npm install --no-audit
-npm install -D vite @vitejs/plugin-react
+npm install --no-audit --prefer-offline --no-optional
+npm install -D vite @vitejs/plugin-react --no-audit --prefer-offline
 
 # Clean previous build artifacts
 log "🧹 Cleaning previous build..."
