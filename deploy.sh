@@ -83,15 +83,42 @@ log "🛠 Installing dependencies..."
 install_deps "backend"
 install_deps "frontend"
 
+# Function to check disk space
+check_disk_space() {
+    local required_space=$1  # in MB
+    local available_space=$(df -m . | awk 'NR==2 {print $4}')
+    
+    if [ "$available_space" -lt "$required_space" ]; then
+        log "⚠️ Low disk space: $available_space MB available, $required_space MB required"
+        log "🧹 Cleaning up temporary files..."
+        rm -rf /tmp/npm-*
+        rm -rf /tmp/vite-*
+        rm -rf node_modules
+        available_space=$(df -m . | awk 'NR==2 {print $4}')
+        
+        if [ "$available_space" -lt "$required_space" ]; then
+            log "❌ Not enough disk space after cleanup"
+            return 1
+        fi
+    fi
+    return 0
+}
+
 # Frontend build with conservative settings
 log "📦 Building frontend..."
 cd frontend
+
+# Check disk space before installation
+if ! check_disk_space 1000; then
+    log "❌ Deployment failed due to insufficient disk space"
+    exit 1
+fi
 
 # Clean install dependencies
 log "📦 Performing clean installation of dependencies..."
 rm -rf node_modules
 rm -f package-lock.json
-npm install
+npm install --no-audit
 npm install -D vite @vitejs/plugin-react
 
 # Clean previous build artifacts
