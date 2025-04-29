@@ -29,25 +29,22 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@components": path.resolve(__dirname, "src/components"),
+      "@components": path.resolve("./src/components"),
     },
   },
   build: {
     chunkSizeWarningLimit: 1000,
     outDir: 'dist',
-    sourcemap: false,
+    sourcemap: true,
     minify: 'esbuild',
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            if (id.includes('@chakra-ui')) return 'vendor-chakra';
-            if (id.includes('react')) return 'vendor-react';
-            if (id.includes('chart.js')) return 'vendor-charts';
-            if (id.includes('leaflet')) return 'vendor-maps';
-            if (id.includes('@emotion')) return 'vendor-emotion';
-            return 'vendor';
-          }
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-emotion': ['@emotion/react', '@emotion/styled', '@emotion/cache'],
+          'vendor-chakra': ['@chakra-ui/react'],
+          'vendor-charts': ['chart.js'],
+          'vendor-maps': ['leaflet'],
         }
       },
     },
