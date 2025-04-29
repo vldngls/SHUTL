@@ -46,15 +46,12 @@ export default defineConfig({
     minify: false,
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            if (id.includes('react')) return 'vendor-react';
-            if (id.includes('@emotion')) return 'vendor-emotion';
-            if (id.includes('@chakra-ui')) return 'vendor-chakra';
-            if (id.includes('chart.js')) return 'vendor-charts';
-            if (id.includes('leaflet')) return 'vendor-maps';
-            return 'vendor'; // other dependencies
-          }
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react/jsx-runtime'],
+          'vendor-emotion': ['@emotion/react', '@emotion/styled'],
+          'vendor-chakra': ['@chakra-ui/react'],
+          'vendor-charts': ['chart.js', 'react-chartjs-2'],
+          'vendor-maps': ['leaflet', 'react-leaflet'],
         },
         format: 'es',
         entryFileNames: 'assets/[name]-[hash].js',
@@ -69,6 +66,7 @@ export default defineConfig({
     include: [
       'react', 
       'react-dom',
+      'react/jsx-runtime',
       '@emotion/react',
       '@emotion/styled',
       '@chakra-ui/react'
