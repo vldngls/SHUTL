@@ -10,31 +10,10 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
 
-# Function to check if files have changed
-check_changes() {
-    local dir=$1
-    local last_hash_file=".last_${dir}_hash"
-    local current_hash=$(find $dir -type f -name "package.json" -o -name "package-lock.json" | sort | xargs cat | md5sum | cut -d' ' -f1)
-    
-    if [ -f "$last_hash_file" ]; then
-        local last_hash=$(cat "$last_hash_file")
-        if [ "$current_hash" = "$last_hash" ]; then
-            return 1  # No changes
-        fi
-    fi
-    
-    echo "$current_hash" > "$last_hash_file"
-    return 0  # Changes detected
-}
-
 # Function to handle errors
 handle_error() {
     log "❌ Error occurred on line $1"
     log "Cleaning up..."
-    # Cleanup code here
-    if [ -d "$NPM_CACHE_DIR" ]; then
-        rm -rf "$NPM_CACHE_DIR"
-    fi
     if [ -d "build_artifacts" ]; then
         rm -rf build_artifacts
     fi
@@ -44,176 +23,43 @@ handle_error() {
 # Set up error handling
 trap 'handle_error $LINENO' ERR
 
-# Pull latest changes (force sync with remote)
+# Pull latest changes
 log "📡 Pulling latest changes..."
 git fetch --all
 git reset --hard origin/deployment
 
-# Create a temporary directory for npm cache
-NPM_CACHE_DIR="/tmp/npm_cache_$(date +%s)"
-mkdir -p "$NPM_CACHE_DIR"
-
-# Export npm cache directory and conservative memory limits
-export npm_config_cache="$NPM_CACHE_DIR"
-export NODE_OPTIONS="--max-old-space-size=4096"  # Reduced to 4GB for stability
-export VITE_MAX_WORKERS=1  # Single worker for stability
+# Set environment variables
 export NODE_ENV=production
+export NODE_OPTIONS="--max-old-space-size=4096"
 
-# Function to install dependencies with caching and verification
-install_deps() {
-    local dir=$1
-    if check_changes "$dir"; then
-        log "📦 Installing dependencies in $dir..."
-        cd "$dir"
-        # Install with strict peer dependencies and verify
-        npm ci --prefer-offline --no-audit --strict-peer-dependencies
-        # Verify installation
-        if [ ! -d "node_modules" ]; then
-            log "❌ node_modules directory not found after installation"
-            exit 1
-        fi
-        cd ..
-    else
-        log "📦 Skipping dependency installation in $dir (no changes detected)"
-    fi
-}
-
-# Run backend and frontend installations sequentially for stability
-log "🛠 Installing dependencies..."
-install_deps "backend"
-install_deps "frontend"
-
-# Function to check disk space
-check_disk_space() {
-    local required_space=$1  # in MB
-    local available_space=$(df -m . | awk 'NR==2 {print $4}')
-    
-    if [ "$available_space" -lt "$required_space" ]; then
-        log "⚠️ Low disk space: $available_space MB available, $required_space MB required"
-        log "🧹 Cleaning up temporary files..."
-        
-        # Clean npm cache
-        npm cache clean --force
-        
-        # Remove temporary files
-        rm -rf /tmp/npm-*
-        rm -rf /tmp/vite-*
-        rm -rf node_modules
-        rm -rf dist
-        rm -rf build_artifacts
-        
-        # Clean apt cache if available
-        if command -v apt-get &> /dev/null; then
-            apt-get clean
-            apt-get autoremove -y
-        fi
-        
-        # Clean journal logs if available
-        if command -v journalctl &> /dev/null; then
-            journalctl --vacuum-time=1d
-        fi
-        
-        available_space=$(df -m . | awk 'NR==2 {print $4}')
-        
-        if [ "$available_space" -lt "$required_space" ]; then
-            log "❌ Not enough disk space after cleanup"
-            return 1
-        fi
-    fi
-    return 0
-}
-
-# Frontend build with conservative settings
-log "📦 Building frontend..."
-cd frontend
-
-# Check disk space before installation (reduced requirement)
-if ! check_disk_space 500; then
-    log "❌ Deployment failed due to insufficient disk space"
-    exit 1
-fi
-
-# Clean install dependencies with minimal disk usage
-log "📦 Performing clean installation of dependencies..."
-rm -rf node_modules
-rm -f package-lock.json
-npm install --no-audit --prefer-offline --no-optional
-npm install -D vite @vitejs/plugin-react --no-audit --prefer-offline
-
-# Clean previous build artifacts
-log "🧹 Cleaning previous build..."
-rm -rf dist
-rm -rf node_modules/.vite
-
-# Run build with conservative settings
-log "🏗 Building with conservative settings..."
-# Run build in a subshell to handle potential memory issues
-(
-    npm run build -- --mode production
-    BUILD_EXIT_CODE=$?
-    if [ $BUILD_EXIT_CODE -eq 0 ]; then
-        log "✅ Frontend build completed successfully"
-        # Verify build artifacts
-        if [ ! -d "dist" ]; then
-            log "❌ dist directory not found after build"
-            exit 1
-        fi
-        if [ ! -f "dist/index.html" ]; then
-            log "❌ index.html not found in dist directory"
-            exit 1
-        fi
-        # Move build artifacts to a safe location before cleanup
-        mkdir -p ../build_artifacts
-        cp -r dist/* ../build_artifacts/
-    else
-        log "❌ Frontend build failed with exit code $BUILD_EXIT_CODE"
-        exit $BUILD_EXIT_CODE
-    fi
-) || {
-    log "❌ Frontend build failed! Exiting...";
-    exit 1;
-}
-
+# Install backend dependencies
+log "📦 Installing backend dependencies..."
+cd backend
+npm ci --prefer-offline
 cd ..
 
-# If we have build artifacts, move them to the correct location
-if [ -d "build_artifacts" ]; then
-    log "📦 Moving build artifacts to final location..."
-    rm -rf frontend/dist
-    mkdir -p frontend/dist
-    cp -r build_artifacts/* frontend/dist/
-    rm -rf build_artifacts
-fi
+# Install frontend dependencies and build
+log "📦 Installing frontend dependencies..."
+cd frontend
+npm ci --prefer-offline
 
-# Verify final build location
-if [ ! -d "frontend/dist" ] || [ ! -f "frontend/dist/index.html" ]; then
-    log "❌ Final build verification failed"
+log "🏗 Building frontend..."
+npm run build -- --mode production
+
+# Verify build artifacts
+if [ ! -d "dist" ] || [ ! -f "dist/index.html" ]; then
+    log "❌ Build verification failed"
     exit 1
 fi
+cd ..
 
-# Restart services with PM2 (without reinstalling)
+# Restart services
 log "🔄 Restarting services..."
 pm2 restart all --update-env
 pm2 save
 
-# Verify PM2 status
-if ! pm2 list | grep -q "online"; then
-    log "❌ Some PM2 processes are not online"
-    exit 1
-fi
-
 # Reload nginx
 log "🔄 Reloading nginx..."
 sudo systemctl reload nginx
-
-# Verify nginx status
-if ! sudo systemctl is-active --quiet nginx; then
-    log "❌ Nginx is not running after reload"
-    exit 1
-fi
-
-# Cleanup npm cache
-log "🧹 Cleaning up temporary files..."
-rm -rf "$NPM_CACHE_DIR"
 
 log "✅ Deployment complete!"
