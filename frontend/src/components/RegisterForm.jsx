@@ -18,6 +18,9 @@ import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { setToken } from '../utils/tokenUtils';
+import TermsModal from './TermsModal';
+import TermsOfService from '../pages/TermsOfService';
+import PrivacyPolicy from '../pages/PrivacyPolicy';
 
 const RegisterForm = ({ onClose, googleData }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -48,6 +51,8 @@ const RegisterForm = ({ onClose, googleData }) => {
   const [fares, setFares] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [useGooglePicture, setUseGooglePicture] = useState(true);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [modalContent, setModalContent] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -372,6 +377,11 @@ const RegisterForm = ({ onClose, googleData }) => {
     onClose();
   };
 
+  const handleShowTerms = (content) => {
+    setModalContent(content);
+    setShowTermsModal(true);
+  };
+
   const renderSection = () => {
     switch (section) {
       case 1:
@@ -554,9 +564,31 @@ const RegisterForm = ({ onClose, googleData }) => {
                 onChange={(e) => setIsChecked(e.target.checked)}
               />
               <label htmlFor="terms">
-                I agree to the <Link to="/terms-of-service" target="_blank" className="text-blue-600 hover:text-blue-800">Terms of Service</Link> and <Link to="/privacy-policy" target="_blank" className="text-blue-600 hover:text-blue-800">Privacy Policy</Link>
+                I agree to the{" "}
+                <button
+                  type="button"
+                  className="auth-link-button"
+                  onClick={() => handleShowTerms(<TermsOfService />)}
+                >
+                  Terms of Service
+                </button>{" "}
+                and{" "}
+                <button
+                  type="button"
+                  className="auth-link-button"
+                  onClick={() => handleShowTerms(<PrivacyPolicy />)}
+                >
+                  Privacy Policy
+                </button>
               </label>
             </div>
+
+            {showTermsModal && (
+              <TermsModal
+                content={modalContent}
+                onClose={() => setShowTermsModal(false)}
+              />
+            )}
           </>
         );
 
