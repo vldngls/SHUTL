@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "NODE_OPTIONS='--max-old-space-size=2048' npx vite build",
+    "build": "set NODE_OPTIONS=--max-old-space-size=2048 && npx vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "npm run dev"
