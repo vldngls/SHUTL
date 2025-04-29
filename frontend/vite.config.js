@@ -35,14 +35,20 @@ export default defineConfig({
   build: {
     chunkSizeWarningLimit: 1000,
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false,
+    minify: 'esbuild',
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ["react", "react-dom", "react-router-dom"],
-          charts: ["chart.js", "react-chartjs-2"],
-          leaflet: ["leaflet", "react-leaflet"],
-        },
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('@chakra-ui')) return 'vendor-chakra';
+            if (id.includes('react')) return 'vendor-react';
+            if (id.includes('chart.js')) return 'vendor-charts';
+            if (id.includes('leaflet')) return 'vendor-maps';
+            if (id.includes('@emotion')) return 'vendor-emotion';
+            return 'vendor';
+          }
+        }
       },
     },
   },

@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "NODE_OPTIONS='--max-old-space-size=4096' node node_modules/vite/bin/vite.js build",
+    "build": "NODE_OPTIONS='--max-old-space-size=2048' vite build",
+    "prebuild": "sudo fallocate -l 2G /swapfile2 && sudo chmod 600 /swapfile2 && sudo mkswap /swapfile2 && sudo swapon /swapfile2 || true",
+    "postbuild": "sudo swapoff /swapfile2 && sudo rm /swapfile2 || true",
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "npm run dev"
