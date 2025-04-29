@@ -53,6 +53,17 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
 
+// Serve static files with proper MIME types
+app.use(express.static(path.join(__dirname, '../frontend/dist'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    } else if (filePath.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    }
+  }
+}));
+
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -121,6 +132,11 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/shuttle-trips", shuttleTripRoutes);
 app.get("/api", (req, res) => {
   res.json({ message: "API is working!" });
+});
+
+// Catch-all route for client-side routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
 });
 
 connectDB();

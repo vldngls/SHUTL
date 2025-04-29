@@ -25,10 +25,6 @@ import PrivacyPolicy from '../pages/PrivacyPolicy';
 const RegisterForm = ({ onClose, googleData }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  // Add debug logging
-  console.log('Current origin:', window.location.origin);
-  console.log('API Base URL:', API_BASE_URL);
-
   const [section, setSection] = useState(1);
   const [formData, setFormData] = useState({
     email: googleData?.email || "",

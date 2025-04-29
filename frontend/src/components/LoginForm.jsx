@@ -22,13 +22,6 @@ const LoginForm = ({ onClose }) => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-  // Add console log to show current origin
-  console.log("Current application origin:", window.location.origin);
-
-  // Add debug logging
-  console.log('Current origin:', window.location.origin);
-  console.log('API Base URL:', API_BASE_URL);
-
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
