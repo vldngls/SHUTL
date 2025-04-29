@@ -3,7 +3,14 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react({
+      jsxImportSource: '@emotion/react',
+      babel: {
+        plugins: ['@emotion/babel-plugin']
+      }
+    })
+  ],
   server: {
     host: "0.0.0.0",
     port: 5173,
@@ -36,7 +43,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     outDir: 'dist',
     sourcemap: true,
-    minify: 'esbuild',
+    minify: false,
     rollupOptions: {
       output: {
         manualChunks: (id) => {
@@ -57,6 +64,15 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['react', 'react-dom'],
+    include: [
+      'react', 
+      'react-dom',
+      '@emotion/react',
+      '@emotion/styled',
+      '@chakra-ui/react'
+    ],
+    esbuildOptions: {
+      minify: false
+    }
   },
 });
