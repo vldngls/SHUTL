@@ -31,7 +31,6 @@ git reset --hard origin/deployment
 # Set environment variables
 export NODE_ENV=production
 export NODE_OPTIONS="--max-old-space-size=4096"
-export PATH="./node_modules/.bin:$PATH"
 
 # Function to check if dependencies need to be installed
 should_install_deps() {
@@ -72,6 +71,9 @@ if should_install_deps .; then
 else
     log "📦 Frontend dependencies up to date, skipping installation"
 fi
+
+# Ensure local node_modules/.bin is in PATH
+export PATH="$PWD/node_modules/.bin:$PATH"
 
 log "🏗 Building frontend..."
 npm run build
