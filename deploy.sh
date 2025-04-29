@@ -31,20 +31,50 @@ git reset --hard origin/deployment
 # Set environment variables
 export NODE_ENV=production
 export NODE_OPTIONS="--max-old-space-size=4096"
+export PATH="./node_modules/.bin:$PATH"
 
-# Install backend dependencies
-log "📦 Installing backend dependencies..."
+# Function to check if dependencies need to be installed
+should_install_deps() {
+    local dir=$1
+    local lock_file="$dir/package-lock.json"
+    local node_modules="$dir/node_modules"
+    
+    # If node_modules doesn't exist, we need to install
+    if [ ! -d "$node_modules" ]; then
+        return 0
+    fi
+    
+    # If package-lock.json is newer than node_modules, we need to install
+    if [ "$lock_file" -nt "$node_modules" ]; then
+        return 0
+    fi
+    
+    return 1
+}
+
+# Install backend dependencies if needed
+log "📦 Checking backend dependencies..."
 cd backend
-npm ci --prefer-offline
+if should_install_deps .; then
+    log "📦 Installing backend dependencies..."
+    npm ci --prefer-offline
+else
+    log "📦 Backend dependencies up to date, skipping installation"
+fi
 cd ..
 
 # Install frontend dependencies and build
-log "📦 Installing frontend dependencies..."
+log "📦 Checking frontend dependencies..."
 cd frontend
-npm ci --prefer-offline
+if should_install_deps .; then
+    log "📦 Installing frontend dependencies..."
+    npm ci --prefer-offline
+else
+    log "📦 Frontend dependencies up to date, skipping installation"
+fi
 
 log "🏗 Building frontend..."
-npm run build -- --mode production
+npm run build
 
 # Verify build artifacts
 if [ ! -d "dist" ] || [ ! -f "dist/index.html" ]; then
