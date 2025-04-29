@@ -11,6 +11,7 @@ import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import Taskbar from "../components/Taskbar";
 import { processShuttleLocationUpdate } from "../utils/locationUtils";
+import HelpButton from "../components/HelpButton";
 
 // Define SOCKET_URL
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Ensure this is set in your environment
@@ -311,6 +312,8 @@ const ShutlLoggedOut = () => {
 
   return (
     <div className="logged-out__container">
+      <HelpButton />
+      
       <div id="map-container" className="logged-out__map-container">
         <MapContainer
           center={[14.376921, 120.989457]}
