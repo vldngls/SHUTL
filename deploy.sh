@@ -87,6 +87,12 @@ install_deps "frontend"
 log "📦 Building frontend..."
 cd frontend
 
+# Install Vite if not present
+if ! command -v vite &> /dev/null; then
+    log "📦 Installing Vite..."
+    npm install -D vite
+fi
+
 # Clean previous build artifacts
 log "🧹 Cleaning previous build..."
 rm -rf dist
