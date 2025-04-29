@@ -14,10 +14,35 @@ log() {
 handle_error() {
     log "❌ Error occurred on line $1"
     log "Cleaning up..."
+    cleanup_swap
     if [ -d "build_artifacts" ]; then
         rm -rf build_artifacts
     fi
     exit 1
+}
+
+# Function to setup swap
+setup_swap() {
+    log "🔧 Setting up additional swap space..."
+    # Clean up any existing swapfile2 first
+    if [ -f "/swapfile2" ]; then
+        sudo swapoff /swapfile2 2>/dev/null || true
+        sudo rm -f /swapfile2
+    fi
+    # Create new swap
+    sudo fallocate -l 2G /swapfile2
+    sudo chmod 600 /swapfile2
+    sudo mkswap /swapfile2
+    sudo swapon /swapfile2
+}
+
+# Function to cleanup swap
+cleanup_swap() {
+    log "🧹 Cleaning up swap space..."
+    if [ -f "/swapfile2" ]; then
+        sudo swapoff /swapfile2 2>/dev/null || true
+        sudo rm -f /swapfile2
+    fi
 }
 
 # Set up error handling
@@ -30,7 +55,7 @@ git reset --hard origin/deployment
 
 # Set environment variables
 export NODE_ENV=production
-export NODE_OPTIONS="--max-old-space-size=4096"
+export NODE_OPTIONS="--max-old-space-size=2048"
 
 # Function to check if dependencies need to be installed
 should_install_deps() {
@@ -72,11 +97,14 @@ else
     log "📦 Frontend dependencies up to date, skipping installation"
 fi
 
-# Ensure local node_modules/.bin is in PATH
-export PATH="$PWD/node_modules/.bin:$PATH"
+# Setup swap before build
+setup_swap
 
 log "🏗 Building frontend..."
 npm run build
+
+# Cleanup swap after build
+cleanup_swap
 
 # Verify build artifacts
 if [ ! -d "dist" ] || [ ! -f "dist/index.html" ]; then
