@@ -42,7 +42,7 @@ export default defineConfig({
   build: {
     chunkSizeWarningLimit: 1000,
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false,
     minify: false,
     rollupOptions: {
       output: {
@@ -62,6 +62,8 @@ export default defineConfig({
         assetFileNames: 'assets/[name]-[hash].[ext]'
       },
     },
+    target: 'es2018',
+    assetsInlineLimit: 4096,
   },
   optimizeDeps: {
     include: [
@@ -72,7 +74,8 @@ export default defineConfig({
       '@chakra-ui/react'
     ],
     esbuildOptions: {
-      minify: false
+      minify: false,
+      target: 'es2018',
     }
   },
 });

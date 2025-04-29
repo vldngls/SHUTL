@@ -38,7 +38,7 @@ git reset --hard origin/deployment
 cd backend
 if needs_install .; then
     echo "📦 Installing backend dependencies..."
-    npm install
+    NODE_OPTIONS="--max-old-space-size=1024" npm install
 fi
 cd ..
 
@@ -46,12 +46,14 @@ cd ..
 cd frontend
 if needs_install .; then
     echo "📦 Installing frontend dependencies..."
-    npm install
+    NODE_OPTIONS="--max-old-space-size=1024" npm install
 fi
 
-# Build frontend
+# Build frontend with reduced chunk size and memory optimizations
 echo "🏗 Building frontend..."
-npm run build
+export NODE_OPTIONS="--max-old-space-size=1024"
+# Run build in production mode with optimizations
+VITE_BUILD_CHUNKS=20 VITE_BUILD_MEMORY_LIMIT=800 npm run build -- --mode production --emptyOutDir
 
 cd ..
 
