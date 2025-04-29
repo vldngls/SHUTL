@@ -8,13 +8,22 @@ echo "🚀 Starting deployment process..."
 # Function to check if npm install is needed
 needs_install() {
     local dir=$1
+    # If node_modules doesn't exist, we need to install
     if [ ! -d "$dir/node_modules" ]; then
         return 0
     fi
+    # If package-lock.json doesn't exist, we need to install
     if [ ! -f "$dir/package-lock.json" ]; then
         return 0
     fi
-    if [ "$dir/package.json" -nt "$dir/node_modules" ]; then
+    # Store current package-lock.json content hash
+    local current_hash=$(md5sum "$dir/package-lock.json" | awk '{print $1}')
+    # Pull latest without changing working directory
+    git fetch origin deployment
+    # Get hash of package-lock.json from deployment branch
+    local new_hash=$(git show origin/deployment:"$dir/package-lock.json" | md5sum | awk '{print $1}')
+    # Compare hashes
+    if [ "$current_hash" != "$new_hash" ]; then
         return 0
     fi
     return 1
@@ -51,15 +60,5 @@ echo "🔄 Restarting services..."
 pm2 restart all --update-env
 pm2 save
 sudo systemctl reload nginx
-
-# Cleanup
-echo "🧹 Cleaning up..."
-# Clean npm cache
-npm cache clean --force
-# Remove any temp files
-find . -type d -name ".temp" -exec rm -rf {} +
-find . -type d -name ".cache" -exec rm -rf {} +
-# Clean git objects
-git gc --prune=now
 
 echo "✅ Deployment complete!"
