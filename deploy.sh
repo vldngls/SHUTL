@@ -103,8 +103,7 @@ rm -rf node_modules/.vite
 log "🏗 Building with conservative settings..."
 # Run build in a subshell to handle potential memory issues
 (
-    # Use the correct path to Vite
-    node_modules/.bin/vite build --mode production
+    npm run build -- --mode production
     BUILD_EXIT_CODE=$?
     if [ $BUILD_EXIT_CODE -eq 0 ]; then
         log "✅ Frontend build completed successfully"
