@@ -87,8 +87,11 @@ install_deps "frontend"
 log "📦 Building frontend..."
 cd frontend
 
-# Install Vite and other required dependencies
-log "📦 Installing build dependencies..."
+# Clean install dependencies
+log "📦 Performing clean installation of dependencies..."
+rm -rf node_modules
+rm -f package-lock.json
+npm install
 npm install -D vite @vitejs/plugin-react
 
 # Clean previous build artifacts
