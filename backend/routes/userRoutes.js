@@ -259,4 +259,39 @@ router.post("/forgot-password", forgotPassword);
 router.post("/verify-otp", resetPassword);
 router.post("/change-password", authenticateToken, changePassword);
 
+// Token refresh endpoint
+router.post("/auth/refresh", authenticateToken, async (req, res) => {
+  try {
+    // Get user data from the authenticated request
+    const { id, email, userType, isAdmin, fullAccess, username } = req.user;
+
+    // Generate new token
+    const newToken = jwt.sign(
+      {
+        id,
+        email,
+        userType,
+        isAdmin,
+        fullAccess,
+        username
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    // Set new token in cookie
+    res.cookie('token', newToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+
+    res.status(200).json({ token: newToken });
+  } catch (error) {
+    console.error("Token refresh error:", error);
+    res.status(500).json({ message: "Failed to refresh token" });
+  }
+});
+
 export default router;

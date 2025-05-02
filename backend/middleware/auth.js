@@ -15,41 +15,64 @@ export const authenticateToken = async (req, res, next) => {
 
     if (!token) {
       console.log("No token found in request");
-      return res
-        .status(401)
-        .json({ error: "Access denied. No token provided." });
+      return res.status(401).json({ error: "Access denied. No token provided." });
     }
 
-    console.log("Token received:", token.substring(0, 20) + "...");
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("Decoded token:", decoded);
+    try {
+      console.log("Token received:", token.substring(0, 20) + "...");
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log("Decoded token:", decoded);
 
-    const user = await User.findById(decoded.id);
-    console.log("User found:", user ? "Yes" : "No");
+      const user = await User.findById(decoded.id);
+      console.log("User found:", user ? "Yes" : "No");
 
-    if (!user) {
-      console.log("User not found for ID:", decoded.id);
-      return res.status(404).json({ error: "User not found." });
+      if (!user) {
+        console.log("User not found for ID:", decoded.id);
+        return res.status(404).json({ error: "User not found." });
+      }
+
+      // Set full user object in req.user with email
+      req.user = {
+        ...decoded,
+        email: user.email, // Ensure email is included
+      };
+
+      // Check token expiration
+      const currentTime = Math.floor(Date.now() / 1000);
+      if (decoded.exp && decoded.exp - currentTime < 3600) { // Less than 1 hour left
+        // Generate new token
+        const newToken = jwt.sign(
+          {
+            id: user._id,
+            email: user.email,
+            userType: user.userType,
+            isAdmin: user.userType === "Admin",
+            fullAccess: user.userType === "Admin",
+            username: user.username,
+          },
+          process.env.JWT_SECRET,
+          { expiresIn: "24h" }
+        );
+
+        // Set new token in cookie
+        res.cookie('token', newToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'none',
+          maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        });
+
+        // Add new token to response headers
+        res.setHeader('X-New-Token', newToken);
+      }
+
+      next();
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        return res.status(403).json({ error: "Token expired." });
+      }
+      throw error;
     }
-
-    // Set full user object in req.user with email
-    req.user = {
-      ...decoded,
-      email: user.email, // Ensure email is included
-    };
-
-    // Only set cookie if it doesn't already exist
-    if (!req.cookies.token) {
-      // Set cookie with proper attributes for cross-site compatibility
-      res.cookie('token', token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
-      });
-    }
-
-    next();
   } catch (error) {
     console.error("Auth error:", error);
     res.status(401).json({ error: "Invalid token." });

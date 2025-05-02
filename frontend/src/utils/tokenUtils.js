@@ -49,46 +49,34 @@ export const getEmailFromToken = () => {
 
 export const setToken = (token) => {
     try {
-        // Check if token already exists in cookies with either domain format
-        const existingToken = getTokenFromCookies();
-        if (existingToken === token) {
-            console.log('Token already exists, skipping set');
-            return;
-        }
-
         // Get the current domain
         const domain = window.location.hostname;
         
         // Remove any existing token cookies first
-        document.cookie = `token=; path=/; domain=${domain}; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=None; Secure`;
-        document.cookie = `token=; path=/; domain=.${domain}; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=None; Secure`;
+        document.cookie = `token=; path=/; domain=${domain}; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax`;
         
-        // Set cookie with all necessary attributes
-        document.cookie = `token=${token}; path=/; max-age=86400; domain=${domain}; SameSite=None; Secure`;
+        // Set cookie with proper attributes
+        document.cookie = `token=${token}; path=/; max-age=86400; domain=${domain}; SameSite=Lax`;
         
-        // Also store in localStorage as fallback
+        // Store in localStorage as fallback
         localStorage.setItem('token', token);
         
-        // Store user data from token
-        try {
-            const decoded = decodeToken(token);
-            if (decoded) {
-                const userData = {
-                    userType: decoded.userType,
-                    email: decoded.email,
-                    id: decoded.id
-                };
-                
-                // Store in localStorage
-                localStorage.setItem('userType', decoded.userType);
-                localStorage.setItem('email', decoded.email);
-                localStorage.setItem('user', JSON.stringify(userData));
-                
-                // Also store in sessionStorage for sensitive data
-                sessionStorage.setItem('userData', JSON.stringify(userData));
-            }
-        } catch (error) {
-            console.error('Error storing token data:', error);
+        // Store decoded data
+        const decoded = decodeToken(token);
+        if (decoded) {
+            const userData = {
+                userType: decoded.userType,
+                email: decoded.email,
+                id: decoded.id
+            };
+            
+            // Store in sessionStorage for sensitive data
+            sessionStorage.setItem('userData', JSON.stringify(userData));
+            
+            // Store individual fields in localStorage for convenience
+            localStorage.setItem('userType', decoded.userType);
+            localStorage.setItem('email', decoded.email);
+            localStorage.setItem('user', JSON.stringify(userData));
         }
     } catch (error) {
         console.error('Error setting token:', error);
@@ -99,11 +87,8 @@ export const removeToken = () => {
     try {
         const domain = window.location.hostname;
         
-        // Remove cookie with exact attributes matching the original cookie
-        document.cookie = `token=; path=/; domain=${domain}; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=None; Secure`;
-        
-        // Also try with the specific domain shutl.justbecause.ph
-        document.cookie = `token=; path=/; domain=shutl.justbecause.ph; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=None; Secure`;
+        // Remove cookie with proper attributes
+        document.cookie = `token=; path=/; domain=${domain}; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax`;
         
         // Clear all storage
         localStorage.clear();
@@ -141,6 +126,33 @@ export const decodeToken = (token) => {
     } catch (error) {
         console.error('Error decoding token:', error);
         return null;
+    }
+};
+
+export const refreshToken = async () => {
+    try {
+        const token = getTokenFromCookies();
+        if (!token) return false;
+
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+        const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            const { token: newToken } = await response.json();
+            setToken(newToken);
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Error refreshing token:', error);
+        return false;
     }
 };
   

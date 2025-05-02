@@ -10,7 +10,7 @@ import ActiveShuttles from "../components/ActiveShuttles";
 import L from "leaflet";
 import { calculateDistance, reverseGeocode } from "../utils/locationUtils";
 import { getCookie } from "../utils/cookieUtils";
-import { getTokenFromCookies, decodeToken } from "../utils/tokenUtils";
+import { getTokenFromCookies, decodeToken, validateToken, removeToken, refreshToken } from "../utils/tokenUtils";
 import PaymentQR from "../components/PaymentQR";
 import {
   connectSocket,
@@ -581,7 +581,15 @@ const ShutlLoggedIn = () => {
       try {
         const token = getTokenFromCookies();
         if (!token) {
-          console.warn("No token found - redirecting to ShutlLoggedOut");
+          console.error("No token found");
+          navigate("/ShutlLoggedOut");
+          return;
+        }
+
+        // Validate token before making request
+        if (!validateToken()) {
+          console.error("Token expired or invalid");
+          removeToken();
           navigate("/ShutlLoggedOut");
           return;
         }
@@ -589,40 +597,66 @@ const ShutlLoggedIn = () => {
         const response = await fetch(`${API_BASE_URL}/userdata/me`, {
           method: "GET",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
           },
-          credentials: 'include'
+          credentials: "include"
         });
 
         if (!response.ok) {
-          if (response.status === 401) {
-            console.warn("Invalid or expired token - redirecting to ShutlLoggedOut");
+          if (response.status === 403) {
+            // Try to refresh token
+            const refreshed = await refreshToken();
+            if (refreshed) {
+              // Retry the request with new token
+              const newToken = getTokenFromCookies();
+              const retryResponse = await fetch(`${API_BASE_URL}/userdata/me`, {
+                method: "GET",
+                headers: {
+                  "Authorization": `Bearer ${newToken}`,
+                  "Content-Type": "application/json"
+                },
+                credentials: "include"
+              });
+
+              if (!retryResponse.ok) {
+                throw new Error(`Failed to fetch user profile after token refresh: ${retryResponse.status}`);
+              }
+
+              const data = await retryResponse.json();
+              if (data.profilePicture) {
+                if (data.profilePicture.startsWith('https://lh3.googleusercontent.com/')) {
+                  setProfilePicture(data.profilePicture);
+                } else if (data.profilePicture.startsWith('data:image/')) {
+                  setProfilePicture(data.profilePicture);
+                } else {
+                  setProfilePicture('/icon.png');
+                }
+              } else {
+                setProfilePicture('/icon.png');
+              }
+              return;
+            }
+            
+            console.error("Token expired and refresh failed");
+            removeToken();
             navigate("/ShutlLoggedOut");
             return;
           }
           throw new Error(`Failed to fetch user profile: ${response.status}`);
         }
 
-        if (isMounted) {
-          const data = await response.json();
-          // Handle both Google profile images and base64 images
-          if (data.profilePicture) {
-            // Check if it's a Google profile image
-            if (data.profilePicture.startsWith('https://lh3.googleusercontent.com/')) {
-              setProfilePicture(data.profilePicture);
-            } 
-            // Check if it's a base64 image
-            else if (data.profilePicture.startsWith('data:image/')) {
-              setProfilePicture(data.profilePicture);
-            } 
-            // If neither, use default image
-            else {
-              setProfilePicture('/icon.png');
-            }
+        const data = await response.json();
+        if (data.profilePicture) {
+          if (data.profilePicture.startsWith('https://lh3.googleusercontent.com/')) {
+            setProfilePicture(data.profilePicture);
+          } else if (data.profilePicture.startsWith('data:image/')) {
+            setProfilePicture(data.profilePicture);
           } else {
             setProfilePicture('/icon.png');
           }
+        } else {
+          setProfilePicture('/icon.png');
         }
       } catch (error) {
         console.error("Error fetching user profile data:", error);

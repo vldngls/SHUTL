@@ -66,47 +66,26 @@ app.use(express.static(path.join(__dirname, '../frontend/dist'), {
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Remove trailing slash from origin if it exists
-      const normalizedOrigin = origin?.endsWith("/")
-        ? origin.slice(0, -1)
-        : origin;
-      const allowedOrigin = process.env.FRONTEND_ORIGIN?.endsWith("/")
-        ? process.env.FRONTEND_ORIGIN.slice(0, -1)
-        : process.env.FRONTEND_ORIGIN || "http://localhost:5173";
-
-      // Allow both localhost and IP address
-      const allowedOrigins = [
-        allowedOrigin,
-        "http://192.168.254.106:5173",
-        "http://localhost:5173",
-        "https://accounts.google.com"
-      ];
-
-      const allowed = !origin || allowedOrigins.includes(normalizedOrigin);
-      callback(null, allowed ? normalizedOrigin : allowedOrigins[0]);
-    },
+    origin: true, // Allow all origins in development
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: [
-      "Content-Type", 
-      "Authorization", 
+      "Content-Type",
+      "Authorization",
       "X-Requested-With",
       "Accept",
       "Origin",
       "Access-Control-Request-Method",
       "Access-Control-Request-Headers"
     ],
-    exposedHeaders: ["Set-Cookie"],
+    exposedHeaders: ["Set-Cookie"]
   })
 );
 
 // Add security headers
 app.use((req, res, next) => {
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
-  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
   next();
 });
 
