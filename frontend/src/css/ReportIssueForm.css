@@ -16,12 +16,19 @@
   background: white;
   border-radius: 12px;
   padding: 24px;
-  width: 90%;
-  max-width: 500px;
+  width: 95%;
+  max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: relative;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.report-issue-container::-webkit-scrollbar {
+  display: none;
 }
 
 .report-issue-header {
