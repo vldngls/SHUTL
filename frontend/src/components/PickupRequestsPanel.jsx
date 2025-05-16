@@ -8,6 +8,7 @@ const PickupRequestsPanel = ({
   onAccept,
   onComplete,
   onCancel,
+  onCompleteAll,
 }) => {
   // If there are no requests and no active pickups, don't render the panel
   if (pickupRequests.length === 0 && activePickups.length === 0) {
@@ -32,7 +33,15 @@ const PickupRequestsPanel = ({
 
       {activePickups.length > 0 && (
         <div className="active-pickups">
-          <h3>Active Pickups</h3>
+          <div className="active-pickups-header">
+            <h3>Active Pickups</h3>
+            <button 
+              className="complete-all-button"
+              onClick={() => onCompleteAll(activePickups)}
+            >
+              Complete All
+            </button>
+          </div>
           {activePickups.map((pickup) => (
             <div key={pickup.requestId} className="pickup-item">
               <p>Pickup Point: {pickup.location.streetName}</p>
@@ -74,6 +83,7 @@ PickupRequestsPanel.propTypes = {
   onAccept: PropTypes.func.isRequired,
   onComplete: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
+  onCompleteAll: PropTypes.func.isRequired,
 };
 
 export default PickupRequestsPanel;

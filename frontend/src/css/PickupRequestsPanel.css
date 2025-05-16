@@ -69,3 +69,30 @@ h3 {
   margin-bottom: 12px;
   color: #333;
 }
+
+.active-pickups-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.active-pickups-header h3 {
+  margin: 0;
+}
+
+.complete-all-button {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.complete-all-button:hover {
+  background: #45a049;
+}

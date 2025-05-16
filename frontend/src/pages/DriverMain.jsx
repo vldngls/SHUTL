@@ -17,7 +17,7 @@ import {
 import L from "leaflet";
 import PickupRequestsPanel from "../components/PickupRequestsPanel";
 import { getTokenFromCookies, getEmailFromToken, validateToken } from "../utils/tokenUtils";
-import { toast } from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
 import Sidebar from "../components/Sidebar";
 import Taskbar from "../components/Taskbar";
 
@@ -1396,6 +1396,35 @@ const DriverMain = () => {
 
   return (
     <div className="DriverMain-container">
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 5000,
+          style: {
+            background: '#333',
+            color: '#fff',
+          },
+          success: {
+            duration: 3000,
+            theme: {
+              primary: '#4CAF50',
+              secondary: 'black',
+            },
+          },
+          error: {
+            duration: 4000,
+            theme: {
+              primary: '#f44336',
+              secondary: 'black',
+            },
+          },
+        }}
+        containerStyle={{
+          top: 20,
+          right: 20,
+        }}
+        limit={2}
+      />
       <div className="DriverMain-map-container">
         <MapContainer
           style={{ height: "100%", width: "100%" }}
@@ -1608,6 +1637,7 @@ const DriverMain = () => {
           onAccept={handleAcceptPickup}
           onComplete={handleCompletePickup}
           onCancel={handleCancelPickup}
+          onCompleteAll={handleCompleteAllPickups}
         />
       </div>
 

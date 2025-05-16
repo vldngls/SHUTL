@@ -1,7 +1,7 @@
 import express from "express";
 import shuttleTripRoutes from "./shuttleTripRoutes.js";
 import { authenticateToken, authorizeRoles } from "../middleware/auth.js";
-import issueRoutes from './issueRoutes';
+import issueRoutes from './issueRoutes.js';
 
 const router = express.Router();
 

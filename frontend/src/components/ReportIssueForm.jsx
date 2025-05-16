@@ -61,7 +61,7 @@ const ReportIssueForm = ({ onClose }) => {
         throw new Error("Authentication token not found");
       }
 
-      const response = await fetch(`${API_BASE_URL}/issues/submit`, {
+      const response = await fetch(`${API_BASE_URL}/api/issues/submit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
