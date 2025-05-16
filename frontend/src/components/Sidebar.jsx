@@ -123,6 +123,12 @@ const Sidebar = forwardRef(
       [navigate]
     );
 
+    const handleReportIssue = useCallback((e) => {
+      e.stopPropagation();
+      // TODO: Add popup component handler here
+      console.log("Report Issue clicked");
+    }, []);
+
     const handleSettingsClick = useCallback(
       (e) => {
         e.stopPropagation();
@@ -431,6 +437,14 @@ const Sidebar = forwardRef(
                     <hr />
                   </>
                 )}
+                <button
+                  className="sidebar__settings-option"
+                  onClick={handleReportIssue}
+                  role="menuitem"
+                >
+                  Report Issue
+                </button>
+                <hr />
                 <button
                   className="sidebar__settings-option"
                   onClick={handleLogout}
