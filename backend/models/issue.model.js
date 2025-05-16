@@ -4,7 +4,7 @@ const issueSchema = new mongoose.Schema({
   nature: {
     type: String,
     required: true,
-    enum: ["bug", "feature", "improvement", "other"]
+    enum: ["bug", "feature", "improvement", "driver", "shuttle", "teller", "other"]
   },
   email: {
     type: String,

@@ -474,7 +474,13 @@ const DriverMain = () => {
           if (reason === "io server disconnect") {
             toast.error("Disconnected from server. Please refresh the page.");
           } else {
-            toast.warning("Connection lost. Attempting to reconnect...");
+            toast("Connection lost. Attempting to reconnect...", {
+              icon: "⚠️",
+              style: {
+                background: "#FFF3CD",
+                color: "#856404",
+              },
+            });
           }
         });
 
