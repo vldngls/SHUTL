@@ -45,6 +45,9 @@ export const submitIssue = async (req, res) => {
           html: `
             <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
               <h2 style="color: #333;">Issue Report Received</h2>
+              <p style="color: #666; margin-bottom: 20px;">Hi ${issue.email.split('@')[0]},</p>
+              <p style="color: #666; margin-bottom: 20px;">We have received your report and would like to thank you for bringing this to our attention. We take all feedback seriously and will review your report as soon as possible.</p>
+              <p style="color: #666; margin-bottom: 20px;">We apologize for any inconvenience this may have caused and appreciate your patience while we work on resolving this issue.</p>
               <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 10px 0;">
                 <p style="margin: 5px 0;"><strong>Nature:</strong> ${issue.nature}</p>
                 <p style="margin: 5px 0;"><strong>Email:</strong> ${issue.email}</p>
@@ -54,7 +57,9 @@ export const submitIssue = async (req, res) => {
                 </div>
                 ${issue.image ? '<p style="margin: 5px 0;"><strong>Image:</strong> Attached</p>' : ''}
               </div>
-              <p style="color: #666; font-size: 12px;">Submitted at: ${issue.createdAt.toLocaleString()}</p>
+              <p style="color: #666; margin-top: 20px;">Thank you for helping us improve our service.</p>
+              <p style="color: #666; margin-top: 20px;">Best regards,<br>The SHUTL Team</p>
+              <p style="color: #999; font-size: 12px; margin-top: 20px;">Submitted at: ${issue.createdAt.toLocaleString()}</p>
             </div>
           `,
           attachments: issue.image ? [{
