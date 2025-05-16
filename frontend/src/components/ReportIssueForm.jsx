@@ -52,16 +52,27 @@ const ReportIssueForm = ({ onClose }) => {
     const loadingToastId = toast.loading("Submitting your report...");
 
     try {
+      const token = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("token="))
+        ?.split("=")[1];
+
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+
       const response = await fetch(`${API_BASE_URL}/issues/submit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to submit report");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to submit report");
       }
 
       await response.json();
@@ -74,7 +85,7 @@ const ReportIssueForm = ({ onClose }) => {
       onClose();
     } catch (error) {
       console.error("Error submitting form:", error);
-      toast.error("Failed to submit report. Please try again.", {
+      toast.error(error.message || "Failed to submit report. Please try again.", {
         id: loadingToastId,
         duration: 2000
       });
