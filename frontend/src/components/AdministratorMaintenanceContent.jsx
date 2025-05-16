@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "../css/AdministratorMaintenanceContent.css";
 import { maintenanceService } from "../services/api/maintenance";
 import { toast } from "react-hot-toast";
+import { getTokenFromCookies } from "../utils/tokenUtils";
 
 const AdministratorMaintenanceContent = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -76,6 +77,9 @@ const AdministratorMaintenanceContent = () => {
           setUsers([]);
           console.warn("User list is not an array:", userData);
         }
+
+        // Fetch reports
+        await fetchReports();
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error("Failed to fetch maintenance data");
@@ -118,7 +122,11 @@ const AdministratorMaintenanceContent = () => {
   // Fetch reports
   const fetchReports = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/issues`);
+      const response = await fetch(`${API_BASE_URL}/issues`, {
+        headers: {
+          "Authorization": `Bearer ${getTokenFromCookies()}`
+        }
+      });
       if (!response.ok) throw new Error("Failed to fetch reports");
       const data = await response.json();
       setReports({
@@ -134,7 +142,7 @@ const AdministratorMaintenanceContent = () => {
   // Handle report status update
   const handleReportStatusUpdate = async (reportId, newStatus) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/issues/${reportId}/status`, {
+      const response = await fetch(`${API_BASE_URL}/issues/${reportId}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

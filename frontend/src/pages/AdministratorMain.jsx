@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/AdministratorMain.css";
-import AdministratorDashboardContent from "@components/AdministratorDashboardContent.jsx";
-import AdministratorMaintenanceContent from "@components/AdministratorMaintenanceContent.jsx";
-import AdministratorFareContent from "@components/AdministratorFareContent.jsx";
-import AdministratorShuttlesRoutesContent from "@components/AdministratorShuttlesRoutesContent.jsx";
-import AdministratorShuttleManagementContent from "@components/AdministratorShuttleManagementContent.jsx";
-import AdministratorTransactionsContent from "@components/AdministratorTransactionsContent.jsx";
-import AccountManagement from "@components/AccountManagement.jsx";
+import AdministratorDashboardContent from "../components/AdministratorDashboardContent.jsx";
+import AdministratorMaintenanceContent from "../components/AdministratorMaintenanceContent.jsx";
+import AdministratorFareContent from "../components/AdministratorFareContent.jsx";
+import AdministratorShuttlesRoutesContent from "../components/AdministratorShuttlesRoutesContent.jsx";
+import AdministratorShuttleManagementContent from "../components/AdministratorShuttleManagementContent.jsx";
+import AdministratorTransactionsContent from "../components/AdministratorTransactionsContent.jsx";
+import AccountManagement from "../components/AccountManagement.jsx";
 import NotificationPop from "../components/NotificationPop";
 import { toast } from "react-hot-toast";
 import {
