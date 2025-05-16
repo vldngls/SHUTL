@@ -4,6 +4,7 @@ import "../css/Sidebar.css";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { removeToken } from "../utils/tokenUtils";
+import ReportIssueForm from './ReportIssueForm';
 
 const Sidebar = forwardRef(
   (
@@ -29,6 +30,7 @@ const Sidebar = forwardRef(
   ) => {
     const navigate = useNavigate();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isReportIssueOpen, setIsReportIssueOpen] = useState(false);
     const settingsButtonRef = useRef(null);
     const dropdownRef = useRef(null);
     const [username, setUsername] = useState(null);
@@ -123,11 +125,15 @@ const Sidebar = forwardRef(
       [navigate]
     );
 
-    const handleReportIssue = useCallback((e) => {
+    const handleReportIssue = (e) => {
       e.stopPropagation();
-      // TODO: Add popup component handler here
-      console.log("Report Issue clicked");
-    }, []);
+      setIsSettingsOpen(false);
+      setIsReportIssueOpen(true);
+    };
+
+    const handleCloseReportIssue = () => {
+      setIsReportIssueOpen(false);
+    };
 
     const handleSettingsClick = useCallback(
       (e) => {
@@ -476,6 +482,9 @@ const Sidebar = forwardRef(
             </div>
           </div>
         </nav>
+        {isReportIssueOpen && (
+          <ReportIssueForm onClose={handleCloseReportIssue} />
+        )}
       </>
     );
   }
