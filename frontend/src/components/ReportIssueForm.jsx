@@ -123,6 +123,9 @@ const ReportIssueForm = ({ onClose }) => {
               <option value="bug">Bug</option>
               <option value="feature">Feature Request</option>
               <option value="improvement">Improvement</option>
+              <option value="driver">Driver</option>
+              <option value="shuttle">Shuttle</option>
+              <option value="teller">Teller</option>
               <option value="other">Other</option>
             </select>
           </div>

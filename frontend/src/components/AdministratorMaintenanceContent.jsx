@@ -31,6 +31,14 @@ const AdministratorMaintenanceContent = () => {
     administrators: 0,
   });
 
+  const [reports, setReports] = useState({
+    pending: [],
+    all: []
+  });
+
+  const [selectedReport, setSelectedReport] = useState(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+
   // Fetch initial data
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -106,6 +114,50 @@ const AdministratorMaintenanceContent = () => {
 
     return () => clearInterval(pollInterval);
   }, []);
+
+  // Fetch reports
+  const fetchReports = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/issues`);
+      if (!response.ok) throw new Error("Failed to fetch reports");
+      const data = await response.json();
+      setReports({
+        pending: data.filter(report => report.status === "pending"),
+        all: data
+      });
+    } catch (error) {
+      console.error("Error fetching reports:", error);
+      toast.error("Failed to fetch reports");
+    }
+  };
+
+  // Handle report status update
+  const handleReportStatusUpdate = async (reportId, newStatus) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/issues/${reportId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${getTokenFromCookies()}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (!response.ok) throw new Error("Failed to update report status");
+      
+      await fetchReports();
+      toast.success("Report status updated successfully");
+    } catch (error) {
+      console.error("Error updating report status:", error);
+      toast.error("Failed to update report status");
+    }
+  };
+
+  // View report details
+  const handleViewReport = (report) => {
+    setSelectedReport(report);
+    setShowReportModal(true);
+  };
 
   const groups = ["Commuters", "Tellers", "Administrators", "Drivers"];
 
@@ -463,6 +515,135 @@ const AdministratorMaintenanceContent = () => {
           </ul>
         </div>
       </div>
+
+      {/* Reports Section */}
+      <div className="AdministratorMaintenance-reports-section">
+        <h3>Reports</h3>
+        
+        {/* Pending Reports */}
+        <div className="reports-table-container">
+          <h4>Pending Reports</h4>
+          <table className="reports-table">
+            <thead>
+              <tr>
+                <th>Nature</th>
+                <th>Email</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reports.pending.map((report) => (
+                <tr key={report._id}>
+                  <td>{report.nature}</td>
+                  <td>{report.email}</td>
+                  <td>{new Date(report.createdAt).toLocaleDateString()}</td>
+                  <td className="report-actions">
+                    <button
+                      className="action-btn view-btn"
+                      onClick={() => handleViewReport(report)}
+                    >
+                      View
+                    </button>
+                    <button
+                      className="action-btn resolve-btn"
+                      onClick={() => handleReportStatusUpdate(report._id, "resolved")}
+                    >
+                      Resolved
+                    </button>
+                    <button
+                      className="action-btn unresolved-btn"
+                      onClick={() => handleReportStatusUpdate(report._id, "unresolved")}
+                    >
+                      Unresolved
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* All Reports */}
+        <div className="reports-table-container">
+          <h4>All Reports</h4>
+          <table className="reports-table">
+            <thead>
+              <tr>
+                <th>Nature</th>
+                <th>Email</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reports.all.map((report) => (
+                <tr key={report._id}>
+                  <td>{report.nature}</td>
+                  <td>{report.email}</td>
+                  <td>{new Date(report.createdAt).toLocaleDateString()}</td>
+                  <td>
+                    <span className={`status-badge ${report.status}`}>
+                      {report.status}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      className="action-btn view-btn"
+                      onClick={() => handleViewReport(report)}
+                    >
+                      View
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Report Details Modal */}
+      {showReportModal && selectedReport && (
+        <div className="report-modal-overlay" onClick={() => setShowReportModal(false)}>
+          <div className="report-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="report-modal-header">
+              <h3>Report Details</h3>
+              <button className="close-btn" onClick={() => setShowReportModal(false)}>×</button>
+            </div>
+            <div className="report-modal-body">
+              <div className="report-detail">
+                <label>Nature:</label>
+                <span>{selectedReport.nature}</span>
+              </div>
+              <div className="report-detail">
+                <label>Email:</label>
+                <span>{selectedReport.email}</span>
+              </div>
+              <div className="report-detail">
+                <label>Date:</label>
+                <span>{new Date(selectedReport.createdAt).toLocaleString()}</span>
+              </div>
+              <div className="report-detail">
+                <label>Status:</label>
+                <span className={`status-badge ${selectedReport.status}`}>
+                  {selectedReport.status}
+                </span>
+              </div>
+              <div className="report-detail">
+                <label>Description:</label>
+                <p>{selectedReport.description}</p>
+              </div>
+              {selectedReport.image && (
+                <div className="report-detail">
+                  <label>Screenshot:</label>
+                  <img src={selectedReport.image} alt="Report screenshot" className="report-image" />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
