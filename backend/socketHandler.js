@@ -34,6 +34,9 @@ const setupSocket = (io, db) => {
           socket.userEmail = decoded.email;
           socket.userType = socket.handshake.auth.userType || user.userType;
           
+          // Join the user's type room for notifications
+          socket.join(socket.userType);
+          
           await User.findByIdAndUpdate(socket.userId, {
             status: "active",
             last_active: new Date(),
@@ -261,9 +264,6 @@ const setupSocket = (io, db) => {
         });
         await notification.save();
 
-        // Get all connected sockets
-        const connectedSockets = await io.fetchSockets();
-        
         // Create notification data with required fields
         const notificationData = {
           message: data.message,
@@ -272,21 +272,17 @@ const setupSocket = (io, db) => {
           timestamp: Date.now()
         };
         
-        // Broadcast to matching recipients
-        let recipientCount = 0;
-        connectedSockets.forEach((connectedSocket) => {
-          const socketUserType = connectedSocket.userType || connectedSocket.handshake?.auth?.userType;
-          
-          // If recipientType is "All", send to everyone
-          // Otherwise, only send to matching user types
-          if (data.recipientType === "All" || socketUserType === data.recipientType) {
-            recipientCount++;
-            connectedSocket.emit("new_notification", notificationData);
-          }
-        });
+        // Emit to specific room based on recipient type
+        if (data.recipientType === "All") {
+          // Broadcast to all connected clients
+          io.emit("new_notification", notificationData);
+        } else {
+          // Emit to specific user type room
+          io.to(data.recipientType).emit("new_notification", notificationData);
+        }
 
         // Log notification delivery for debugging
-        console.log(`Notification sent to ${recipientCount} recipients of type ${data.recipientType}`);
+        console.log(`Notification sent to recipients of type ${data.recipientType}`);
       } catch (error) {
         console.error("Error handling notification:", error.message);
       }

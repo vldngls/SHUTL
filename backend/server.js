@@ -135,10 +135,10 @@ setupSocket(io);
 export const broadcastNotification = (message) => {
   if (message.recipientType === "All") {
     // Broadcast to all connected clients
-    io.emit('notification', message);
+    io.emit('new_notification', message);
   } else {
     // Broadcast only to specific user type
-    io.to(message.recipientType).emit('notification', message);
+    io.to(message.recipientType).emit('new_notification', message);
   }
 };
 
