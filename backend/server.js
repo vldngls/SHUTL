@@ -104,12 +104,18 @@ const io = new Server(server, {
     allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
     transports: ["websocket", "polling"],
   },
+  allowEIO3: true, // Allow Engine.IO v3 clients
+  pingTimeout: 60000, // Increase ping timeout
+  pingInterval: 25000, // Increase ping interval
   cookie: {
     name: "token",
     httpOnly: true,
     sameSite: "none",
     secure: true
   },
+  auth: {
+    token: true // Enable token-based authentication
+  }
 });
 
 // Setup socket handlers

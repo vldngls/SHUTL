@@ -12,13 +12,16 @@ const setupSocket = (io, db) => {
 
     // Handle user authentication and status updates
     const handleUserAuth = async () => {
-      const token = socket.handshake.headers.cookie
-        ?.split("; ")
-        .find((row) => row.startsWith("token="))
-        ?.split("=")[1];
+      // Check for token in both cookies and auth object
+      const token = socket.handshake.auth.token || 
+                   socket.handshake.headers.cookie
+                    ?.split("; ")
+                    .find((row) => row.startsWith("token="))
+                    ?.split("=")[1];
 
       if (!token) {
         console.error("No token provided in WebSocket connection");
+        socket.disconnect(true); // Force disconnect if no token
         return;
       }
 
@@ -36,12 +39,17 @@ const setupSocket = (io, db) => {
             last_active: new Date(),
           });
           io.emit("status_update", { userId: socket.userId, status: "active" });
+          
+          // Acknowledge successful authentication
+          socket.emit("auth_success", { userId: socket.userId, userType: socket.userType });
         } else {
           console.error("No user found with the provided email");
+          socket.disconnect(true);
           return;
         }
       } catch (err) {
         console.error("Error in user authentication:", err.message);
+        socket.disconnect(true);
         return;
       }
     };
