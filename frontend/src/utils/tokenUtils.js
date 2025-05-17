@@ -161,4 +161,19 @@ export const setTokenInCookies = (token) => {
         }
         document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax; Secure`;
         return true;
+    } catch (error) {
+        console.error('Error setting token in cookies:', error);
+        return false;
+    }
+};
+
+export const removeTokenFromCookies = () => {
+    try {
+        document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure';
+        return true;
+    } catch (error) {
+        console.error('Error removing token from cookies:', error);
+        return false;
+    }
+};
   
