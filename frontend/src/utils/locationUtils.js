@@ -71,6 +71,7 @@ export const getShuttleStatus = (speed, coordinates, isMoving) => {
     TERMINAL_COORDINATES.lng
   ) * 1000 : null; // Convert to meters for easier reading
   
+  // Use the isInGeofence from the received data if available
   const isInGeofence = coordinates ? isWithinTerminalGeofence(coordinates) : false;
   
   console.log("Shuttle status check:", {
@@ -83,7 +84,8 @@ export const getShuttleStatus = (speed, coordinates, isMoving) => {
     conditions: {
       isStationary: speed < 0.8,
       isInGeofence,
-      isMoving
+      isMoving,
+      distanceCheck: distance <= TERMINAL_COORDINATES.radius
     }
   });
   
@@ -99,15 +101,27 @@ export const getShuttleStatus = (speed, coordinates, isMoving) => {
   if (speed < 0.8) {
     // Only show "At Terminal" if ALL conditions are met:
     // 1. The shuttle is stationary (speed < 0.8)
-    // 2. The shuttle is within the geofence (from driver's calculation)
+    // 2. The shuttle is within the geofence
     // 3. The shuttle is not moving
-    // 4. The distance is less than the geofence radius (from driver's calculation)
+    // 4. The distance is less than the geofence radius
     if (coordinates && isInGeofence && !isMoving && distance <= TERMINAL_COORDINATES.radius) {
-      console.log("Shuttle is at terminal - all conditions met");
+      console.log("Shuttle is at terminal - all conditions met:", {
+        speed,
+        isInGeofence,
+        isMoving,
+        distance,
+        radius: TERMINAL_COORDINATES.radius
+      });
       return "At Terminal";
     }
     // If stationary but not at terminal, show "Stationary"
-    console.log("Shuttle is stationary but not at terminal");
+    console.log("Shuttle is stationary but not at terminal:", {
+      speed,
+      isInGeofence,
+      isMoving,
+      distance,
+      radius: TERMINAL_COORDINATES.radius
+    });
     return "Stationary";
   }
   
@@ -229,7 +243,13 @@ export const processShuttleLocationUpdate = (data, prevShuttle) => {
     distance,
     status,
     geofenceStatusChanged: updatedShuttle.geofenceStatusChanged,
-    geofenceEvent: updatedShuttle.geofenceEvent
+    geofenceEvent: updatedShuttle.geofenceEvent,
+    conditions: {
+      isStationary: smoothedSpeed < 0.8,
+      isInGeofence,
+      isMoving,
+      distanceCheck: distance <= TERMINAL_COORDINATES.radius
+    }
   });
 
   return updatedShuttle;
