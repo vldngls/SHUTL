@@ -43,25 +43,35 @@ const AdministratorMaintenanceContent = () => {
   // Fetch initial data
   useEffect(() => {
     const fetchInitialData = async () => {
+      setIsLoading(true);
       try {
-        // Fetch maintenance mode status
-        const maintenanceStatus = await maintenanceService.getMaintenanceMode();
+        // Fetch all data in parallel
+        const [
+          maintenanceStatus,
+          healthData,
+          apiStats,
+          logs,
+          userData
+        ] = await Promise.all([
+          maintenanceService.getMaintenanceMode(),
+          maintenanceService.getSystemHealth(),
+          maintenanceService.getApiStats(),
+          maintenanceService.getLogs(),
+          maintenanceService.getUserStats()
+        ]);
+
         setMaintenanceMode(maintenanceStatus.enabled);
-
-        // Fetch system health
-        const healthData = await maintenanceService.getSystemHealth();
         setSystemHealth(healthData);
-
-        // Fetch API stats
-        const apiStats = await maintenanceService.getApiStats();
         setApiData(apiStats);
-
-        // Fetch maintenance logs
-        const logs = await maintenanceService.getLogs();
         setMaintenanceLogs(logs);
+        
+        if (Array.isArray(userData.usersList)) {
+          setUsers(userData.usersList);
+        } else {
+          setUsers([]);
+          console.warn("User list is not an array:", userData);
+        }
 
-        // Fetch users and stats
-        const userData = await maintenanceService.getUserStats();
         setStats({
           users: userData.commuters || 0,
           drivers: userData.drivers || 0,
@@ -70,19 +80,13 @@ const AdministratorMaintenanceContent = () => {
           administrators: userData.administrators || 0,
         });
 
-        // Set users array from the users collection data
-        if (Array.isArray(userData.usersList)) {
-          setUsers(userData.usersList);
-        } else {
-          setUsers([]);
-          console.warn("User list is not an array:", userData);
-        }
-
         // Fetch reports
         await fetchReports();
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error("Failed to fetch maintenance data");
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -91,14 +95,19 @@ const AdministratorMaintenanceContent = () => {
     // Set up polling for real-time updates
     const pollInterval = setInterval(async () => {
       try {
-        const healthData = await maintenanceService.getSystemHealth();
+        const [healthData, apiStats, userData] = await Promise.all([
+          maintenanceService.getSystemHealth(),
+          maintenanceService.getApiStats(),
+          maintenanceService.getUserStats()
+        ]);
+
         setSystemHealth(healthData);
-
-        const apiStats = await maintenanceService.getApiStats();
         setApiData(apiStats);
+        
+        if (Array.isArray(userData.usersList)) {
+          setUsers(userData.usersList);
+        }
 
-        // Also update user stats periodically
-        const userData = await maintenanceService.getUserStats();
         setStats({
           users: userData.commuters || 0,
           drivers: userData.drivers || 0,
@@ -106,11 +115,6 @@ const AdministratorMaintenanceContent = () => {
           totalUsers: userData.totalUsers || 0,
           administrators: userData.administrators || 0,
         });
-
-        // Update users array
-        if (Array.isArray(userData.usersList)) {
-          setUsers(userData.usersList);
-        }
       } catch (error) {
         console.error("Error polling data:", error);
       }
