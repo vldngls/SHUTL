@@ -10,9 +10,25 @@ const AdministratorMaintenanceContent = () => {
   const [maintenanceLogs, setMaintenanceLogs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
-  const [systemHealth, setSystemHealth] = useState(null);
-  const [apiData, setApiData] = useState(null);
-  const [stats, setStats] = useState(null);
+  const [systemHealth, setSystemHealth] = useState({
+    cpu: { usage: 0, cores: 0 },
+    memory: { usagePercentage: 0, total: 0, used: 0, free: 0 },
+    storage: { usagePercentage: 0, total: 0, used: 0, free: 0 },
+    uptime: { days: 0, hours: 0, minutes: 0, formatted: "0d 0h 0m" }
+  });
+  const [apiData, setApiData] = useState({
+    requests: 0,
+    success: 0,
+    ping: 0,
+    logs: []
+  });
+  const [stats, setStats] = useState({
+    users: 0,
+    drivers: 0,
+    tellers: 0,
+    totalUsers: 0,
+    administrators: 0
+  });
   const [error, setError] = useState(null);
 
   const [reports, setReports] = useState({
@@ -37,44 +53,61 @@ const AdministratorMaintenanceContent = () => {
         if (!token) {
           console.error('No token found');
           setError('Authentication required');
+          window.location.href = '/ShutlLoggedOut';
           return;
         }
 
         // Fetch data sequentially to avoid overwhelming the server
         try {
           const maintenanceStatus = await maintenanceService.getMaintenanceMode();
-          if (isMounted) {
+          if (isMounted && maintenanceStatus) {
             setMaintenanceMode(maintenanceStatus.enabled);
           }
         } catch (error) {
           console.error('Error fetching maintenance status:', error);
+          if (error.response?.status === 401) {
+            window.location.href = '/ShutlLoggedOut';
+            return;
+          }
         }
 
         try {
           const healthData = await maintenanceService.getSystemHealth();
-          if (isMounted) {
+          if (isMounted && healthData) {
             setSystemHealth(healthData);
           }
         } catch (error) {
           console.error('Error fetching system health:', error);
+          if (error.response?.status === 401) {
+            window.location.href = '/ShutlLoggedOut';
+            return;
+          }
         }
 
         try {
           const apiStats = await maintenanceService.getApiStats();
-          if (isMounted) {
+          if (isMounted && apiStats) {
             setApiData(apiStats);
           }
         } catch (error) {
           console.error('Error fetching API stats:', error);
+          if (error.response?.status === 401) {
+            window.location.href = '/ShutlLoggedOut';
+            return;
+          }
         }
 
         try {
           const logsData = await maintenanceService.getLogs();
-          if (isMounted) {
+          if (isMounted && Array.isArray(logsData)) {
             setMaintenanceLogs(logsData);
           }
         } catch (error) {
           console.error('Error fetching logs:', error);
+          if (error.response?.status === 401) {
+            window.location.href = '/ShutlLoggedOut';
+            return;
+          }
         }
 
         try {
@@ -82,14 +115,16 @@ const AdministratorMaintenanceContent = () => {
           if (isMounted) {
             if (Array.isArray(userData)) {
               setUsers(userData);
-            } else {
-              console.warn('User data is not an array:', userData);
-              setUsers([]);
+            } else if (userData && typeof userData === 'object') {
+              setStats(userData);
             }
-            setStats(userData);
           }
         } catch (error) {
           console.error('Error fetching user stats:', error);
+          if (error.response?.status === 401) {
+            window.location.href = '/ShutlLoggedOut';
+            return;
+          }
         }
 
         // Fetch reports last as it's less critical
@@ -97,6 +132,10 @@ const AdministratorMaintenanceContent = () => {
           await fetchReports();
         } catch (error) {
           console.error('Error fetching reports:', error);
+          if (error.response?.status === 401) {
+            window.location.href = '/ShutlLoggedOut';
+            return;
+          }
         }
 
       } catch (error) {
@@ -127,20 +166,21 @@ const AdministratorMaintenanceContent = () => {
         ]);
 
         if (isMounted) {
-          setSystemHealth(healthData);
-          setApiData(apiStats);
+          if (healthData) setSystemHealth(healthData);
+          if (apiStats) setApiData(apiStats);
           
           if (Array.isArray(userData)) {
             setUsers(userData);
-          } else {
-            console.warn('User data is not an array:', userData);
+          } else if (userData && typeof userData === 'object') {
+            setStats(userData);
           }
-          
-          setStats(userData);
         }
       } catch (error) {
         console.error('Error in polling update:', error);
-        // Don't show toast for polling errors to avoid spamming the user
+        if (error.response?.status === 401) {
+          window.location.href = '/ShutlLoggedOut';
+          return;
+        }
       }
     }, 30000); // Poll every 30 seconds
 
@@ -337,17 +377,17 @@ const AdministratorMaintenanceContent = () => {
             <h3>System Health</h3>
             <div className="AdministratorMaintenance-health-metrics">
               <div className="health-metric">
-                <label>CPU Usage ({systemHealth?.cpu?.cores} cores)</label>
+                <label>CPU Usage ({systemHealth?.cpu?.cores || 0} cores)</label>
                 <div className="progress-bar">
                   <div
                     className="progress"
                     style={{
-                      width: `${systemHealth?.cpu?.usage}%`,
-                      backgroundColor: getStatusColor(systemHealth?.cpu?.usage),
+                      width: `${systemHealth?.cpu?.usage || 0}%`,
+                      backgroundColor: getStatusColor(systemHealth?.cpu?.usage || 0),
                     }}
                   ></div>
                 </div>
-                <span>{systemHealth?.cpu?.usage}%</span>
+                <span>{systemHealth?.cpu?.usage || 0}%</span>
               </div>
               <div className="health-metric">
                 <label>
@@ -411,20 +451,20 @@ const AdministratorMaintenanceContent = () => {
               <h3>API Status</h3>
               <div className="AdministratorMaintenance-api-stats">
                 <div>
-                  <span>{apiData?.requests}</span>
+                  <span>{apiData?.requests || 0}</span>
                   <p>Requests</p>
                 </div>
                 <div>
-                  <span>{apiData?.success}</span>
+                  <span>{apiData?.success || 0}</span>
                   <p>Success</p>
                 </div>
                 <div>
-                  <span>{apiData?.ping}ms</span>
+                  <span>{apiData?.ping || 0}ms</span>
                   <p>Ping</p>
                 </div>
               </div>
               <div className="AdministratorMaintenance-api-log">
-                {apiData?.logs.map((log, index) => (
+                {apiData?.logs?.map((log, index) => (
                   <p key={index}>
                     {log.time} - {log.result}
                   </p>
@@ -436,23 +476,23 @@ const AdministratorMaintenanceContent = () => {
               <h3>User Stats</h3>
               <div className="AdministratorMaintenance-stats-details">
                 <div>
-                  <span>{stats?.totalUsers}</span>
+                  <span>{stats?.totalUsers || 0}</span>
                   <p>Total Users</p>
                 </div>
                 <div>
-                  <span>{stats?.users}</span>
+                  <span>{stats?.users || 0}</span>
                   <p>Commuters</p>
                 </div>
                 <div>
-                  <span>{stats?.drivers}</span>
+                  <span>{stats?.drivers || 0}</span>
                   <p>Drivers</p>
                 </div>
                 <div>
-                  <span>{stats?.tellers}</span>
+                  <span>{stats?.tellers || 0}</span>
                   <p>Tellers</p>
                 </div>
                 <div>
-                  <span>{stats?.administrators}</span>
+                  <span>{stats?.administrators || 0}</span>
                   <p>Administrators</p>
                 </div>
               </div>
