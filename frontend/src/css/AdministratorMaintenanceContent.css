@@ -109,7 +109,6 @@
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  grid-column: span 2;
 }
 
 .AdministratorMaintenance-stats-details {
@@ -339,8 +338,7 @@
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  height: 100%;
-  overflow: hidden;
+  height: 500px; /* Fixed height */
   display: flex;
   flex-direction: column;
 }
@@ -355,6 +353,7 @@
   flex: 1;
   overflow-y: auto;
   padding-right: 10px;
+  max-height: calc(100% - 40px); /* Account for header height */
 }
 
 .AdministratorMaintenance-user-item {

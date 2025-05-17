@@ -48,22 +48,16 @@ export const maintenanceService = {
     }
   },
 
-  // Perform system backup
+  // Backup system
   backupSystem: async () => {
     try {
-      const token = getTokenFromCookies();
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-      const response = await axiosInstance.post('/maintenance/backup', {}, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      const response = await axiosInstance.get('/maintenance/backup', {
+        responseType: 'blob'
       });
-      return response.data;
+      return response;
     } catch (error) {
-      console.error('Error in backupSystem:', error.response?.status, error.message);
-      throw error;
+      console.error('Error in backupSystem:', error);
+      throw new Error('Failed to backup system');
     }
   },
 

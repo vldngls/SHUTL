@@ -320,6 +320,15 @@ const AdministratorMaintenanceContent = () => {
       switch (action) {
         case "System backup":
           result = await maintenanceService.backupSystem();
+          // Create a download link for the backup file
+          const blob = new Blob([result.data], { type: 'application/zip' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `system-backup-${new Date().toISOString().split('T')[0]}.zip`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
           break;
         case "Cache cleared":
           result = await maintenanceService.clearCache();
@@ -509,23 +518,23 @@ const AdministratorMaintenanceContent = () => {
               <h3>User Stats</h3>
               <div className="AdministratorMaintenance-stats-details">
                 <div>
-                  <span>26</span>
+                  <span>{stats.totalUsers}</span>
                   <p>Total Users</p>
                 </div>
                 <div>
-                  <span>0</span>
+                  <span>{stats.users}</span>
                   <p>Commuters</p>
                 </div>
                 <div>
-                  <span>5</span>
+                  <span>{stats.drivers}</span>
                   <p>Drivers</p>
                 </div>
                 <div>
-                  <span>1</span>
+                  <span>{stats.tellers}</span>
                   <p>Tellers</p>
                 </div>
                 <div>
-                  <span>0</span>
+                  <span>{stats.administrators}</span>
                   <p>Administrators</p>
                 </div>
               </div>
