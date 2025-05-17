@@ -296,19 +296,9 @@ const ShutlLoggedIn = () => {
     
     // Handle stationary status - if speed is 0 or very low and not moving
     if (status === 'stationary' || speed === 0 || speed < 0.8) {
-      // Check if it's within the SOMO terminal geofence
-      if (coordinates) {
-        const isInGeofence = calculateDistance(
-          coordinates[0],
-          coordinates[1],
-          14.385586, // SOMO coordinates
-          120.978863
-        ) <= 200; // 200 meters radius
-
-        // Only show "At Terminal" when both stationary AND within geofence
-        if (isInGeofence) {
-          return 'At Terminal';
-        }
+      // Use the isInGeofence from the websocket data
+      if (data.isInGeofence && (speed === 0 || speed < 0.8)) {
+        return 'At Terminal';
       }
       
       // Stationary but not at terminal
@@ -382,7 +372,8 @@ const ShutlLoggedIn = () => {
             lastUpdate: new Date(),
             timestamp: data.timestamp || new Date().toISOString(),
             isExplicitlyOffline: isExplicitlyOffline,
-            isMoving: isMoving
+            isMoving: isMoving,
+            isInGeofence: data.isInGeofence || false
           }
         };
       });

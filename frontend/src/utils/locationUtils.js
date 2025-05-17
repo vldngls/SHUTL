@@ -103,8 +103,7 @@ export const getShuttleStatus = (speed, coordinates, isMoving) => {
     // 1. The shuttle is stationary (speed < 0.8)
     // 2. The shuttle is within the geofence
     // 3. The shuttle is not moving
-    // 4. The distance is less than the geofence radius
-    if (coordinates && isInGeofence && !isMoving && distance <= TERMINAL_COORDINATES.radius) {
+    if (coordinates && isInGeofence && !isMoving) {
       console.log("Shuttle is at terminal - all conditions met:", {
         speed,
         isInGeofence,
