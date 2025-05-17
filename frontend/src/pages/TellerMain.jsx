@@ -272,7 +272,7 @@ const TellerMain = () => {
               }
             }
           }
-        });
+        );
 
         // Only subscribe to location updates if location tracking is enabled
         if (locationEnabled) {
