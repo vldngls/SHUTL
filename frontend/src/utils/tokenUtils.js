@@ -1,22 +1,19 @@
 export const getTokenFromCookies = () => {
     try {
-        // First try to get from cookies
-        const match = document.cookie.match(new RegExp('(^| )token=([^;]+)'));
-        if (match) {
-            return match[2];
+        const cookies = document.cookie.split(';');
+        const tokenCookie = cookies.find(cookie => cookie.trim().startsWith('token='));
+        if (tokenCookie) {
+            const token = tokenCookie.split('=')[1].trim();
+            if (!token) {
+                console.error('Token is empty');
+                return null;
+            }
+            return token;
         }
-
-        // Fallback to localStorage for mobile devices
-        const storedToken = localStorage.getItem('token');
-        if (storedToken) {
-            // If we found it in localStorage but not cookies, try to set the cookie
-            setToken(storedToken);
-            return storedToken;
-        }
-
+        console.error('No token cookie found');
         return null;
     } catch (error) {
-        console.error('Error getting token:', error);
+        console.error('Error getting token from cookies:', error);
         return null;
     }
 };
@@ -155,4 +152,13 @@ export const refreshToken = async () => {
         return false;
     }
 };
+
+export const setTokenInCookies = (token) => {
+    try {
+        if (!token) {
+            console.error('Cannot set empty token');
+            return false;
+        }
+        document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax; Secure`;
+        return true;
   

@@ -1,10 +1,19 @@
 import axiosInstance from '../../config/axiosConfig';
+import { getTokenFromCookies } from '../../utils/tokenUtils';
 
 export const maintenanceService = {
   // Get system health metrics
   getSystemHealth: async () => {
     try {
-      const response = await axiosInstance.get('/maintenance/health');
+      const token = getTokenFromCookies();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      const response = await axiosInstance.get('/maintenance/health', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       return response.data;
     } catch (error) {
       console.error('Error in getSystemHealth:', error.response?.status, error.message);
@@ -15,7 +24,15 @@ export const maintenanceService = {
   // Perform system backup
   backupSystem: async () => {
     try {
-      const response = await axiosInstance.post('/maintenance/backup');
+      const token = getTokenFromCookies();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      const response = await axiosInstance.post('/maintenance/backup', {}, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       return response.data;
     } catch (error) {
       console.error('Error in backupSystem:', error.response?.status, error.message);
@@ -26,7 +43,15 @@ export const maintenanceService = {
   // Clear system cache
   clearCache: async () => {
     try {
-      const response = await axiosInstance.post('/maintenance/cache/clear');
+      const token = getTokenFromCookies();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      const response = await axiosInstance.post('/maintenance/cache/clear', {}, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       return response.data;
     } catch (error) {
       console.error('Error in clearCache:', error.response?.status, error.message);
@@ -37,7 +62,15 @@ export const maintenanceService = {
   // Optimize database
   optimizeDatabase: async () => {
     try {
-      const response = await axiosInstance.post('/maintenance/database/optimize');
+      const token = getTokenFromCookies();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      const response = await axiosInstance.post('/maintenance/database/optimize', {}, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       return response.data;
     } catch (error) {
       console.error('Error in optimizeDatabase:', error.response?.status, error.message);
@@ -48,7 +81,15 @@ export const maintenanceService = {
   // Check for system updates
   checkUpdates: async () => {
     try {
-      const response = await axiosInstance.get('/maintenance/updates');
+      const token = getTokenFromCookies();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      const response = await axiosInstance.get('/maintenance/updates', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       return response.data;
     } catch (error) {
       console.error('Error in checkUpdates:', error.response?.status, error.message);
@@ -59,7 +100,15 @@ export const maintenanceService = {
   // Get API statistics
   getApiStats: async () => {
     try {
-      const response = await axiosInstance.get('/maintenance/stats');
+      const token = getTokenFromCookies();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      const response = await axiosInstance.get('/maintenance/stats', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       return response.data;
     } catch (error) {
       console.error('Error in getApiStats:', error.response?.status, error.message);
@@ -70,7 +119,15 @@ export const maintenanceService = {
   // Get maintenance logs
   getLogs: async () => {
     try {
-      const response = await axiosInstance.get('/maintenance/logs');
+      const token = getTokenFromCookies();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      const response = await axiosInstance.get('/maintenance/logs', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       return response.data;
     } catch (error) {
       console.error('Error in getLogs:', error.response?.status, error.message);
@@ -81,7 +138,15 @@ export const maintenanceService = {
   // Get user statistics
   getUserStats: async () => {
     try {
-      const response = await axiosInstance.get('/maintenance/users/stats');
+      const token = getTokenFromCookies();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      const response = await axiosInstance.get('/maintenance/users/stats', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       return response.data;
     } catch (error) {
       console.error('Error in getUserStats:', error.response?.status, error.message);
@@ -91,7 +156,15 @@ export const maintenanceService = {
 
   getMaintenanceMode: async () => {
     try {
-      const response = await axiosInstance.get('/maintenance/maintenance/status');
+      const token = getTokenFromCookies();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      const response = await axiosInstance.get('/maintenance/maintenance/status', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       return response.data;
     } catch (error) {
       console.error('Error in getMaintenanceMode:', error.response?.status, error.message);
@@ -101,7 +174,18 @@ export const maintenanceService = {
 
   toggleMaintenanceMode: async (enabled) => {
     try {
-      const response = await axiosInstance.post('/maintenance/maintenance/toggle', { enabled });
+      const token = getTokenFromCookies();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      const response = await axiosInstance.post('/maintenance/maintenance/toggle', 
+        { enabled },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
       return response.data;
     } catch (error) {
       console.error('Error in toggleMaintenanceMode:', error.response?.status, error.message);
@@ -112,11 +196,18 @@ export const maintenanceService = {
   // Create a maintenance log entry
   createLog: async (action, status = 'success', details = '') => {
     try {
-      const response = await axiosInstance.post('/maintenance/logs/create', { 
-        action, 
-        status, 
-        details 
-      });
+      const token = getTokenFromCookies();
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      const response = await axiosInstance.post('/maintenance/logs/create', 
+        { action, status, details },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
       return response.data;
     } catch (error) {
       console.error('Error in createLog:', error.response?.status, error.message);
