@@ -9,6 +9,11 @@ const axiosInstance = axios.create({
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
+  },
+  // Add timeout and validate status
+  timeout: 10000,
+  validateStatus: function (status) {
+    return status >= 200 && status < 500; // Accept all status codes less than 500
   }
 });
 
@@ -18,6 +23,10 @@ axiosInstance.interceptors.request.use(
     const token = getTokenFromCookies();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    // Ensure we're using HTTPS for production
+    if (window.location.protocol === 'https:' && config.url.startsWith('http:')) {
+      config.url = config.url.replace('http:', 'https:');
     }
     return config;
   },
@@ -42,14 +51,17 @@ axiosInstance.interceptors.response.use(
         // Try to refresh token
         console.log('Making refresh token request...');
         const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {}, {
-          withCredentials: true
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
         });
 
         console.log('Refresh token response:', response.status);
         if (response.data.token) {
           console.log('New token received, updating cookie...');
           // Update token in cookies
-          document.cookie = `token=${response.data.token}; path=/; max-age=86400; SameSite=Lax`;
+          document.cookie = `token=${response.data.token}; path=/; max-age=86400; SameSite=Lax; Secure`;
           
           // Retry original request with new token
           console.log('Retrying original request with new token...');
