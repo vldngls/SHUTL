@@ -326,6 +326,8 @@ const maintenanceController = {
         .find({})
         .toArray();
 
+      console.log('All users:', users.map(u => ({ email: u.email, userType: u.userType })));
+      
       const userEmails = users.map((user) => user.email);
       const userDatas = await mongoose.connection.db
         .collection("userdatas")
@@ -337,14 +339,16 @@ const maintenanceController = {
         userDatas.map((userData) => [userData.email, userData])
       );
 
+      const adminCount = users.filter((user) => user.userType === "Admin").length;
+      console.log('Admin count:', adminCount);
+      console.log('Admin users:', users.filter(u => u.userType === "Admin").map(u => ({ email: u.email, userType: u.userType })));
+
       const stats = {
         totalUsers: users.length,
         commuters: users.filter((user) => user.userType === "Commuter").length,
         drivers: users.filter((user) => user.userType === "Driver").length,
         tellers: users.filter((user) => user.userType === "Teller").length,
-        administrators: users.filter(
-          (user) => user.userType === "Administrator"
-        ).length,
+        administrators: adminCount,
         usersList: users
           .filter((user) => user.userType === "Commuter")
           .map((user) => ({
@@ -356,6 +360,8 @@ const maintenanceController = {
               userDataMap.get(user.email)?.profilePicture || "/avatar.png",
           })),
       };
+
+      console.log('Stats being sent:', stats);
 
       res.json(stats);
     } catch (error) {
