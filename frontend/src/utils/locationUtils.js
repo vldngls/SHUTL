@@ -63,6 +63,20 @@ export const getShuttleStatus = (speed, coordinates, isMoving) => {
   // If offline, maintain that status
   if (speed === undefined || speed === null) return "Offline";
   
+  // Debug logging
+  console.log("Shuttle status check:", {
+    speed,
+    coordinates,
+    isMoving,
+    distance: coordinates ? calculateDistance(
+      coordinates[0],
+      coordinates[1],
+      TERMINAL_COORDINATES.lat,
+      TERMINAL_COORDINATES.lng
+    ) * 1000 : null, // Convert to meters for easier reading
+    isInGeofence: coordinates ? isWithinTerminalGeofence(coordinates) : false
+  });
+  
   // If moving, determine the traffic condition based on speed
   if (isMoving) {
     if (speed < 5) return "Slow Traffic";
