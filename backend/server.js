@@ -8,7 +8,6 @@ import cors from "cors";
 import { Server } from "socket.io";
 import http from "http";
 import mongoose from "mongoose";
-import { WebSocketServer } from 'ws';
 import jwt from 'jsonwebtoken';
 
 import connectDB from "./config/db.js";
@@ -52,7 +51,6 @@ global.shuttleLocations = {};
 
 const app = express();
 const server = http.createServer(app);
-const wss = new WebSocketServer({ server });
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -71,7 +69,7 @@ app.use(express.static(path.join(__dirname, '../frontend/dist'), {
 
 app.use(
   cors({
-    origin: true, // Allow all origins in development
+    origin: true,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: [
@@ -94,54 +92,32 @@ app.use((req, res, next) => {
   next();
 });
 
-// WebSocket connection handling
-const clients = new Map();
-
-wss.on('connection', (ws, req) => {
-  console.log('New WebSocket connection');
-
-  ws.on('message', async (message) => {
-    try {
-      const data = JSON.parse(message);
-      
-      if (data.type === 'auth') {
-        const token = data.token;
-        if (!token) {
-          ws.send(JSON.stringify({ type: 'error', message: 'No token provided' }));
-          return;
-        }
-
-        try {
-          const decoded = jwt.verify(token, process.env.JWT_SECRET);
-          clients.set(ws, decoded);
-          ws.send(JSON.stringify({ type: 'auth', status: 'success' }));
-        } catch (error) {
-          console.error('WebSocket auth error:', error);
-          ws.send(JSON.stringify({ type: 'error', message: 'Invalid token' }));
-          ws.close();
-        }
-      }
-    } catch (error) {
-      console.error('WebSocket message error:', error);
-      ws.send(JSON.stringify({ type: 'error', message: 'Invalid message format' }));
-    }
-  });
-
-  ws.on('close', () => {
-    clients.delete(ws);
-  });
+// Initialize socket.io with proper configuration
+const io = new Server(server, {
+  cors: {
+    origin: [
+      process.env.FRONTEND_URL || "http://localhost:5173",
+      "http://192.168.254.106:5173",
+    ],
+    methods: ["GET", "POST"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+    transports: ["websocket", "polling"],
+  },
+  cookie: {
+    name: "token",
+    httpOnly: true,
+    sameSite: "none",
+    secure: true
+  },
 });
+
+// Setup socket handlers
+setupSocket(io);
 
 // Broadcast notification to all connected clients
 export const broadcastNotification = (message) => {
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify({
-        type: 'notification',
-        message: message
-      }));
-    }
-  });
+  io.emit('notification', message);
 };
 
 app.use("/api/users", userRoutes);
@@ -176,29 +152,6 @@ app.get('*', (req, res) => {
 });
 
 connectDB();
-
-const io = new Server(server, {
-  cors: {
-    origin: [
-      process.env.FRONTEND_URL || "http://localhost:5173",
-      "http://192.168.254.106:5173",
-    ],
-    methods: ["GET", "POST"],
-    credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
-    transports: ["websocket", "polling"],
-  },
-  cookie: {
-    name: "token",
-    httpOnly: true,
-    sameSite: "none",
-    secure: true
-  },
-});
-
-setupSocket(io);
-
-export { io };
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, "0.0.0.0", () => {
