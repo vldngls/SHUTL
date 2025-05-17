@@ -1,4 +1,4 @@
-import axiosInstance from '../config/axiosConfig';
+import { axiosInstance } from '../config/axiosConfig';
 
 export const getDashboardStats = async () => {
   try {
