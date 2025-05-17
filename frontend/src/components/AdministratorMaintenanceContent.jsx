@@ -8,29 +8,11 @@ const AdministratorMaintenanceContent = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [users, setUsers] = useState([]);
   const [maintenanceLogs, setMaintenanceLogs] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
-  const [systemHealth, setSystemHealth] = useState({
-    cpu: { usage: 0, cores: 0 },
-    memory: { usagePercentage: 0, total: 0, used: 0, free: 0 },
-    storage: { usagePercentage: 0, total: 0, used: 0, free: 0 },
-    uptime: { days: 0, hours: 0, minutes: 0, formatted: "0d 0h 0m" },
-  });
-
-  const [apiData, setApiData] = useState({
-    requests: 0,
-    success: 0,
-    ping: 0,
-    logs: [],
-  });
-
-  const [stats, setStats] = useState({
-    users: 0,
-    drivers: 0,
-    tellers: 0,
-    totalUsers: 0,
-    administrators: 0,
-  });
+  const [systemHealth, setSystemHealth] = useState(null);
+  const [apiData, setApiData] = useState(null);
+  const [stats, setStats] = useState(null);
 
   const [reports, setReports] = useState({
     pending: [],
@@ -43,14 +25,16 @@ const AdministratorMaintenanceContent = () => {
   // Fetch initial data
   useEffect(() => {
     const fetchInitialData = async () => {
-      setIsLoading(true);
       try {
+        console.log('Fetching initial maintenance data...');
+        setIsLoading(true);
+        
         // Fetch all data in parallel
         const [
           maintenanceStatus,
           healthData,
           apiStats,
-          logs,
+          logsData,
           userData
         ] = await Promise.all([
           maintenanceService.getMaintenanceMode(),
@@ -60,31 +44,37 @@ const AdministratorMaintenanceContent = () => {
           maintenanceService.getUserStats()
         ]);
 
+        console.log('Maintenance status:', maintenanceStatus);
+        console.log('Health data:', healthData);
+        console.log('API stats:', apiStats);
+        console.log('Logs data:', logsData);
+        console.log('User data:', userData);
+
         setMaintenanceMode(maintenanceStatus.enabled);
         setSystemHealth(healthData);
         setApiData(apiStats);
-        setMaintenanceLogs(logs);
+        setMaintenanceLogs(logsData);
         
-        if (Array.isArray(userData.usersList)) {
-          setUsers(userData.usersList);
+        // Ensure users is an array before setting
+        if (Array.isArray(userData)) {
+          setUsers(userData);
         } else {
+          console.warn('User data is not an array:', userData);
           setUsers([]);
-          console.warn("User list is not an array:", userData);
         }
-
-        setStats({
-          users: userData.commuters || 0,
-          drivers: userData.drivers || 0,
-          tellers: userData.tellers || 0,
-          totalUsers: userData.totalUsers || 0,
-          administrators: userData.administrators || 0,
-        });
+        
+        setStats(userData);
 
         // Fetch reports
         await fetchReports();
       } catch (error) {
-        console.error("Error fetching data:", error);
-        toast.error("Failed to fetch maintenance data");
+        console.error('Error fetching initial data:', error);
+        console.error('Error details:', {
+          status: error.response?.status,
+          message: error.message,
+          data: error.response?.data
+        });
+        toast.error('Failed to load maintenance data. Please try again.');
       } finally {
         setIsLoading(false);
       }
@@ -93,8 +83,9 @@ const AdministratorMaintenanceContent = () => {
     fetchInitialData();
 
     // Set up polling for real-time updates
-    const pollInterval = setInterval(async () => {
+    const pollingInterval = setInterval(async () => {
       try {
+        console.log('Polling for updates...');
         const [healthData, apiStats, userData] = await Promise.all([
           maintenanceService.getSystemHealth(),
           maintenanceService.getApiStats(),
@@ -104,23 +95,25 @@ const AdministratorMaintenanceContent = () => {
         setSystemHealth(healthData);
         setApiData(apiStats);
         
-        if (Array.isArray(userData.usersList)) {
-          setUsers(userData.usersList);
+        // Ensure users is an array before setting
+        if (Array.isArray(userData)) {
+          setUsers(userData);
+        } else {
+          console.warn('User data is not an array:', userData);
         }
-
-        setStats({
-          users: userData.commuters || 0,
-          drivers: userData.drivers || 0,
-          tellers: userData.tellers || 0,
-          totalUsers: userData.totalUsers || 0,
-          administrators: userData.administrators || 0,
-        });
+        
+        setStats(userData);
       } catch (error) {
-        console.error("Error polling data:", error);
+        console.error('Error in polling update:', error);
+        console.error('Error details:', {
+          status: error.response?.status,
+          message: error.message,
+          data: error.response?.data
+        });
       }
     }, 30000); // Poll every 30 seconds
 
-    return () => clearInterval(pollInterval);
+    return () => clearInterval(pollingInterval);
   }, []);
 
   // Fetch reports
@@ -297,70 +290,70 @@ const AdministratorMaintenanceContent = () => {
         <h3>System Health</h3>
         <div className="AdministratorMaintenance-health-metrics">
           <div className="health-metric">
-            <label>CPU Usage ({systemHealth.cpu.cores} cores)</label>
+            <label>CPU Usage ({systemHealth?.cpu?.cores} cores)</label>
             <div className="progress-bar">
               <div
                 className="progress"
                 style={{
-                  width: `${systemHealth.cpu.usage}%`,
-                  backgroundColor: getStatusColor(systemHealth.cpu.usage),
+                  width: `${systemHealth?.cpu?.usage}%`,
+                  backgroundColor: getStatusColor(systemHealth?.cpu?.usage),
                 }}
               ></div>
             </div>
-            <span>{systemHealth.cpu.usage}%</span>
+            <span>{systemHealth?.cpu?.usage}%</span>
           </div>
           <div className="health-metric">
             <label>
-              Memory Usage ({Math.round(systemHealth.memory.used / 1024)} GB /{" "}
-              {Math.round(systemHealth.memory.total / 1024)} GB)
+              Memory Usage ({Math.round(systemHealth?.memory?.used / 1024)} GB /{" "}
+              {Math.round(systemHealth?.memory?.total / 1024)} GB)
             </label>
             <div className="progress-bar">
               <div
                 className="progress"
                 style={{
-                  width: `${systemHealth.memory.usagePercentage}%`,
+                  width: `${systemHealth?.memory?.usagePercentage}%`,
                   backgroundColor: getStatusColor(
-                    systemHealth.memory.usagePercentage
+                    systemHealth?.memory?.usagePercentage
                   ),
                 }}
               ></div>
             </div>
-            <span>{systemHealth.memory.usagePercentage}%</span>
+            <span>{systemHealth?.memory?.usagePercentage}%</span>
           </div>
           <div className="health-metric">
             <label>
               Storage Usage
-              {systemHealth.storage.total !== "N/A" &&
+              {systemHealth?.storage?.total !== "N/A" &&
                 ` (${Math.round(
-                  systemHealth.storage.used / 1024
-                )} GB / ${Math.round(systemHealth.storage.total / 1024)} GB)`}
+                  systemHealth?.storage?.used / 1024
+                )} GB / ${Math.round(systemHealth?.storage?.total / 1024)} GB)`}
             </label>
             <div className="progress-bar">
               <div
                 className="progress"
                 style={{
                   width: `${
-                    systemHealth.storage.usagePercentage === "N/A"
+                    systemHealth?.storage?.usagePercentage === "N/A"
                       ? 0
-                      : systemHealth.storage.usagePercentage
+                      : systemHealth?.storage?.usagePercentage
                   }%`,
                   backgroundColor: getStatusColor(
-                    systemHealth.storage.usagePercentage === "N/A"
+                    systemHealth?.storage?.usagePercentage === "N/A"
                       ? 0
-                      : systemHealth.storage.usagePercentage
+                      : systemHealth?.storage?.usagePercentage
                   ),
                 }}
               ></div>
             </div>
             <span>
-              {systemHealth.storage.usagePercentage === "N/A"
+              {systemHealth?.storage?.usagePercentage === "N/A"
                 ? "N/A"
-                : `${systemHealth.storage.usagePercentage}%`}
+                : `${systemHealth?.storage?.usagePercentage}%`}
             </span>
           </div>
           <div className="uptime">
             <label>System Uptime:</label>
-            <span>{systemHealth.uptime.formatted}</span>
+            <span>{systemHealth?.uptime?.formatted}</span>
           </div>
         </div>
       </div>
@@ -371,20 +364,20 @@ const AdministratorMaintenanceContent = () => {
           <h3>API Status</h3>
           <div className="AdministratorMaintenance-api-stats">
             <div>
-              <span>{apiData.requests}</span>
+              <span>{apiData?.requests}</span>
               <p>Requests</p>
             </div>
             <div>
-              <span>{apiData.success}</span>
+              <span>{apiData?.success}</span>
               <p>Success</p>
             </div>
             <div>
-              <span>{apiData.ping}ms</span>
+              <span>{apiData?.ping}ms</span>
               <p>Ping</p>
             </div>
           </div>
           <div className="AdministratorMaintenance-api-log">
-            {apiData.logs.map((log, index) => (
+            {apiData?.logs.map((log, index) => (
               <p key={index}>
                 {log.time} - {log.result}
               </p>
@@ -396,23 +389,23 @@ const AdministratorMaintenanceContent = () => {
           <h3>User Stats</h3>
           <div className="AdministratorMaintenance-stats-details">
             <div>
-              <span>{stats.totalUsers}</span>
+              <span>{stats?.totalUsers}</span>
               <p>Total Users</p>
             </div>
             <div>
-              <span>{stats.users}</span>
+              <span>{stats?.users}</span>
               <p>Commuters</p>
             </div>
             <div>
-              <span>{stats.drivers}</span>
+              <span>{stats?.drivers}</span>
               <p>Drivers</p>
             </div>
             <div>
-              <span>{stats.tellers}</span>
+              <span>{stats?.tellers}</span>
               <p>Tellers</p>
             </div>
             <div>
-              <span>{stats.administrators}</span>
+              <span>{stats?.administrators}</span>
               <p>Administrators</p>
             </div>
           </div>

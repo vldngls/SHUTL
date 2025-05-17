@@ -3,50 +3,90 @@ import axiosInstance from '../../config/axiosConfig';
 export const maintenanceService = {
   // Get system health metrics
   getSystemHealth: async () => {
-    const response = await axiosInstance.get('/maintenance/health');
-    return response.data;
+    try {
+      const response = await axiosInstance.get('/maintenance/health');
+      return response.data;
+    } catch (error) {
+      console.error('Error in getSystemHealth:', error.response?.status, error.message);
+      throw error;
+    }
   },
 
   // Perform system backup
   backupSystem: async () => {
-    const response = await axiosInstance.post('/maintenance/backup');
-    return response.data;
+    try {
+      const response = await axiosInstance.post('/maintenance/backup');
+      return response.data;
+    } catch (error) {
+      console.error('Error in backupSystem:', error.response?.status, error.message);
+      throw error;
+    }
   },
 
   // Clear system cache
   clearCache: async () => {
-    const response = await axiosInstance.post('/maintenance/cache/clear');
-    return response.data;
+    try {
+      const response = await axiosInstance.post('/maintenance/cache/clear');
+      return response.data;
+    } catch (error) {
+      console.error('Error in clearCache:', error.response?.status, error.message);
+      throw error;
+    }
   },
 
   // Optimize database
   optimizeDatabase: async () => {
-    const response = await axiosInstance.post('/maintenance/database/optimize');
-    return response.data;
+    try {
+      const response = await axiosInstance.post('/maintenance/database/optimize');
+      return response.data;
+    } catch (error) {
+      console.error('Error in optimizeDatabase:', error.response?.status, error.message);
+      throw error;
+    }
   },
 
   // Check for system updates
   checkUpdates: async () => {
-    const response = await axiosInstance.get('/maintenance/updates');
-    return response.data;
+    try {
+      const response = await axiosInstance.get('/maintenance/updates');
+      return response.data;
+    } catch (error) {
+      console.error('Error in checkUpdates:', error.response?.status, error.message);
+      throw error;
+    }
   },
 
   // Get API statistics
   getApiStats: async () => {
-    const response = await axiosInstance.get('/maintenance/stats');
-    return response.data;
+    try {
+      const response = await axiosInstance.get('/maintenance/stats');
+      return response.data;
+    } catch (error) {
+      console.error('Error in getApiStats:', error.response?.status, error.message);
+      throw error;
+    }
   },
 
   // Get maintenance logs
   getLogs: async () => {
-    const response = await axiosInstance.get('/maintenance/logs');
-    return response.data;
+    try {
+      const response = await axiosInstance.get('/maintenance/logs');
+      return response.data;
+    } catch (error) {
+      console.error('Error in getLogs:', error.response?.status, error.message);
+      throw error;
+    }
   },
 
   // Get user statistics
   getUserStats: async () => {
-    const response = await axiosInstance.get('/maintenance/users/stats');
-    return response.data;
+    try {
+      const response = await axiosInstance.get('/maintenance/users/stats');
+      return response.data;
+    } catch (error) {
+      console.error('Error in getUserStats:', error.response?.status, error.message);
+      throw error;
+    }
   },
 
   getMaintenanceMode: async () => {
@@ -54,7 +94,7 @@ export const maintenanceService = {
       const response = await axiosInstance.get('/maintenance/maintenance/status');
       return response.data;
     } catch (error) {
-      console.error('Error getting maintenance mode status:', error);
+      console.error('Error in getMaintenanceMode:', error.response?.status, error.message);
       throw new Error('Failed to get maintenance mode status');
     }
   },
@@ -64,7 +104,7 @@ export const maintenanceService = {
       const response = await axiosInstance.post('/maintenance/maintenance/toggle', { enabled });
       return response.data;
     } catch (error) {
-      console.error('Error toggling maintenance mode:', error);
+      console.error('Error in toggleMaintenanceMode:', error.response?.status, error.message);
       throw new Error('Failed to toggle maintenance mode');
     }
   },
@@ -79,7 +119,7 @@ export const maintenanceService = {
       });
       return response.data;
     } catch (error) {
-      console.error('Error creating maintenance log:', error);
+      console.error('Error in createLog:', error.response?.status, error.message);
       // Don't throw here to prevent breaking application flow when logging fails
       return { success: false, error: error.message };
     }
