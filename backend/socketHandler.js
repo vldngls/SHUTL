@@ -89,6 +89,8 @@ const setupSocket = (io, db) => {
         heading,
         accuracy,
         streetName,
+        isInGeofence,
+        distance
       } = data;
 
       // Create metadata object with all additional properties
@@ -105,6 +107,8 @@ const setupSocket = (io, db) => {
         timestamp,
         metadata,
         socketId: socket.id,
+        isInGeofence,
+        distance
       });
 
       // Update global shuttleLocations object for API access
@@ -118,6 +122,8 @@ const setupSocket = (io, db) => {
         lastUpdate: new Date(),
         metadata,
         socketId: socket.id,
+        isInGeofence,
+        distance
       };
 
       // Broadcast to all clients tracking this shuttle
@@ -128,6 +134,8 @@ const setupSocket = (io, db) => {
         speed: speed || 0,
         heading: heading || 0,
         accuracy: accuracy,
+        isInGeofence,
+        distance
       });
 
       // Also broadcast to all ShutlLoggedIn clients
@@ -138,6 +146,8 @@ const setupSocket = (io, db) => {
         speed: speed || 0,
         heading: heading || 0,
         accuracy: accuracy,
+        isInGeofence,
+        distance
       });
     });
 
