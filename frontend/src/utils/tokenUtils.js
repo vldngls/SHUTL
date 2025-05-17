@@ -1,17 +1,28 @@
 export const getTokenFromCookies = () => {
     try {
-        const cookies = document.cookie.split(';');
-        const tokenCookie = cookies.find(cookie => cookie.trim().startsWith('token='));
-        if (tokenCookie) {
-            const token = tokenCookie.split('=')[1].trim();
-            if (!token) {
-                console.error('Token is empty');
-                return null;
-            }
-            return token;
+        const cookies = document.cookie;
+        if (!cookies) {
+            console.warn('No cookies found');
+            return null;
         }
-        console.error('No token cookie found');
-        return null;
+
+        const tokenCookie = cookies
+            .split(';')
+            .map(cookie => cookie.trim())
+            .find(cookie => cookie.startsWith('token='));
+
+        if (!tokenCookie) {
+            console.warn('No token cookie found');
+            return null;
+        }
+
+        const token = tokenCookie.split('=')[1];
+        if (!token) {
+            console.warn('Empty token found');
+            return null;
+        }
+
+        return token;
     } catch (error) {
         console.error('Error getting token from cookies:', error);
         return null;
@@ -156,10 +167,12 @@ export const refreshToken = async () => {
 export const setTokenInCookies = (token) => {
     try {
         if (!token) {
-            console.error('Cannot set empty token');
+            console.warn('Attempted to set empty token');
             return false;
         }
-        document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax; Secure`;
+
+        // Set token with secure and httpOnly flags
+        document.cookie = `token=${token}; path=/; secure; samesite=strict`;
         return true;
     } catch (error) {
         console.error('Error setting token in cookies:', error);
@@ -169,7 +182,7 @@ export const setTokenInCookies = (token) => {
 
 export const removeTokenFromCookies = () => {
     try {
-        document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax; Secure';
+        document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure; samesite=strict';
         return true;
     } catch (error) {
         console.error('Error removing token from cookies:', error);

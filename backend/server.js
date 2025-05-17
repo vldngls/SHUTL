@@ -167,7 +167,7 @@ app.use("/api/shuttle-trips", shuttleTripRoutes);
 app.use("/api/issues", issueRoutes);
 app.use('/api/auth', authRoutes);
 app.get("/api", (req, res) => {
-  res.json({ message: "API is working!" });
+  res.json({ message: "Hi! Why are you here?" });
 });
 
 // Catch-all route for client-side routing
