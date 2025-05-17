@@ -337,9 +337,9 @@ const ShutlLoggedIn = () => {
         
         // If raw speed is 0 (or very close to 0), increase alpha to allow quicker transition to zero
         if (speed < 0.5) {
-          // Use higher alpha (0.6) to transition to zero more quickly when stopped
+          // Use higher alpha (0.8) to transition to zero more quickly when stopped
           smoothedSpeed = prevShuttle 
-            ? prevShuttle.speed * 0.4 + speed * 0.6
+            ? prevShuttle.speed * 0.2 + speed * 0.8
             : speed;
             
           // If smoothed speed is very low, just snap to zero to ensure vehicles can be fully stationary
@@ -347,8 +347,8 @@ const ShutlLoggedIn = () => {
             smoothedSpeed = 0;
           }
         } else {
-          // Normal smoothing for non-zero speeds (0.3 = 30% new, 70% previous)
-          const SMOOTHING_ALPHA = 0.3;
+          // Normal smoothing for non-zero speeds (0.5 = 50% new, 50% previous)
+          const SMOOTHING_ALPHA = 0.5;
           smoothedSpeed = prevShuttle 
             ? prevShuttle.speed * (1 - SMOOTHING_ALPHA) + speed * SMOOTHING_ALPHA
             : speed;
