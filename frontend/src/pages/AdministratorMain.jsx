@@ -111,8 +111,8 @@ const AdministratorMain = () => {
         const notificationCleanup = await subscribeToEvent(
           "new_notification",
           (notification) => {
-            // Check if this notification is for this user type (Administrator)
-            if (notification.recipientType !== "Administrator") return;
+            // Check if this notification is for this user type (Administrator) or All
+            if (notification.recipientType !== "Administrator" && notification.recipientType !== "All") return;
 
             // Format the notification to match the expected structure
             const formattedNotification = {

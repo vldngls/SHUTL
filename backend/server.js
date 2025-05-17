@@ -131,9 +131,15 @@ const io = new Server(server, {
 // Setup socket handlers
 setupSocket(io);
 
-// Broadcast notification to all connected clients
+// Broadcast notification to specific user types
 export const broadcastNotification = (message) => {
-  io.emit('notification', message);
+  if (message.recipientType === "All") {
+    // Broadcast to all connected clients
+    io.emit('notification', message);
+  } else {
+    // Broadcast only to specific user type
+    io.to(message.recipientType).emit('notification', message);
+  }
 };
 
 app.use("/api/users", userRoutes);

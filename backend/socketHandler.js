@@ -276,14 +276,14 @@ const setupSocket = (io, db) => {
         let recipientCount = 0;
         connectedSockets.forEach((connectedSocket) => {
           const socketUserType = connectedSocket.userType || connectedSocket.handshake?.auth?.userType;
-          if (socketUserType === data.recipientType) {
+          
+          // If recipientType is "All", send to everyone
+          // Otherwise, only send to matching user types
+          if (data.recipientType === "All" || socketUserType === data.recipientType) {
             recipientCount++;
             connectedSocket.emit("new_notification", notificationData);
           }
         });
-
-        // Also emit back to sender
-        socket.emit("new_notification", notificationData);
 
         // Log notification delivery for debugging
         console.log(`Notification sent to ${recipientCount} recipients of type ${data.recipientType}`);
