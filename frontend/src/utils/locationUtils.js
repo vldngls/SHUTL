@@ -99,9 +99,9 @@ export const getShuttleStatus = (speed, coordinates, isMoving) => {
   if (speed < 0.8) {
     // Only show "At Terminal" if ALL conditions are met:
     // 1. The shuttle is stationary (speed < 0.8)
-    // 2. The shuttle is within the geofence
+    // 2. The shuttle is within the geofence (from driver's calculation)
     // 3. The shuttle is not moving
-    // 4. The distance is less than the geofence radius
+    // 4. The distance is less than the geofence radius (from driver's calculation)
     if (coordinates && isInGeofence && !isMoving && distance <= TERMINAL_COORDINATES.radius) {
       console.log("Shuttle is at terminal - all conditions met");
       return "At Terminal";
@@ -197,17 +197,10 @@ export const processShuttleLocationUpdate = (data, prevShuttle) => {
   // Compare speed with previous speed to detect movement
   const isMoving = isShuttleMoving(smoothedSpeed, prevShuttle?.speed);
   
-  // Check geofence status
-  const isInGeofence = data.coordinates ? isWithinTerminalGeofence(data.coordinates) : false;
+  // Use the geofence status from the received data
+  const isInGeofence = data.isInGeofence || false;
   const wasInGeofence = prevShuttle?.isInGeofence || false;
-  
-  // Calculate distance to terminal
-  const distance = data.coordinates ? calculateDistance(
-    data.coordinates[0],
-    data.coordinates[1],
-    TERMINAL_COORDINATES.lat,
-    TERMINAL_COORDINATES.lng
-  ) * 1000 : null; // Convert to meters
+  const distance = data.distance || null;
   
   // Calculate status based on location and movement
   const status = isExplicitlyOffline 

@@ -356,13 +356,24 @@ export const sendLocation = async (locationData) => {
   try {
     const socketInstance = await connectSocket();
 
+    // Calculate geofence status on the driver's side
+    const isInGeofence = locationData.coordinates ? isWithinTerminalGeofence(locationData.coordinates) : false;
+    const distance = locationData.coordinates ? calculateDistance(
+      locationData.coordinates[0],
+      locationData.coordinates[1],
+      TERMINAL_COORDINATES.lat,
+      TERMINAL_COORDINATES.lng
+    ) * 1000 : null; // Convert to meters
+
     // Ensure timestamp is included and speed is at root level
     const sendData = {
       ...locationData,
       timestamp: locationData.timestamp || new Date().toISOString(),
       speed: locationData.speed || locationData.metadata?.speed || 0,
       heading: locationData.heading || locationData.metadata?.heading || 0,
-      accuracy: locationData.accuracy || locationData.metadata?.accuracy || 0
+      accuracy: locationData.accuracy || locationData.metadata?.accuracy || 0,
+      isInGeofence,
+      distance
     };
 
     console.log("Websocket sending location data:", {
@@ -371,6 +382,8 @@ export const sendLocation = async (locationData) => {
       speed: sendData.speed,
       heading: sendData.heading,
       timestamp: sendData.timestamp,
+      isInGeofence,
+      distance
     });
 
     socketInstance.emit("shuttle_location", sendData);
