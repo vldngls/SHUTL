@@ -97,14 +97,17 @@ export const getShuttleStatus = (speed, coordinates, isMoving) => {
   
   // Stationary shuttle - check if it's at the terminal
   if (speed < 0.8) {
-    // Only show "At Terminal" if:
+    // Only show "At Terminal" if ALL conditions are met:
     // 1. The shuttle is stationary (speed < 0.8)
     // 2. The shuttle is within the geofence
     // 3. The shuttle is not moving
-    if (coordinates && isInGeofence && !isMoving) {
+    // 4. The distance is less than the geofence radius
+    if (coordinates && isInGeofence && !isMoving && distance <= TERMINAL_COORDINATES.radius) {
+      console.log("Shuttle is at terminal - all conditions met");
       return "At Terminal";
     }
     // If stationary but not at terminal, show "Stationary"
+    console.log("Shuttle is stationary but not at terminal");
     return "Stationary";
   }
   
@@ -154,7 +157,25 @@ export const isShuttleMoving = (speed, previousSpeed) => {
     return speed > 3;
   }
   
-  return speed > 3 || Math.abs(speed - previousSpeed) > 1;
+  // A shuttle is considered moving if:
+  // 1. Current speed is above threshold (3 km/h)
+  // 2. OR there's a significant change in speed (> 1 km/h)
+  // 3. AND the speed is not very close to zero (< 0.8 km/h)
+  const isMoving = (speed > 3 || Math.abs(speed - previousSpeed) > 1) && speed >= 0.8;
+  
+  console.log("Movement check:", {
+    speed,
+    previousSpeed,
+    speedDiff: Math.abs(speed - previousSpeed),
+    isMoving,
+    conditions: {
+      aboveThreshold: speed > 3,
+      significantChange: Math.abs(speed - previousSpeed) > 1,
+      notStationary: speed >= 0.8
+    }
+  });
+  
+  return isMoving;
 };
 
 /**
@@ -180,6 +201,14 @@ export const processShuttleLocationUpdate = (data, prevShuttle) => {
   const isInGeofence = data.coordinates ? isWithinTerminalGeofence(data.coordinates) : false;
   const wasInGeofence = prevShuttle?.isInGeofence || false;
   
+  // Calculate distance to terminal
+  const distance = data.coordinates ? calculateDistance(
+    data.coordinates[0],
+    data.coordinates[1],
+    TERMINAL_COORDINATES.lat,
+    TERMINAL_COORDINATES.lng
+  ) * 1000 : null; // Convert to meters
+  
   // Calculate status based on location and movement
   const status = isExplicitlyOffline 
     ? "offline" 
@@ -192,10 +221,23 @@ export const processShuttleLocationUpdate = (data, prevShuttle) => {
     isMoving,
     status,
     isInGeofence,
+    distance,
     lastUpdate: new Date().toISOString(),
     geofenceStatusChanged: isInGeofence !== wasInGeofence,
     geofenceEvent: isInGeofence !== wasInGeofence ? (isInGeofence ? 'arrived' : 'departed') : null
   };
+
+  console.log("Processed shuttle update:", {
+    shuttleId: data.shuttleId,
+    rawSpeed,
+    smoothedSpeed,
+    isMoving,
+    isInGeofence,
+    distance,
+    status,
+    geofenceStatusChanged: updatedShuttle.geofenceStatusChanged,
+    geofenceEvent: updatedShuttle.geofenceEvent
+  });
 
   return updatedShuttle;
 };
