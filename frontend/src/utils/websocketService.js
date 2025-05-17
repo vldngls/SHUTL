@@ -413,12 +413,14 @@ export const subscribeToLocationUpdates = async (callback) => {
     socketInstance.on("shuttle_location", (data) => {
       console.log("Received shuttle_location:", data);
       if (data && data.coordinates) {
-        // Ensure speed and heading are at the root level
+        // Ensure speed and heading are at the root level, and preserve geofence data
         const processedData = {
           ...data,
           speed: data.speed || data.metadata?.speed || 0,
           heading: data.heading || data.metadata?.heading || 0,
-          accuracy: data.accuracy || data.metadata?.accuracy || 0
+          accuracy: data.accuracy || data.metadata?.accuracy || 0,
+          isInGeofence: data.isInGeofence || false,
+          distance: data.distance || null
         };
         console.log("Processed location data:", processedData);
         callback(processedData);
@@ -428,12 +430,14 @@ export const subscribeToLocationUpdates = async (callback) => {
     socketInstance.on("shuttle_location_update", (data) => {
       console.log("Received shuttle_location_update:", data);
       if (data && data.coordinates) {
-        // Ensure speed and heading are at the root level
+        // Ensure speed and heading are at the root level, and preserve geofence data
         const processedData = {
           ...data,
           speed: data.speed || data.metadata?.speed || 0,
           heading: data.heading || data.metadata?.heading || 0,
-          accuracy: data.accuracy || data.metadata?.accuracy || 0
+          accuracy: data.accuracy || data.metadata?.accuracy || 0,
+          isInGeofence: data.isInGeofence || false,
+          distance: data.distance || null
         };
         console.log("Processed location data:", processedData);
         callback(processedData);
