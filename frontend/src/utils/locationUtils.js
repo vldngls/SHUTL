@@ -217,9 +217,25 @@ export const processShuttleLocationUpdate = (data, prevShuttle) => {
   const distance = data.distance || null;
   
   // Calculate status based on location and movement
-  const status = isExplicitlyOffline 
-    ? "offline" 
-    : getShuttleStatus(smoothedSpeed, data.coordinates, isMoving);
+  let status;
+  if (isExplicitlyOffline) {
+    status = "offline";
+  } else if (isInGeofence) {
+    // Only check geofence status for "At Terminal"
+    status = "At Terminal";
+  } else if (smoothedSpeed < 0.8 && !isMoving) {
+    status = "Stationary";
+  } else if (isMoving) {
+    if (smoothedSpeed < 5) status = "Slow Traffic";
+    else if (smoothedSpeed < 15) status = "Normal";
+    else if (smoothedSpeed < 30) status = "Fast";
+    else status = "High Speed";
+  } else {
+    if (smoothedSpeed < 5) status = "Slow Traffic";
+    else if (smoothedSpeed < 15) status = "Normal";
+    else if (smoothedSpeed < 30) status = "Fast";
+    else status = "High Speed";
+  }
   
   // Create the updated shuttle data
   const updatedShuttle = {
@@ -245,7 +261,6 @@ export const processShuttleLocationUpdate = (data, prevShuttle) => {
     geofenceStatusChanged: updatedShuttle.geofenceStatusChanged,
     geofenceEvent: updatedShuttle.geofenceEvent,
     conditions: {
-      isStationary: smoothedSpeed < 0.8,
       isInGeofence,
       isMoving,
       distanceCheck: distance <= TERMINAL_COORDINATES.radius

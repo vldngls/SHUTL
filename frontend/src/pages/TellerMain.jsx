@@ -791,7 +791,7 @@ const TellerMain = () => {
               const speed = data.speed || 0;
               const isOffline = data.status === 'offline';
               const isMoving = data.isMoving || speed > 3;
-              const isInGeofence = data.coordinates && isWithinTerminalGeofence(data.coordinates);
+              const isInGeofence = data.isInGeofence || false;
               const isStationary = !isMoving && speed < 0.8;
               
               // Debug logging
@@ -801,12 +801,7 @@ const TellerMain = () => {
                 isMoving,
                 isInGeofence,
                 isStationary,
-                distance: data.coordinates ? calculateDistance(
-                  data.coordinates[0],
-                  data.coordinates[1],
-                  TERMINAL_COORDINATES.lat,
-                  TERMINAL_COORDINATES.lng
-                ) * 1000 : null, // Convert to meters for easier reading
+                distance: data.distance,
                 processedStatus: data.status,
                 conditions: {
                   isOffline,
@@ -816,11 +811,8 @@ const TellerMain = () => {
                 }
               });
 
-              // Use the processed status from locationUtils
-              const status = data.status || (isOffline ? 'Offline' : 
-                            (isStationary && isInGeofence && !isMoving) ? 'At Terminal' :
-                            isStationary ? 'Stationary' :
-                            getTrafficCondition(speed).status);
+              // Use the processed status directly from the data
+              const status = data.status;
               const trafficCondition = getTrafficCondition(speed);
 
               return (
