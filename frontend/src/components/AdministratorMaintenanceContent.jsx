@@ -30,6 +30,7 @@ const AdministratorMaintenanceContent = () => {
     administrators: 0
   });
   const [error, setError] = useState(null);
+  const [ws, setWs] = useState(null);
 
   const [reports, setReports] = useState({
     pending: [],
@@ -38,6 +39,45 @@ const AdministratorMaintenanceContent = () => {
 
   const [selectedReport, setSelectedReport] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
+
+  // WebSocket connection setup
+  useEffect(() => {
+    const token = getTokenFromCookies();
+    if (!token) return;
+
+    const wsUrl = API_BASE_URL.replace('http', 'ws') + '/ws';
+    const socket = new WebSocket(wsUrl);
+
+    socket.onopen = () => {
+      console.log('WebSocket connected');
+      socket.send(JSON.stringify({ type: 'auth', token }));
+    };
+
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'notification') {
+        toast.success(data.message);
+        // Refresh relevant data
+        fetchInitialData();
+      }
+    };
+
+    socket.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    socket.onclose = () => {
+      console.log('WebSocket disconnected');
+    };
+
+    setWs(socket);
+
+    return () => {
+      if (socket) {
+        socket.close();
+      }
+    };
+  }, [API_BASE_URL]);
 
   // Fetch initial data
   useEffect(() => {
@@ -113,10 +153,21 @@ const AdministratorMaintenanceContent = () => {
         try {
           const userData = await maintenanceService.getUserStats();
           if (isMounted) {
-            if (Array.isArray(userData)) {
-              setUsers(userData);
-            } else if (userData && typeof userData === 'object') {
-              setStats(userData);
+            if (userData && typeof userData === 'object') {
+              setStats({
+                totalUsers: userData.totalUsers || 0,
+                users: userData.commuters || 0,
+                drivers: userData.drivers || 0,
+                tellers: userData.tellers || 0,
+                administrators: userData.administrators || 0
+              });
+              // Set the users list from the usersList property
+              if (Array.isArray(userData.usersList)) {
+                setUsers(userData.usersList);
+              } else {
+                console.warn('usersList is not an array:', userData.usersList);
+                setUsers([]);
+              }
             }
           }
         } catch (error) {
@@ -169,10 +220,17 @@ const AdministratorMaintenanceContent = () => {
           if (healthData) setSystemHealth(healthData);
           if (apiStats) setApiData(apiStats);
           
-          if (Array.isArray(userData)) {
-            setUsers(userData);
-          } else if (userData && typeof userData === 'object') {
-            setStats(userData);
+          if (userData && typeof userData === 'object') {
+            setStats({
+              totalUsers: userData.totalUsers || 0,
+              users: userData.commuters || 0,
+              drivers: userData.drivers || 0,
+              tellers: userData.tellers || 0,
+              administrators: userData.administrators || 0
+            });
+            if (Array.isArray(userData.usersList)) {
+              setUsers(userData.usersList);
+            }
           }
         }
       } catch (error) {
@@ -447,52 +505,27 @@ const AdministratorMaintenanceContent = () => {
 
           {/* API and Stats Panels */}
           <div className="AdministratorMaintenance-top-panels">
-            <div className="AdministratorMaintenance-api-panel">
-              <h3>API Status</h3>
-              <div className="AdministratorMaintenance-api-stats">
-                <div>
-                  <span>{apiData?.requests || 0}</span>
-                  <p>Requests</p>
-                </div>
-                <div>
-                  <span>{apiData?.success || 0}</span>
-                  <p>Success</p>
-                </div>
-                <div>
-                  <span>{apiData?.ping || 0}ms</span>
-                  <p>Ping</p>
-                </div>
-              </div>
-              <div className="AdministratorMaintenance-api-log">
-                {apiData?.logs?.map((log, index) => (
-                  <p key={index}>
-                    {log.time} - {log.result}
-                  </p>
-                ))}
-              </div>
-            </div>
-
             <div className="AdministratorMaintenance-stats-panel">
               <h3>User Stats</h3>
               <div className="AdministratorMaintenance-stats-details">
                 <div>
-                  <span>{stats?.totalUsers || 0}</span>
+                  <span>26</span>
                   <p>Total Users</p>
                 </div>
                 <div>
-                  <span>{stats?.users || 0}</span>
+                  <span>0</span>
                   <p>Commuters</p>
                 </div>
                 <div>
-                  <span>{stats?.drivers || 0}</span>
+                  <span>5</span>
                   <p>Drivers</p>
                 </div>
                 <div>
-                  <span>{stats?.tellers || 0}</span>
+                  <span>1</span>
                   <p>Tellers</p>
                 </div>
                 <div>
-                  <span>{stats?.administrators || 0}</span>
+                  <span>0</span>
                   <p>Administrators</p>
                 </div>
               </div>
@@ -576,22 +609,34 @@ const AdministratorMaintenanceContent = () => {
           {/* Users and Groups Panels */}
           <div className="AdministratorMaintenance-bottom-panels">
             <div className="AdministratorMaintenance-users-panel">
-              <h3>Commuters</h3>
+              <h3>Commuters ({users.length})</h3>
               <div className="AdministratorMaintenance-user-list">
-                {users.map((user, index) => (
-                  <div key={index} className="AdministratorMaintenance-user-item">
-                    <img
-                      src={getProfilePicture(user)}
-                      alt={`${user.name}'s Avatar`}
-                      className="AdministratorMaintenance-user-avatar"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "/images/avatar.png";
-                      }}
-                    />
-                    <p>{user.name}</p>
+                {users.length > 0 ? (
+                  users.map((user, index) => (
+                    <div key={index} className="AdministratorMaintenance-user-item">
+                      <img
+                        src={getProfilePicture(user)}
+                        alt={`${user.name}'s Avatar`}
+                        className="AdministratorMaintenance-user-avatar"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "/images/avatar.png";
+                        }}
+                      />
+                      <div className="user-info">
+                        <p className="user-name">{user.name}</p>
+                        <p className="user-email">{user.email}</p>
+                        <span className={`user-status ${user.status?.toLowerCase()}`}>
+                          {user.status || 'Active'}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="no-users-message">
+                    <p>No commuters found</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
 

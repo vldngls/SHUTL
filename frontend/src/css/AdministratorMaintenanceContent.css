@@ -59,7 +59,7 @@
 /* Top Panels Layout */
 .AdministratorMaintenance-top-panels {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
 
@@ -109,6 +109,7 @@
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  grid-column: span 2;
 }
 
 .AdministratorMaintenance-stats-details {
@@ -338,32 +339,107 @@
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.AdministratorMaintenance-users-panel h3 {
+  margin-bottom: 15px;
+  color: #333;
+  font-size: 1.2em;
 }
 
 .AdministratorMaintenance-user-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 15px;
-  margin-top: 15px;
-  max-height: 300px;
+  flex: 1;
   overflow-y: auto;
+  padding-right: 10px;
 }
 
 .AdministratorMaintenance-user-item {
   display: flex;
-  flex-direction: column;
   align-items: center;
   padding: 10px;
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.2s;
+}
+
+.AdministratorMaintenance-user-item:hover {
   background-color: #f8f9fa;
-  border-radius: 5px;
-  text-align: center;
 }
 
 .AdministratorMaintenance-user-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  margin-bottom: 5px;
+  margin-right: 15px;
+  object-fit: cover;
+}
+
+.user-info {
+  flex: 1;
+}
+
+.user-name {
+  font-weight: 500;
+  margin: 0;
+  color: #333;
+}
+
+.user-email {
+  font-size: 0.9em;
+  color: #666;
+  margin: 2px 0;
+}
+
+.user-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: 500;
+}
+
+.user-status.active {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.user-status.inactive {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.user-status.pending {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.no-users-message {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-style: italic;
+}
+
+/* Scrollbar styling */
+.AdministratorMaintenance-user-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.AdministratorMaintenance-user-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.AdministratorMaintenance-user-list::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.AdministratorMaintenance-user-list::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 /* Group Panel */

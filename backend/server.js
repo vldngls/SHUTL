@@ -8,6 +8,8 @@ import cors from "cors";
 import { Server } from "socket.io";
 import http from "http";
 import mongoose from "mongoose";
+import { WebSocketServer } from 'ws';
+import jwt from 'jsonwebtoken';
 
 import connectDB from "./config/db.js";
 import fareRoutes from "./routes/fareRoutes.js";
@@ -31,6 +33,7 @@ import routeRoutes from "./routes/routesRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import shuttleTripRoutes from "./routes/shuttleTripRoutes.js";
 import issueRoutes from "./routes/issueRoutes.js";
+import authRoutes from './routes/authRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,6 +52,7 @@ global.shuttleLocations = {};
 
 const app = express();
 const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -90,6 +94,56 @@ app.use((req, res, next) => {
   next();
 });
 
+// WebSocket connection handling
+const clients = new Map();
+
+wss.on('connection', (ws, req) => {
+  console.log('New WebSocket connection');
+
+  ws.on('message', async (message) => {
+    try {
+      const data = JSON.parse(message);
+      
+      if (data.type === 'auth') {
+        const token = data.token;
+        if (!token) {
+          ws.send(JSON.stringify({ type: 'error', message: 'No token provided' }));
+          return;
+        }
+
+        try {
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          clients.set(ws, decoded);
+          ws.send(JSON.stringify({ type: 'auth', status: 'success' }));
+        } catch (error) {
+          console.error('WebSocket auth error:', error);
+          ws.send(JSON.stringify({ type: 'error', message: 'Invalid token' }));
+          ws.close();
+        }
+      }
+    } catch (error) {
+      console.error('WebSocket message error:', error);
+      ws.send(JSON.stringify({ type: 'error', message: 'Invalid message format' }));
+    }
+  });
+
+  ws.on('close', () => {
+    clients.delete(ws);
+  });
+});
+
+// Broadcast notification to all connected clients
+export const broadcastNotification = (message) => {
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify({
+        type: 'notification',
+        message: message
+      }));
+    }
+  });
+};
+
 app.use("/api/users", userRoutes);
 app.use("/api/userdata", userDataRoutes);
 app.use("/api/shuttle", shuttleRoutes);
@@ -111,6 +165,7 @@ app.use("/api/routes", routeRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/shuttle-trips", shuttleTripRoutes);
 app.use("/api/issues", issueRoutes);
+app.use('/api/auth', authRoutes);
 app.get("/api", (req, res) => {
   res.json({ message: "API is working!" });
 });

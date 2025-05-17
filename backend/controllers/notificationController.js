@@ -1,6 +1,7 @@
 // backend/controllers/notificationController.js
 import Notification from "../models/notification.model.js";
-import { io } from "../server.js"; // Import Socket.io instance
+import User from "../models/user.model.js";
+import { broadcastNotification } from "../server.js";
 
 // Valid recipient types
 const VALID_RECIPIENT_TYPES = ["Commuter", "Driver", "Teller", "Administrator", "All"];
@@ -27,17 +28,17 @@ export const sendNotification = async (req, res) => {
     // Emit the notification to specific rooms based on recipient type
     if (recipientType === "All") {
       // Broadcast to all connected clients
-      io.emit("new_notification", {
+      broadcastNotification({
         message,
         recipientType,
-        createdAt: notification.createdAt,
+        timestamp: notification.createdAt
       });
     } else {
       // Emit to specific user type room
-      io.to(recipientType.toLowerCase()).emit("new_notification", {
+      broadcastNotification({
         message,
         recipientType,
-        createdAt: notification.createdAt,
+        timestamp: notification.createdAt
       });
     }
 
@@ -51,17 +52,37 @@ export const sendNotification = async (req, res) => {
 // Fetch notifications based on user's type
 export const getNotifications = async (req, res) => {
   try {
-    const userType = req.user.userType;
-    const notifications = await Notification.find({
-      $or: [
-        { recipientType: userType },
-        { recipientType: "All" }
-      ]
-    }).sort({ createdAt: -1 });
-
-    res.status(200).json(notifications);
+    const { recipientType } = req.query;
+    const query = recipientType ? { recipientType } : {};
+    
+    const notifications = await Notification.find(query)
+      .sort({ createdAt: -1 })
+      .limit(50);
+    
+    res.json(notifications);
   } catch (error) {
-    console.error("Failed to fetch notifications:", error);
-    res.status(500).json({ error: "Failed to fetch notifications" });
+    console.error('Error fetching notifications:', error);
+    res.status(500).json({ error: 'Failed to fetch notifications' });
+  }
+};
+
+export const markNotificationAsRead = async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+    
+    const notification = await Notification.findByIdAndUpdate(
+      notificationId,
+      { read: true },
+      { new: true }
+    );
+    
+    if (!notification) {
+      return res.status(404).json({ error: 'Notification not found' });
+    }
+    
+    res.json(notification);
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    res.status(500).json({ error: 'Failed to mark notification as read' });
   }
 };
