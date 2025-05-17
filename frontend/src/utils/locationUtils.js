@@ -64,17 +64,27 @@ export const getShuttleStatus = (speed, coordinates, isMoving) => {
   if (speed === undefined || speed === null) return "Offline";
   
   // Debug logging
+  const distance = coordinates ? calculateDistance(
+    coordinates[0],
+    coordinates[1],
+    TERMINAL_COORDINATES.lat,
+    TERMINAL_COORDINATES.lng
+  ) * 1000 : null; // Convert to meters for easier reading
+  
+  const isInGeofence = coordinates ? isWithinTerminalGeofence(coordinates) : false;
+  
   console.log("Shuttle status check:", {
     speed,
     coordinates,
     isMoving,
-    distance: coordinates ? calculateDistance(
-      coordinates[0],
-      coordinates[1],
-      TERMINAL_COORDINATES.lat,
-      TERMINAL_COORDINATES.lng
-    ) * 1000 : null, // Convert to meters for easier reading
-    isInGeofence: coordinates ? isWithinTerminalGeofence(coordinates) : false
+    distance,
+    isInGeofence,
+    speedThreshold: speed < 0.8,
+    conditions: {
+      isStationary: speed < 0.8,
+      isInGeofence,
+      isMoving
+    }
   });
   
   // If moving, determine the traffic condition based on speed
@@ -87,8 +97,11 @@ export const getShuttleStatus = (speed, coordinates, isMoving) => {
   
   // Stationary shuttle - check if it's at the terminal
   if (speed < 0.8) {
-    // Only show "At Terminal" if both stationary AND within geofence
-    if (coordinates && isWithinTerminalGeofence(coordinates)) {
+    // Only show "At Terminal" if:
+    // 1. The shuttle is stationary (speed < 0.8)
+    // 2. The shuttle is within the geofence
+    // 3. The shuttle is not moving
+    if (coordinates && isInGeofence && !isMoving) {
       return "At Terminal";
     }
     // If stationary but not at terminal, show "Stationary"
@@ -163,24 +176,28 @@ export const processShuttleLocationUpdate = (data, prevShuttle) => {
   // Compare speed with previous speed to detect movement
   const isMoving = isShuttleMoving(smoothedSpeed, prevShuttle?.speed);
   
+  // Check geofence status
+  const isInGeofence = data.coordinates ? isWithinTerminalGeofence(data.coordinates) : false;
+  const wasInGeofence = prevShuttle?.isInGeofence || false;
+  
   // Calculate status based on location and movement
   const status = isExplicitlyOffline 
     ? "offline" 
     : getShuttleStatus(smoothedSpeed, data.coordinates, isMoving);
   
-  return {
-    coordinates: data.coordinates,
-    timestamp: data.timestamp || new Date().toISOString(),
-    lastUpdate: new Date(),
-    metadata: data.metadata || {},
-    rawSpeed: rawSpeed,
+  // Create the updated shuttle data
+  const updatedShuttle = {
+    ...data,
     speed: smoothedSpeed,
-    heading: heading,
-    accuracy: accuracy,
-    isExplicitlyOffline: isExplicitlyOffline,
-    isMoving: isMoving,
-    status: status
+    isMoving,
+    status,
+    isInGeofence,
+    lastUpdate: new Date().toISOString(),
+    geofenceStatusChanged: isInGeofence !== wasInGeofence,
+    geofenceEvent: isInGeofence !== wasInGeofence ? (isInGeofence ? 'arrived' : 'departed') : null
   };
+
+  return updatedShuttle;
 };
 
 // Predefined locations for the service area

@@ -797,8 +797,8 @@ const DriverMain = () => {
 
         if (isCurrentlyInGeofence !== lastGeofenceStatus.current) {
           const message = isCurrentlyInGeofence
-            ? `SHUTL. ${currentShuttleId} has arrived in SOMO - A VistaMall`
-            : `SHUTL. ${currentShuttleId} has departed SOMO - A VistaMall`;
+            ? `SHUTL ${currentShuttleId} has arrived at SOMO - A VistaMall`
+            : `SHUTL ${currentShuttleId} has departed from SOMO - A VistaMall`;
 
           console.log("Geofence status changed, sending notification:", message);
 
@@ -807,7 +807,11 @@ const DriverMain = () => {
             console.log("Sending geofence notification:", message);
             socket.current.emit("send_notification", {
               message,
-              recipientType: "Commuter"
+              recipientType: "All", // Send to all user types
+              type: "geofence",
+              shuttleId: currentShuttleId,
+              event: isCurrentlyInGeofence ? 'arrived' : 'departed',
+              timestamp: new Date().toISOString()
             });
           }
           
@@ -815,7 +819,10 @@ const DriverMain = () => {
           const notification = {
             message,
             createdAt: new Date().toISOString(),
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            type: "geofence",
+            shuttleId: currentShuttleId,
+            event: isCurrentlyInGeofence ? 'arrived' : 'departed'
           };
           
           setNotifications(prev => {
@@ -846,7 +853,8 @@ const DriverMain = () => {
               speed,
               heading,
               accuracy,
-              status
+              status,
+              isInGeofence: isCurrentlyInGeofence
             },
             timestamp: new Date().toISOString(),
             isMoving: isMoving

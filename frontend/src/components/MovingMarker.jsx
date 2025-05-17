@@ -87,13 +87,22 @@ const MovingMarker = ({ position, icon, eventHandlers, children, speed = 0, isOf
       iconElement.style.animation = 'none';
       iconElement.style.opacity = '1.0';
       
+      // Debug logging for visual effects
+      console.log("Applying visual effects:", {
+        status,
+        isOffline,
+        isStationary,
+        speed,
+        position
+      });
+      
       // Apply specific styles based on status
       if (isOffline) {
         // Offline shuttles appear grayscale
         iconElement.style.filter = 'grayscale(100%)';
         iconElement.style.opacity = '0.6';
-      } else if (status === 'At Terminal') {
-        // At Terminal shuttles get a green tint
+      } else if (status === 'At Terminal' && isStationary) {
+        // At Terminal shuttles get a green tint ONLY if they're actually stationary
         iconElement.style.filter = 'hue-rotate(90deg) saturate(1.2)';
         iconElement.style.opacity = '0.9';
       } else if (isStationary) {

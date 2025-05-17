@@ -221,67 +221,58 @@ const TellerMain = () => {
           "new_notification",
           (notification) => {
             if (!isComponentMounted) return;
-            // Check if this notification is for this user type (Teller)
-            if (notification.recipientType !== "Teller") return;
+            
+            // Check if this is a geofence notification
+            if (notification.type === "geofence") {
+              // Add notification to state
+              setNotifications(prev => {
+                const updatedNotifications = [notification, ...prev];
+                return updatedNotifications.slice(0, 5); // Keep only 5 most recent
+              });
 
-            // Format the notification to match the expected structure
-            const formattedNotification = {
-              message: notification.message,
-              createdAt: notification.createdAt || new Date().toISOString(),
-              timestamp: notification.timestamp || Date.now()
-            };
-
-            // Always update the notifications array regardless of enabled state
-            setNotifications((prev) => {
-              const updatedNotifications = [formattedNotification, ...prev];
-              return updatedNotifications.slice(0, 5); // Keep only 5 most recent
-            });
-
-            // Show notification popup and toast for emergency alerts
-            if (notification.message.includes("EMERGENCY ALERT")) {
+              // Show notification popup
               setActivePopup("notifications");
-              // Show emergency toast notification
-              toast.error(notification.message, {
-                position: "top-center",
-                autoClose: false,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
+
+              // Show toast notification with appropriate styling
+              toast(notification.message, {
+                icon: "🚌",
+                duration: 5000,
+                position: "bottom-center",
                 style: {
-                  background: "#ff4444",
+                  background: notification.event === 'arrived' ? "#4CAF50" : "#FFA500",
                   color: "white",
-                  fontWeight: "bold",
                 },
               });
-              // Don't auto-hide emergency alerts
-              return;
-            }
 
-            // For non-emergency notifications, respect the notificationEnabled setting
-            if (notificationEnabled) {
-              setActivePopup("notifications");
-              // Show regular toast notification
-              toast(notification.message, {
-                position: "bottom-center",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-              });
-
-              // Auto-hide after 5 seconds
+              // Auto-hide notification popup after 5 seconds
               setTimeout(() => {
                 if (isComponentMounted) {
-                  setActivePopup((current) =>
-                    current === "notifications" ? null : current
-                  );
+                  setActivePopup(current => current === "notifications" ? null : current);
                 }
               }, 5000);
+            } else {
+              // Handle other types of notifications
+              if (notificationEnabled) {
+                setActivePopup("notifications");
+                toast(notification.message, {
+                  position: "bottom-center",
+                  autoClose: 5000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                });
+
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                  if (isComponentMounted) {
+                    setActivePopup(current => current === "notifications" ? null : current);
+                  }
+                }, 5000);
+              }
             }
           }
-        );
+        });
 
         // Only subscribe to location updates if location tracking is enabled
         if (locationEnabled) {
@@ -313,9 +304,50 @@ const TellerMain = () => {
             // Use the centralized function to process location update
             setShuttleLocations((prev) => {
               const prevShuttle = prev[data.shuttleId];
+              const updatedShuttle = processShuttleLocationUpdate(data, prevShuttle);
+              
+              // Handle geofence events
+              if (updatedShuttle.geofenceStatusChanged) {
+                const message = updatedShuttle.geofenceEvent === 'arrived'
+                  ? `SHUTL ${data.shuttleId} has arrived at SOMO - A VistaMall`
+                  : `SHUTL ${data.shuttleId} has departed from SOMO - A VistaMall`;
+                
+                // Add notification to state
+                setNotifications(prev => {
+                  const notification = {
+                    message,
+                    createdAt: new Date().toISOString(),
+                    timestamp: Date.now()
+                  };
+                  const updatedNotifications = [notification, ...prev];
+                  return updatedNotifications.slice(0, 5); // Keep only 5 most recent
+                });
+
+                // Show notification popup
+                setActivePopup("notifications");
+
+                // Show toast notification
+                toast(message, {
+                  icon: "🚌",
+                  duration: 5000,
+                  position: "bottom-center",
+                  style: {
+                    background: updatedShuttle.geofenceEvent === 'arrived' ? "#4CAF50" : "#FFA500",
+                    color: "white",
+                  },
+                });
+
+                // Auto-hide notification popup after 5 seconds
+                setTimeout(() => {
+                  if (isComponentMounted) {
+                    setActivePopup(current => current === "notifications" ? null : current);
+                  }
+                }, 5000);
+              }
+
               return {
                 ...prev,
-                [data.shuttleId]: processShuttleLocationUpdate(data, prevShuttle)
+                [data.shuttleId]: updatedShuttle
               };
             });
 
@@ -774,13 +806,19 @@ const TellerMain = () => {
                   data.coordinates[1],
                   TERMINAL_COORDINATES.lat,
                   TERMINAL_COORDINATES.lng
-                ) : null,
-                processedStatus: data.status
+                ) * 1000 : null, // Convert to meters for easier reading
+                processedStatus: data.status,
+                conditions: {
+                  isOffline,
+                  isStationary,
+                  isInGeofence,
+                  isMoving
+                }
               });
 
               // Use the processed status from locationUtils
               const status = data.status || (isOffline ? 'Offline' : 
-                            (isStationary && isInGeofence) ? 'At Terminal' :
+                            (isStationary && isInGeofence && !isMoving) ? 'At Terminal' :
                             isStationary ? 'Stationary' :
                             getTrafficCondition(speed).status);
               const trafficCondition = getTrafficCondition(speed);
