@@ -276,7 +276,7 @@ const ShutlLoggedIn = () => {
   }, [navigate]);
 
   // Helper function to determine shuttle status based on speed and location
-  const getShuttleStatus = (speed, coordinates, status, isMoving) => {
+  const getShuttleStatus = (speed, coordinates, status, isMoving, isInGeofence) => {
     // If the shuttle has a specific status from the optimization hook
     if (status === 'offline') return 'Offline';
     
@@ -297,7 +297,7 @@ const ShutlLoggedIn = () => {
     // Handle stationary status - if speed is 0 or very low and not moving
     if (status === 'stationary' || speed === 0 || speed < 0.8) {
       // Use the isInGeofence from the websocket data
-      if (data.isInGeofence && (speed === 0 || speed < 0.8)) {
+      if (isInGeofence && (speed === 0 || speed < 0.8)) {
         return 'At Terminal';
       }
       
@@ -989,7 +989,7 @@ const ShutlLoggedIn = () => {
             // A shuttle with speed > 3 km/h is definitely moving
             const isMoving = data.isMoving || (speed > 3);
             
-            const status = getShuttleStatus(speed, data.coordinates, data.status, isMoving);
+            const status = getShuttleStatus(speed, data.coordinates, data.status, isMoving, data.isInGeofence);
             const isOffline = data.status === 'offline';
             const isStationary = data.status === 'stationary' || status === 'Stationary';
 
