@@ -49,6 +49,7 @@ const AdministratorMain = () => {
   const socket = useRef(null);
   const cleanupFunctionsRef = useRef([]);
   const intervalsRef = useRef([]);
+  const [notificationEnabled, setNotificationEnabled] = useState(true);
 
   // Fetch Total & Active Users with memoized function
   const fetchUserCounts = useCallback(async () => {

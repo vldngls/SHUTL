@@ -413,8 +413,16 @@ const ShutlLoggedIn = () => {
 
         // Subscribe to real-time notifications
         const cleanup = await subscribeToEvent("new_notification", (notification) => {
-          // Check if this notification is for this user type (Commuter) or for all users
-          if (notification.recipientType !== "Commuter" && notification.recipientType !== "All") return;
+          // Log all incoming notifications for debugging
+          console.log("[ShutlLoggedIn] Incoming notification:", notification);
+
+          // Accept if it's for Commuter, All, or if it's a geofence notification (by type or message)
+          const isGeofence = notification.type === "geofence" || (notification.message && notification.message.includes("SOMO - A VistaMall"));
+          if (
+            notification.recipientType !== "Commuter" &&
+            notification.recipientType !== "All" &&
+            !isGeofence
+          ) return;
 
           // Format the notification to match the expected structure
           const formattedNotification = {
