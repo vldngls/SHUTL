@@ -413,8 +413,8 @@ const ShutlLoggedIn = () => {
 
         // Subscribe to real-time notifications
         const cleanup = await subscribeToEvent("new_notification", (notification) => {
-          // Check if this notification is for this user type (Commuter)
-          if (notification.recipientType !== "Commuter") return;
+          // Check if this notification is for this user type (Commuter) or for all users
+          if (notification.recipientType !== "Commuter" && notification.recipientType !== "All") return;
 
           // Format the notification to match the expected structure
           const formattedNotification = {
